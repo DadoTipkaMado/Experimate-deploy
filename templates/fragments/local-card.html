@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  LOCAL CARD FRAGMENT
+  ───────────────────
+  Reusable card used in: bottom-sheet, explore sidebar
+
+  Usage:
+    <div th:replace="~{fragments/local-card :: local-card(local=${local})}"></div>
+
+  Variables expected:
+    - local.name      String   "Ana Horvat"
+    - local.city      String   "Zagreb"
+    - local.tags      List     ["Food", "Art"]
+    - local.rating    Double   4.9
+    - local.emoji     String   "👩"  (optional, fallback to 👤)
+    - local.id        Long     used for link to profile
+-->
+<div th:fragment="local-card(local)" class="local-card" th:onclick="|window.location.href='@{/locals/{id}(id=${local.id})}'|">
+
+  <div class="local-card__avatar">
+    <span th:text="${local.emoji} ?: '👤'">👤</span>
+  </div>
+
+  <div class="local-card__info">
+    <div class="local-card__name" th:text="${local.name}">Ana Horvat</div>
+    <div class="local-card__meta">
+      <span th:text="${local.city}">Zagreb</span>
+      <!-- Tags: joins list into "Food, Art" -->
+      <span th:if="${local.tags != null and !local.tags.isEmpty()}">
+        · <span th:text="${#strings.listJoin(local.tags, ', ')}">Food, Art</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="local-card__rating">
+    ★ <span th:text="${local.rating}">4.9</span>
+  </div>
+
+</div>
+
+</body>
+</html>

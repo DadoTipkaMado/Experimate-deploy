@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+
+  <!-- Page title: each template can override this -->
+  <title layout:title-pattern="$CONTENT_TITLE — Experimate">Experimate</title>
+
+  <!-- Global styles -->
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+
+  <!-- Leaflet (loaded globally, used only on map page) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Per-page extra head content (fonts, page-specific CSS, etc.) -->
+  <th:block layout:fragment="extra-head"></th:block>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+  <!-- ── TOPBAR ──────────────────────────────── -->
+  <!--
+    th:replace swaps this div entirely with the fragment.
+    Your frend doesn't need to touch this — it just works.
+  -->
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <!-- ── PAGE CONTENT ───────────────────────── -->
+  <!--
+    layout:fragment="content" is the slot each page fills.
+    Every page template puts its HTML inside a matching block.
+  -->
+  <main class="page-content" layout:fragment="content">
+    <!-- page-specific content renders here -->
+  </main>
+
+  <!-- ── NAVBAR ─────────────────────────────── -->
+  <!--
+    Pass currentPage variable from controller so navbar
+    knows which item to mark as active.
+    e.g. model.addAttribute("currentPage", "map");
+  -->
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<!-- Toast notification (global) -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Global JS utilities -->
+<script th:src="@{/js/main.js}"></script>
+
+<!-- Per-page scripts -->
+<th:block layout:fragment="scripts"></th:block>
+
+</body>
+</html>
