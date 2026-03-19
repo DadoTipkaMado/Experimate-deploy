@@ -803,4 +803,276 @@ svg { display: block; flex-shrink: 0; }
 ─────────────────────────────────────────────── */
 ::-webkit-scrollbar         { width: 3px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: var(--border-2); border-radius: 2px; }
+::-webkit-scrollbar-thumb   { background: var(--border-2); border-radius: 2px;
+
+}
+
+/* ═══════════════════════════════════════════════
+   EXPERIMATE — Desktop Responsive Layout
+   Append this entire block to the end of main.css
+   Breakpoint: 900px+
+═══════════════════════════════════════════════ */
+
+@media (min-width: 900px) {
+
+  /* ───────────────────────────────────────────
+     RESET MOBILE-ONLY OVERRIDES
+  ─────────────────────────────────────────── */
+  body {
+    background: var(--bg);
+    display: block;
+    align-items: unset;
+    justify-content: unset;
+    overflow: auto;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  /* ───────────────────────────────────────────
+     APP SHELL — full width, side-by-side layout
+  ─────────────────────────────────────────── */
+  .app-shell {
+    max-width: 100%;
+    height: 100dvh;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: var(--topbar-h) 1fr;
+    grid-template-areas:
+      "sidebar topbar"
+      "sidebar content";
+    box-shadow: none;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  /* ───────────────────────────────────────────
+     TOPBAR — spans content column only
+  ─────────────────────────────────────────── */
+  .topbar {
+    grid-area: topbar;
+    border-bottom: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+    padding: 0 28px;
+  }
+
+  /* ───────────────────────────────────────────
+     NAVBAR → becomes LEFT SIDEBAR
+  ─────────────────────────────────────────── */
+  .navbar {
+    grid-area: sidebar;
+    height: 100%;
+    width: 200px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 20px 12px;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
+    gap: 4px;
+    overflow-y: auto;
+  }
+
+  /* Logo area at top of sidebar */
+  .navbar::before {
+    content: 'Experi\00B7mate';
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    padding: 8px 12px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .navbar__item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    min-width: unset;
+    width: 100%;
+  }
+
+  .navbar__item:hover {
+    background: var(--surface);
+  }
+
+  .navbar__icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .navbar__label {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 1;
+  }
+
+  /* Active state */
+  .navbar__item--active {
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+  }
+
+  .navbar__item--active .navbar__label {
+    color: var(--accent);
+  }
+
+  /* Hide the pip dot — redundant on sidebar */
+  .navbar__pip {
+    display: none;
+  }
+
+  /* ───────────────────────────────────────────
+     PAGE CONTENT — spans content column
+  ─────────────────────────────────────────── */
+  .page-content {
+    grid-area: content;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .page-content--overflow-hidden {
+    overflow: hidden;
+  }
+
+  /* ───────────────────────────────────────────
+     TOAST — reposition for sidebar layout
+  ─────────────────────────────────────────── */
+  .toast {
+    bottom: 24px;
+    left: calc(200px + 50%);
+    transform: translateX(-50%) translateY(12px);
+  }
+
+  .toast--visible {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ───────────────────────────────────────────
+     LISTINGS PAGE — 2 column card grid
+  ─────────────────────────────────────────── */
+  .listings-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 20px 28px 40px;
+    max-width: 1100px;
+  }
+
+  .listings-header {
+    padding: 28px 28px 20px;
+  }
+
+  /* ───────────────────────────────────────────
+     MEET PAGE — wider cards
+  ─────────────────────────────────────────── */
+  #tab-upcoming,
+  #tab-past {
+    padding: 20px 28px !important;
+    max-width: 800px;
+  }
+
+  .no-dm-notice {
+    margin: 0 28px !important;
+  }
+
+  .meet-header {
+    padding: 28px 28px 0;
+  }
+
+  /* ───────────────────────────────────────────
+     COMMUNITY PAGE — wider grid
+  ─────────────────────────────────────────── */
+  .community-header {
+    padding: 28px 28px 0;
+  }
+
+  .comm-grid {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 16px 28px;
+    max-width: 1100px;
+  }
+
+  /* ───────────────────────────────────────────
+     ACCOUNT PAGE — centered, max width
+  ─────────────────────────────────────────── */
+  .acc-section {
+    padding: 20px 28px 8px;
+    max-width: 680px;
+  }
+
+  .account-hero {
+    padding: 36px 28px 28px;
+    max-width: 680px;
+  }
+
+  /* ───────────────────────────────────────────
+     EXPLORE PAGE — wider feed
+  ─────────────────────────────────────────── */
+  .explore-header {
+    padding: 16px 28px 12px;
+  }
+
+  /* ───────────────────────────────────────────
+     MAP PAGE — full bleed stays the same,
+     just needs correct height calculation
+  ─────────────────────────────────────────── */
+  #page-map-content {
+    height: 100%;
+  }
+
+  /* Bottom sheet wider on desktop */
+  .bottom-sheet {
+    max-width: 420px;
+    left: unset;
+    right: 20px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  /* ───────────────────────────────────────────
+     GENERAL CONTENT PADDING
+  ─────────────────────────────────────────── */
+  .page-title {
+    font-size: 28px;
+  }
+
+  .u-pad {
+    padding: var(--space-lg) 28px;
+  }
+
+  .u-pad-x {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+/* ───────────────────────────────────────────────
+   Extra wide screens (1400px+)
+─────────────────────────────────────────────── */
+@media (min-width: 1400px) {
+  .app-shell {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .navbar {
+    width: 220px;
+  }
+
+  .listings-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .comm-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
