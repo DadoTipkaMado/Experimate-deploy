@@ -5,198 +5,191 @@
       layout:decorate="~{layout/base}">
 
 <head>
-  <title>Account</title>
+  <title>Community</title>
   <th:block layout:fragment="extra-head">
     <style>
-      /* ── Account page styles ────────────────── */
+      /* ── Community page styles ──────────────── */
 
-      /* ── Hero ───────────────────────────────── */
-      .account-hero {
-        padding: 28px 18px 22px;
+      .community-header {
+        padding: 22px 18px 0;
         border-bottom: 1px solid var(--border);
+      }
+
+      .community-header .search-bar {
+        margin-bottom: 14px;
+      }
+
+      /* ── My communities horizontal strip ────── */
+      .my-comms {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .my-comms::-webkit-scrollbar { display: none; }
+
+      .my-comm-chip {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
-        position: relative;
-        overflow: hidden;
+        gap: 5px;
+        flex-shrink: 0;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
       }
 
-      /* Subtle radial glow behind avatar */
-      .account-hero::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 50%;
-        transform: translateX(-50%);
-        width: 200px; height: 200px;
-        background: radial-gradient(ellipse, rgba(200,255,0,0.05) 0%, transparent 70%);
-        pointer-events: none;
-      }
-
-      .account-hero__avatar {
-        width: 76px;
-        height: 76px;
-        border-radius: 50%;
+      .my-comm-chip__icon {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
         background: var(--surface-2);
-        border: 2px solid var(--border-2);
+        border: 1.5px solid var(--border-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        transition: border-color var(--t-base), transform var(--t-base);
+      }
+
+      .my-comm-chip:hover .my-comm-chip__icon {
+        border-color: var(--accent-border);
+        transform: scale(1.05);
+      }
+
+      .my-comm-chip__name {
+        font-size: 9px;
+        color: var(--text-2);
+        letter-spacing: 0.04em;
+        max-width: 58px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ── Community grid ─────────────────────── */
+      .comm-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 14px 18px;
+      }
+
+      .comm-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color var(--t-base), transform var(--t-base);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .comm-card:hover {
+        border-color: var(--border-2);
+        transform: translateY(-2px);
+      }
+
+      .comm-card__head {
+        height: 72px;
+        background: var(--surface-2);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 30px;
         position: relative;
-        z-index: 1;
-        cursor: pointer;
-        transition: border-color var(--t-base);
+        overflow: hidden;
+        flex-shrink: 0;
       }
 
-      .account-hero__avatar:hover {
-        border-color: var(--accent-border);
+      /* Subtle accent sheen on card head */
+      .comm-card__head::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(200,255,0,0.05), transparent 60%);
+        pointer-events: none;
       }
 
-      .account-hero__name {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 22px;
-        position: relative;
-        z-index: 1;
-        letter-spacing: -0.01em;
-      }
-
-      .account-hero__handle {
-        font-size: 11px;
-        color: var(--text-2);
-        letter-spacing: 0.08em;
-        position: relative;
-        z-index: 1;
-        margin-top: -4px;
-      }
-
-      /* Stats row */
-      .account-hero__stats {
+      .comm-card__body {
+        padding: 10px 10px 12px;
+        flex: 1;
         display: flex;
-        gap: 28px;
-        position: relative;
-        z-index: 1;
-        margin-top: 2px;
+        flex-direction: column;
+        gap: 3px;
       }
 
-      .stat {
+      .comm-card__name {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 12px;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .comm-card__meta {
+        font-size: 9px;
+        color: var(--text-3);
+        letter-spacing: 0.04em;
+      }
+
+      .comm-card__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 8px;
+      }
+
+      .comm-card__events {
+        font-size: 9px;
+        color: var(--warm);
+        letter-spacing: 0.04em;
+      }
+
+      /* Join button */
+      .join-btn {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--border-2);
+        background: var(--surface-2);
+        color: var(--text-2);
+        cursor: pointer;
+        transition: all var(--t-fast);
+      }
+
+      .join-btn:hover,
+      .join-btn--joined {
+        background: var(--accent-dim);
+        border-color: var(--accent-border);
+        color: var(--accent);
+      }
+
+      /* ── Empty state (no joined communities) ── */
+      .comm-empty {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1px;
+        gap: 6px;
+        padding: 24px 0 8px;
+        text-align: center;
       }
 
-      .stat__val {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 20px;
-        color: var(--accent);
-        line-height: 1;
-      }
+      .comm-empty__icon { font-size: 28px; opacity: 0.2; }
 
-      .stat__label {
-        font-size: 9px;
+      .comm-empty__text {
+        font-size: 10px;
         color: var(--text-3);
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-      }
-
-      /* Rating badge */
-      .account-hero__rating {
-        padding: 5px 14px;
-        border-radius: var(--radius-pill);
-        background: var(--accent-dim);
-        border: 1px solid var(--accent-border);
-        font-size: 12px;
-        color: var(--accent);
-        letter-spacing: 0.06em;
-        position: relative;
-        z-index: 1;
-      }
-
-      /* ── Sections ───────────────────────────── */
-      .acc-section {
-        padding: 18px 18px 4px;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .acc-section:last-of-type {
-        border-bottom: none;
-      }
-
-      /* Ideal day description box */
-      .day-desc-box {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 14px 16px;
-        font-size: 11px;
-        line-height: 1.75;
-        color: rgba(239,239,239,0.65);
-        position: relative;
-        margin-bottom: 14px;
-      }
-
-      .day-desc-box__label {
-        position: absolute;
-        top: -9px;
-        left: 14px;
-        background: var(--bg);
-        padding: 0 6px;
-        font-size: 9px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--accent);
-        font-family: var(--font-mono);
-      }
-
-      /* Edit profile button */
-      .edit-profile-btn {
-        display: block;
-        width: 100%;
-        height: 44px;
-        border-radius: var(--radius-pill);
-        background: var(--surface);
-        border: 1px solid var(--border-2);
-        color: var(--text);
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 12px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        cursor: pointer;
-        margin-bottom: 18px;
-        transition: background var(--t-base), border-color var(--t-base), color var(--t-base);
-      }
-
-      .edit-profile-btn:hover {
-        background: var(--surface-2);
-        border-color: var(--accent-border);
-        color: var(--accent);
-      }
-
-      /* Logout button */
-      .logout-btn {
-        display: block;
-        width: 100%;
-        height: 44px;
-        border-radius: var(--radius-pill);
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--text-3);
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        cursor: pointer;
-        margin-bottom: 18px;
-        transition: border-color var(--t-base), color var(--t-base);
-      }
-
-      .logout-btn:hover {
-        border-color: rgba(255, 80, 80, 0.3);
-        color: rgba(255, 80, 80, 0.7);
+        letter-spacing: 0.05em;
       }
     </style>
   </th:block>
@@ -204,149 +197,283 @@
 
 <main layout:fragment="content" class="page-content">
 
-  <!-- ── Hero ─────────────────────────────────── -->
+  <!-- ── Header ───────────────────────────────── -->
+  <div class="community-header">
+    <div class="page-title">Community</div>
+
+    <div class="search-bar" style="margin-top: 14px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text"
+             id="comm-search-input"
+             placeholder="Find a community..."
+             autocomplete="off">
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-bar__item tab-bar__item--active"
+           onclick="switchTab(this, 'discover')">Discover</div>
+      <div class="tab-bar__item"
+           onclick="switchTab(this, 'joined')">Joined</div>
+      <div class="tab-bar__item"
+           onclick="switchTab(this, 'trending')">Trending</div>
+    </div>
+  </div>
+
+  <!-- ── My communities strip ─────────────────── -->
   <!--
-    Frend populates ${user} in AccountController:
-      model.addAttribute("user", userService.getCurrentUser(session));
-
-    User object fields:
-      - user.name       String   "Matej K."
-      - user.handle     String   "@matejk"
-      - user.city       String   "Zagreb, HR"
-      - user.emoji      String   "👤"
-      - user.rating     Double   4.8
-      - user.meetsCount Integer  12
-      - user.gemsCount  Integer  3
-      - user.commCount  Integer  2
-      - user.verified   Boolean  true
-      - user.dayDesc    String   AI-generated description
-      - user.visibleOnMap    Boolean
-      - user.availableToMeet Boolean
-      - user.notifications   Boolean
+    Only show if user has joined communities.
+    Frend populates ${joinedCommunities} in CommunityController.
   -->
-  <div class="account-hero">
-
-    <div class="account-hero__avatar">
-      <span th:text="${user?.emoji} ?: '👤'">👤</span>
+  <div th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}"
+       style="padding: 16px 18px 0;">
+    <div class="section-label">My Communities</div>
+    <div class="my-comms">
+      <a th:each="comm : ${joinedCommunities}"
+         th:href="@{/community/{id}(id=${comm.id})}"
+         class="my-comm-chip">
+        <div class="my-comm-chip__icon" th:text="${comm.emoji}">🏙️</div>
+        <div class="my-comm-chip__name" th:text="${comm.name}">Community</div>
+      </a>
     </div>
+  </div>
 
-    <div class="account-hero__name"
-         th:text="${user?.name} ?: 'Your Name'">
-      Matej K.
+  <!-- Fallback my communities (static preview) -->
+  <div th:unless="${joinedCommunities != null and !joinedCommunities.isEmpty()}"
+       style="padding: 16px 18px 0;">
+    <div class="section-label">My Communities</div>
+    <div class="my-comms">
+      <a href="#" class="my-comm-chip">
+        <div class="my-comm-chip__icon">🍜</div>
+        <div class="my-comm-chip__name">Street Food</div>
+      </a>
+      <a href="#" class="my-comm-chip">
+        <div class="my-comm-chip__icon">🏙️</div>
+        <div class="my-comm-chip__name">Urban Exp.</div>
+      </a>
     </div>
+  </div>
 
-    <div class="account-hero__handle">
-      <span th:text="${user?.handle} ?: '@handle'">@matejk</span>
-      · <span th:text="${user?.city} ?: 'Zagreb'">Zagreb</span>
+  <!-- ══════════════════════════════════════════
+       TAB: DISCOVER
+  ══════════════════════════════════════════ -->
+  <div id="tab-discover">
+    <div class="section-label" style="padding: 16px 18px 0;">Discover</div>
+
+    <div class="comm-grid" id="comm-grid-discover">
+
+      <!--
+        THYMELEAF LOOP
+        Frend populates ${communities} in CommunityController:
+          model.addAttribute("communities", communityService.getAll());
+
+        Community object fields:
+          - comm.id        Long
+          - comm.name      String    "Street Food Croatia"
+          - comm.emoji     String    "🍜"
+          - comm.members   Integer   1200
+          - comm.eventCount Integer  8
+          - comm.joined    Boolean   true/false
+      -->
+      <th:block th:if="${communities != null and !communities.isEmpty()}">
+        <div th:each="comm : ${communities}"
+             class="comm-card"
+             th:attr="data-id=${comm.id}">
+
+          <div class="comm-card__head" th:text="${comm.emoji}">🍜</div>
+
+          <div class="comm-card__body">
+            <div class="comm-card__name" th:text="${comm.name}">Community Name</div>
+            <div class="comm-card__meta">
+              <span th:text="${comm.members}">1.2k</span> members
+            </div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">
+                <span th:text="${comm.eventCount}">8</span> events
+              </div>
+              <button th:classappend="${comm.joined} ? ' join-btn--joined'"
+                      class="join-btn"
+                      th:text="${comm.joined} ? 'Joined' : 'Join'"
+                      th:onclick="|toggleJoin(event, this, '${comm.name}')|">
+                Join
+              </button>
+            </div>
+          </div>
+        </div>
+      </th:block>
+
+      <!-- Fallback static cards -->
+      <th:block th:unless="${communities != null and !communities.isEmpty()}">
+
+        <div class="comm-card" data-id="1">
+          <div class="comm-card__head">🍜</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name">Street Food Croatia</div>
+            <div class="comm-card__meta">1.2k members</div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">8 events</div>
+              <button class="join-btn join-btn--joined"
+                      onclick="toggleJoin(event, this, 'Street Food Croatia')">Joined</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="comm-card" data-id="2">
+          <div class="comm-card__head">🏙️</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name">Urban Explorers ZG</div>
+            <div class="comm-card__meta">890 members</div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">5 events</div>
+              <button class="join-btn join-btn--joined"
+                      onclick="toggleJoin(event, this, 'Urban Explorers ZG')">Joined</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="comm-card" data-id="3">
+          <div class="comm-card__head">🤿</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name">Adriatic Divers</div>
+            <div class="comm-card__meta">2.1k members</div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">12 events</div>
+              <button class="join-btn"
+                      onclick="toggleJoin(event, this, 'Adriatic Divers')">Join</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="comm-card" data-id="4">
+          <div class="comm-card__head">🦉</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name">Zagreb Night Owls</div>
+            <div class="comm-card__meta">3.4k members</div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">22 events</div>
+              <button class="join-btn"
+                      onclick="toggleJoin(event, this, 'Zagreb Night Owls')">Join</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="comm-card" data-id="5">
+          <div class="comm-card__head">💎</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name">Hidden Gems HRV</div>
+            <div class="comm-card__meta">756 members</div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">4 events</div>
+              <button class="join-btn"
+                      onclick="toggleJoin(event, this, 'Hidden Gems HRV')">Join</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="comm-card" data-id="6">
+          <div class="comm-card__head">🏃</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name">Trail Runners MV</div>
+            <div class="comm-card__meta">1.8k members</div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">9 events</div>
+              <button class="join-btn"
+                      onclick="toggleJoin(event, this, 'Trail Runners MV')">Join</button>
+            </div>
+          </div>
+        </div>
+
+      </th:block>
     </div>
+  </div>
 
-    <div class="account-hero__stats">
-      <div class="stat">
-        <div class="stat__val" th:text="${user?.meetsCount} ?: '0'">12</div>
-        <div class="stat__label">Meets</div>
+  <!-- ══════════════════════════════════════════
+       TAB: JOINED
+  ══════════════════════════════════════════ -->
+  <div id="tab-joined" hidden>
+
+    <th:block th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+      <div class="comm-grid">
+        <div th:each="comm : ${joinedCommunities}"
+             class="comm-card"
+             th:attr="data-id=${comm.id}">
+          <div class="comm-card__head" th:text="${comm.emoji}">🍜</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name" th:text="${comm.name}">Community</div>
+            <div class="comm-card__meta">
+              <span th:text="${comm.members}">0</span> members
+            </div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">
+                <span th:text="${comm.eventCount}">0</span> events
+              </div>
+              <button class="join-btn join-btn--joined"
+                      th:onclick="|toggleJoin(event, this, '${comm.name}')|">
+                Joined
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="stat__val" th:text="${user?.gemsCount} ?: '0'">3</div>
-        <div class="stat__label">Gems</div>
-      </div>
-      <div class="stat">
-        <div class="stat__val" th:text="${user?.commCount} ?: '0'">2</div>
-        <div class="stat__label">Comm.</div>
-      </div>
-    </div>
+    </th:block>
 
-    <div class="account-hero__rating">
-      ★ <span th:text="${user?.rating} ?: '–'">4.8</span>
-      <span th:if="${user?.verified}"> · Verified Local</span>
-    </div>
+    <!-- Empty joined state -->
+    <th:block th:unless="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+      <div class="comm-empty" style="padding: 50px 24px;">
+        <div class="comm-empty__icon">⚔️</div>
+        <div class="comm-empty__text">You haven't joined any communities yet.<br>Discover some above.</div>
+      </div>
+    </th:block>
 
   </div>
 
-  <!-- ── Ideal day description ─────────────────── -->
-  <div class="acc-section">
-    <div class="section-label">My ideal day</div>
+  <!-- ══════════════════════════════════════════
+       TAB: TRENDING
+  ══════════════════════════════════════════ -->
+  <div id="tab-trending" hidden>
 
-    <div class="day-desc-box">
-      <div class="day-desc-box__label">AI generated</div>
-      <span th:if="${user?.dayDesc != null}"
-            th:text="${user.dayDesc}">
-        Your AI-generated ideal day description will appear here.
-      </span>
-      <span th:unless="${user?.dayDesc != null}">
-        Start mornings at Dolac market for fresh local produce, then coffee at a hidden courtyard café in the Upper Town. Afternoon walk through Maksimir park, followed by street art hunting in Medveščak. End the day with craft beer at a konoba with locals, watching sunset from Strossmayer promenade.
-      </span>
-    </div>
-
-    <button class="edit-profile-btn"
-            onclick="showToast('Edit profile — coming soon')">
-      Edit Profile
-    </button>
-  </div>
-
-  <!-- ── Settings ──────────────────────────────── -->
-  <div class="acc-section">
-    <div class="section-label">Visibility</div>
-
-    <div class="settings-row">
-      <span class="settings-row__label">Visible on map</span>
-      <div th:classappend="${user?.visibleOnMap} ? ' toggle--on'"
-           class="toggle"
-           onclick="toggleSwitch(this)"
-           id="toggle-visible">
-        <div class="toggle__thumb"></div>
+    <th:block th:if="${trendingCommunities != null and !trendingCommunities.isEmpty()}">
+      <div class="comm-grid">
+        <div th:each="comm : ${trendingCommunities}"
+             class="comm-card">
+          <div class="comm-card__head" th:text="${comm.emoji}">🔥</div>
+          <div class="comm-card__body">
+            <div class="comm-card__name" th:text="${comm.name}">Trending</div>
+            <div class="comm-card__meta">
+              <span th:text="${comm.members}">0</span> members
+            </div>
+            <div class="comm-card__foot">
+              <div class="comm-card__events">
+                <span th:text="${comm.eventCount}">0</span> events
+              </div>
+              <button th:classappend="${comm.joined} ? ' join-btn--joined'"
+                      class="join-btn"
+                      th:text="${comm.joined} ? 'Joined' : 'Join'"
+                      th:onclick="|toggleJoin(event, this, '${comm.name}')|">
+                Join
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </th:block>
 
-    <div class="settings-row">
-      <span class="settings-row__label">Available to meet</span>
-      <div th:classappend="${user?.availableToMeet} ? ' toggle--on'"
-           class="toggle"
-           onclick="toggleSwitch(this)"
-           id="toggle-available">
-        <div class="toggle__thumb"></div>
+    <th:block th:unless="${trendingCommunities != null and !trendingCommunities.isEmpty()}">
+      <div class="comm-empty" style="padding: 50px 24px;">
+        <div class="comm-empty__icon">📈</div>
+        <div class="comm-empty__text">Trending data coming soon.</div>
       </div>
-    </div>
+    </th:block>
 
-  </div>
-
-  <div class="acc-section">
-    <div class="section-label">Preferences</div>
-
-    <div class="settings-row">
-      <span class="settings-row__label">Push notifications</span>
-      <div th:classappend="${user?.notifications} ? ' toggle--on'"
-           class="toggle"
-           onclick="toggleSwitch(this)"
-           id="toggle-notifs">
-        <div class="toggle__thumb"></div>
-      </div>
-    </div>
-
-    <div class="settings-row">
-      <span class="settings-row__label">Language</span>
-      <span class="settings-row__value"
-            th:text="${user?.language} ?: 'English'">English</span>
-    </div>
-
-    <div class="settings-row">
-      <span class="settings-row__label">Location</span>
-      <span class="settings-row__value"
-            th:text="${user?.city} ?: 'Zagreb, HR'">Zagreb, HR</span>
-    </div>
-
-  </div>
-
-  <!-- ── Logout ────────────────────────────────── -->
-  <div style="padding: 18px 18px 32px;">
-    <form th:action="@{/logout}" method="post">
-      <button type="submit" class="logout-btn">Log out</button>
-    </form>
   </div>
 
 </main>
 
 <th:block layout:fragment="scripts">
-  <!-- No page-specific JS needed — toggleSwitch() is in main.js -->
+  <script th:src="@{/js/community.js}"></script>
 </th:block>
 
 </html>
