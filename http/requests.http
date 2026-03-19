@@ -1,0 +1,100 @@
+//----------------USERS------------------
+### Fetch all users
+GET http://localhost:8080/api/user
+Accept: application/json
+
+### Fetch user by id
+GET http://localhost:8080/api/user/2
+Accept: application/json
+
+### Post user
+POST http://localhost:8080/api/user
+Content-Type: application/json
+
+{
+  "firstName": "Luka",
+  "lastName": "Merćep",
+  "dateOfBirth": "2006-04-22",
+  "idNumber": "2223233333",
+  "username": "lmercep",
+  "password": "123",
+  "bio": "Opis korisnikaaaaaaaaaaaa"
+}
+
+### Update user
+PATCH http://localhost:8080/api/user/1
+Content-type: application/json
+
+{
+  "username": "daaadoooo",
+  "password": "novaLozinka12312312312",
+  "bio": null
+}
+
+### Delete user
+
+DELETE http://localhost:8080/api/user/1
+
+### Delete all users
+DELETE http://localhost:8080/api/user
+
+//------------------Tour listings-----------------------
+
+### Fetch all tour listings
+GET http://localhost:8080/api/tour-listing
+Accept: application/json
+
+### Fetch tour listing by id
+GET http://localhost:8080/api/tour-listing/2
+accept: application/json
+
+### Create tour listing
+POST http://localhost:8080/api/tour-listing
+Content-type: application/json
+
+{
+  "hostId": 1,
+  "city": "Zagreb",
+  "meetingDate": "2026-03-20T10:00:00",
+  "tourDescription": "{{tour}}"
+}
+
+### Update tour listing
+PATCH http://localhost:8080/api/tour-listing/1
+Content-Type: application/json
+
+{
+  "meetingDate": "2026-03-25T10:00:00",
+  "tourDescription": "Novi opis ture"
+}
+
+### Delete tour listing
+DELETE http://localhost:8080/api/tour-listing/2
+
+### Delete all tour listings
+DELETE http://localhost:8080/api/tour-listing
+
+//------------------Reservations-----------------------
+
+### Fetch all reservations
+GET http://localhost:8080/api/reservation
+Accept: application/json
+
+### Fetch tour listing by id
+GET http://localhost:8080/api/reservation/2
+accept: application/json
+
+### Create reservation
+POST http://localhost:8080/api/reservation
+Content-type: application/json
+
+{
+  "guestId": 2,
+  "tourListingId": 1
+}
+
+### Delete reservation
+DELETE http://localhost:8080/api/reservation/2
+
+### Delete all reservations
+DELETE http://localhost:8080/api/reservation
