@@ -1,6 +1,8 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
-public class TourListingNotFoundException extends RuntimeException {
+import hr.tvz.experimate.experimate.model.shared.NotFoundException;
+
+public class TourListingNotFoundException extends NotFoundException {
     public TourListingNotFoundException(Integer id) {
         super("Listing not found with id: " + id);
     }

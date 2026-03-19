@@ -1,6 +1,8 @@
 package hr.tvz.experimate.experimate.model.user;
 
-public class UsernameTakenException extends RuntimeException {
+import hr.tvz.experimate.experimate.model.shared.ConflictException;
+
+public class UsernameTakenException extends ConflictException {
     public UsernameTakenException(String username) {
         super("Username: '%s' is already taken!".formatted(username));
     }
