@@ -1,479 +1,200 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout/base}">
-
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <title>Community</title>
-  <th:block layout:fragment="extra-head">
-    <style>
-      /* ── Community page styles ──────────────── */
-
-      .community-header {
-        padding: 22px 18px 0;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .community-header .search-bar {
-        margin-bottom: 14px;
-      }
-
-      /* ── My communities horizontal strip ────── */
-      .my-comms {
-        display: flex;
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-      }
-      .my-comms::-webkit-scrollbar { display: none; }
-
-      .my-comm-chip {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        flex-shrink: 0;
-        cursor: pointer;
-        text-decoration: none;
-        color: inherit;
-      }
-
-      .my-comm-chip__icon {
-        width: 54px;
-        height: 54px;
-        border-radius: 14px;
-        background: var(--surface-2);
-        border: 1.5px solid var(--border-2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        transition: border-color var(--t-base), transform var(--t-base);
-      }
-
-      .my-comm-chip:hover .my-comm-chip__icon {
-        border-color: var(--accent-border);
-        transform: scale(1.05);
-      }
-
-      .my-comm-chip__name {
-        font-size: 9px;
-        color: var(--text-2);
-        letter-spacing: 0.04em;
-        max-width: 58px;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      /* ── Community grid ─────────────────────── */
-      .comm-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        padding: 14px 18px;
-      }
-
-      .comm-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        overflow: hidden;
-        cursor: pointer;
-        transition: border-color var(--t-base), transform var(--t-base);
-        text-decoration: none;
-        color: inherit;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .comm-card:hover {
-        border-color: var(--border-2);
-        transform: translateY(-2px);
-      }
-
-      .comm-card__head {
-        height: 72px;
-        background: var(--surface-2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 30px;
-        position: relative;
-        overflow: hidden;
-        flex-shrink: 0;
-      }
-
-      /* Subtle accent sheen on card head */
-      .comm-card__head::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(200,255,0,0.05), transparent 60%);
-        pointer-events: none;
-      }
-
-      .comm-card__body {
-        padding: 10px 10px 12px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-      }
-
-      .comm-card__name {
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 12px;
-        color: var(--text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .comm-card__meta {
-        font-size: 9px;
-        color: var(--text-3);
-        letter-spacing: 0.04em;
-      }
-
-      .comm-card__foot {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 8px;
-      }
-
-      .comm-card__events {
-        font-size: 9px;
-        color: var(--warm);
-        letter-spacing: 0.04em;
-      }
-
-      /* Join button */
-      .join-btn {
-        font-family: var(--font-mono);
-        font-size: 9px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        padding: 4px 10px;
-        border-radius: var(--radius-pill);
-        border: 1px solid var(--border-2);
-        background: var(--surface-2);
-        color: var(--text-2);
-        cursor: pointer;
-        transition: all var(--t-fast);
-      }
-
-      .join-btn:hover,
-      .join-btn--joined {
-        background: var(--accent-dim);
-        border-color: var(--accent-border);
-        color: var(--accent);
-      }
-
-      /* ── Empty state (no joined communities) ── */
-      .comm-empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 24px 0 8px;
-        text-align: center;
-      }
-
-      .comm-empty__icon { font-size: 28px; opacity: 0.2; }
-
-      .comm-empty__text {
-        font-size: 10px;
-        color: var(--text-3);
-        letter-spacing: 0.05em;
-      }
-    </style>
-  </th:block>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Community — Experimate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .community-header { padding: 22px 18px 0; border-bottom: 1px solid var(--border); }
+    .community-header .search-bar { margin-bottom: 14px; }
+    .my-comms { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+    .my-comms::-webkit-scrollbar { display: none; }
+    .my-comm-chip { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; cursor: pointer; text-decoration: none; color: inherit; }
+    .my-comm-chip__icon { width: 54px; height: 54px; border-radius: 14px; background: var(--surface-2); border: 1.5px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-size: 24px; transition: border-color var(--t-base), transform var(--t-base); }
+    .my-comm-chip:hover .my-comm-chip__icon { border-color: var(--accent-border); transform: scale(1.05); }
+    .my-comm-chip__name { font-size: 9px; color: var(--text-2); letter-spacing: 0.04em; max-width: 58px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px 18px; }
+    .comm-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: border-color var(--t-base), transform var(--t-base); text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+    .comm-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+    .comm-card__head { height: 72px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 30px; position: relative; overflow: hidden; flex-shrink: 0; }
+    .comm-card__head::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(200,255,0,0.05), transparent 60%); pointer-events: none; }
+    .comm-card__body { padding: 10px 10px 12px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+    .comm-card__name { font-family: var(--font-display); font-weight: 700; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .comm-card__meta { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
+    .comm-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .comm-card__events { font-size: 9px; color: var(--warm); letter-spacing: 0.04em; }
+    .join-btn { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); border: 1px solid var(--border-2); background: var(--surface-2); color: var(--text-2); cursor: pointer; transition: all var(--t-fast); }
+    .join-btn:hover, .join-btn--joined { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .comm-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px 0 8px; text-align: center; }
+    .comm-empty__icon { font-size: 28px; opacity: 0.2; }
+    .comm-empty__text { font-size: 10px; color: var(--text-3); letter-spacing: 0.05em; }
+  </style>
 </head>
+<body>
+<div class="app-shell">
 
-<main layout:fragment="content" class="page-content">
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-  <!-- ── Header ───────────────────────────────── -->
-  <div class="community-header">
-    <div class="page-title">Community</div>
+  <main class="page-content">
 
-    <div class="search-bar" style="margin-top: 14px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-           stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input type="text"
-             id="comm-search-input"
-             placeholder="Find a community..."
-             autocomplete="off">
+    <div class="community-header">
+      <div class="page-title">Community</div>
+      <div class="search-bar" style="margin-top: 14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="comm-search-input" placeholder="Find a community..." autocomplete="off">
+      </div>
+      <div class="tab-bar">
+        <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
+        <div class="tab-bar__item" onclick="switchTab(this, 'joined')">Joined</div>
+        <div class="tab-bar__item" onclick="switchTab(this, 'trending')">Trending</div>
+      </div>
     </div>
 
-    <div class="tab-bar">
-      <div class="tab-bar__item tab-bar__item--active"
-           onclick="switchTab(this, 'discover')">Discover</div>
-      <div class="tab-bar__item"
-           onclick="switchTab(this, 'joined')">Joined</div>
-      <div class="tab-bar__item"
-           onclick="switchTab(this, 'trending')">Trending</div>
+    <div style="padding: 16px 18px 0;">
+      <div class="section-label">My Communities</div>
+      <div class="my-comms">
+        <th:block th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+          <a th:each="comm : ${joinedCommunities}" th:href="@{/community/{id}(id=${comm.id})}" class="my-comm-chip">
+            <div class="my-comm-chip__icon" th:text="${comm.emoji}">🏙️</div>
+            <div class="my-comm-chip__name" th:text="${comm.name}">Community</div>
+          </a>
+        </th:block>
+        <th:block th:unless="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+          <a href="#" class="my-comm-chip"><div class="my-comm-chip__icon">🍜</div><div class="my-comm-chip__name">Street Food</div></a>
+          <a href="#" class="my-comm-chip"><div class="my-comm-chip__icon">🏙️</div><div class="my-comm-chip__name">Urban Exp.</div></a>
+        </th:block>
+      </div>
     </div>
-  </div>
 
-  <!-- ── My communities strip ─────────────────── -->
-  <!--
-    Only show if user has joined communities.
-    Frend populates ${joinedCommunities} in CommunityController.
-  -->
-  <div th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}"
-       style="padding: 16px 18px 0;">
-    <div class="section-label">My Communities</div>
-    <div class="my-comms">
-      <a th:each="comm : ${joinedCommunities}"
-         th:href="@{/community/{id}(id=${comm.id})}"
-         class="my-comm-chip">
-        <div class="my-comm-chip__icon" th:text="${comm.emoji}">🏙️</div>
-        <div class="my-comm-chip__name" th:text="${comm.name}">Community</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Fallback my communities (static preview) -->
-  <div th:unless="${joinedCommunities != null and !joinedCommunities.isEmpty()}"
-       style="padding: 16px 18px 0;">
-    <div class="section-label">My Communities</div>
-    <div class="my-comms">
-      <a href="#" class="my-comm-chip">
-        <div class="my-comm-chip__icon">🍜</div>
-        <div class="my-comm-chip__name">Street Food</div>
-      </a>
-      <a href="#" class="my-comm-chip">
-        <div class="my-comm-chip__icon">🏙️</div>
-        <div class="my-comm-chip__name">Urban Exp.</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════
-       TAB: DISCOVER
-  ══════════════════════════════════════════ -->
-  <div id="tab-discover">
-    <div class="section-label" style="padding: 16px 18px 0;">Discover</div>
-
-    <div class="comm-grid" id="comm-grid-discover">
-
-      <!--
-        THYMELEAF LOOP
-        Frend populates ${communities} in CommunityController:
-          model.addAttribute("communities", communityService.getAll());
-
-        Community object fields:
-          - comm.id        Long
-          - comm.name      String    "Street Food Croatia"
-          - comm.emoji     String    "🍜"
-          - comm.members   Integer   1200
-          - comm.eventCount Integer  8
-          - comm.joined    Boolean   true/false
-      -->
-      <th:block th:if="${communities != null and !communities.isEmpty()}">
-        <div th:each="comm : ${communities}"
-             class="comm-card"
-             th:attr="data-id=${comm.id}">
-
-          <div class="comm-card__head" th:text="${comm.emoji}">🍜</div>
-
-          <div class="comm-card__body">
-            <div class="comm-card__name" th:text="${comm.name}">Community Name</div>
-            <div class="comm-card__meta">
-              <span th:text="${comm.members}">1.2k</span> members
-            </div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">
-                <span th:text="${comm.eventCount}">8</span> events
+    <div id="tab-discover">
+      <div class="section-label" style="padding: 16px 18px 0;">Discover</div>
+      <div class="comm-grid" id="comm-grid-discover">
+        <th:block th:if="${communities != null and !communities.isEmpty()}">
+          <div th:each="comm : ${communities}" class="comm-card" th:attr="data-id=${comm.id}">
+            <div class="comm-card__head" th:text="${comm.emoji}">🍜</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name" th:text="${comm.name}">Community Name</div>
+              <div class="comm-card__meta"><span th:text="${comm.members}">1.2k</span> members</div>
+              <div class="comm-card__foot">
+                <div class="comm-card__events"><span th:text="${comm.eventCount}">8</span> events</div>
+                <button th:classappend="${comm.joined} ? ' join-btn--joined'" class="join-btn" th:text="${comm.joined} ? 'Joined' : 'Join'" th:onclick="|toggleJoin(event, this, '${comm.name}')|">Join</button>
               </div>
-              <button th:classappend="${comm.joined} ? ' join-btn--joined'"
-                      class="join-btn"
-                      th:text="${comm.joined} ? 'Joined' : 'Join'"
-                      th:onclick="|toggleJoin(event, this, '${comm.name}')|">
-                Join
-              </button>
+            </div>
+          </div>
+        </th:block>
+        <th:block th:unless="${communities != null and !communities.isEmpty()}">
+          <div class="comm-card" data-id="1">
+            <div class="comm-card__head">🍜</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name">Street Food Croatia</div>
+              <div class="comm-card__meta">1.2k members</div>
+              <div class="comm-card__foot"><div class="comm-card__events">8 events</div><button class="join-btn join-btn--joined" onclick="toggleJoin(event, this, 'Street Food Croatia')">Joined</button></div>
+            </div>
+          </div>
+          <div class="comm-card" data-id="2">
+            <div class="comm-card__head">🏙️</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name">Urban Explorers ZG</div>
+              <div class="comm-card__meta">890 members</div>
+              <div class="comm-card__foot"><div class="comm-card__events">5 events</div><button class="join-btn" onclick="toggleJoin(event, this, 'Urban Explorers ZG')">Join</button></div>
+            </div>
+          </div>
+          <div class="comm-card" data-id="3">
+            <div class="comm-card__head">🤿</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name">Adriatic Divers</div>
+              <div class="comm-card__meta">2.1k members</div>
+              <div class="comm-card__foot"><div class="comm-card__events">12 events</div><button class="join-btn" onclick="toggleJoin(event, this, 'Adriatic Divers')">Join</button></div>
+            </div>
+          </div>
+          <div class="comm-card" data-id="4">
+            <div class="comm-card__head">🦉</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name">Zagreb Night Owls</div>
+              <div class="comm-card__meta">3.4k members</div>
+              <div class="comm-card__foot"><div class="comm-card__events">22 events</div><button class="join-btn" onclick="toggleJoin(event, this, 'Zagreb Night Owls')">Join</button></div>
+            </div>
+          </div>
+          <div class="comm-card" data-id="5">
+            <div class="comm-card__head">💎</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name">Hidden Gems HRV</div>
+              <div class="comm-card__meta">756 members</div>
+              <div class="comm-card__foot"><div class="comm-card__events">4 events</div><button class="join-btn" onclick="toggleJoin(event, this, 'Hidden Gems HRV')">Join</button></div>
+            </div>
+          </div>
+          <div class="comm-card" data-id="6">
+            <div class="comm-card__head">🏃</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name">Trail Runners MV</div>
+              <div class="comm-card__meta">1.8k members</div>
+              <div class="comm-card__foot"><div class="comm-card__events">9 events</div><button class="join-btn" onclick="toggleJoin(event, this, 'Trail Runners MV')">Join</button></div>
+            </div>
+          </div>
+        </th:block>
+      </div>
+    </div>
+
+    <div id="tab-joined" hidden>
+      <th:block th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+        <div class="comm-grid">
+          <div th:each="comm : ${joinedCommunities}" class="comm-card" th:attr="data-id=${comm.id}">
+            <div class="comm-card__head" th:text="${comm.emoji}">🍜</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name" th:text="${comm.name}">Community</div>
+              <div class="comm-card__meta"><span th:text="${comm.members}">0</span> members</div>
+              <div class="comm-card__foot">
+                <div class="comm-card__events"><span th:text="${comm.eventCount}">0</span> events</div>
+                <button class="join-btn join-btn--joined" th:onclick="|toggleJoin(event, this, '${comm.name}')|">Joined</button>
+              </div>
             </div>
           </div>
         </div>
       </th:block>
-
-      <!-- Fallback static cards -->
-      <th:block th:unless="${communities != null and !communities.isEmpty()}">
-
-        <div class="comm-card" data-id="1">
-          <div class="comm-card__head">🍜</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name">Street Food Croatia</div>
-            <div class="comm-card__meta">1.2k members</div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">8 events</div>
-              <button class="join-btn join-btn--joined"
-                      onclick="toggleJoin(event, this, 'Street Food Croatia')">Joined</button>
-            </div>
-          </div>
+      <th:block th:unless="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
+        <div class="comm-empty" style="padding: 50px 24px;">
+          <div class="comm-empty__icon">⚔️</div>
+          <div class="comm-empty__text">You haven't joined any communities yet.<br>Discover some above.</div>
         </div>
-
-        <div class="comm-card" data-id="2">
-          <div class="comm-card__head">🏙️</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name">Urban Explorers ZG</div>
-            <div class="comm-card__meta">890 members</div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">5 events</div>
-              <button class="join-btn join-btn--joined"
-                      onclick="toggleJoin(event, this, 'Urban Explorers ZG')">Joined</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="comm-card" data-id="3">
-          <div class="comm-card__head">🤿</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name">Adriatic Divers</div>
-            <div class="comm-card__meta">2.1k members</div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">12 events</div>
-              <button class="join-btn"
-                      onclick="toggleJoin(event, this, 'Adriatic Divers')">Join</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="comm-card" data-id="4">
-          <div class="comm-card__head">🦉</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name">Zagreb Night Owls</div>
-            <div class="comm-card__meta">3.4k members</div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">22 events</div>
-              <button class="join-btn"
-                      onclick="toggleJoin(event, this, 'Zagreb Night Owls')">Join</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="comm-card" data-id="5">
-          <div class="comm-card__head">💎</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name">Hidden Gems HRV</div>
-            <div class="comm-card__meta">756 members</div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">4 events</div>
-              <button class="join-btn"
-                      onclick="toggleJoin(event, this, 'Hidden Gems HRV')">Join</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="comm-card" data-id="6">
-          <div class="comm-card__head">🏃</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name">Trail Runners MV</div>
-            <div class="comm-card__meta">1.8k members</div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">9 events</div>
-              <button class="join-btn"
-                      onclick="toggleJoin(event, this, 'Trail Runners MV')">Join</button>
-            </div>
-          </div>
-        </div>
-
       </th:block>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════════
-       TAB: JOINED
-  ══════════════════════════════════════════ -->
-  <div id="tab-joined" hidden>
-
-    <th:block th:if="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
-      <div class="comm-grid">
-        <div th:each="comm : ${joinedCommunities}"
-             class="comm-card"
-             th:attr="data-id=${comm.id}">
-          <div class="comm-card__head" th:text="${comm.emoji}">🍜</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name" th:text="${comm.name}">Community</div>
-            <div class="comm-card__meta">
-              <span th:text="${comm.members}">0</span> members
-            </div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">
-                <span th:text="${comm.eventCount}">0</span> events
+    <div id="tab-trending" hidden>
+      <th:block th:if="${trendingCommunities != null and !trendingCommunities.isEmpty()}">
+        <div class="comm-grid">
+          <div th:each="comm : ${trendingCommunities}" class="comm-card">
+            <div class="comm-card__head" th:text="${comm.emoji}">🔥</div>
+            <div class="comm-card__body">
+              <div class="comm-card__name" th:text="${comm.name}">Trending</div>
+              <div class="comm-card__meta"><span th:text="${comm.members}">0</span> members</div>
+              <div class="comm-card__foot">
+                <div class="comm-card__events"><span th:text="${comm.eventCount}">0</span> events</div>
+                <button th:classappend="${comm.joined} ? ' join-btn--joined'" class="join-btn" th:text="${comm.joined} ? 'Joined' : 'Join'" th:onclick="|toggleJoin(event, this, '${comm.name}')|">Join</button>
               </div>
-              <button class="join-btn join-btn--joined"
-                      th:onclick="|toggleJoin(event, this, '${comm.name}')|">
-                Joined
-              </button>
             </div>
           </div>
         </div>
-      </div>
-    </th:block>
-
-    <!-- Empty joined state -->
-    <th:block th:unless="${joinedCommunities != null and !joinedCommunities.isEmpty()}">
-      <div class="comm-empty" style="padding: 50px 24px;">
-        <div class="comm-empty__icon">⚔️</div>
-        <div class="comm-empty__text">You haven't joined any communities yet.<br>Discover some above.</div>
-      </div>
-    </th:block>
-
-  </div>
-
-  <!-- ══════════════════════════════════════════
-       TAB: TRENDING
-  ══════════════════════════════════════════ -->
-  <div id="tab-trending" hidden>
-
-    <th:block th:if="${trendingCommunities != null and !trendingCommunities.isEmpty()}">
-      <div class="comm-grid">
-        <div th:each="comm : ${trendingCommunities}"
-             class="comm-card">
-          <div class="comm-card__head" th:text="${comm.emoji}">🔥</div>
-          <div class="comm-card__body">
-            <div class="comm-card__name" th:text="${comm.name}">Trending</div>
-            <div class="comm-card__meta">
-              <span th:text="${comm.members}">0</span> members
-            </div>
-            <div class="comm-card__foot">
-              <div class="comm-card__events">
-                <span th:text="${comm.eventCount}">0</span> events
-              </div>
-              <button th:classappend="${comm.joined} ? ' join-btn--joined'"
-                      class="join-btn"
-                      th:text="${comm.joined} ? 'Joined' : 'Join'"
-                      th:onclick="|toggleJoin(event, this, '${comm.name}')|">
-                Join
-              </button>
-            </div>
-          </div>
+      </th:block>
+      <th:block th:unless="${trendingCommunities != null and !trendingCommunities.isEmpty()}">
+        <div class="comm-empty" style="padding: 50px 24px;">
+          <div class="comm-empty__icon">📈</div>
+          <div class="comm-empty__text">Trending data coming soon.</div>
         </div>
-      </div>
-    </th:block>
+      </th:block>
+    </div>
 
-    <th:block th:unless="${trendingCommunities != null and !trendingCommunities.isEmpty()}">
-      <div class="comm-empty" style="padding: 50px 24px;">
-        <div class="comm-empty__icon">📈</div>
-        <div class="comm-empty__text">Trending data coming soon.</div>
-      </div>
-    </th:block>
+  </main>
 
-  </div>
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-</main>
+</div>
 
-<th:block layout:fragment="scripts">
-  <script th:src="@{/js/community.js}"></script>
-</th:block>
-
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/community.js}"></script>
+</body>
 </html>

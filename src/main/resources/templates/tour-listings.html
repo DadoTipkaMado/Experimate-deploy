@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Listings — Experimate</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .listings-header {
+            padding: 22px 18px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .listings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px 18px 32px;
+        }
+        .listing-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color var(--t-base), transform var(--t-base);
+        }
+        .listing-card:hover {
+            border-color: var(--border-2);
+            transform: translateY(-2px);
+        }
+        .listing-card--reserved {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .listing-card__head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .listing-card__city {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 17px;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+        .listing-card__date {
+            font-size: 10px;
+            color: var(--text-2);
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            flex-shrink: 0;
+            padding-top: 3px;
+        }
+        .listing-card__host {
+            font-size: 10px;
+            color: var(--accent);
+            letter-spacing: 0.06em;
+        }
+        .listing-card__desc {
+            font-size: 11px;
+            color: rgba(239,239,239,0.55);
+            line-height: 1.65;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .listing-card__foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .listing-card__status {
+            font-size: 9px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-3);
+        }
+        .listing-card__status--available { color: var(--accent); }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <main class="page-content">
+        <div class="listings-header">
+            <div class="page-title">Experiences</div>
+            <div class="page-subtitle">Find a local guide for your next adventure</div>
+        </div>
+
+        <div class="listings-list">
+
+            <th:block th:if="${listings != null and !listings.isEmpty()}">
+                <div th:each="listing : ${listings}"
+                     th:classappend="${listing.reserved} ? ' listing-card--reserved'"
+                     class="listing-card anim-fade-up">
+                    <div class="listing-card__head">
+                        <div>
+                            <div class="listing-card__city" th:text="${listing.city}">Zagreb</div>
+                            <div class="listing-card__host">
+                                by <span th:text="${listing.host.firstName + ' ' + listing.host.lastName}">Ana Horvat</span>
+                                · @<span th:text="${listing.host.username}">ahorvat</span>
+                            </div>
+                        </div>
+                        <div class="listing-card__date"
+                             th:text="${#temporals.format(listing.meetingDate, 'dd MMM · HH:mm')}">
+                            20 MAR · 10:00
+                        </div>
+                    </div>
+                    <div class="listing-card__desc" th:text="${listing.tourDescription}">Opis.</div>
+                    <div class="listing-card__foot">
+                        <div th:if="${listing.reserved}" class="listing-card__status">Already reserved</div>
+                        <div th:unless="${listing.reserved}" class="listing-card__status listing-card__status--available">Available</div>
+                        <button th:if="${!listing.reserved}"
+                                class="btn btn--primary"
+                                style="height: 36px; font-size: 10px;"
+                                onclick="showToast('Reserve — coming soon')">Reserve</button>
+                    </div>
+                </div>
+            </th:block>
+
+            <th:block th:unless="${listings != null and !listings.isEmpty()}">
+                <div class="listing-card anim-fade-up">
+                    <div class="listing-card__head">
+                        <div>
+                            <div class="listing-card__city">Zagreb</div>
+                            <div class="listing-card__host">by Ana Horvat · @ahorvat</div>
+                        </div>
+                        <div class="listing-card__date">20 MAR · 10:00</div>
+                    </div>
+                    <div class="listing-card__desc">Zagreb je grad koji spaja srednjovjekovni šarm s modernim urbanim životom.</div>
+                    <div class="listing-card__foot">
+                        <div class="listing-card__status listing-card__status--available">Available</div>
+                        <button class="btn btn--primary" style="height: 36px; font-size: 10px;"
+                                onclick="showToast('Reserve — coming soon')">Reserve</button>
+                    </div>
+                </div>
+            </th:block>
+
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
