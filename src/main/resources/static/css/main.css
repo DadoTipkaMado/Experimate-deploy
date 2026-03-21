@@ -29,10 +29,10 @@
   --text-2:         #888888;
   --text-3:         #444444;
 
-  --accent:         #c8ff00;
-  --accent-dim:     rgba(200, 255, 0, 0.10);
-  --accent-border:  rgba(200, 255, 0, 0.25);
-  --accent-glow:    rgba(200, 255, 0, 0.06);
+  --accent:         #00c9a7;
+  --accent-dim:     rgba(0, 201, 167, 0.10);
+  --accent-border:  rgba(0, 201, 167, 1);
+  --accent-glow:    rgba(0, 201, 167, 1);
 
   --warm:           #ff6b35;
   --warm-dim:       rgba(255, 107, 53, 0.10);
