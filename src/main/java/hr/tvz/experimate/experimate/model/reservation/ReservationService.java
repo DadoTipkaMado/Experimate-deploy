@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,17 +36,23 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation createReservation(CreateReservationDto dto){
+    public Reservation createReservation(CreateReservationDto dto) {
         ValidatedReservationData validatedData = validateCreationDto(dto);
 
         User validatedGuest = validatedData.guest();
         TourListing validatedListing = validatedData.listing();
 
+        if (!guestAvailableAtDate(validatedGuest, validatedListing.getMeetingDate().toLocalDate())) {
+            log.warn("Guest with id {} has already booked a listing on the date {}.",
+                    validatedGuest.getId(), validatedListing.getMeetingDate().toLocalDate());
+            throw new GuestAlreadyBookedAListingException(validatedGuest.getId());
+        }
+
         Reservation reservation = reservationRepo.save(
                 new Reservation(
-                validatedGuest,
-                validatedListing
-        ));
+                        validatedGuest,
+                        validatedListing
+                ));
         validatedListing.setReserved(true);
 
         log.info("Created reservation with id {}", reservation.getId());
@@ -51,20 +60,19 @@ public class ReservationService {
         return reservation;
     }
 
-    public List<Reservation> getAllReservations(){
+    public List<Reservation> getAllReservations() {
         return reservationRepo.findAll();
     }
 
-    public Optional<Reservation> getReservationById(Integer id){
+    public Optional<Reservation> getReservationById(Integer id) {
         return reservationRepo.findById(id);
     }
 
-    public void deleteReservation(Integer id){
-        if(reservationRepo.existsById(id)){
+    public void deleteReservation(Integer id) {
+        if (reservationRepo.existsById(id)) {
             reservationRepo.deleteById(id);
             log.info("Reservation deleted with id {}", id);
-        }
-        else {
+        } else {
             log.warn("Reservation not found with id {}", id);
             throw new ReservationNotFoundException(
                     "Reservation with id %d could not be deleted. Not found.".formatted(id
@@ -72,18 +80,18 @@ public class ReservationService {
         }
     }
 
-    private ValidatedReservationData validateCreationDto(CreateReservationDto dto){
+    private ValidatedReservationData validateCreationDto(CreateReservationDto dto) {
         User guest = extractUser(dto);
         TourListing listing = extractListing(dto);
 
-        if(dto.guestId().equals(listing.getHost().getId())) {
+        if (dto.guestId().equals(listing.getHost().getId())) {
             log.warn("Guest's id matches host's id {}", guest.getId());
             throw new IllegalArgumentException(
                     "Guest id cannot be the same as the tour listing's host id."
             );
         }
 
-        if(listing.isReserved()){
+        if (listing.isReserved()) {
             log.warn("Tour listing with id {} is already reserved!", listing.getId());
             throw new TourListingAlreadyReservedException(listing.getId());
         }
@@ -91,17 +99,23 @@ public class ReservationService {
         return new ValidatedReservationData(guest, listing);
     }
 
-    private User extractUser(CreateReservationDto dto){
+    private User extractUser(CreateReservationDto dto) {
         return userRepo.findById(dto.guestId())
                 .orElseThrow(() -> new UserNotFoundException(dto.guestId()));
 
     }
 
-    private TourListing extractListing(CreateReservationDto dto){
+    private TourListing extractListing(CreateReservationDto dto) {
         return tourListingRepo.findById(dto.tourListingId())
                 .orElseThrow(() -> new TourListingNotFoundException(dto.tourListingId()));
     }
 
     private record ValidatedReservationData(User guest, TourListing listing) {
+    }
+
+    private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
+        LocalDateTime start = meetingDate.atStartOfDay();
+        LocalDateTime end = meetingDate.atTime(23, 59, 59);
+        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(guest, start, end);
     }
 }

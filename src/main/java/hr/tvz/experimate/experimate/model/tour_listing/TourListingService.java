@@ -6,6 +6,7 @@ import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,13 +28,18 @@ public class TourListingService {
         this.userRepo = userRepo;
     }
 
+    //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
+    @Transactional
     public TourListing createListing(CreateTourListingDto dto) {
         User host = userRepo
                 .findById(dto.hostId())
                 .orElseThrow(() -> new UserNotFoundException(dto.hostId()));
 
-        if (!hostAvailableAtDate(host, dto.meetingDate().toLocalDate()))
+        if (!hostAvailableAtDate(host, dto.meetingDate().toLocalDate())) {
+            log.warn("Host with id {} has already listed a listing on the date {}.",
+                    host.getId(), dto.meetingDate().toLocalDate());
             throw new HostAlreadyTakenException(dto.hostId());
+        }
 
         TourListing saved = listingRepo.save(
                 new TourListing(
@@ -88,4 +94,8 @@ public class TourListingService {
         LocalDateTime end = meetingDate.atTime(23, 59, 59);
         return !listingRepo.existsByHostAndMeetingDateBetween(host, start, end);
     }
+
+    //TODO dodaj metodu koja ce provjeravati jesu li dto atributi ispravni.
+
+    //TODO dodaj helper metode koje ce extractati entitete iz dto
 }
