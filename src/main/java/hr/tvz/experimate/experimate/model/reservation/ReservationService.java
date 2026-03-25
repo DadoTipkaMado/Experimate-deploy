@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +44,7 @@ public class ReservationService {
         if (!guestAvailableAtDate(validatedGuest, validatedListing.getMeetingDate().toLocalDate())) {
             log.warn("Guest with id {} has already booked a listing on the date {}.",
                     validatedGuest.getId(), validatedListing.getMeetingDate().toLocalDate());
-            throw new GuestAlreadyBookedAListingException(validatedGuest.getId());
+            throw new GuestAlreadyBookedException(validatedGuest.getId());
         }
 
         Reservation reservation = reservationRepo.save(
