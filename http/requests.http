@@ -35,9 +35,6 @@ Content-type: application/json
 
 DELETE http://localhost:8080/api/user/1
 
-### Delete all users
-DELETE http://localhost:8080/api/user
-
 //------------------Tour listings-----------------------
 
 ### Fetch all tour listings
@@ -71,9 +68,6 @@ Content-Type: application/json
 ### Delete tour listing
 DELETE http://localhost:8080/api/tour-listing/4
 
-### Delete all tour listings
-DELETE http://localhost:8080/api/tour-listing
-
 //------------------Reservations-----------------------
 
 ### Fetch all reservations
@@ -95,6 +89,3 @@ Content-type: application/json
 
 ### Delete reservation
 DELETE http://localhost:8080/api/reservation/4
-
-### Delete all reservations
-DELETE http://localhost:8080/api/reservation
