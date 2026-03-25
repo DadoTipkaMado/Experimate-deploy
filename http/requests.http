@@ -53,7 +53,7 @@ POST http://localhost:8080/api/tour-listing
 Content-type: application/json
 
 {
-  "hostId": 2,
+  "hostId": 1,
   "city": "Zagreb",
   "meetingDate": "2026-03-20T10:00:00",
   "tourDescription": "{{tour}}"
