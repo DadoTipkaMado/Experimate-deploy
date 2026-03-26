@@ -1,20 +1,28 @@
 package hr.tvz.experimate.experimate.model.user;
 
+import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.model.shared.events.UserDeletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
+//TODO potencijalno maknuti dependency-e od tuđih repozitorija
 @Service
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepo userRepo;
+    private final ApplicationEventPublisher publisher;
 
-    public UserService(UserRepo userRepo) {
+    public UserService(UserRepo userRepo,  ApplicationEventPublisher publisher) {
         this.userRepo = userRepo;
+        this.publisher = publisher;
     }
 
     public User createUser(CreateUserDto createUserDto) {
@@ -62,13 +70,14 @@ public class UserService {
         return user;
     }
 
+    @Transactional
     public void deleteUser(Integer id) {
-        if (userRepo.existsById(id)) {
-            userRepo.deleteById(id);
-            log.info("User deleted with id {}", id);
-        } else {
-            log.warn("User not found with id {}", id);
-        }
+        if(!userRepo.existsById(id)) throw new UserNotFoundException(id);
+
+        UserDeletedEvent event = new UserDeletedEvent(id);
+        publisher.publishEvent(event);
+
+        userRepo.deleteById(id);
     }
 
     private String validateUsername(String username){

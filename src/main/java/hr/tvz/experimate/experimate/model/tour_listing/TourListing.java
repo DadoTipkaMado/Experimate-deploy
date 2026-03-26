@@ -43,6 +43,10 @@ public class TourListing {
         return host;
     }
 
+    public LocalDateTime getMeetingDate() {
+        return meetingDate;
+    }
+
     public boolean isReserved() {
         return reserved;
     }
@@ -59,8 +63,8 @@ public class TourListing {
         return id;
     }
 
-    public void setReserved(boolean isReserved){
-        this.reserved = isReserved;
+    public void setReserved(boolean reservedStatus){
+        this.reserved = reservedStatus;
     }
     
     private User validateHost(User host){
