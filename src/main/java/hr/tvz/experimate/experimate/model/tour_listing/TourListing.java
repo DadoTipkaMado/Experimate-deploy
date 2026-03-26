@@ -63,8 +63,8 @@ public class TourListing {
         return id;
     }
 
-    public void setReserved(boolean isReserved){
-        this.reserved = isReserved;
+    public void setReserved(boolean reservedStatus){
+        this.reserved = reservedStatus;
     }
     
     private User validateHost(User host){

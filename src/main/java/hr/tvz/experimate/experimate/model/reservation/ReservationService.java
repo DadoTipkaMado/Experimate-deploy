@@ -1,5 +1,8 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
+import hr.tvz.experimate.experimate.model.shared.events.ReservationsDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.events.TourListingsDeletedForHostEvent;
+import hr.tvz.experimate.experimate.model.shared.events.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
@@ -9,8 +12,12 @@ import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,13 +32,16 @@ public class ReservationService {
     private final ReservationRepo reservationRepo;
     private final UserRepo userRepo;
     private final TourListingRepo tourListingRepo;
+    private final ApplicationEventPublisher publisher;
 
     public ReservationService(ReservationRepo reservationRepo,
                               UserRepo userRepo,
-                              TourListingRepo tourListingRepo) {
+                              TourListingRepo tourListingRepo,
+                              ApplicationEventPublisher publisher) {
         this.reservationRepo = reservationRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
+        this.publisher = publisher;
     }
 
     @Transactional
@@ -116,5 +126,39 @@ public class ReservationService {
         LocalDateTime start = meetingDate.atStartOfDay();
         LocalDateTime end = meetingDate.atTime(23, 59, 59);
         return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(guest, start, end);
+    }
+
+    @EventListener
+    void handleListingsDeletedForHost(TourListingsDeletedForHostEvent event){
+        Integer hostId = event.getId();
+        if(!reservationRepo.existsByTourListing_Host_Id(hostId)) {
+            log.warn("Cannot find a single reservation for host with id {}", hostId);
+            return;
+        }
+
+        deleteReservationsByHostId(hostId);
+    }
+
+    @EventListener
+    void handleUserDeleted(UserDeletedEvent event){
+        Integer guestId = event.getId();
+        if(!reservationRepo.existsByGuest_Id(guestId)){
+            log.warn("Could not find a single reservation for guest with id {}", guestId);
+            return;
+        }
+        List<Integer> tourListingIds = reservationRepo.findTourListingIdsByGuestId(guestId);
+        deleteReservationsByGuestId(guestId);
+
+        publisher.publishEvent(new ReservationsDeletedEvent(tourListingIds));
+    }
+
+    private void deleteReservationsByHostId(Integer hostId) {
+        int count = reservationRepo.deleteAllByTourListing_Host_Id(hostId);
+        log.info("Deleted {} reservations for host with id {}", count, hostId);
+    }
+
+    private void deleteReservationsByGuestId(Integer guestId) {
+        int count = reservationRepo.deleteAllByGuest_Id(guestId);
+        log.info("Deleted {} reservations for guest with id {}", count, guestId);
     }
 }

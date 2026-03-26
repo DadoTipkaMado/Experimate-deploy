@@ -1,18 +1,28 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
+import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.model.shared.events.ReservationsDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.events.TourListingDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.events.TourListingsDeletedForHostEvent;
+import hr.tvz.experimate.experimate.model.shared.events.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.User;
 import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TourListingService {
@@ -21,11 +31,14 @@ public class TourListingService {
 
     private final TourListingRepo listingRepo;
     private final UserRepo userRepo;
+    private final ApplicationEventPublisher publisher;
 
     public TourListingService(TourListingRepo repo,
-                              UserRepo userRepo) {
+                              UserRepo userRepo,
+                              ApplicationEventPublisher publisher) {
         this.listingRepo = repo;
         this.userRepo = userRepo;
+        this.publisher = publisher;
     }
 
     //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
@@ -70,8 +83,10 @@ public class TourListingService {
                     return new TourListingNotFoundException(id);
                 });
 
+        //TODO napravi privatnu metodu koja validira ove atribute
         if (dto.meetingDate() != null) listing.setMeetingDate(dto.meetingDate());
         if (dto.tourDescription() != null) listing.setTourDescription(dto.tourDescription());
+        listing.setReserved(dto.reservedStatus());
 
         TourListing saved = listingRepo.save(listing);
         log.info("Updated TourListing with id {}", listing.getId());
@@ -79,12 +94,17 @@ public class TourListingService {
         return saved;
     }
 
+    @Transactional
     public void deleteListing(Integer id) {
-        listingRepo.findById(id)
+        TourListing listing = listingRepo.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Could not find TourListing with id {} to delete.", id);
                     return new TourListingNotFoundException(id);
                 });
+
+        if (listing.isReserved())
+            publisher.publishEvent(new TourListingDeletedEvent(id));
+
         listingRepo.deleteById(id);
         log.info("Deleted TourListing with id {}", id);
     }
@@ -93,6 +113,44 @@ public class TourListingService {
         LocalDateTime start = meetingDate.atStartOfDay();
         LocalDateTime end = meetingDate.atTime(23, 59, 59);
         return !listingRepo.existsByHostAndMeetingDateBetween(host, start, end);
+    }
+
+    @EventListener
+    void handleUserDeleted(UserDeletedEvent event) {
+        Integer id = event.getId();
+        if (!listingRepo.existsByHost_Id(id)) {
+            log.warn("Could not find a single TourListing associated with host of id {}.", id);
+            return;
+        }
+
+        deleteListingsByHostId(id);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    void handleReservationsDeletedEvent(ReservationsDeletedEvent event) {
+        log.info("IDS SENT BY EVENT {} ", event.tourListingIds());
+        AtomicInteger count = new AtomicInteger(0);
+        UpdateTourListingDto updateDto = new UpdateTourListingDto(
+                null,
+                null,
+                false
+        );
+        //update reserved attribute to false for each listing
+        event.tourListingIds()
+                .forEach(id -> {
+                    updateListing(id, updateDto);
+                    count.getAndIncrement();
+                });
+
+        log.info("{} listings flagged as not reserved.", count);
+    }
+
+    private void deleteListingsByHostId(Integer hostId) {
+        publisher.publishEvent(
+                new TourListingsDeletedForHostEvent(hostId)
+        );
+        int count = listingRepo.deleteAllByHost_Id(hostId);
+        log.info("Deleted {} TourListing/s with by host id {}", count, hostId);
     }
 
     //TODO dodaj metodu koja ce provjeravati jesu li dto atributi ispravni.
