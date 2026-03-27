@@ -4,6 +4,8 @@ import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +19,14 @@ public class UserService {
 
     private final UserRepo userRepo;
     private final ApplicationEventPublisher publisher;
+    private final BCryptPasswordEncoder encoder;
 
-    public UserService(UserRepo userRepo, ApplicationEventPublisher publisher) {
+    public UserService(UserRepo userRepo,
+                       ApplicationEventPublisher publisher) {
         this.userRepo = userRepo;
         this.publisher = publisher;
+
+        this.encoder = new BCryptPasswordEncoder(12);
     }
 
     public User createUser(CreateUserDto createUserDto) {
@@ -34,7 +40,7 @@ public class UserService {
                 validateUsername(
                         createUserDto.username()
                 ),
-                createUserDto.password()
+                encoder.encode(createUserDto.password())
         )
                 .bio(createUserDto.bio())
                 .build();
