@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
-import hr.tvz.experimate.experimate.model.shared.NotFoundException;
+import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 
 public class ReservationNotFoundException extends NotFoundException {
     public ReservationNotFoundException(Integer id) {

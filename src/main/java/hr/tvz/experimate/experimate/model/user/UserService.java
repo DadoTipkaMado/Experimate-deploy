@@ -1,7 +1,6 @@
 package hr.tvz.experimate.experimate.model.user;
 
-import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
-import hr.tvz.experimate.experimate.model.shared.events.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,7 +19,7 @@ public class UserService {
     private final UserRepo userRepo;
     private final ApplicationEventPublisher publisher;
 
-    public UserService(UserRepo userRepo,  ApplicationEventPublisher publisher) {
+    public UserService(UserRepo userRepo, ApplicationEventPublisher publisher) {
         this.userRepo = userRepo;
         this.publisher = publisher;
     }
@@ -58,13 +57,19 @@ public class UserService {
     public User updateUser(Integer id, UpdateUserDto updateUserDto) {
         User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
-        if (updateUserDto.username() != null) user.setUsername(
-                validateUsername(updateUserDto.username())
-        );
-        if (updateUserDto.password() != null) user.setPassword(updateUserDto.password());
-        if (updateUserDto.bio() != null) user.setBio(updateUserDto.bio());
-        userRepo.save(user);
+        if (updateUserDto.username() != null) {
+            user.setUsername(
+                    validateUsername(updateUserDto.username())
+            );
+        }
+        if (updateUserDto.password() != null)
+            user.setPassword(updateUserDto.password());
 
+        if (updateUserDto.bio() != null)
+            user.setBio(updateUserDto.bio());
+
+
+        userRepo.save(user);
         log.info("User updated with id {}", id);
 
         return user;
@@ -72,7 +77,7 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Integer id) {
-        if(!userRepo.existsById(id)) throw new UserNotFoundException(id);
+        if (!userRepo.existsById(id)) throw new UserNotFoundException(id);
 
         UserDeletedEvent event = new UserDeletedEvent(id);
         publisher.publishEvent(event);
@@ -80,16 +85,16 @@ public class UserService {
         userRepo.deleteById(id);
     }
 
-    private String validateUsername(String username){
-        if(userRepo.existsByUsername(username)) {
+    private String validateUsername(String username) {
+        if (userRepo.existsByUsername(username)) {
             log.warn("User with username {} already exists", username);
             throw new UsernameTakenException(username);
         }
         return username;
     }
 
-    private String validateIdNumber(String idNumber){
-        if(userRepo.existsByIdNumber(idNumber)) {
+    private String validateIdNumber(String idNumber) {
+        if (userRepo.existsByIdNumber(idNumber)) {
             log.warn("User with idNumber {} already exists", idNumber);
             throw new IdNumberTakenException(idNumber);
         }

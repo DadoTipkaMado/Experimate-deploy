@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
-import hr.tvz.experimate.experimate.model.shared.ConflictException;
+import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 
 public class TourListingAlreadyReservedException extends ConflictException {
     public TourListingAlreadyReservedException(Integer id) {

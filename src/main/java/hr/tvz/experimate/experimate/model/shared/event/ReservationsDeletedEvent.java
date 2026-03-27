@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.shared.events;
+package hr.tvz.experimate.experimate.model.shared.event;
 
 import java.util.List;
 
