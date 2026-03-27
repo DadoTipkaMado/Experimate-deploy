@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
-import hr.tvz.experimate.experimate.model.shared.ConflictException;
+import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 
 public class GuestAlreadyBookedException extends ConflictException {
     public GuestAlreadyBookedException(Integer id) {

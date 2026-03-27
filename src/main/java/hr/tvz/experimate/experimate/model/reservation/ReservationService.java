@@ -1,8 +1,8 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
-import hr.tvz.experimate.experimate.model.shared.events.ReservationsDeletedEvent;
-import hr.tvz.experimate.experimate.model.shared.events.TourListingsDeletedForHostEvent;
-import hr.tvz.experimate.experimate.model.shared.events.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
+import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
@@ -16,8 +16,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

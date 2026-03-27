@@ -1,4 +1,6 @@
 package hr.tvz.experimate.experimate.model.shared;
+import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
+import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

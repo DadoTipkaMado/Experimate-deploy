@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.user;
 
-import hr.tvz.experimate.experimate.model.shared.NotFoundException;
+import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 
 public class UserNotFoundException extends NotFoundException {
     public UserNotFoundException(Integer id) {

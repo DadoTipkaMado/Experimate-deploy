@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.user;
 
-import hr.tvz.experimate.experimate.model.shared.ConflictException;
+import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 
 public class IdNumberTakenException extends ConflictException {
     public IdNumberTakenException(String idNumber) {
