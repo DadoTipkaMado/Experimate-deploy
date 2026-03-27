@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-//TODO potencijalno maknuti dependency-e od tuđih repozitorija
 @Service
 public class UserService {
 
