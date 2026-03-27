@@ -128,7 +128,7 @@ public class ReservationService {
 
     @EventListener
     void handleListingsDeletedForHost(TourListingsDeletedForHostEvent event){
-        Integer hostId = event.getId();
+        Integer hostId = event.hostId();
         if(!reservationRepo.existsByTourListing_Host_Id(hostId)) {
             log.warn("Cannot find a single reservation for host with id {}", hostId);
             return;
@@ -139,7 +139,7 @@ public class ReservationService {
 
     @EventListener
     void handleUserDeleted(UserDeletedEvent event){
-        Integer guestId = event.getId();
+        Integer guestId = event.userId();
         if(!reservationRepo.existsByGuest_Id(guestId)){
             log.warn("Could not find a single reservation for guest with id {}", guestId);
             return;

@@ -115,13 +115,13 @@ public class TourListingService {
 
     @EventListener
     void handleUserDeleted(UserDeletedEvent event) {
-        Integer id = event.getId();
-        if (!listingRepo.existsByHost_Id(id)) {
-            log.warn("Could not find a single TourListing associated with host of id {}.", id);
+        Integer hostId = event.userId();
+        if (!listingRepo.existsByHost_Id(hostId)) {
+            log.warn("Could not find a single TourListing associated with host of id {}.", hostId);
             return;
         }
 
-        deleteListingsByHostId(id);
+        deleteListingsByHostId(hostId);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)

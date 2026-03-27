@@ -33,7 +33,7 @@ Content-type: application/json
 
 ### Delete user
 
-DELETE http://localhost:8080/api/user/10
+DELETE http://localhost:8080/api/user/11
 
 //------------------Tour listings-----------------------
 
@@ -83,8 +83,8 @@ POST http://localhost:8080/api/reservation
 Content-type: application/json
 
 {
-  "guestId": 10,
-  "tourListingId": 11
+  "guestId": 11,
+  "tourListingId": 10
 }
 
 ### Delete reservation
