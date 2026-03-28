@@ -12,12 +12,12 @@ POST http://localhost:8080/api/user
 Content-Type: application/json
 
 {
-  "firstName": "DADO",
-  "lastName": "TESTIC",
-  "dateOfBirth": "2006-04-22",
-  "idNumber": "22232311333333",
-  "username": "ptTestic",
-  "password": "123",
+  "firstName": "David",
+  "lastName": "Topić",
+  "dateOfBirth": "2005-04-22",
+  "idNumber": "11222333444",
+  "username": "dtopic",
+  "password": "1234",
   "bio": "Opis korisnikaaaaaaaaaaaa"
 }
 
@@ -35,11 +35,24 @@ Content-type: application/json
 
 DELETE http://localhost:8080/api/user/11
 
+//------------------Authentication-----------------------
+
+### login user
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "dtopic",
+  "password": "1234"
+}
+###
+
 //------------------Tour listings-----------------------
 
 ### Fetch all tour listings
 GET http://localhost:8080/api/tour-listing
 Accept: application/json
+
 
 ### Fetch tour listing by id
 GET http://localhost:8080/api/tour-listing/11
