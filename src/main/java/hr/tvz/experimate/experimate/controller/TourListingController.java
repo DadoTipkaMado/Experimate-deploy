@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value="/api/tour-listing")
-class TourListingController {
+public class TourListingController {
 
     private final TourListingService tourListingService;
 

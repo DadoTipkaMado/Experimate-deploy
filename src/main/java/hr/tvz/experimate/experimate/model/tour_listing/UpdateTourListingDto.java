@@ -4,5 +4,5 @@ import java.time.LocalDateTime;
 
 public record UpdateTourListingDto(LocalDateTime meetingDate,
                                    String tourDescription,
-                                   boolean reservedStatus) {
+                                   boolean isReserved) {
 }
