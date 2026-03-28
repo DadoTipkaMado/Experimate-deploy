@@ -10,6 +10,8 @@ import java.time.LocalDate;
 @MappedSuperclass
 public abstract class Person {
 
+    private static final int MINIMUM_AGE = 18;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -60,7 +62,7 @@ public abstract class Person {
     }
 
     private LocalDate validateDateOfBirth(LocalDate dateOfBirth) {
-        LocalDate ageLimitDate = LocalDate.now().minusYears(18);
+        LocalDate ageLimitDate = LocalDate.now().minusYears(MINIMUM_AGE);
 
         if (dateOfBirth == null)
             throw new IllegalArgumentException(

@@ -3,6 +3,7 @@ package hr.tvz.experimate.experimate.model.reservation;
 import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
@@ -121,9 +122,11 @@ public class ReservationService {
     }
 
     private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
-        LocalDateTime start = meetingDate.atStartOfDay();
-        LocalDateTime end = meetingDate.atTime(23, 59, 59);
-        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(guest, start, end);
+        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(
+                guest,
+                DateTimeUtil.getStartOfDay(meetingDate),
+                DateTimeUtil.getEndOfDay(meetingDate)
+        );
     }
 
     @EventListener

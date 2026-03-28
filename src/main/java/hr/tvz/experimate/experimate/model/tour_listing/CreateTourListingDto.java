@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 public record CreateTourListingDto(
         Integer hostId,
         String city,
-        LocalDateTime postDate,
         LocalDateTime meetingDate,
         String tourDescription) {
 }

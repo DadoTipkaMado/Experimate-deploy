@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 @Table(name="tour_listing")
 public class TourListing {
 
+    private static final int MINIMUM_DESCRIPTION_LENGTH = 200;
+    private static final int MAXIMUM_DESCRIPTION_LENGTH = 2000;
+
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
@@ -91,7 +94,7 @@ public class TourListing {
     private String validateTourDescription(String tourDescription){
         if(tourDescription==null || tourDescription.isBlank())
             throw new IllegalArgumentException("Tour description cannot be blank");
-        if(tourDescription.length() < 20 || tourDescription.length() > 2000)
+        if(tourDescription.length() < MINIMUM_DESCRIPTION_LENGTH || tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
             throw new IllegalArgumentException("Tour description must be between 200 and 2000 characters long.");
         return tourDescription;
     }
