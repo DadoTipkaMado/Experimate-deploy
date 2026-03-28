@@ -68,8 +68,9 @@ public class UserService {
             );
         }
         if (updateUserDto.password() != null)
-            user.setPassword(updateUserDto.password());
-
+            user.setPassword(
+                    encoder.encode(updateUserDto.password())
+            );
         if (updateUserDto.bio() != null)
             user.setBio(updateUserDto.bio());
 
