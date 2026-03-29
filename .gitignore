@@ -34,6 +34,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Spring ###
+application-local.properties
+
 ### ostalo ###
 *.log
 logs/

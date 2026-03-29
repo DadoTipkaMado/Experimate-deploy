@@ -102,3 +102,50 @@ Content-type: application/json
 
 ### Delete reservation
 DELETE http://localhost:8080/api/reservation/4
+
+//------------------Ratings-----------------------
+
+### Fetch all ratings
+GET http://localhost:8080/api/rating
+Accept: application/json
+
+### Fetch rating by id
+GET http://localhost:8080/api/rating/1
+Accept: application/json
+
+### Create rating (gost ocjenjuje hosta)
+POST http://localhost:8080/api/rating
+Content-Type: application/json
+
+{
+  "raterId": 1,
+  "ratedId": 2,
+  "score": 5,
+  "review": "Odlican vodic, jako ljubazan i informativan. Preporucujem svima!"
+}
+
+### Create rating (host ocjenjuje gosta)
+POST http://localhost:8080/api/rating
+Content-Type: application/json
+
+{
+  "raterId": 2,
+  "ratedId": 1,
+  "score": 4,
+  "review": "Tocni gost, ugodna osoba za druzenje. Sve preporuke."
+}
+
+### Update rating
+PATCH http://localhost:8080/api/rating/1
+Content-Type: application/json
+
+{
+  "score": 3,
+  "review": "Izmijenjena recenzija nakon razmisljanja."
+}
+
+### Delete rating (autor brise svoj rating)
+DELETE http://localhost:8080/api/rating/1?raterId=1
+
+### Delete rating (pokusaj brisanja tudeg ratinga - ocekuje se greska)
+DELETE http://localhost:8080/api/rating/1?raterId=99
