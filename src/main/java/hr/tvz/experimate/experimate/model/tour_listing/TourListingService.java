@@ -85,7 +85,7 @@ public class TourListingService {
         //TODO napravi privatnu metodu koja validira ove atribute
         if (dto.meetingDate() != null) listing.setMeetingDate(dto.meetingDate());
         if (dto.tourDescription() != null) listing.setTourDescription(dto.tourDescription());
-        listing.setReserved(dto.reservedStatus());
+        listing.setReserved(dto.isReserved());
 
         TourListing saved = listingRepo.save(listing);
         log.info("Updated TourListing with id {}", listing.getId());
