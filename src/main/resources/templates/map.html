@@ -20,9 +20,6 @@
       inset: 0;
       z-index: 1;
     }
-    .leaflet-tile {
-      filter: brightness(0.32) saturate(0.25) hue-rotate(190deg);
-    }
     .leaflet-container { background: #0a0a0a; }
     .leaflet-control-attribution { display: none; }
     .map-overlay {
@@ -133,20 +130,8 @@
 
       <div class="map-overlay map-overlay--interactive map-filters">
         <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('gems')">Gems</div>
-        <div class="pill pill--warm" onclick="togglePill(this); mapFilterToggle('events')">Events</div>
-        <div class="pill" onclick="togglePill(this); mapFilterToggle('locals')">Locals</div>
+        <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('events')">Events</div>
       </div>
-
-      <div class="map-overlay map-legend">
-        <div class="map-legend__row">
-          <div class="map-legend__dot map-legend__dot--gem"></div>Hidden Gem
-        </div>
-        <div class="map-legend__row">
-          <div class="map-legend__dot map-legend__dot--event"></div>Event
-        </div>
-      </div>
-
-      <div th:replace="~{fragments/bottom-sheet :: bottom-sheet}"></div>
 
     </div>
   </main>

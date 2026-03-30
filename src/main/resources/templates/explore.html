@@ -24,14 +24,18 @@
     .side-action__icon { width: 42px; height: 42px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-2); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background var(--t-fast), transform var(--t-fast); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
     .side-action:hover .side-action__icon { background: rgba(255,255,255,0.14); transform: scale(1.08); }
     .side-action__label { font-size: 9px; color: rgba(239,239,239,0.5); letter-spacing: 0.06em; }
+    .side-action--saved .side-action__icon { background: rgba(255,107,53,0.18); border-color: rgba(255,107,53,0.35); }
+    .side-action--saved .side-action__label { color: var(--warm); }
     .explore-card__content { position: relative; z-index: 2; padding: 0 16px 20px; }
-    .explore-card__tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
-    .explore-card__tag { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.07); border: 1px solid var(--border-2); color: rgba(239,239,239,0.6); }
     .explore-card__name { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.05; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em; }
-    .explore-card__city { font-size: 11px; color: rgba(239,239,239,0.5); letter-spacing: 0.08em; margin-bottom: 10px; }
+    .explore-card__handle { font-size: 11px; color: rgba(239,239,239,0.5); letter-spacing: 0.08em; margin-bottom: 10px; }
     .explore-card__desc { font-size: 11px; color: rgba(239,239,239,0.55); line-height: 1.65; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .explore-card__cta { display: flex; gap: 8px; align-items: center; }
     .explore-card__cta .btn--primary { flex: 1; }
+    .explore-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; text-align: center; padding: 40px 24px; }
+    .explore-empty__icon { font-size: 40px; opacity: 0.2; }
+    .explore-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .explore-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
     .scroll-hint { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 1; transition: opacity 0.4s ease; pointer-events: none; }
     .scroll-hint--hidden { opacity: 0; }
     .scroll-hint__arrow { animation: bounceUp 1.2s ease infinite; }
@@ -53,105 +57,42 @@
         </svg>
         <input type="text" id="explore-search-input" placeholder="Search locals..." autocomplete="off">
       </div>
-      <div class="explore-filters pill-group">
-        <div class="pill pill--active" onclick="selectPill(this)">All</div>
-        <div class="pill" onclick="selectPill(this)">Food</div>
-        <div class="pill" onclick="selectPill(this)">Art</div>
-        <div class="pill" onclick="selectPill(this)">Night</div>
-        <div class="pill" onclick="selectPill(this)">Nature</div>
-        <div class="pill" onclick="selectPill(this)">History</div>
-      </div>
     </div>
 
     <div id="explore-feed">
 
-      <th:block th:if="${locals != null and !locals.isEmpty()}">
-        <div th:each="local, iter : ${locals}" class="explore-card" th:attr="data-id=${local.id}">
-          <div class="explore-card__bg"><span th:text="${local.emoji} ?: '👤'">👤</span></div>
+      <th:block th:if="${users != null and !users.isEmpty()}">
+        <div th:each="user, iter : ${users}"
+             class="explore-card"
+             th:data-id="${user.id}"
+             th:data-name="${user.firstName + ' ' + user.lastName}">
+          <div class="explore-card__bg">👤</div>
           <div class="explore-card__gradient"></div>
-          <div class="explore-card__rating">★ <span th:text="${local.rating}">4.9</span></div>
+          <div class="explore-card__rating">★ <span th:text="${user.rating}">0.0</span></div>
           <div class="explore-card__side">
-            <div class="side-action" th:onclick="|saveLocal(${local.id}, '${local.name}')|">
+            <div class="side-action" onclick="toggleSave(this)">
               <div class="side-action__icon">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
               </div>
               <div class="side-action__label">Save</div>
             </div>
-            <div class="side-action" th:onclick="|viewOnMap(${local.lat}, ${local.lng})|">
-              <div class="side-action__icon">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-              </div>
-              <div class="side-action__label">Map</div>
-            </div>
           </div>
           <div class="explore-card__content">
-            <div class="explore-card__tags">
-              <span th:each="tag : ${local.tags}" class="explore-card__tag" th:text="${tag}">Tag</span>
-            </div>
-            <div class="explore-card__name" th:text="${local.name}">Ana Horvat</div>
-            <div class="explore-card__city">📍 <span th:text="${local.city}">Zagreb</span></div>
-            <div class="explore-card__desc" th:text="${local.dayDesc}">Ideal day description.</div>
+            <div class="explore-card__name" th:text="${user.firstName + ' ' + user.lastName}">Name</div>
+            <div class="explore-card__handle" th:text="'@' + ${user.username}">@username</div>
+            <div class="explore-card__desc" th:text="${user.bio} ?: 'No bio yet.'">Bio</div>
             <div class="explore-card__cta">
-              <a th:href="@{/meet/new(localId=${local.id})}" class="btn btn--primary">Schedule Meet</a>
-              <a th:href="@{/locals/{id}(id=${local.id})}" class="btn btn--icon" aria-label="View profile">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </a>
+              <a th:href="@{/listings}" class="btn btn--primary">View Listings</a>
             </div>
           </div>
         </div>
       </th:block>
 
-      <th:block th:unless="${locals != null and !locals.isEmpty()}">
-        <div class="explore-card" data-id="1">
-          <div class="explore-card__bg">👩</div>
-          <div class="explore-card__gradient"></div>
-          <div class="explore-card__rating">★ 4.9</div>
-          <div class="explore-card__side">
-            <div class="side-action" onclick="showToast('Saved Ana Horvat')">
-              <div class="side-action__icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-              <div class="side-action__label">Save</div>
-            </div>
-            <div class="side-action" onclick="showToast('View on map')">
-              <div class="side-action__icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
-              <div class="side-action__label">Map</div>
-            </div>
-          </div>
-          <div class="explore-card__content">
-            <div class="explore-card__tags"><span class="explore-card__tag">Food</span><span class="explore-card__tag">Art</span></div>
-            <div class="explore-card__name">Ana Horvat</div>
-            <div class="explore-card__city">📍 Zagreb</div>
-            <div class="explore-card__desc">Start mornings at Dolac market for fresh local produce, then coffee at a hidden courtyard café in the Upper Town.</div>
-            <div class="explore-card__cta">
-              <button class="btn btn--primary" onclick="showToast('Scheduling meet with Ana')">Schedule Meet</button>
-              <button class="btn btn--icon" onclick="showToast('Viewing Ana profile')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="explore-card" data-id="2">
-          <div class="explore-card__bg">👨</div>
-          <div class="explore-card__gradient"></div>
-          <div class="explore-card__rating">★ 4.7</div>
-          <div class="explore-card__side">
-            <div class="side-action" onclick="showToast('Saved Luka Novak')">
-              <div class="side-action__icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-              <div class="side-action__label">Save</div>
-            </div>
-            <div class="side-action" onclick="showToast('View on map')">
-              <div class="side-action__icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
-              <div class="side-action__label">Map</div>
-            </div>
-          </div>
-          <div class="explore-card__content">
-            <div class="explore-card__tags"><span class="explore-card__tag">Night</span><span class="explore-card__tag">Sea</span></div>
-            <div class="explore-card__name">Luka Novak</div>
-            <div class="explore-card__city">📍 Split</div>
-            <div class="explore-card__desc">Start at the Green Market inside Diocletian's Palace, swim at Bačvice beach, rooftop aperitivo at sunset.</div>
-            <div class="explore-card__cta">
-              <button class="btn btn--primary" onclick="showToast('Scheduling meet with Luka')">Schedule Meet</button>
-              <button class="btn btn--icon" onclick="showToast('Viewing Luka profile')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-            </div>
-          </div>
+      <th:block th:unless="${users != null and !users.isEmpty()}">
+        <div class="explore-empty">
+          <div class="explore-empty__icon">🧭</div>
+          <div class="explore-empty__title">No locals yet</div>
+          <div class="explore-empty__sub">Be the first to create a profile and start hosting experiences.</div>
         </div>
       </th:block>
 
@@ -166,5 +107,15 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
+<script>
+  function toggleSave(el) {
+    const saved = el.classList.toggle('side-action--saved');
+    const heart = el.querySelector('.save-heart');
+    heart.setAttribute('fill', saved ? 'var(--warm)' : 'none');
+    heart.setAttribute('stroke', saved ? 'var(--warm)' : 'var(--text)');
+    const name = el.closest('.explore-card').dataset.name;
+    showToast(saved ? 'Saved ' + name : 'Removed ' + name);
+  }
+</script>
 </body>
 </html>
