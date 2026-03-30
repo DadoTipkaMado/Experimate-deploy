@@ -15,9 +15,12 @@ public class TourListing {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
+
     @ManyToOne
     @JoinColumn(name = "host_id")
     private User host;
+
+    //TODO napravi provjeru grada u bazi
     private String city;
     private LocalDateTime postDate;
     private LocalDateTime meetingDate;

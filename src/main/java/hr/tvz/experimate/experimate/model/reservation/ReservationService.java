@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
+import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
@@ -16,10 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,8 +42,7 @@ public class ReservationService {
         this.publisher = publisher;
     }
 
-    @Transactional
-    public Reservation createReservation(CreateReservationDto dto) {
+    private void createReservation(CreateReservationDto dto) {
         ValidatedReservationData validatedData = validateCreationDto(dto);
 
         User validatedGuest = validatedData.guest();
@@ -64,8 +62,6 @@ public class ReservationService {
         validatedListing.setReserved(true);
 
         log.info("Created reservation with id {}", reservation.getId());
-
-        return reservation;
     }
 
     public List<Reservation> getAllReservations() {
@@ -129,6 +125,16 @@ public class ReservationService {
         );
     }
 
+    private void deleteReservationsByHostId(Integer hostId) {
+        int count = reservationRepo.deleteAllByTourListing_Host_Id(hostId);
+        log.info("Deleted {} reservations for host with id {}", count, hostId);
+    }
+
+    private void deleteReservationsByGuestId(Integer guestId) {
+        int count = reservationRepo.deleteAllByGuest_Id(guestId);
+        log.info("Deleted {} reservations for guest with id {}", count, guestId);
+    }
+
     @EventListener
     void handleListingsDeletedForHost(TourListingsDeletedForHostEvent event){
         Integer hostId = event.hostId();
@@ -153,13 +159,8 @@ public class ReservationService {
         publisher.publishEvent(new ReservationsDeletedEvent(tourListingIds));
     }
 
-    private void deleteReservationsByHostId(Integer hostId) {
-        int count = reservationRepo.deleteAllByTourListing_Host_Id(hostId);
-        log.info("Deleted {} reservations for host with id {}", count, hostId);
-    }
-
-    private void deleteReservationsByGuestId(Integer guestId) {
-        int count = reservationRepo.deleteAllByGuest_Id(guestId);
-        log.info("Deleted {} reservations for guest with id {}", count, guestId);
+    @EventListener
+    void handleBookingRequestAccepted(BookingRequestAcceptedEvent event) {
+        createReservation(new CreateReservationDto(event.guestId(), event.listingId()));
     }
 }
