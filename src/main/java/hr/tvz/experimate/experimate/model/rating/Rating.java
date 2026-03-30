@@ -29,6 +29,7 @@ public class Rating {
     private String review;
     private LocalDateTime datePosted;
 
+    //For hibernate
     protected Rating() {}
 
     public Rating(User rater, User rated, Integer score, String review) {

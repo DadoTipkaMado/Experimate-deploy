@@ -1,9 +1,7 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.reservation.CreateReservationDto;
 import hr.tvz.experimate.experimate.model.reservation.Reservation;
 import hr.tvz.experimate.experimate.model.reservation.ReservationService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +15,6 @@ public class ReservationController {
 
     public ReservationController(ReservationService reservationService) {
         this.reservationService = reservationService;
-    }
-
-    @PostMapping
-    public ResponseEntity<Reservation> createReservation(@RequestBody CreateReservationDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                reservationService.createReservation(dto)
-        );
     }
 
     @GetMapping
