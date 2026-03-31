@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.controller;
 
 import hr.tvz.experimate.experimate.model.booking_request.BookingRequest;
+import hr.tvz.experimate.experimate.model.booking_request.BookingRequestResponse;
 import hr.tvz.experimate.experimate.model.booking_request.BookingRequestService;
 import hr.tvz.experimate.experimate.model.booking_request.CreateBookingRequestDto;
 import org.springframework.http.HttpStatus;
@@ -42,5 +43,17 @@ public class BookingRequestController {
     public ResponseEntity<Void> deleteBookingRequest(@PathVariable Integer id) {
         bookingRequestService.deleteBookingRequest(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/accept/{id}")
+    public ResponseEntity<BookingRequestResponse> acceptBookingRequest(@PathVariable Integer id) {
+        return ResponseEntity
+                .ok(bookingRequestService.acceptBookingRequest(id));
+    }
+
+    @PatchMapping(value = "/decline/{id}")
+    public ResponseEntity<BookingRequestResponse> declineBookingRequest(@PathVariable Integer id) {
+        return ResponseEntity
+                .ok(bookingRequestService.declineBookingRequest(id));
     }
 }

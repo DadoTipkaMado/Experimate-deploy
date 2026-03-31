@@ -62,7 +62,7 @@ POST http://localhost:8080/api/tour-listing
 Content-type: application/json
 
 {
-  "hostId": 1,
+  "hostId": 2,
   "city": "Zagreb",
   "meetingDate": "2026-12-30T10:00:00",
   "tourDescription": "{{tour}}"
@@ -164,9 +164,15 @@ POST http://localhost:8080/api/booking-request
 Content-Type: application/json
 
 {
-  "guestId": 2,
-  "listingId": 1
+  "guestId": 1,
+  "listingId": 2
 }
 
 ### Delete booking request
-DELETE http://localhost:8080/api/booking-request/1
+DELETE http://localhost:8080/api/booking-request/2
+
+### Accept booking request
+PATCH http://localhost:8080/api/booking-request/accept/3
+
+### Decline booking request
+PATCH http://localhost:8080/api/booking-request/accept/1
