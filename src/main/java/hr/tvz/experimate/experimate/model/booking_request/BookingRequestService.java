@@ -75,7 +75,7 @@ public class BookingRequestService {
         request.setStatus(status);
         log.info("Updated booking request status with id {} to {} ",
                 request.getId(),
-                request.getStatus().toString());
+                request.getStatus());
         return bookingRequestRepo.save(request);
     }
 
@@ -102,7 +102,7 @@ public class BookingRequestService {
         ));
 
         //Updating status of the accepted acceptedRequest
-        acceptedRequest.setStatus(BookingRequestStatus.ACCEPTED);
+        updateBookingRequest(acceptedId, BookingRequestStatus.ACCEPTED);
 
         //Updating the rest (automatically decline)
         List<Integer> declinedIds =
@@ -121,6 +121,7 @@ public class BookingRequestService {
     }
 
     public BookingRequestResponse declineBookingRequest(Integer id) {
+        updateBookingRequest(id, BookingRequestStatus.DECLINED);
         log.info("Booking request declined with id {}", id);
 
         return new BookingRequestResponse(
