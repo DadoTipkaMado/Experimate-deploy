@@ -12,11 +12,11 @@ POST http://localhost:8080/api/user
 Content-Type: application/json
 
 {
-  "firstName": "Vito",
-  "lastName": "Strmečki",
+  "firstName": "Strma",
+  "lastName": "Grdanjski",
   "dateOfBirth": "2005-04-22",
-  "idNumber": "123123123123123",
-  "username": "vstrmecki",
+  "idNumber": "123123412223123123",
+  "username": "sgrdanjski",
   "password": "1234",
   "bio": "Opis korisnikaaaaaaaaaaaa"
 }
@@ -62,7 +62,7 @@ POST http://localhost:8080/api/tour-listing
 Content-type: application/json
 
 {
-  "hostId": 2,
+  "hostId": 3,
   "city": "Zagreb",
   "meetingDate": "2026-12-30T10:00:00",
   "tourDescription": "{{tour}}"
@@ -165,7 +165,7 @@ Content-Type: application/json
 
 {
   "guestId": 1,
-  "listingId": 2
+  "listingId": 3
 }
 
 ### Delete booking request
