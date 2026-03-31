@@ -1,9 +1,6 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.rating.CreateRatingDto;
-import hr.tvz.experimate.experimate.model.rating.Rating;
-import hr.tvz.experimate.experimate.model.rating.RatingService;
-import hr.tvz.experimate.experimate.model.rating.UpdateRatingDto;
+import hr.tvz.experimate.experimate.model.rating.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,26 +18,26 @@ public class RatingController {
     }
 
     @PostMapping
-    public ResponseEntity<Rating> createRating(@RequestBody CreateRatingDto dto) {
+    public ResponseEntity<RatingResponse> createRating(@RequestBody CreateRatingDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ratingService.createRating(dto)
         );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Rating> getRatingById(@PathVariable Integer id) {
+    public ResponseEntity<RatingResponse> getRatingById(@PathVariable Integer id) {
         return ratingService.getRatingById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<Rating>> getAllRatings() {
+    public ResponseEntity<List<RatingResponse>> getAllRatings() {
         return ResponseEntity.ok(ratingService.getAllRatings());
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Rating> updateRating(@PathVariable Integer id,
+    public ResponseEntity<RatingResponse> updateRating(@PathVariable Integer id,
                                                @RequestBody UpdateRatingDto dto) {
         return ResponseEntity.ok(ratingService.updateRating(id, dto));
     }

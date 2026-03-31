@@ -2,7 +2,7 @@ package hr.tvz.experimate.experimate.controller;
 
 import hr.tvz.experimate.experimate.model.user.CreateUserDto;
 import hr.tvz.experimate.experimate.model.user.UpdateUserDto;
-import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.model.user.UserResponse;
 import hr.tvz.experimate.experimate.model.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,28 +21,28 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody CreateUserDto dto) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 userService.createUser(dto)
         );
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(
                 userService.getAllUsers()
         );
     }
 
     @PatchMapping(value = "/{id}")
-    public ResponseEntity<User> patchUser(@PathVariable Integer id,
+    public ResponseEntity<UserResponse> patchUser(@PathVariable Integer id,
                                           @RequestBody UpdateUserDto dto){
         return ResponseEntity.ok(
                 userService.updateUser(id, dto)

@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.rating;
 
+import hr.tvz.experimate.experimate.model.booking_request.BookingRequest;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.User;
 import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
@@ -26,7 +27,7 @@ public class RatingService {
         this.userRepo = userRepo;
     }
 
-    public Rating createRating(CreateRatingDto dto) {
+    public RatingResponse createRating(CreateRatingDto dto) {
         User rater = userRepo.findById(dto.raterId())
                 .orElseThrow(() -> new UserNotFoundException(dto.raterId()));
         User rated = userRepo.findById(dto.ratedId())
@@ -38,18 +39,35 @@ public class RatingService {
         recalculateRating(rated);
 
         log.info("Rating created with id {}", rating.getId());
-        return rating;
+
+        return new RatingResponse(
+                rating.getId(),
+                rating.getScore(),
+                rating.getReview()
+        );
     }
 
-    public Optional<Rating> getRatingById(Integer id) {
-        return ratingRepo.findById(id);
+    public Optional<RatingResponse> getRatingById(Integer id) {
+        Optional<Rating> rating = ratingRepo.findById(id);
+        return rating.map(r -> new RatingResponse(
+                r.getId(),
+                r.getScore(),
+                r.getReview()
+        ));
     }
 
-    public List<Rating> getAllRatings() {
-        return ratingRepo.findAll();
+    public List<RatingResponse> getAllRatings() {
+        return ratingRepo.findAll()
+                .stream()
+                .map(rating -> new RatingResponse(
+                        rating.getId(),
+                        rating.getScore(),
+                        rating.getReview()
+                ))
+                .toList();
     }
 
-    public Rating updateRating(Integer id, UpdateRatingDto dto) {
+    public RatingResponse updateRating(Integer id, UpdateRatingDto dto) {
         Rating rating = ratingRepo.findById(id)
                 .orElseThrow(() -> new RatingNotFoundException(id));
 
@@ -62,7 +80,12 @@ public class RatingService {
         recalculateRating(rating.getRated());
 
         log.info("Rating updated with id {}", id);
-        return rating;
+
+        return new RatingResponse(
+                rating.getId(),
+                rating.getScore(),
+                rating.getReview()
+        );
     }
 
     @Transactional

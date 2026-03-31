@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(conflict, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorResponse illegalArg = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
+        return new ResponseEntity<>(illegalArg, HttpStatus.BAD_REQUEST);
+    }
+
     private ErrorResponse createErrorResponse(HttpStatus status, Exception ex) {
         return new ErrorResponse(
                 status.value(),

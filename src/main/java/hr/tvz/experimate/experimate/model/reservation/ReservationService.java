@@ -42,7 +42,7 @@ public class ReservationService {
         this.publisher = publisher;
     }
 
-    private void createReservation(CreateReservationDto dto) {
+    private ReservationResponse createReservation(CreateReservationDto dto) {
         ValidatedReservationData validatedData = validateCreationDto(dto);
 
         User validatedGuest = validatedData.guest();
@@ -62,14 +62,20 @@ public class ReservationService {
         validatedListing.setReserved(true);
 
         log.info("Created reservation with id {}", reservation.getId());
+
+        return new ReservationResponse(reservation.getId());
     }
 
-    public List<Reservation> getAllReservations() {
-        return reservationRepo.findAll();
+    public List<ReservationResponse> getAllReservations() {
+        return reservationRepo.findAll()
+                .stream()
+                .map(reservation -> new ReservationResponse(reservation.getId()))
+                .toList();
     }
 
-    public Optional<Reservation> getReservationById(Integer id) {
-        return reservationRepo.findById(id);
+    public Optional<ReservationResponse> getReservationById(Integer id) {
+        return reservationRepo.findById(id)
+                .map(reservation -> new ReservationResponse(reservation.getId()));
     }
 
     public void deleteReservation(Integer id) {

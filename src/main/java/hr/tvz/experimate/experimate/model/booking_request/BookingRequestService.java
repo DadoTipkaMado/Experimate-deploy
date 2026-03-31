@@ -39,7 +39,7 @@ public class BookingRequestService {
     }
 
     //TODO napravi validaciju dto
-    public BookingRequest createBookingRequest(CreateBookingRequestDto dto) {
+    public BookingRequestResponse createBookingRequest(CreateBookingRequestDto dto) {
         Integer guestId = dto.guestId();
         Integer listingId = dto.listingId();
 
@@ -48,6 +48,15 @@ public class BookingRequestService {
                     log.warn("Listing with id {} not found", listingId);
                     return new TourListingNotFoundException(listingId);
                 });
+
+        User guest = userRepo.findById(guestId)
+                .orElseThrow(() -> new UserNotFoundException(guestId));
+
+        if (guestId.equals(listing.getHost().getId())) {
+            log.warn("Guest id {} matches host id — cannot send booking request to yourself", guestId);
+            throw new IllegalArgumentException("Guest cannot send a booking request to themselves.");
+        }
+
         if(listing.isReserved()) {
             log.warn("TourListing with id {} is already reserved. Cannot create new BookingRequests for it.", listingId);
             throw new TourListingAlreadyReservedException(listing.getId());
@@ -62,25 +71,31 @@ public class BookingRequestService {
             throw new BookingAlreadyRequestedException(guestId, listingId);
         }
 
-        User guest = userRepo.findById(guestId)
-                .orElseThrow(() -> new UserNotFoundException(guestId));
-
-        if (guestId.equals(listing.getHost().getId())) {
-            log.warn("Guest id {} matches host id — cannot send booking request to yourself", guestId);
-            throw new IllegalArgumentException("Guest cannot send a booking request to themselves.");
-        }
-
         BookingRequest request = bookingRequestRepo.save(new BookingRequest(guest, listing));
         log.info("Created booking request with id {}", request.getId());
-        return request;
+
+        return new BookingRequestResponse(
+                request.getId(),
+                request.getStatus());
     }
 
-    public List<BookingRequest> getAllBookingRequests() {
-        return bookingRequestRepo.findAll();
+    public List<BookingRequestResponse> getAllBookingRequests() {
+        return bookingRequestRepo.findAll()
+                .stream()
+                .map(request -> new BookingRequestResponse(
+                        request.getId(),
+                        request.getStatus()
+                ))
+                .toList();
     }
 
-    public Optional<BookingRequest> getBookingRequestById(Integer id) {
-        return bookingRequestRepo.findById(id);
+    public Optional<BookingRequestResponse> getBookingRequestById(Integer id) {
+        Optional<BookingRequest> request = bookingRequestRepo.findById(id);
+
+        return request.map(bookingRequest -> new BookingRequestResponse(
+                bookingRequest.getId(),
+                bookingRequest.getStatus()
+        ));
     }
 
     //Cannot be updated directly from api endpoint, used only internally
