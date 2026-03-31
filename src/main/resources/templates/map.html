@@ -143,10 +143,6 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 
-<div id="map-data"
-     th:attr="data-pins=${mapPinsJson} ?: '[]'"
-     style="display:none;"></div>
-
 <script th:src="@{/js/map.js}"></script>
 <script th:src="@{/js/websocket.js}"></script>
 </body>

@@ -49,31 +49,21 @@
       <div class="page-subtitle">Update your username, bio, or password</div>
     </div>
 
-    <form th:action="@{/account/edit}" method="post" class="edit-form">
+    <form id="edit-form" class="edit-form">
 
-      <div th:if="${error}" class="form-error" th:text="${error}"></div>
+      <div id="form-error" class="form-error" style="display:none;"></div>
 
       <div class="form-field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username"
-               th:value="${user.username}"
                minlength="4" maxlength="15" autocomplete="username" required>
         <span class="form-field__hint">4–15 characters</span>
       </div>
 
       <div class="form-field">
-        <label for="profilePhotoUrl">Profile photo URL <span style="color: var(--text-3);">(optional)</span></label>
-        <input type="url" id="profilePhotoUrl" name="profilePhotoUrl"
-               th:value="${user.profilePhotoUrl}"
-               placeholder="https://example.com/photo.jpg" autocomplete="off">
-        <span class="form-field__hint">Direct link to a .jpg or .png image</span>
-      </div>
-
-      <div class="form-field">
         <label for="bio">Bio <span style="color: var(--text-3);">(optional)</span></label>
         <textarea id="bio" name="bio" maxlength="200"
-                  placeholder="Tell other travellers about yourself..."
-                  th:text="${user.bio}"></textarea>
+                  placeholder="Tell other travellers about yourself..."></textarea>
         <span class="form-field__hint">Max 200 characters</span>
       </div>
 
@@ -90,7 +80,7 @@
       </div>
 
       <div class="form-actions">
-        <a th:href="@{/account}" class="btn btn--ghost">Cancel</a>
+        <a href="/account" class="btn btn--ghost">Cancel</a>
         <button type="submit" class="btn btn--primary">Save</button>
       </div>
 
@@ -103,5 +93,46 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const userId = Auth.getUserId();
+  if (!userId) window.location.href = '/login';
+
+  // Prefill form with current user data
+  UserAPI.getById(userId).then(user => {
+    document.getElementById('username').value = user.username ?? '';
+    document.getElementById('bio').value      = user.bio ?? '';
+  });
+
+  document.getElementById('edit-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const errorEl = document.getElementById('form-error');
+    errorEl.style.display = 'none';
+
+    const password        = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password && password !== confirmPassword) {
+      errorEl.textContent = 'Passwords do not match';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const dto = {
+      username: document.getElementById('username').value,
+      bio:      document.getElementById('bio').value || null,
+      password: password || null,
+    };
+
+    try {
+      await UserAPI.update(userId, dto);
+      showToast('Profile saved!');
+      setTimeout(() => window.location.href = '/account', 800);
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  });
+</script>
 </body>
 </html>

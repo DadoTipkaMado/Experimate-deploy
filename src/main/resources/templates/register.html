@@ -61,9 +61,9 @@
       <div class="auth-subtitle">Join and start hosting experiences</div>
     </div>
 
-    <div th:if="${error}" class="auth-error" th:text="${error}"></div>
+    <div id="auth-error" class="auth-error" style="display:none;"></div>
 
-    <form th:action="@{/register}" method="post" style="display: flex; flex-direction: column; gap: 14px;">
+    <form id="register-form" style="display: flex; flex-direction: column; gap: 14px;">
 
       <div class="auth-row">
         <div class="auth-field">
@@ -108,8 +108,67 @@
     </form>
 
     <div class="auth-footer">
-      Already have an account? <a th:href="@{/login}">Sign in</a>
+      Already have an account? <a href="/login">Sign in</a>
     </div>
   </div>
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('register-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const errorEl = document.getElementById('auth-error');
+        errorEl.style.display = 'none';
+
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+          errorEl.textContent = 'Passwords do not match';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        // Parse DD/MM/YYYY → YYYY-MM-DD for backend
+        const [dd, mm, yyyy] = document.getElementById('dateOfBirth').value.split('/');
+        const dob = `${yyyy}-${mm}-${dd}`;
+
+        // 18+ check (UX only)
+        const birthDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+
+        if (age < 18) {
+          errorEl.textContent = 'You must be 18 or older to register';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const username = document.getElementById('username').value;
+
+        try {
+          await UserAPI.create({
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            dateOfBirth: dob,
+            idNumber: null,
+            username,
+            password,
+            bio: document.getElementById('bio').value || null,
+          });
+          const loginRes = await AuthAPI.login(username, password);
+          Auth.saveToken(loginRes.token);
+          const users = await UserAPI.getAll();
+          const me = users.find(u => u.username === Auth.getUsername());
+          if (me) Auth.saveUserId(me.id);
+          window.location.href = '/map';
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.style.display = 'block';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

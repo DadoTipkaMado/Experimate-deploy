@@ -60,42 +60,7 @@
     </div>
 
     <div id="explore-feed">
-
-      <th:block th:if="${users != null and !users.isEmpty()}">
-        <div th:each="user, iter : ${users}"
-             class="explore-card"
-             th:data-id="${user.id}"
-             th:data-name="${user.firstName + ' ' + user.lastName}">
-          <div class="explore-card__bg">👤</div>
-          <div class="explore-card__gradient"></div>
-          <div class="explore-card__rating">★ <span th:text="${user.rating}">0.0</span></div>
-          <div class="explore-card__side">
-            <div class="side-action" onclick="toggleSave(this)">
-              <div class="side-action__icon">
-                <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-              </div>
-              <div class="side-action__label">Save</div>
-            </div>
-          </div>
-          <div class="explore-card__content">
-            <div class="explore-card__name" th:text="${user.firstName + ' ' + user.lastName}">Name</div>
-            <div class="explore-card__handle" th:text="'@' + ${user.username}">@username</div>
-            <div class="explore-card__desc" th:text="${user.bio} ?: 'No bio yet.'">Bio</div>
-            <div class="explore-card__cta">
-              <a th:href="@{/listings}" class="btn btn--primary">View Listings</a>
-            </div>
-          </div>
-        </div>
-      </th:block>
-
-      <th:block th:unless="${users != null and !users.isEmpty()}">
-        <div class="explore-empty">
-          <div class="explore-empty__icon">🧭</div>
-          <div class="explore-empty__title">No locals yet</div>
-          <div class="explore-empty__sub">Be the first to create a profile and start hosting experiences.</div>
-        </div>
-      </th:block>
-
+      <!-- populated by JS -->
     </div>
 
   </main>
@@ -106,6 +71,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
 <script>
   function toggleSave(el) {
@@ -116,6 +82,46 @@
     const name = el.closest('.explore-card').dataset.name;
     showToast(saved ? 'Saved ' + name : 'Removed ' + name);
   }
+
+  function renderExplore(users) {
+    const feed = document.getElementById('explore-feed');
+    if (!users || users.length === 0) {
+      feed.innerHTML = `
+        <div class="explore-empty">
+          <div class="explore-empty__icon">🧭</div>
+          <div class="explore-empty__title">No locals yet</div>
+          <div class="explore-empty__sub">Be the first to create a profile and start hosting experiences.</div>
+        </div>`;
+      return;
+    }
+    feed.innerHTML = users.map(user => `
+      <div class="explore-card" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}">
+        <div class="explore-card__bg">👤</div>
+        <div class="explore-card__gradient"></div>
+        <div class="explore-card__rating">★ ${user.rating ?? '0.0'}</div>
+        <div class="explore-card__side">
+          <div class="side-action" onclick="toggleSave(this)">
+            <div class="side-action__icon">
+              <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="side-action__label">Save</div>
+          </div>
+        </div>
+        <div class="explore-card__content">
+          <div class="explore-card__name">${user.firstName} ${user.lastName}</div>
+          <div class="explore-card__handle">@${user.username}</div>
+          <div class="explore-card__desc">${user.bio ?? 'No bio yet.'}</div>
+          <div class="explore-card__cta">
+            <a href="/tours" class="btn btn--primary">View Listings</a>
+          </div>
+        </div>
+      </div>`).join('');
+    setCardHeights();
+    initScrollHint();
+    initSearch();
+  }
+
+  UserAPI.getAll().then(renderExplore).catch(() => renderExplore([]));
 </script>
 </body>
 </html>

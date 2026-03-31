@@ -77,61 +77,11 @@
     </div>
 
     <div id="tab-upcoming" style="padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1;">
-
-      <th:block th:if="${upcomingReservations != null and !upcomingReservations.isEmpty()}">
-        <div th:each="res : ${upcomingReservations}" class="meet-card anim-fade-up">
-          <div class="meet-card__date">
-            <div class="meet-card__day"  th:text="${#temporals.format(res.tourListing.meetingDate, 'dd')}">01</div>
-            <div class="meet-card__month" th:text="${#temporals.format(res.tourListing.meetingDate, 'MMM')}">JAN</div>
-          </div>
-          <div class="meet-card__info">
-            <div class="meet-card__who">
-              👤 <span th:text="${res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName}">Host Name</span>
-            </div>
-            <div class="meet-card__where" th:text="${res.tourListing.city}">City</div>
-          </div>
-          <div class="badge badge--confirmed">confirmed</div>
-        </div>
-      </th:block>
-
-      <th:block th:unless="${upcomingReservations != null and !upcomingReservations.isEmpty()}">
-        <div class="meet-empty">
-          <div class="meet-empty__icon">📅</div>
-          <div class="meet-empty__title">No upcoming meetups</div>
-          <div class="meet-empty__sub">Reserve a tour listing to schedule your first IRL meetup.</div>
-          <a th:href="@{/listings}" class="btn btn--ghost meet-empty__cta">Browse Listings →</a>
-        </div>
-      </th:block>
-
+      <!-- populated by JS -->
     </div>
 
     <div id="tab-past" hidden style="padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1;">
-
-      <th:block th:if="${pastReservations != null and !pastReservations.isEmpty()}">
-        <div th:each="res : ${pastReservations}" class="meet-card anim-fade-up">
-          <div class="meet-card__date">
-            <div class="meet-card__day"  th:text="${#temporals.format(res.tourListing.meetingDate, 'dd')}">01</div>
-            <div class="meet-card__month" th:text="${#temporals.format(res.tourListing.meetingDate, 'MMM')}">JAN</div>
-          </div>
-          <div class="meet-card__info">
-            <div class="meet-card__who">
-              👤 <span th:text="${res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName}">Host Name</span>
-            </div>
-            <div class="meet-card__where" th:text="${res.tourListing.city}">City</div>
-          </div>
-          <div class="badge badge--past">past</div>
-        </div>
-      </th:block>
-
-      <th:block th:unless="${pastReservations != null and !pastReservations.isEmpty()}">
-        <div class="meet-empty">
-          <div class="meet-empty__icon">📅</div>
-          <div class="meet-empty__title">No past meetups yet</div>
-          <div class="meet-empty__sub">Your completed meetups will appear here after you meet a local.</div>
-          <a th:href="@{/explore}" class="btn btn--ghost meet-empty__cta">Find a local →</a>
-        </div>
-      </th:block>
-
+      <!-- populated by JS -->
     </div>
 
   </main>
@@ -142,6 +92,52 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
-<script th:src="@{/js/meet.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function renderMeet(reservations) {
+    const userId = Auth.getUserId();
+    const upcomingEl = document.getElementById('tab-upcoming');
+    const pastEl     = document.getElementById('tab-past');
+
+    if (!userId) {
+      upcomingEl.innerHTML = `<div class="meet-empty"><div class="meet-empty__icon">🔒</div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost meet-empty__cta">Sign in →</a></div>`;
+      pastEl.innerHTML = '';
+      return;
+    }
+
+    const now  = new Date();
+    const mine = reservations.filter(r => r.guest && r.guest.id === userId);
+    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
+    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
+
+    const mkCard = (res, isPast) => {
+      const d = new Date(res.tourListing.meetingDate);
+      return `
+        <div class="meet-card anim-fade-up">
+          <div class="meet-card__date">
+            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
+            <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
+          </div>
+          <div class="meet-card__info">
+            <div class="meet-card__who">👤 ${res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?'}</div>
+            <div class="meet-card__where">${res.tourListing.city}</div>
+          </div>
+          <div class="badge badge--${isPast ? 'past' : 'confirmed'}">${isPast ? 'past' : 'confirmed'}</div>
+        </div>`;
+    };
+
+    upcomingEl.innerHTML = upcoming.length
+      ? upcoming.map(r => mkCard(r, false)).join('')
+      : `<div class="meet-empty"><div class="meet-empty__icon">📅</div><div class="meet-empty__title">No upcoming meetups</div><div class="meet-empty__sub">Reserve a tour to schedule your first meetup.</div><a href="/tours" class="btn btn--ghost meet-empty__cta">Browse Tours →</a></div>`;
+
+    pastEl.innerHTML = past.length
+      ? past.map(r => mkCard(r, true)).join('')
+      : `<div class="meet-empty"><div class="meet-empty__icon">📅</div><div class="meet-empty__title">No past meetups yet</div><div class="meet-empty__sub">Your completed meetups appear here.</div><a href="/explore" class="btn btn--ghost meet-empty__cta">Find a local →</a></div>`;
+  }
+
+  ReservationAPI.getAll().then(renderMeet).catch(() => renderMeet([]));
+</script>
 </body>
 </html>

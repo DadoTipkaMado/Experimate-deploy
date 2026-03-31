@@ -31,45 +31,30 @@
   <main class="page-content">
 
     <div class="account-hero">
-      <div class="account-hero__avatar">
-      <img th:if="${user.profilePhotoUrl != null and !user.profilePhotoUrl.isEmpty()}"
-           th:src="${user.profilePhotoUrl}"
-           alt="Profile photo"
-           style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-      <span th:unless="${user.profilePhotoUrl != null and !user.profilePhotoUrl.isEmpty()}">👤</span>
-    </div>
-      <div class="account-hero__name" th:text="${user.firstName + ' ' + user.lastName}">Name</div>
-      <div class="account-hero__handle" th:text="'@' + ${user.username}">@username</div>
-      <div class="account-hero__rating">
-        ★ <span th:text="${#numbers.formatDecimal(user.rating, 1, 1)}">0.0</span>
-      </div>
+      <div class="account-hero__avatar" id="account-avatar"><span>👤</span></div>
+      <div class="account-hero__name" id="account-name">—</div>
+      <div class="account-hero__handle" id="account-handle">@—</div>
+      <div class="account-hero__rating">★ <span id="account-rating">0.0</span></div>
     </div>
 
     <div class="acc-section">
       <div class="section-label">Bio</div>
-      <div class="bio-box">
-        <span th:if="${user.bio != null and !user.bio.isEmpty()}" th:text="${user.bio}"></span>
-        <span th:unless="${user.bio != null and !user.bio.isEmpty()}" style="color: var(--text-3);">No bio set.</span>
-      </div>
+      <div class="bio-box" id="account-bio" style="color: var(--text-3);">No bio set.</div>
     </div>
 
-    <div class="acc-section" th:data-user-id="${user.id}" id="user-prefs">
+    <div class="acc-section" id="user-prefs">
       <div class="section-label">Preferences</div>
       <div class="settings-row">
         <span class="settings-row__label">Available to meet</span>
-        <div class="toggle"
-             th:classappend="${user.availableToMeet} ? ' toggle--on'"
-             onclick="toggleAvailability(this)">
+        <div class="toggle" id="availability-toggle" onclick="toggleAvailability(this)">
           <div class="toggle__thumb"></div>
         </div>
       </div>
     </div>
 
     <div style="padding: 18px 18px 8px;">
-      <a th:href="@{/account/edit}" class="new-listing-link">Edit Profile</a>
-      <form th:action="@{/logout}" method="post" style="margin-top: 10px;">
-        <button type="submit" class="logout-btn">Log out</button>
-      </form>
+      <a href="/account/edit" class="new-listing-link">Edit Profile</a>
+      <button onclick="Auth.logout()" class="logout-btn" style="margin-top: 10px;">Log out</button>
     </div>
 
   </main>
@@ -82,17 +67,38 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
+  function loadAccount() {
+    const userId = Auth.getUserId();
+    if (!userId) { window.location.href = '/login'; return; }
+
+    UserAPI.getById(userId).then(user => {
+      document.getElementById('account-name').textContent    = user.firstName + ' ' + user.lastName;
+      document.getElementById('account-handle').textContent  = '@' + user.username;
+      document.getElementById('account-rating').textContent  = user.rating ?? '0.0';
+      document.getElementById('account-bio').textContent     = user.bio || 'No bio set.';
+      document.getElementById('account-bio').style.color     = user.bio ? '' : 'var(--text-3)';
+
+      if (user.profilePhotoUrl) {
+        document.getElementById('account-avatar').innerHTML =
+          `<img src="${user.profilePhotoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      }
+
+      const toggle = document.getElementById('availability-toggle');
+      toggle.dataset.userId = user.id;
+      if (user.availableToMeet) toggle.classList.add('toggle--on');
+    });
+  }
+
   function toggleAvailability(el) {
     toggleSwitch(el);
     const isOn   = el.classList.contains('toggle--on');
-    const userId = parseInt(document.getElementById('user-prefs').dataset.userId, 10);
+    const userId = parseInt(el.dataset.userId, 10);
     UserAPI.update(userId, { availableToMeet: isOn })
-      .then(() => showToast(isOn ? 'You\'re now available to meet' : 'Set as unavailable'))
-      .catch(() => {
-        toggleSwitch(el); // revert on failure
-        showToast('Could not save preference.');
-      });
+      .then(() => showToast(isOn ? "You're now available to meet" : 'Set as unavailable'))
+      .catch(() => { toggleSwitch(el); showToast('Could not save preference.'); });
   }
+
+  loadAccount();
 </script>
 </body>
 </html>

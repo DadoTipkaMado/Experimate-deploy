@@ -54,20 +54,23 @@ function initMap() {
 }
 
 /* ───────────────────────────────────────────────
-   LOAD PINS — reads from Thymeleaf data attribute
+   LOAD PINS — fetches tour listings from API
 ─────────────────────────────────────────────── */
 function loadPins() {
-  const dataEl = document.getElementById('map-data');
-  let pins = [];
-
-  try {
-    const raw = dataEl ? dataEl.getAttribute('data-pins') : '[]';
-    pins = JSON.parse(raw);
-  } catch (e) {
-    console.warn('map.js: could not parse map pins JSON', e);
-  }
-
-  pins.forEach(pin => addPin(pin));
+  fetch('/api/tour-listing')
+    .then(res => res.ok ? res.json() : [])
+    .then(listings => {
+      listings.forEach(listing => {
+        if (listing.lat == null || listing.lng == null) return;
+        addPin({
+          lat:  listing.lat,
+          lng:  listing.lng,
+          name: listing.city + (listing.host ? ' · ' + listing.host.firstName : ''),
+          type: 'event',
+        });
+      });
+    })
+    .catch(() => {});
 }
 
 /* ───────────────────────────────────────────────

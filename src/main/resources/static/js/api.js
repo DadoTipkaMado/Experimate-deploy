@@ -6,9 +6,35 @@
 
 const API_BASE = '';
 
+/* ───────────────────────────────────────────────
+   JWT TOKEN STORAGE
+─────────────────────────────────────────────── */
+const Auth = {
+  getToken:    ()       => localStorage.getItem('jwt'),
+  saveToken:   (token)  => localStorage.setItem('jwt', token),
+  clearToken:  ()       => localStorage.removeItem('jwt'),
+  getUserId:   ()       => { const id = localStorage.getItem('userId'); return id ? parseInt(id, 10) : null; },
+  saveUserId:  (id)     => localStorage.setItem('userId', String(id)),
+  getUsername: ()       => {
+    const token = localStorage.getItem('jwt');
+    if (!token) return null;
+    try {
+      return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub;
+    } catch { return null; }
+  },
+  logout: () => {
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('userId');
+    window.location.href = '/login';
+  },
+};
+
 async function apiFetch(path, options = {}) {
+  const token = Auth.getToken();
+  const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
+
   const res = await fetch(API_BASE + path, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: { 'Content-Type': 'application/json', ...authHeader, ...options.headers },
     ...options,
   });
   if (!res.ok) {
@@ -18,6 +44,16 @@ async function apiFetch(path, options = {}) {
   if (res.status === 204) return null;
   return res.json();
 }
+
+/* ───────────────────────────────────────────────
+   AUTH  /api/auth
+─────────────────────────────────────────────── */
+const AuthAPI = {
+  login: (username, password) => apiFetch('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  }),
+};
 
 /* ───────────────────────────────────────────────
    USERS  /api/user

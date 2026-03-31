@@ -58,9 +58,9 @@
       <div class="auth-subtitle">Sign in to continue</div>
     </div>
 
-    <div th:if="${error}" class="auth-error" th:text="${error}"></div>
+    <div id="auth-error" class="auth-error" style="display:none;"></div>
 
-    <form th:action="@{/login}" method="post" style="display: flex; flex-direction: column; gap: 14px;">
+    <form id="login-form" style="display: flex; flex-direction: column; gap: 14px;">
       <div class="auth-field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" autocomplete="username" required>
@@ -73,11 +73,34 @@
     </form>
 
     <div class="auth-footer">
-      <a th:href="@{/forgot-password}">Forgot password?</a>
+      <a href="/forgot-password">Forgot password?</a>
     </div>
     <div class="auth-footer">
-      Don't have an account? <a th:href="@{/register}">Register</a>
+      Don't have an account? <a href="/register">Register</a>
     </div>
   </div>
+  <script src="/js/api.js"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const errorEl = document.getElementById('auth-error');
+      errorEl.style.display = 'none';
+
+      try {
+        const res = await AuthAPI.login(
+          document.getElementById('username').value,
+          document.getElementById('password').value
+        );
+        Auth.saveToken(res.token);
+        const users = await UserAPI.getAll();
+        const me = users.find(u => u.username === Auth.getUsername());
+        if (me) Auth.saveUserId(me.id);
+        window.location.href = '/map';
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+      }
+    });
+  </script>
 </body>
 </html>

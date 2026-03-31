@@ -68,9 +68,9 @@
       <div class="page-subtitle">Create an experience for travellers</div>
     </div>
 
-    <form id="listing-form" th:action="@{/listings/new}" method="post" class="new-listing-form">
+    <form id="listing-form" class="new-listing-form">
 
-      <div th:if="${error}" class="form-error" th:text="${error}"></div>
+      <div id="form-error" class="form-error" style="display:none;"></div>
 
       <div class="form-field">
         <label for="city">City</label>
@@ -116,7 +116,7 @@
       <input type="hidden" name="lng" id="listingLng">
 
       <div class="form-actions">
-        <a th:href="@{/tours}" class="btn btn--ghost">Cancel</a>
+        <a href="/tours" class="btn btn--ghost">Cancel</a>
         <button type="submit" class="btn btn--primary">Publish</button>
       </div>
 
@@ -129,6 +129,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
 <script>
   /* ── DATE VALIDATION ── */
   const meetingDateInput = document.getElementById('meetingDateInput');
@@ -171,21 +172,37 @@
       : digits;
   });
 
-  /* ── COMBINE DATE + TIME before submit ── */
-  document.getElementById('listing-form').addEventListener('submit', e => {
+  /* ── SUBMIT → API ── */
+  document.getElementById('listing-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errorEl = document.getElementById('form-error');
+    errorEl.style.display = 'none';
+
+    const hostId = Auth.getUserId();
+    if (!hostId) { window.location.href = '/login'; return; }
+
     const dateVal = meetingDateInput.value.trim();
     const timeVal = meetingTimeInput.value.trim();
-    if (!dateVal || !timeVal) {
-      e.preventDefault();
-      showToast('Please fill in both date and time.');
-      return;
+    if (!dateVal || !timeVal) { showToast('Please fill in both date and time.'); return; }
+    if (!/^\d{2}:\d{2}$/.test(timeVal)) { showToast('Time must be in HH:MM format.'); return; }
+
+    // Convert DD/MM/YYYY HH:MM → YYYY-MM-DDTHH:MM:00
+    const [dd, mm, yyyy] = dateVal.split('/');
+    const meetingDate = `${yyyy}-${mm}-${dd}T${timeVal}:00`;
+
+    try {
+      await TourListingAPI.create({
+        hostId,
+        city:            document.getElementById('city').value,
+        meetingDate,
+        tourDescription: document.getElementById('tourDescription').value,
+      });
+      showToast('Tour published!');
+      setTimeout(() => window.location.href = '/tours', 800);
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
     }
-    if (!/^\d{2}:\d{2}$/.test(timeVal)) {
-      e.preventDefault();
-      showToast('Time must be in HH:MM format.');
-      return;
-    }
-    document.getElementById('meetingDate').value = dateVal + ' ' + timeVal;
   });
 
   /* ── MAP LOCATION PICKER ── */
