@@ -24,6 +24,7 @@ public class BookingRequest {
 
     private final LocalDateTime requestDate;
 
+    @Enumerated(EnumType.STRING)
     private BookingRequestStatus status;
 
     // For Hibernate

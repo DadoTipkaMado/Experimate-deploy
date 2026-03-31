@@ -38,19 +38,35 @@ public class BookingRequestService {
         this.publisher = publisher;
     }
 
+    //TODO napravi validaciju dto
     public BookingRequest createBookingRequest(CreateBookingRequestDto dto) {
-        TourListing listing = tourListingRepo.findById(dto.listingId())
-                .orElseThrow(() -> new TourListingNotFoundException(dto.listingId()));
+        Integer guestId = dto.guestId();
+        Integer listingId = dto.listingId();
+
+        TourListing listing = tourListingRepo.findById(listingId)
+                .orElseThrow(() -> {
+                    log.warn("Listing with id {} not found", listingId);
+                    return new TourListingNotFoundException(listingId);
+                });
         if(listing.isReserved()) {
-            log.warn("TourListing with id {} is already reserved. Cannot create new BookingRequests for it.");
+            log.warn("TourListing with id {} is already reserved. Cannot create new BookingRequests for it.", listingId);
             throw new TourListingAlreadyReservedException(listing.getId());
         }
 
-        User guest = userRepo.findById(dto.guestId())
-                .orElseThrow(() -> new UserNotFoundException(dto.guestId()));
+        if(bookingRequestRepo.existsByGuestIdAndListingIdAndStatus(
+                guestId,
+                listingId,
+                BookingRequestStatus.PENDING)
+        ) {
+            log.warn("Guest with id {} already has a pending request for listing with id {}.", guestId, listingId);
+            throw new BookingAlreadyRequestedException(guestId, listingId);
+        }
 
-        if (dto.guestId().equals(listing.getHost().getId())) {
-            log.warn("Guest id {} matches host id — cannot send booking request to yourself", dto.guestId());
+        User guest = userRepo.findById(guestId)
+                .orElseThrow(() -> new UserNotFoundException(guestId));
+
+        if (guestId.equals(listing.getHost().getId())) {
+            log.warn("Guest id {} matches host id — cannot send booking request to yourself", guestId);
             throw new IllegalArgumentException("Guest cannot send a booking request to themselves.");
         }
 
@@ -76,6 +92,7 @@ public class BookingRequestService {
         log.info("Updated booking request status with id {} to {} ",
                 request.getId(),
                 request.getStatus());
+
         return bookingRequestRepo.save(request);
     }
 
