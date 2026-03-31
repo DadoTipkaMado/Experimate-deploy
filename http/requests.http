@@ -12,11 +12,11 @@ POST http://localhost:8080/api/user
 Content-Type: application/json
 
 {
-  "firstName": "David",
-  "lastName": "Topić",
+  "firstName": "Vito",
+  "lastName": "Strmečki",
   "dateOfBirth": "2005-04-22",
-  "idNumber": "11222333444",
-  "username": "dtopic",
+  "idNumber": "123123123123123",
+  "username": "vstrmecki",
   "password": "1234",
   "bio": "Opis korisnikaaaaaaaaaaaa"
 }
@@ -53,7 +53,6 @@ Content-Type: application/json
 GET http://localhost:8080/api/tour-listing
 Accept: application/json
 
-
 ### Fetch tour listing by id
 GET http://localhost:8080/api/tour-listing/11
 accept: application/json
@@ -63,7 +62,7 @@ POST http://localhost:8080/api/tour-listing
 Content-type: application/json
 
 {
-  "hostId": 2,
+  "hostId": 1,
   "city": "Zagreb",
   "meetingDate": "2026-12-30T10:00:00",
   "tourDescription": "{{tour}}"
@@ -96,8 +95,8 @@ POST http://localhost:8080/api/reservation
 Content-type: application/json
 
 {
-  "guestId": 11,
-  "tourListingId": 10
+  "guestId": 2,
+  "tourListingId": 1
 }
 
 ### Delete reservation
@@ -149,3 +148,25 @@ DELETE http://localhost:8080/api/rating/1?raterId=1
 
 ### Delete rating (pokusaj brisanja tudeg ratinga - ocekuje se greska)
 DELETE http://localhost:8080/api/rating/1?raterId=99
+
+//------------------Booking Requests-----------------------
+
+### Fetch all booking requests
+GET http://localhost:8080/api/booking-request
+Accept: application/json
+
+### Fetch booking request by id
+GET http://localhost:8080/api/booking-request/1
+Accept: application/json
+
+### Create booking request
+POST http://localhost:8080/api/booking-request
+Content-Type: application/json
+
+{
+  "guestId": 2,
+  "listingId": 1
+}
+
+### Delete booking request
+DELETE http://localhost:8080/api/booking-request/1
