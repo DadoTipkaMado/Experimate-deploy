@@ -92,7 +92,7 @@ public class BookingRequestService {
     }
 
     @Transactional
-    public void acceptBookingRequest(Integer acceptedId) {
+    public BookingRequestResponse acceptBookingRequest(Integer acceptedId) {
         BookingRequest acceptedRequest = bookingRequestRepo.findById(acceptedId)
                 .orElseThrow(() -> new BookingRequestNotFoundException(acceptedId));
 
@@ -114,11 +114,19 @@ public class BookingRequestService {
         updateBookingRequests(declinedIds, BookingRequestStatus.DECLINED);
 
         log.info("Booking request accepted with id {}", acceptedId);
+
+        return new  BookingRequestResponse(
+                acceptedId,
+                BookingRequestStatus.ACCEPTED);
     }
 
-    public void declineBookingRequest(Integer id) {
-        updateBookingRequest(id, BookingRequestStatus.DECLINED);
+    public BookingRequestResponse declineBookingRequest(Integer id) {
         log.info("Booking request declined with id {}", id);
+
+        return new BookingRequestResponse(
+                id,
+                BookingRequestStatus.DECLINED
+        );
     }
 
     //Batch updating

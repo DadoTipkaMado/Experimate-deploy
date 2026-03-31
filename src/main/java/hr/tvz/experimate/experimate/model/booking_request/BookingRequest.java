@@ -36,6 +36,7 @@ public class BookingRequest {
     public BookingRequest(User guest, TourListing listing) {
         this.guest = validateGuest(guest);
         this.listing = validateListing(listing);
+        this.status = BookingRequestStatus.PENDING;
         this.requestDate = LocalDateTime.now();
     }
 
