@@ -21,19 +21,19 @@ public class BookingRequestController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingRequest> createBookingRequest(@RequestBody CreateBookingRequestDto dto) {
+    public ResponseEntity<BookingRequestResponse> createBookingRequest(@RequestBody CreateBookingRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 bookingRequestService.createBookingRequest(dto)
         );
     }
 
     @GetMapping
-    public ResponseEntity<List<BookingRequest>> getAllBookingRequests() {
+    public ResponseEntity<List<BookingRequestResponse>> getAllBookingRequests() {
         return ResponseEntity.ok(bookingRequestService.getAllBookingRequests());
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<BookingRequest> getBookingRequestById(@PathVariable Integer id) {
+    public ResponseEntity<BookingRequestResponse> getBookingRequestById(@PathVariable Integer id) {
         return bookingRequestService.getBookingRequestById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

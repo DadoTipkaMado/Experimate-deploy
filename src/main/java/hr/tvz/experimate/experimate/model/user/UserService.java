@@ -30,7 +30,7 @@ public class UserService {
         this.encoder = encoder;
     }
 
-    public User createUser(CreateUserDto createUserDto) {
+    public UserResponse createUser(CreateUserDto createUserDto) {
         User user = new User.UserBuilder(
                 createUserDto.firstName(),
                 createUserDto.lastName(),
@@ -49,18 +49,22 @@ public class UserService {
         userRepo.save(user);
         log.info("User created with id {}", user.getId());
 
-        return user;
+        return new UserResponse(user.getId(), user.getUsername(), user.getRating());
     }
 
-    public Optional<User> getUserById(Integer id) {
-        return userRepo.findById(id);
+    public Optional<UserResponse> getUserById(Integer id) {
+        return userRepo.findById(id)
+                .map(user -> new UserResponse(user.getId(), user.getUsername(), user.getRating()));
     }
 
-    public List<User> getAllUsers() {
-        return userRepo.findAll();
+    public List<UserResponse> getAllUsers() {
+        return userRepo.findAll()
+                .stream()
+                .map(user -> new UserResponse(user.getId(), user.getUsername(), user.getRating()))
+                .toList();
     }
 
-    public User updateUser(Integer id, UpdateUserDto updateUserDto) {
+    public UserResponse updateUser(Integer id, UpdateUserDto updateUserDto) {
         User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         if (updateUserDto.username() != null) {
@@ -79,7 +83,7 @@ public class UserService {
         userRepo.save(user);
         log.info("User updated with id {}", id);
 
-        return user;
+        return new UserResponse(user.getId(), user.getUsername(), user.getRating());
     }
 
     @Transactional

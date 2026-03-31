@@ -42,7 +42,7 @@ public class TourListingService {
 
     //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
     @Transactional
-    public TourListing createListing(CreateTourListingDto dto) {
+    public TourListingResponse createListing(CreateTourListingDto dto) {
         User host = userRepo
                 .findById(dto.hostId())
                 .orElseThrow(() -> new UserNotFoundException(dto.hostId()));
@@ -57,24 +57,45 @@ public class TourListingService {
                 new TourListing(
                         host,
                         dto.city(),
+                        dto.longitude(),
+                        dto.latitude(),
                         dto.meetingDate(),
                         dto.tourDescription()
                 )
         );
         log.info("Created TourListing with id {}", saved.getId());
 
-        return saved;
+        return new TourListingResponse(
+                saved.getId(),
+                saved.getCity(),
+                saved.getLongitude(),
+                saved.getLatitude()
+        );
     }
 
-    public Optional<TourListing> getListingById(Integer id) {
-        return listingRepo.findById(id);
+    public Optional<TourListingResponse> getListingById(Integer id) {
+        return listingRepo.findById(id)
+                .map(listing -> new TourListingResponse(
+                        listing.getId(),
+                        listing.getCity(),
+                        listing.getLongitude(),
+                        listing.getLatitude()
+                ));
     }
 
-    public List<TourListing> getAllListings() {
-        return listingRepo.findAll();
+    public List<TourListingResponse> getAllListings() {
+        return listingRepo.findAll()
+                .stream()
+                .map(listing -> new TourListingResponse(
+                        listing.getId(),
+                        listing.getCity(),
+                        listing.getLongitude(),
+                        listing.getLatitude()
+                ))
+                .toList();
     }
 
-    public TourListing updateListing(Integer id, UpdateTourListingDto dto) {
+    public TourListingResponse updateListing(Integer id, UpdateTourListingDto dto) {
         TourListing listing = listingRepo
                 .findById(id)
                 .orElseThrow(() -> {
@@ -90,7 +111,12 @@ public class TourListingService {
         TourListing saved = listingRepo.save(listing);
         log.info("Updated TourListing with id {}", listing.getId());
 
-        return saved;
+        return new TourListingResponse(
+                saved.getId(),
+                saved.getCity(),
+                saved.getLongitude(),
+                saved.getLatitude()
+        );
     }
 
     @Transactional

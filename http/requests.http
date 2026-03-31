@@ -164,7 +164,7 @@ POST http://localhost:8080/api/booking-request
 Content-Type: application/json
 
 {
-  "guestId": 1,
+  "guestId": 3,
   "listingId": 3
 }
 
