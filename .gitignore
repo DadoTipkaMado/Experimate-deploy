@@ -1,4 +1,6 @@
 HELP.md
+CLAUDE.md
+
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,6 +33,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Spring ###
+application-local.properties
 
 ### ostalo ###
 *.log
