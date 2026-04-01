@@ -18,20 +18,27 @@ public class GlobalExceptionHandler {
     //UserNotFound, TourListingNotFound, ....
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
-        ErrorResponse notFound = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                LocalDateTime.now());
+        ErrorResponse notFound = createErrorResponse(HttpStatus.NOT_FOUND, ex);
         return new ResponseEntity<>(notFound, HttpStatus.NOT_FOUND);
     }
 
     //UsernameTaken, IdNumberTaken, TourListingAlreadyReserved, ...
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex) {
-        ErrorResponse conflict = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
+        ErrorResponse conflict = createErrorResponse(HttpStatus.CONFLICT, ex);
+        return new ResponseEntity<>(conflict, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorResponse illegalArg = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
+        return new ResponseEntity<>(illegalArg, HttpStatus.BAD_REQUEST);
+    }
+
+    private ErrorResponse createErrorResponse(HttpStatus status, Exception ex) {
+        return new ErrorResponse(
+                status.value(),
                 ex.getMessage(),
                 LocalDateTime.now());
-        return new ResponseEntity<>(conflict, HttpStatus.CONFLICT);
     }
 }

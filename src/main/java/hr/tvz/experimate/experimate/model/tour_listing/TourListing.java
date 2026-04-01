@@ -9,13 +9,21 @@ import java.time.LocalDateTime;
 @Table(name="tour_listing")
 public class TourListing {
 
+    private static final int MINIMUM_DESCRIPTION_LENGTH = 200;
+    private static final int MAXIMUM_DESCRIPTION_LENGTH = 2000;
+
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
+
     @ManyToOne
     @JoinColumn(name = "host_id")
     private User host;
+
+    //TODO napravi provjeru grada u bazi
     private String city;
+    private Double longitude;
+    private Double latitude;
     private LocalDateTime postDate;
     private LocalDateTime meetingDate;
     @Lob        //unlimited VARCHAR length
@@ -28,10 +36,14 @@ public class TourListing {
 
     public TourListing(User host,
                        String city,
+                       Double longitude,
+                       Double latitude,
                        LocalDateTime meetingDate,
                        String tourDescription) {
         this.host = validateHost(host);
         this.city = validateCity(city);
+        this.longitude = longitude;
+        this.latitude = latitude;
         this.postDate = LocalDateTime.now();
         this.meetingDate = validateMeetingDate(meetingDate);
         this.tourDescription = validateTourDescription(tourDescription);
@@ -41,6 +53,18 @@ public class TourListing {
 
     public User getHost() {
         return host;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
     }
 
     public LocalDateTime getMeetingDate() {
@@ -91,7 +115,7 @@ public class TourListing {
     private String validateTourDescription(String tourDescription){
         if(tourDescription==null || tourDescription.isBlank())
             throw new IllegalArgumentException("Tour description cannot be blank");
-        if(tourDescription.length() < 20 || tourDescription.length() > 2000)
+        if(tourDescription.length() < MINIMUM_DESCRIPTION_LENGTH || tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
             throw new IllegalArgumentException("Tour description must be between 200 and 2000 characters long.");
         return tourDescription;
     }

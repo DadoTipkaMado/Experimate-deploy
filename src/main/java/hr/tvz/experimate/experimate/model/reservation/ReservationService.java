@@ -1,8 +1,10 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
+import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
@@ -15,10 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +42,7 @@ public class ReservationService {
         this.publisher = publisher;
     }
 
-    @Transactional
-    public Reservation createReservation(CreateReservationDto dto) {
+    private ReservationResponse createReservation(CreateReservationDto dto) {
         ValidatedReservationData validatedData = validateCreationDto(dto);
 
         User validatedGuest = validatedData.guest();
@@ -64,15 +63,19 @@ public class ReservationService {
 
         log.info("Created reservation with id {}", reservation.getId());
 
-        return reservation;
+        return new ReservationResponse(reservation.getId());
     }
 
-    public List<Reservation> getAllReservations() {
-        return reservationRepo.findAll();
+    public List<ReservationResponse> getAllReservations() {
+        return reservationRepo.findAll()
+                .stream()
+                .map(reservation -> new ReservationResponse(reservation.getId()))
+                .toList();
     }
 
-    public Optional<Reservation> getReservationById(Integer id) {
-        return reservationRepo.findById(id);
+    public Optional<ReservationResponse> getReservationById(Integer id) {
+        return reservationRepo.findById(id)
+                .map(reservation -> new ReservationResponse(reservation.getId()));
     }
 
     public void deleteReservation(Integer id) {
@@ -121,9 +124,21 @@ public class ReservationService {
     }
 
     private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
-        LocalDateTime start = meetingDate.atStartOfDay();
-        LocalDateTime end = meetingDate.atTime(23, 59, 59);
-        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(guest, start, end);
+        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(
+                guest,
+                DateTimeUtil.getStartOfDay(meetingDate),
+                DateTimeUtil.getEndOfDay(meetingDate)
+        );
+    }
+
+    private void deleteReservationsByHostId(Integer hostId) {
+        int count = reservationRepo.deleteAllByTourListing_Host_Id(hostId);
+        log.info("Deleted {} reservations for host with id {}", count, hostId);
+    }
+
+    private void deleteReservationsByGuestId(Integer guestId) {
+        int count = reservationRepo.deleteAllByGuest_Id(guestId);
+        log.info("Deleted {} reservations for guest with id {}", count, guestId);
     }
 
     @EventListener
@@ -150,13 +165,8 @@ public class ReservationService {
         publisher.publishEvent(new ReservationsDeletedEvent(tourListingIds));
     }
 
-    private void deleteReservationsByHostId(Integer hostId) {
-        int count = reservationRepo.deleteAllByTourListing_Host_Id(hostId);
-        log.info("Deleted {} reservations for host with id {}", count, hostId);
-    }
-
-    private void deleteReservationsByGuestId(Integer guestId) {
-        int count = reservationRepo.deleteAllByGuest_Id(guestId);
-        log.info("Deleted {} reservations for guest with id {}", count, guestId);
+    @EventListener
+    void handleBookingRequestAccepted(BookingRequestAcceptedEvent event) {
+        createReservation(new CreateReservationDto(event.guestId(), event.listingId()));
     }
 }

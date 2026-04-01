@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.model.user;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
 
@@ -9,8 +10,10 @@ import java.time.LocalDate;
 @Table(name="app_user")
 public class User extends Person {
 
+    private static final int MINIMUM_USERNAME_LENGTH = 4;
+    private static final int MAXIMUM_USERNAME_LENGTH = 15;
+
     private String username;
-    //TODO hashiraj password
     private String password;
     private String bio;
     private double rating = 0.0;
@@ -80,8 +83,8 @@ public class User extends Person {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPassword(String hashedPassword) {
+        this.password = hashedPassword;
     }
 
     public String getBio() {
@@ -103,7 +106,7 @@ public class User extends Person {
     private String validateUsername(String username) {
         if(username==null || username.isEmpty())
             throw new  IllegalArgumentException("Username cannot be empty");
-        if(username.length() < 4 || username.length() > 15)
+        if(username.length() < MINIMUM_USERNAME_LENGTH || username.length() > MAXIMUM_USERNAME_LENGTH)
             throw new IllegalArgumentException(
                     "Invalid username: '%s', must be 4 to 15 characters long"
                     .formatted(username));
