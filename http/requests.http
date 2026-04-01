@@ -64,7 +64,7 @@ Content-type: application/json
 {
   "hostId": 3,
   "city": "Zagreb",
-  "meetingDate": "2026-12-30T10:00:00",
+  "meetingDate": "2026-11-30T10:00:00",
   "tourDescription": "{{tour}}"
 }
 
@@ -165,7 +165,7 @@ Content-Type: application/json
 
 {
   "guestId": 3,
-  "listingId": 3
+  "listingId": 4
 }
 
 ### Delete booking request
