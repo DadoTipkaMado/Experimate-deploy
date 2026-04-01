@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Tours — Experimate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    .tours-header {
+      padding: 22px 18px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .tours-header__titles { flex: 1; }
+    .tours-fab {
+      width: 36px; height: 36px; background: var(--accent); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; font-size: 20px; line-height: 1; color: #000; font-weight: 700;
+      flex-shrink: 0; margin-top: 4px;
+      transition: transform var(--t-fast), opacity var(--t-fast);
+    }
+    .tours-fab:hover { transform: scale(1.1); opacity: 0.9; }
+    .irl-notice {
+      display: flex; align-items: center; gap: 10px;
+      margin: 12px 18px 0;
+      padding: 10px 14px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      border-radius: var(--radius-sm);
+      font-size: 10px; color: var(--accent); letter-spacing: 0.05em; line-height: 1.5;
+    }
+
+    /* ── CITY FILTER ── */
+    .city-filter {
+      display: flex; gap: 6px; overflow-x: auto; padding: 12px 18px 0;
+      scrollbar-width: none;
+    }
+    .city-filter::-webkit-scrollbar { display: none; }
+
+    /* ── DISCOVER TAB ── */
+    .listings-list { display: flex; flex-direction: column; gap: 10px; padding: 12px 18px 32px; }
+    .listing-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color var(--t-base), transform var(--t-base);
+    }
+    .listing-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+    .listing-card--reserved { opacity: 0.5; pointer-events: none; }
+    .listing-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .listing-card__city { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
+    .listing-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0; padding-top: 3px; }
+    .listing-card__host { font-size: 10px; color: var(--accent); letter-spacing: 0.06em; }
+    .listing-card__desc { font-size: 11px; color: rgba(239,239,239,0.55); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .listing-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+    .listing-card__status--available { color: var(--accent); }
+    .listings-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
+    .listings-empty__icon { font-size: 36px; opacity: 0.2; }
+    .listings-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .listings-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+
+    /* ── MY MEETUPS TAB ── */
+    .meet-card {
+      display: flex; align-items: center; gap: 12px; padding: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    }
+    .meet-card__date {
+      width: 44px; height: 48px; background: var(--surface-2);
+      border: 1px solid var(--border-2); border-radius: var(--radius-sm);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .meet-card__day { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1; color: var(--text); }
+    .meet-card__month { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-2); margin-top: 2px; }
+    .meet-card__info { flex: 1; min-width: 0; }
+    .meet-card__who { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .meet-card__where { font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; }
+    .meet-card__booked { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 2px; }
+    .meet-card__cancel {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 5px 10px; border-radius: var(--radius-pill);
+      border: 1px solid rgba(255,80,80,0.2); background: transparent;
+      color: rgba(255,100,100,0.6); cursor: pointer; flex-shrink: 0;
+      transition: border-color var(--t-fast), color var(--t-fast);
+    }
+    .meet-card__cancel:hover { border-color: rgba(255,80,80,0.5); color: rgba(255,100,100,0.9); }
+    .meet-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
+    .meet-empty__icon { font-size: 36px; opacity: 0.25; }
+    .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .meet-empty__sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; line-height: 1.6; max-width: 220px; }
+
+    /* ── CANCEL MODAL ── */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.75); align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal-backdrop--visible { display: flex; }
+    .modal-card {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius); padding: 24px 20px;
+      width: min(360px, 100%); display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text); }
+    .modal-sub { font-size: 11px; color: var(--text-3); line-height: 1.6; margin-top: -6px; }
+    .modal-card textarea {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm); padding: 11px 14px;
+      color: var(--text); font-family: var(--font-mono); font-size: 13px;
+      width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.6;
+      transition: border-color var(--t-fast);
+    }
+    .modal-card textarea:focus { outline: none; border-color: var(--accent-border); }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-actions .btn { flex: 1; height: 44px; }
+    .btn--danger { background: rgba(255,80,80,0.1); border-color: rgba(255,80,80,0.25); color: rgba(255,100,100,0.85); }
+    .btn--danger:hover { background: rgba(255,80,80,0.18); border-color: rgba(255,80,80,0.45); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="tours-header">
+      <div class="tours-header__titles">
+        <div class="page-title">Tours</div>
+        <div class="page-subtitle" style="margin-bottom: 14px;">Discover local tours · manage your meetups</div>
+        <div class="tab-bar">
+          <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
+          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Meetups</div>
+        </div>
+      </div>
+      <a href="/listings/new" class="tours-fab" title="New listing">+</a>
+    </div>
+
+    <!-- IRL notice — always visible above both tabs -->
+    <div class="irl-notice">
+      🤝&nbsp; Experimate is IRL only — no messages, just meetups.
+    </div>
+
+    <!-- ── DISCOVER TAB ── -->
+    <div id="tab-discover">
+      <div id="city-filter-bar" class="city-filter pill-group"></div>
+      <div id="listings-list" class="listings-list"></div>
+    </div>
+
+    <!-- ── MY MEETUPS TAB ── -->
+    <div id="tab-meetups" hidden style="padding: 14px 18px; display: flex; flex-direction: column; gap: 14px;">
+      <div class="section-label">Upcoming</div>
+      <div id="meetups-upcoming"></div>
+      <div class="section-label" style="margin-top: 8px;">Past</div>
+      <div id="meetups-past"></div>
+    </div>
+
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<!-- ── CANCEL MODAL ── -->
+<div id="cancel-modal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-title">Cancel reservation?</div>
+    <div class="modal-sub">Let us know why you're cancelling. This is required before proceeding.</div>
+    <textarea id="cancel-reason" placeholder="Reason for cancellation..." maxlength="300"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeCancelModal()" class="btn btn--ghost">Keep it</button>
+      <button onclick="confirmCancel()" class="btn btn--danger">Cancel reservation</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]}`;
+  }
+  function fmtDatetime(iso) {
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  /* ── City filter ── */
+  function filterCity(city) {
+    document.querySelectorAll('.listing-card').forEach(card => {
+      const cardCity = card.querySelector('.listing-card__city').textContent.trim();
+      card.style.display = (city === 'all' || cardCity === city) ? '' : 'none';
+    });
+  }
+
+  /* ── View on map ── */
+  function goToMap(btn) {
+    sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
+    window.location.href = '/map';
+  }
+
+  /* ── Reserve listing ── */
+  function reserveListing(btn) {
+    const listingId = parseInt(btn.dataset.listingId, 10);
+    const guestId   = Auth.getUserId();
+    if (!guestId) { window.location.href = '/login'; return; }
+    btn.disabled = true;
+    ReservationAPI.create({ guestId, tourListingId: listingId })
+      .then(() => { showToast('Reserved!'); btn.textContent = 'Reserved'; btn.classList.remove('btn--primary'); })
+      .catch(err => { showToast(err.message); btn.disabled = false; });
+  }
+
+  /* ── Cancel modal ── */
+  let _cancelResId = null, _cancelBtn = null;
+
+  function openCancelModal(btn) {
+    _cancelResId = parseInt(btn.dataset.resId, 10);
+    _cancelBtn = btn;
+    document.getElementById('cancel-reason').value = '';
+    document.getElementById('cancel-modal').classList.add('modal-backdrop--visible');
+  }
+  function closeCancelModal() {
+    document.getElementById('cancel-modal').classList.remove('modal-backdrop--visible');
+    _cancelResId = null; _cancelBtn = null;
+  }
+  function confirmCancel() {
+    const reason = document.getElementById('cancel-reason').value.trim();
+    if (!reason) { showToast('Please provide a reason.'); return; }
+    if (_cancelBtn) _cancelBtn.disabled = true;
+    ReservationAPI.delete(_cancelResId)
+      .then(() => { _cancelBtn.closest('.meet-card').remove(); closeCancelModal(); showToast('Reservation cancelled.'); })
+      .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message); });
+  }
+  document.getElementById('cancel-modal').addEventListener('click', function(e) { if (e.target === this) closeCancelModal(); });
+
+  /* ── Render listings ── */
+  function renderListings(listings) {
+    const currentUserId = Auth.getUserId();
+    const cityBar = document.getElementById('city-filter-bar');
+    const list    = document.getElementById('listings-list');
+
+    if (!listings || listings.length === 0) {
+      list.innerHTML = `<div class="listings-empty"><div class="listings-empty__icon">🗺️</div><div class="listings-empty__title">No tours yet</div><div class="listings-empty__sub">Be the first to create a tour listing and start hosting.</div></div>`;
+      return;
+    }
+
+    const cities = [...new Set(listings.map(l => l.city).filter(Boolean))];
+    cityBar.innerHTML = `<div class="pill pill--active" data-city="all" onclick="selectPill(this); filterCity('all')">All</div>` +
+      cities.map(c => `<div class="pill" data-city="${c}" onclick="selectPill(this); filterCity(this.dataset.city)">${c}</div>`).join('');
+
+    list.innerHTML = listings.map(listing => {
+      const reserved = listing.reserved;
+      const hasCoords = listing.lat != null && listing.lng != null;
+      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
+      const reserveBtn = !reserved && currentUserId
+        ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Reserve</button>`
+        : !reserved
+          ? `<a href="/login" style="color:var(--accent);font-size:10px;">Login to reserve</a>`
+          : '';
+      return `
+        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}">
+          <div class="listing-card__head">
+            <div>
+              <div class="listing-card__city">${listing.city}</div>
+              <div class="listing-card__host">by ${listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?'} · @${listing.host ? listing.host.username : '?'}</div>
+            </div>
+            <div class="listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
+          </div>
+          <div class="listing-card__desc">${listing.tourDescription}</div>
+          <div class="listing-card__foot">
+            <div class="listing-card__status${reserved ? '' : ' listing-card__status--available'}">${reserved ? 'Already reserved' : 'Available'}</div>
+            <div style="display:flex;gap:6px;align-items:center;">${mapBtn}${reserveBtn}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Render meetups ── */
+  function renderMeetups(reservations) {
+    const currentUserId = Auth.getUserId();
+    const upcomingEl = document.getElementById('meetups-upcoming');
+    const pastEl     = document.getElementById('meetups-past');
+
+    if (!currentUserId) {
+      upcomingEl.innerHTML = `<div class="meet-empty"><div class="meet-empty__icon">🔒</div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
+      pastEl.innerHTML = '';
+      return;
+    }
+
+    const mine = reservations.filter(r => r.guest && r.guest.id === currentUserId);
+    const now   = new Date();
+    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
+    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
+
+    const mkCard = (res, isPast) => {
+      const d = new Date(res.tourListing.meetingDate);
+      return `
+        <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
+          <div class="meet-card__date">
+            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
+            <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
+          </div>
+          <div class="meet-card__info">
+            <div class="meet-card__who">👤 ${res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?'}</div>
+            <div class="meet-card__where">${res.tourListing.city}</div>
+            <div class="meet-card__booked">Booked ${fmtDate(res.dateOfReservation)}</div>
+          </div>
+          ${isPast ? '<div class="badge badge--past">past</div>' : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>`}
+        </div>`;
+    };
+
+    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming meetups.</div>';
+    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past meetups yet.</div>';
+  }
+
+  /* ── Load data ── */
+  Promise.all([TourListingAPI.getAll(), ReservationAPI.getAll()])
+    .then(([listings, reservations]) => { renderListings(listings); renderMeetups(reservations); })
+    .catch(() => { renderListings([]); renderMeetups([]); });
+</script>
+</body>
+</html>

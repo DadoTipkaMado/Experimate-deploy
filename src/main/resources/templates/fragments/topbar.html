@@ -27,8 +27,12 @@
 
     <!-- Avatar — links to account page -->
     <a th:href="@{/account}" class="topbar__avatar" aria-label="My account">
-      <!-- Swap this span for an <img> once you have real user photos -->
-      <span th:text="${userEmoji} ?: '👤'">👤</span>
+      <img th:if="${userPhotoUrl != null and !userPhotoUrl.isEmpty()}"
+           th:src="${userPhotoUrl}"
+           alt="Profile"
+           style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+      <span th:unless="${userPhotoUrl != null and !userPhotoUrl.isEmpty()}"
+            th:text="${userEmoji} ?: '👤'">👤</span>
     </a>
 
   </div>

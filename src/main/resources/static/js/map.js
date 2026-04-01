@@ -6,15 +6,15 @@
 
 /* ───────────────────────────────────────────────
    STATE
+   All filters start ON — pills all start active.
 ─────────────────────────────────────────────── */
 const MapState = {
   map: null,
   layers: {
     gems:   L.layerGroup(),
     events: L.layerGroup(),
-    locals: L.layerGroup(),
   },
-  activeFilters: new Set(['gems', 'events', 'locals']),
+  activeFilters: new Set(['gems', 'events']),
 };
 
 /* ───────────────────────────────────────────────
@@ -27,24 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initMap() {
   MapState.map = L.map('map', {
-    center:           [45.815, 15.982], // Zagreb default — frend can make this dynamic
+    center:           [45.815, 15.982],
     zoom:             14,
     zoomControl:      false,
     attributionControl: false,
   });
 
-  // OpenStreetMap tiles
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
   }).addTo(MapState.map);
 
-  // Add layer groups to map
+  // Add all layer groups to map (all visible by default)
   Object.values(MapState.layers).forEach(layer => layer.addTo(MapState.map));
 
-  // Zoom control — top right, away from search bar
-  L.control.zoom({ position: 'bottomright' }).addTo(MapState.map);
+  // Zoom control bottom-left so it doesn't overlap bottom sheet
+  L.control.zoom({ position: 'bottomleft' }).addTo(MapState.map);
 
-  // If Explore page sent us a flyTo target, jump to it
   const flyToRaw = sessionStorage.getItem('mapFlyTo');
   if (flyToRaw) {
     try {
@@ -56,33 +54,27 @@ function initMap() {
 }
 
 /* ───────────────────────────────────────────────
-   LOAD PINS
-   Reads from data attribute injected by Thymeleaf.
-   Falls back to demo data if no server data present.
+   LOAD PINS — fetches tour listings from API
 ─────────────────────────────────────────────── */
 function loadPins() {
-  const dataEl = document.getElementById('map-data');
-  let pins = [];
-
-  try {
-    const raw = dataEl ? dataEl.getAttribute('data-pins') : '[]';
-    pins = JSON.parse(raw);
-  } catch (e) {
-    console.warn('map.js: could not parse map pins JSON', e);
-  }
-
-  // If no server data yet — use demo pins for visual testing
-  if (!pins || pins.length === 0) {
-    pins = DEMO_PINS;
-  }
-
-  pins.forEach(pin => addPin(pin));
+  fetch('/api/tour-listing')
+    .then(res => res.ok ? res.json() : [])
+    .then(listings => {
+      listings.forEach(listing => {
+        if (listing.lat == null || listing.lng == null) return;
+        addPin({
+          lat:  listing.lat,
+          lng:  listing.lng,
+          name: listing.city + (listing.host ? ' · ' + listing.host.firstName : ''),
+          type: 'event',
+        });
+      });
+    })
+    .catch(() => {});
 }
 
 /* ───────────────────────────────────────────────
    ADD PIN
-   Called on load AND from websocket.js for live updates.
-
    pin = { lat, lng, name, type }
    type = 'gem' | 'event' | 'local'
 ─────────────────────────────────────────────── */
@@ -98,23 +90,16 @@ function addPin(pin) {
   const marker = L.marker([pin.lat, pin.lng], { icon })
     .bindPopup(buildPopupHTML(pin), { className: 'dark-popup', maxWidth: 200 });
 
-  // Route to correct layer
-  const layerKey = pin.type === 'gem' ? 'gems'
-                 : pin.type === 'event' ? 'events'
-                 : 'locals';
+  const layerKey = pin.type === 'gem' ? 'gems' : 'events';
 
   const layer = MapState.layers[layerKey];
-  if (layer) {
-    marker.addTo(layer);
-  }
+  if (layer) marker.addTo(layer);
 
   return marker;
 }
 
 function buildPopupHTML(pin) {
-  const typeLabel = pin.type === 'gem'   ? 'Hidden Gem'
-                  : pin.type === 'event' ? 'Event'
-                  : 'Local';
+  const typeLabel = pin.type === 'gem' ? 'Hidden Gem' : 'Event';
   return `
     <div class="popup-name">${escapeHtml(pin.name)}</div>
     <div class="popup-type popup-type--${pin.type}">${typeLabel}</div>
@@ -123,8 +108,8 @@ function buildPopupHTML(pin) {
 
 /* ───────────────────────────────────────────────
    FILTERS
-   Each pill toggles a layer on/off.
-   mapFilterToggle is called from onclick in map.html.
+   Active pill = layer visible. Inactive = hidden.
+   All start active so initial state matches pills.
 ─────────────────────────────────────────────── */
 function mapFilterToggle(filterName) {
   const layer = MapState.layers[filterName];
@@ -141,40 +126,31 @@ function mapFilterToggle(filterName) {
 
 /* ───────────────────────────────────────────────
    SEARCH
-   Basic client-side filter — frend can replace with
-   real API call if needed.
 ─────────────────────────────────────────────── */
 const searchInput = document.getElementById('map-search-input');
 if (searchInput) {
   searchInput.addEventListener('input', (e) => {
     const query = e.target.value.trim().toLowerCase();
     if (!query) {
-      // Show all active layers
       Object.entries(MapState.layers).forEach(([key, layer]) => {
-        if (MapState.activeFilters.has(key)) {
-          MapState.map.addLayer(layer);
-        }
+        if (MapState.activeFilters.has(key)) MapState.map.addLayer(layer);
       });
       return;
     }
-    // Filter markers by name match
-    // (basic — works fine until real search endpoint is ready)
     Object.values(MapState.layers).forEach(layer => {
       layer.eachLayer(marker => {
         const popup = marker.getPopup();
         if (!popup) return;
         const content = popup.getContent() || '';
-        const visible = content.toLowerCase().includes(query);
         const el = marker.getElement();
-        if (el) el.style.display = visible ? '' : 'none';
+        if (el) el.style.display = content.toLowerCase().includes(query) ? '' : 'none';
       });
     });
   });
 }
 
 /* ───────────────────────────────────────────────
-   PUBLIC API
-   websocket.js uses addPin() to push live updates.
+   PUBLIC API — websocket.js uses addPin()
 ─────────────────────────────────────────────── */
 window.MapAPI = { addPin };
 
@@ -188,18 +164,3 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
-
-/* ───────────────────────────────────────────────
-   DEMO PINS
-   Used when no server data is present.
-   Remove or ignore once backend is connected.
-─────────────────────────────────────────────── */
-const DEMO_PINS = [
-  { lat: 45.8127, lng: 15.9750, name: 'Secret Courtyard Café',  type: 'gem'   },
-  { lat: 45.8182, lng: 15.9912, name: 'Medveščak Street Art',    type: 'gem'   },
-  { lat: 45.8072, lng: 15.9870, name: 'Jazz Bar "Škver"',        type: 'gem'   },
-  { lat: 45.8230, lng: 15.9780, name: 'Rooftop Sunset Point',    type: 'event' },
-  { lat: 45.8150, lng: 15.9650, name: 'Community Meetup',        type: 'event' },
-  { lat: 45.8195, lng: 15.9700, name: 'Ana Horvat',              type: 'local' },
-  { lat: 45.8110, lng: 15.9830, name: 'Luka Novak',              type: 'local' },
-];

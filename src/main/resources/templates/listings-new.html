@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>New Tour — Experimate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    .new-listing-header { padding: 22px 18px 18px; border-bottom: 1px solid var(--border); }
+    .new-listing-form { display: flex; flex-direction: column; gap: 18px; padding: 20px 18px 40px; }
+    .form-field { display: flex; flex-direction: column; gap: 7px; }
+    .form-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+    .form-field input, .form-field textarea {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      color: var(--text); font-family: var(--font-mono); font-size: 13px;
+      width: 100%; box-sizing: border-box; transition: border-color var(--t-fast);
+    }
+    .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-border); }
+    .form-field input.input--error { border-color: rgba(255,80,80,0.5); }
+    .form-field textarea { resize: vertical; min-height: 140px; line-height: 1.65; }
+    .form-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
+    .form-field__error { font-size: 9px; color: rgba(255,100,100,0.85); letter-spacing: 0.04em; display: none; }
+    .form-field__error--visible { display: block; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-error {
+      background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      font-size: 11px; color: rgba(255,100,100,0.9);
+    }
+    .form-actions { display: flex; gap: 10px; }
+    .form-actions .btn { flex: 1; height: 46px; }
+
+    /* Map picker */
+    #location-map {
+      height: 240px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-2); overflow: hidden;
+      transition: border-color var(--t-fast);
+    }
+    #location-map:focus-within, #location-map.map--pinned { border-color: var(--accent-border); }
+    .leaflet-container { background: #0a0a0a; }
+    .leaflet-control-attribution { display: none; }
+    .location-status {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .location-status__dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--text-3); flex-shrink: 0;
+      transition: background var(--t-fast);
+    }
+    .location-status--set .location-status__dot { background: var(--accent); }
+    .location-status--set { color: var(--accent); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+    <div class="new-listing-header">
+      <div class="page-title">New Tour</div>
+      <div class="page-subtitle">Create an experience for travellers</div>
+    </div>
+
+    <form id="listing-form" class="new-listing-form">
+
+      <div id="form-error" class="form-error" style="display:none;"></div>
+
+      <div class="form-field">
+        <label for="city">City</label>
+        <input type="text" id="city" name="city" placeholder="e.g. Zagreb" required>
+      </div>
+
+      <!-- Separate date and time inputs -->
+      <div class="form-row">
+        <div class="form-field">
+          <label for="meetingDateInput">Meeting date</label>
+          <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
+                 data-date-format="date" autocomplete="off" required>
+          <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
+          <span class="form-field__hint">Format: DD/MM/YYYY</span>
+        </div>
+        <div class="form-field">
+          <label for="meetingTimeInput">Meeting time</label>
+          <input type="text" id="meetingTimeInput" placeholder="HH:MM" autocomplete="off" required>
+          <span class="form-field__hint">24-hour clock</span>
+        </div>
+      </div>
+      <!-- Hidden combined field sent to server -->
+      <input type="hidden" id="meetingDate" name="meetingDate">
+
+      <div class="form-field">
+        <label for="tourDescription">Description</label>
+        <textarea id="tourDescription" name="tourDescription"
+                  placeholder="Describe the experience — what will guests see, do, and feel?"
+                  required minlength="20" maxlength="2000"></textarea>
+        <span class="form-field__hint">20–2000 characters</span>
+      </div>
+
+      <!-- Map location picker -->
+      <div class="form-field">
+        <label>Meeting location <span style="color: var(--text-3);">(optional)</span></label>
+        <div id="location-map"></div>
+        <div class="location-status" id="location-status">
+          <div class="location-status__dot"></div>
+          <span id="location-status-text">Click on the map to pin the meeting spot</span>
+        </div>
+      </div>
+      <input type="hidden" name="lat" id="listingLat">
+      <input type="hidden" name="lng" id="listingLng">
+
+      <div class="form-actions">
+        <a href="/tours" class="btn btn--ghost">Cancel</a>
+        <button type="submit" class="btn btn--primary">Publish</button>
+      </div>
+
+    </form>
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  /* ── DATE VALIDATION ── */
+  const meetingDateInput = document.getElementById('meetingDateInput');
+  const meetingTimeInput = document.getElementById('meetingTimeInput');
+  const dateError        = document.getElementById('date-error');
+
+  meetingDateInput.addEventListener('blur', () => {
+    const val = meetingDateInput.value.trim();
+    if (!val) return;
+    const parts = val.split('/');
+    if (parts.length !== 3 || parts[2].length !== 4) return;
+    const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (date < today) {
+      meetingDateInput.value = '';
+      meetingDateInput.classList.add('input--error');
+      dateError.classList.add('form-field__error--visible');
+      showToast('Meeting date must be today or in the future.');
+    } else {
+      meetingDateInput.classList.remove('input--error');
+      dateError.classList.remove('form-field__error--visible');
+    }
+  });
+
+  meetingDateInput.addEventListener('input', () => {
+    meetingDateInput.classList.remove('input--error');
+    dateError.classList.remove('form-field__error--visible');
+  });
+
+  /* ── TIME AUTO-FORMAT HH:MM ── */
+  meetingTimeInput.addEventListener('keydown', e => {
+    if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
+  });
+  meetingTimeInput.addEventListener('input', () => {
+    let digits = meetingTimeInput.value.replace(/\D/g, '');
+    if (digits.length > 4) digits = digits.slice(0, 4);
+    meetingTimeInput.value = digits.length > 2
+      ? digits.slice(0, 2) + ':' + digits.slice(2)
+      : digits;
+  });
+
+  /* ── SUBMIT → API ── */
+  document.getElementById('listing-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errorEl = document.getElementById('form-error');
+    errorEl.style.display = 'none';
+
+    const hostId = Auth.getUserId();
+    if (!hostId) { window.location.href = '/login'; return; }
+
+    const dateVal = meetingDateInput.value.trim();
+    const timeVal = meetingTimeInput.value.trim();
+    if (!dateVal || !timeVal) { showToast('Please fill in both date and time.'); return; }
+    if (!/^\d{2}:\d{2}$/.test(timeVal)) { showToast('Time must be in HH:MM format.'); return; }
+
+    // Convert DD/MM/YYYY HH:MM → YYYY-MM-DDTHH:MM:00
+    const [dd, mm, yyyy] = dateVal.split('/');
+    const meetingDate = `${yyyy}-${mm}-${dd}T${timeVal}:00`;
+
+    try {
+      await TourListingAPI.create({
+        hostId,
+        city:            document.getElementById('city').value,
+        meetingDate,
+        tourDescription: document.getElementById('tourDescription').value,
+      });
+      showToast('Tour published!');
+      setTimeout(() => window.location.href = '/tours', 800);
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  });
+
+  /* ── MAP LOCATION PICKER ── */
+  const locationMap = L.map('location-map', {
+    center: [45.815, 15.982],
+    zoom: 13,
+    zoomControl: true,
+    attributionControl: false,
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+  }).addTo(locationMap);
+
+  let locationMarker = null;
+  const statusEl     = document.getElementById('location-status');
+  const statusText   = document.getElementById('location-status-text');
+
+  locationMap.on('click', e => {
+    const { lat, lng } = e.latlng;
+    document.getElementById('listingLat').value = lat.toFixed(6);
+    document.getElementById('listingLng').value = lng.toFixed(6);
+
+    if (locationMarker) {
+      locationMarker.setLatLng([lat, lng]);
+    } else {
+      locationMarker = L.circleMarker([lat, lng], {
+        radius: 8, color: '#c8ff00', fillColor: '#c8ff00', fillOpacity: 0.7, weight: 2,
+      }).addTo(locationMap);
+      document.getElementById('location-map').classList.add('map--pinned');
+    }
+
+    statusEl.classList.add('location-status--set');
+    statusText.textContent = `Pinned: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  });
+</script>
+</body>
+</html>

@@ -112,15 +112,66 @@ function switchTab(el, tabId) {
 ─────────────────────────────────────────────── */
 function toggleJoin(e, btn, name) {
   e.stopPropagation();
-  const joined = btn.classList.toggle('comm-join-btn--joined');
+  const joined = btn.classList.toggle('join-btn--joined');
   btn.textContent = joined ? 'Joined' : 'Join';
   showToast(joined ? `Joined ${name}` : `Left ${name}`);
+}
+
+/* ───────────────────────────────────────────────
+   DATE AUTO-FORMAT  DD/MM/YYYY  and  DD/MM/YYYY HH:MM
+   Usage: <input data-date-format="date"> or data-date-format="datetime"
+   Call initDateInputs() after DOM ready, or on any new input.
+─────────────────────────────────────────────── */
+function initDateInputs() {
+  document.querySelectorAll('[data-date-format]').forEach(input => {
+    const mode = input.dataset.dateFormat; // "date" or "datetime"
+    input.addEventListener('keydown', e => {
+      // Allow backspace, delete, tab, arrows
+      if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
+      // Only allow digits
+      if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
+    });
+    input.addEventListener('input', () => {
+      let digits = input.value.replace(/\D/g, '');
+      const max  = mode === 'datetime' ? 12 : 8;
+      if (digits.length > max) digits = digits.slice(0, max);
+      input.value = mode === 'datetime'
+        ? formatDatetime(digits)
+        : formatDate(digits);
+    });
+    input.addEventListener('blur', () => {
+      // Auto-pad: 5/3/2000 → 05/03/2000
+      const parts = input.value.split('/');
+      if (parts.length >= 2) {
+        parts[0] = parts[0].padStart(2, '0');
+        parts[1] = parts[1].padStart(2, '0');
+        input.value = parts.join('/');
+      }
+    });
+  });
+}
+
+function formatDate(d) {
+  // d = raw digits, max 8
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return d.slice(0,2) + '/' + d.slice(2);
+  return d.slice(0,2) + '/' + d.slice(2,4) + '/' + d.slice(4);
+}
+
+function formatDatetime(d) {
+  // d = raw digits, max 12: DDMMYYYYHHMM
+  let out = formatDate(d.slice(0, 8));
+  if (d.length > 8) out += ' ' + d.slice(8, 10);
+  if (d.length > 10) out += ':' + d.slice(10, 12);
+  return out;
 }
 
 /* ───────────────────────────────────────────────
    INIT — runs after DOM is ready
 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+
+  initDateInputs();
 
   // Bottom sheet drag-to-expand (touch + mouse)
   const sheet = document.getElementById('bottom-sheet');
