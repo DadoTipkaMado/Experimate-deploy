@@ -10,23 +10,17 @@
   <style>
     .account-hero { padding: 28px 18px 22px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; overflow: hidden; }
     .account-hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(ellipse, rgba(200,255,0,0.05) 0%, transparent 70%); pointer-events: none; }
-    .account-hero__avatar { width: 76px; height: 76px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-size: 30px; position: relative; z-index: 1; cursor: pointer; transition: border-color var(--t-base); }
-    .account-hero__avatar:hover { border-color: var(--accent-border); }
+    .account-hero__avatar { width: 76px; height: 76px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-size: 30px; position: relative; z-index: 1; }
     .account-hero__name { font-family: var(--font-display); font-weight: 800; font-size: 22px; position: relative; z-index: 1; letter-spacing: -0.01em; }
     .account-hero__handle { font-size: 11px; color: var(--text-2); letter-spacing: 0.08em; position: relative; z-index: 1; margin-top: -4px; }
-    .account-hero__stats { display: flex; gap: 28px; position: relative; z-index: 1; margin-top: 2px; }
-    .stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-    .stat__val { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--accent); line-height: 1; }
-    .stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; }
     .account-hero__rating { padding: 5px 14px; border-radius: var(--radius-pill); background: var(--accent-dim); border: 1px solid var(--accent-border); font-size: 12px; color: var(--accent); letter-spacing: 0.06em; position: relative; z-index: 1; }
     .acc-section { padding: 18px 18px 4px; border-bottom: 1px solid var(--border); }
     .acc-section:last-of-type { border-bottom: none; }
-    .day-desc-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-size: 11px; line-height: 1.75; color: rgba(239,239,239,0.65); position: relative; margin-bottom: 14px; }
-    .day-desc-box__label { position: absolute; top: -9px; left: 14px; background: var(--bg); padding: 0 6px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-family: var(--font-mono); }
-    .edit-profile-btn { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border-2); color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 18px; transition: background var(--t-base), border-color var(--t-base), color var(--t-base); }
-    .edit-profile-btn:hover { background: var(--surface-2); border-color: var(--accent-border); color: var(--accent); }
+    .bio-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-size: 11px; line-height: 1.75; color: rgba(239,239,239,0.65); margin-bottom: 14px; }
     .logout-btn { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border); color: var(--text-3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 18px; transition: border-color var(--t-base), color var(--t-base); }
     .logout-btn:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
+    .new-listing-link { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border-2); color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background var(--t-base), border-color var(--t-base), color var(--t-base); }
+    .new-listing-link:hover { background: var(--surface-2); border-color: var(--accent-border); color: var(--accent); }
   </style>
 </head>
 <body>
@@ -37,73 +31,30 @@
   <main class="page-content">
 
     <div class="account-hero">
-      <div class="account-hero__avatar">
-        <span th:text="${user?.emoji} ?: '👤'">👤</span>
-      </div>
-      <div class="account-hero__name" th:text="${user?.name} ?: 'Your Name'">Matej K.</div>
-      <div class="account-hero__handle">
-        <span th:text="${user?.handle} ?: '@handle'">@matejk</span>
-        · <span th:text="${user?.city} ?: 'Zagreb'">Zagreb</span>
-      </div>
-      <div class="account-hero__stats">
-        <div class="stat"><div class="stat__val" th:text="${user?.meetsCount} ?: '0'">12</div><div class="stat__label">Meets</div></div>
-        <div class="stat"><div class="stat__val" th:text="${user?.gemsCount} ?: '0'">3</div><div class="stat__label">Gems</div></div>
-        <div class="stat"><div class="stat__val" th:text="${user?.commCount} ?: '0'">2</div><div class="stat__label">Comm.</div></div>
-      </div>
-      <div class="account-hero__rating">
-        ★ <span th:text="${user?.rating} ?: '–'">4.8</span>
-        <span th:if="${user?.verified}"> · Verified Local</span>
-      </div>
+      <div class="account-hero__avatar" id="account-avatar"><span>👤</span></div>
+      <div class="account-hero__name" id="account-name">—</div>
+      <div class="account-hero__handle" id="account-handle">@—</div>
+      <div class="account-hero__rating">★ <span id="account-rating">0.0</span></div>
     </div>
 
     <div class="acc-section">
-      <div class="section-label">My ideal day</div>
-      <div class="day-desc-box">
-        <div class="day-desc-box__label">AI generated</div>
-        <span th:if="${user?.dayDesc != null}" th:text="${user.dayDesc}">Your AI-generated ideal day description will appear here.</span>
-        <span th:unless="${user?.dayDesc != null}">Start mornings at Dolac market for fresh local produce, then coffee at a hidden courtyard café in the Upper Town. Afternoon walk through Maksimir park, followed by street art hunting in Medveščak.</span>
-      </div>
-      <button class="edit-profile-btn" onclick="showToast('Edit profile — coming soon')">Edit Profile</button>
+      <div class="section-label">Bio</div>
+      <div class="bio-box" id="account-bio" style="color: var(--text-3);">No bio set.</div>
     </div>
 
-    <div class="acc-section">
-      <div class="section-label">Visibility</div>
-      <div class="settings-row">
-        <span class="settings-row__label">Visible on map</span>
-        <div th:classappend="${user?.visibleOnMap} ? ' toggle--on'" class="toggle" onclick="toggleSwitch(this)" id="toggle-visible">
-          <div class="toggle__thumb"></div>
-        </div>
-      </div>
-      <div class="settings-row">
-        <span class="settings-row__label">Available to meet</span>
-        <div th:classappend="${user?.availableToMeet} ? ' toggle--on'" class="toggle" onclick="toggleSwitch(this)" id="toggle-available">
-          <div class="toggle__thumb"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="acc-section">
+    <div class="acc-section" id="user-prefs">
       <div class="section-label">Preferences</div>
       <div class="settings-row">
-        <span class="settings-row__label">Push notifications</span>
-        <div th:classappend="${user?.notifications} ? ' toggle--on'" class="toggle" onclick="toggleSwitch(this)" id="toggle-notifs">
+        <span class="settings-row__label">Available to meet</span>
+        <div class="toggle" id="availability-toggle" onclick="toggleAvailability(this)">
           <div class="toggle__thumb"></div>
         </div>
       </div>
-      <div class="settings-row">
-        <span class="settings-row__label">Language</span>
-        <span class="settings-row__value" th:text="${user?.language} ?: 'English'">English</span>
-      </div>
-      <div class="settings-row">
-        <span class="settings-row__label">Location</span>
-        <span class="settings-row__value" th:text="${user?.city} ?: 'Zagreb, HR'">Zagreb, HR</span>
-      </div>
     </div>
 
-    <div style="padding: 18px 18px 32px;">
-      <form th:action="@{/logout}" method="post">
-        <button type="submit" class="logout-btn">Log out</button>
-      </form>
+    <div style="padding: 18px 18px 8px;">
+      <a href="/account/edit" class="new-listing-link">Edit Profile</a>
+      <button onclick="Auth.logout()" class="logout-btn" style="margin-top: 10px;">Log out</button>
     </div>
 
   </main>
@@ -114,5 +65,40 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  function loadAccount() {
+    const userId = Auth.getUserId();
+    if (!userId) { window.location.href = '/login'; return; }
+
+    UserAPI.getById(userId).then(user => {
+      document.getElementById('account-name').textContent    = user.firstName + ' ' + user.lastName;
+      document.getElementById('account-handle').textContent  = '@' + user.username;
+      document.getElementById('account-rating').textContent  = user.rating ?? '0.0';
+      document.getElementById('account-bio').textContent     = user.bio || 'No bio set.';
+      document.getElementById('account-bio').style.color     = user.bio ? '' : 'var(--text-3)';
+
+      if (user.profilePhotoUrl) {
+        document.getElementById('account-avatar').innerHTML =
+          `<img src="${user.profilePhotoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      }
+
+      const toggle = document.getElementById('availability-toggle');
+      toggle.dataset.userId = user.id;
+      if (user.availableToMeet) toggle.classList.add('toggle--on');
+    });
+  }
+
+  function toggleAvailability(el) {
+    toggleSwitch(el);
+    const isOn   = el.classList.contains('toggle--on');
+    const userId = parseInt(el.dataset.userId, 10);
+    UserAPI.update(userId, { availableToMeet: isOn })
+      .then(() => showToast(isOn ? "You're now available to meet" : 'Set as unavailable'))
+      .catch(() => { toggleSwitch(el); showToast('Could not save preference.'); });
+  }
+
+  loadAccount();
+</script>
 </body>
 </html>

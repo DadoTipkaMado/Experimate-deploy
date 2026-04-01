@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Edit Profile — Experimate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .edit-header { padding: 22px 18px 18px; border-bottom: 1px solid var(--border); }
+    .edit-form { display: flex; flex-direction: column; gap: 18px; padding: 20px 18px 40px; }
+    .form-field { display: flex; flex-direction: column; gap: 7px; }
+    .form-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+    .form-field input, .form-field textarea {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      width: 100%; box-sizing: border-box;
+      transition: border-color var(--t-fast);
+    }
+    .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-border); }
+    .form-field textarea { resize: vertical; min-height: 100px; line-height: 1.65; }
+    .form-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
+    .form-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+    .form-error {
+      background: rgba(255,80,80,0.08);
+      border: 1px solid rgba(255,80,80,0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 11px; color: rgba(255,100,100,0.9);
+    }
+    .form-actions { display: flex; gap: 10px; }
+    .form-actions .btn { flex: 1; height: 46px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+    <div class="edit-header">
+      <div class="page-title">Edit Profile</div>
+      <div class="page-subtitle">Update your username, bio, or password</div>
+    </div>
+
+    <form id="edit-form" class="edit-form">
+
+      <div id="form-error" class="form-error" style="display:none;"></div>
+
+      <div class="form-field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username"
+               minlength="4" maxlength="15" autocomplete="username" required>
+        <span class="form-field__hint">4–15 characters</span>
+      </div>
+
+      <div class="form-field">
+        <label for="bio">Bio <span style="color: var(--text-3);">(optional)</span></label>
+        <textarea id="bio" name="bio" maxlength="200"
+                  placeholder="Tell other travellers about yourself..."></textarea>
+        <span class="form-field__hint">Max 200 characters</span>
+      </div>
+
+      <hr class="form-divider">
+
+      <div class="form-field">
+        <label for="password">New password <span style="color: var(--text-3);">(leave blank to keep current)</span></label>
+        <input type="password" id="password" name="password" autocomplete="new-password">
+      </div>
+
+      <div class="form-field">
+        <label for="confirmPassword">Confirm new password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
+      </div>
+
+      <div class="form-actions">
+        <a href="/account" class="btn btn--ghost">Cancel</a>
+        <button type="submit" class="btn btn--primary">Save</button>
+      </div>
+
+    </form>
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const userId = Auth.getUserId();
+  if (!userId) window.location.href = '/login';
+
+  // Prefill form with current user data
+  UserAPI.getById(userId).then(user => {
+    document.getElementById('username').value = user.username ?? '';
+    document.getElementById('bio').value      = user.bio ?? '';
+  });
+
+  document.getElementById('edit-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const errorEl = document.getElementById('form-error');
+    errorEl.style.display = 'none';
+
+    const password        = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password && password !== confirmPassword) {
+      errorEl.textContent = 'Passwords do not match';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const dto = {
+      username: document.getElementById('username').value,
+      bio:      document.getElementById('bio').value || null,
+      password: password || null,
+    };
+
+    try {
+      await UserAPI.update(userId, dto);
+      showToast('Profile saved!');
+      setTimeout(() => window.location.href = '/account', 800);
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  });
+</script>
+</body>
+</html>

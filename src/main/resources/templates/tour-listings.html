@@ -83,6 +83,13 @@
             color: var(--text-3);
         }
         .listing-card__status--available { color: var(--accent); }
+.listings-empty {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 60px 24px; gap: 12px; text-align: center;
+        }
+        .listings-empty__icon { font-size: 36px; opacity: 0.2; }
+        .listings-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+        .listings-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
     </style>
 </head>
 <body>
@@ -101,47 +108,44 @@
             <th:block th:if="${listings != null and !listings.isEmpty()}">
                 <div th:each="listing : ${listings}"
                      th:classappend="${listing.reserved} ? ' listing-card--reserved'"
-                     class="listing-card anim-fade-up">
+                     class="listing-card anim-fade-up"
+                     th:attr="data-listing-id=${listing.id}">
                     <div class="listing-card__head">
                         <div>
-                            <div class="listing-card__city" th:text="${listing.city}">Zagreb</div>
+                            <div class="listing-card__city" th:text="${listing.city}">City</div>
                             <div class="listing-card__host">
-                                by <span th:text="${listing.host.firstName + ' ' + listing.host.lastName}">Ana Horvat</span>
-                                · @<span th:text="${listing.host.username}">ahorvat</span>
+                                by <span th:text="${listing.host.firstName + ' ' + listing.host.lastName}">Host</span>
+                                · @<span th:text="${listing.host.username}">username</span>
                             </div>
                         </div>
                         <div class="listing-card__date"
                              th:text="${#temporals.format(listing.meetingDate, 'dd MMM · HH:mm')}">
-                            20 MAR · 10:00
+                            01 JAN · 10:00
                         </div>
                     </div>
-                    <div class="listing-card__desc" th:text="${listing.tourDescription}">Opis.</div>
+                    <div class="listing-card__desc" th:text="${listing.tourDescription}">Description.</div>
                     <div class="listing-card__foot">
                         <div th:if="${listing.reserved}" class="listing-card__status">Already reserved</div>
                         <div th:unless="${listing.reserved}" class="listing-card__status listing-card__status--available">Available</div>
-                        <button th:if="${!listing.reserved}"
+                        <button th:if="${!listing.reserved and currentUserId != null}"
                                 class="btn btn--primary"
                                 style="height: 36px; font-size: 10px;"
-                                onclick="showToast('Reserve — coming soon')">Reserve</button>
+                                th:data-listing-id="${listing.id}"
+                                th:data-guest-id="${currentUserId}"
+                                onclick="reserveListing(this)">Reserve</button>
+                        <div th:if="${!listing.reserved and currentUserId == null}"
+                             class="listing-card__status">
+                          <a th:href="@{/login}" style="color: var(--accent);">Login to reserve</a>
+                        </div>
                     </div>
                 </div>
             </th:block>
 
             <th:block th:unless="${listings != null and !listings.isEmpty()}">
-                <div class="listing-card anim-fade-up">
-                    <div class="listing-card__head">
-                        <div>
-                            <div class="listing-card__city">Zagreb</div>
-                            <div class="listing-card__host">by Ana Horvat · @ahorvat</div>
-                        </div>
-                        <div class="listing-card__date">20 MAR · 10:00</div>
-                    </div>
-                    <div class="listing-card__desc">Zagreb je grad koji spaja srednjovjekovni šarm s modernim urbanim životom.</div>
-                    <div class="listing-card__foot">
-                        <div class="listing-card__status listing-card__status--available">Available</div>
-                        <button class="btn btn--primary" style="height: 36px; font-size: 10px;"
-                                onclick="showToast('Reserve — coming soon')">Reserve</button>
-                    </div>
+                <div class="listings-empty">
+                    <div class="listings-empty__icon">🗺️</div>
+                    <div class="listings-empty__title">No listings yet</div>
+                    <div class="listings-empty__sub">Be the first to create a tour listing and start hosting.</div>
                 </div>
             </th:block>
 
@@ -154,5 +158,23 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+    function reserveListing(btn) {
+        const listingId = parseInt(btn.dataset.listingId, 10);
+        const guestId   = parseInt(btn.dataset.guestId, 10);
+        btn.disabled = true;
+        ReservationAPI.create({ guestId, tourListingId: listingId })
+            .then(() => {
+                showToast('Reserved! Refresh to see updated status.');
+                btn.textContent = 'Reserved';
+                btn.classList.remove('btn--primary');
+            })
+            .catch(err => {
+                showToast(err.message);
+                btn.disabled = false;
+            });
+    }
+</script>
 </body>
 </html>

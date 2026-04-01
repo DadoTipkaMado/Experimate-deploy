@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Register — Experimate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); padding: 24px 0; box-sizing: border-box; }
+    .auth-card {
+      width: min(380px, 92vw);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .auth-logo { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); letter-spacing: -0.02em; }
+    .auth-logo span { color: var(--accent); }
+    .auth-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); }
+    .auth-subtitle { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 4px; }
+    .auth-field { display: flex; flex-direction: column; gap: 6px; }
+    .auth-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+    .auth-field input, .auth-field textarea {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      width: 100%; box-sizing: border-box;
+      transition: border-color var(--t-fast);
+    }
+    .auth-field input:focus, .auth-field textarea:focus { outline: none; border-color: var(--accent-border); }
+    .auth-field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+    .auth-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
+    .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .auth-error {
+      background: rgba(255,80,80,0.08);
+      border: 1px solid rgba(255,80,80,0.2);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 11px; color: rgba(255,100,100,0.9);
+      letter-spacing: 0.03em;
+    }
+    .auth-footer { font-size: 11px; color: var(--text-3); text-align: center; }
+    .auth-footer a { color: var(--accent); text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <div>
+      <div class="auth-logo">Experi<span>mate</span></div>
+    </div>
+    <div>
+      <div class="auth-title">Create account</div>
+      <div class="auth-subtitle">Join and start hosting experiences</div>
+    </div>
+
+    <div id="auth-error" class="auth-error" style="display:none;"></div>
+
+    <form id="register-form" style="display: flex; flex-direction: column; gap: 14px;">
+
+      <div class="auth-row">
+        <div class="auth-field">
+          <label for="firstName">First name</label>
+          <input type="text" id="firstName" name="firstName" required>
+        </div>
+        <div class="auth-field">
+          <label for="lastName">Last name</label>
+          <input type="text" id="lastName" name="lastName" required>
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label for="dateOfBirth">Date of birth</label>
+        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" data-date-format="date" autocomplete="off" required>
+        <span class="auth-field__hint">Format: DD/MM/YYYY · Must be 18 or older</span>
+      </div>
+
+      <div class="auth-field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" minlength="4" maxlength="15" autocomplete="username" required>
+        <span class="auth-field__hint">4–15 characters</span>
+      </div>
+
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="new-password" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="confirmPassword">Confirm password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
+      </div>
+
+      <div class="auth-field">
+        <label for="bio">Bio <span style="color: var(--text-3);">(optional)</span></label>
+        <textarea id="bio" name="bio" maxlength="200" placeholder="Tell other travellers about yourself..."></textarea>
+        <span class="auth-field__hint">Max 200 characters</span>
+      </div>
+
+      <button type="submit" class="btn btn--primary" style="height: 44px; margin-top: 4px;">Create account</button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('register-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const errorEl = document.getElementById('auth-error');
+        errorEl.style.display = 'none';
+
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+          errorEl.textContent = 'Passwords do not match';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        // Parse DD/MM/YYYY → YYYY-MM-DD for backend
+        const [dd, mm, yyyy] = document.getElementById('dateOfBirth').value.split('/');
+        const dob = `${yyyy}-${mm}-${dd}`;
+
+        // 18+ check (UX only)
+        const birthDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+
+        if (age < 18) {
+          errorEl.textContent = 'You must be 18 or older to register';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const username = document.getElementById('username').value;
+
+        try {
+          await UserAPI.create({
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            dateOfBirth: dob,
+            idNumber: null,
+            username,
+            password,
+            bio: document.getElementById('bio').value || null,
+          });
+          const loginRes = await AuthAPI.login(username, password);
+          Auth.saveToken(loginRes.token);
+          const users = await UserAPI.getAll();
+          const me = users.find(u => u.username === Auth.getUsername());
+          if (me) Auth.saveUserId(me.id);
+          window.location.href = '/map';
+        } catch (err) {
+          errorEl.textContent = err.message;
+          errorEl.style.display = 'block';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
