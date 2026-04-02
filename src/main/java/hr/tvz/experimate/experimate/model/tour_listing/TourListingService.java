@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
+import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
@@ -18,7 +19,6 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -161,6 +161,13 @@ public class TourListingService {
     }
 
     private TourListingResponse createListingResponse(TourListing listing){
+        User host = listing.getHost();
+        UserDetails hostDetails = new UserDetails(
+                host.getFirstName(),
+                host.getLastName(),
+                host.getUsername()
+        );
+
         return new TourListingResponse(
                 listing.getId(),
                 listing.getCity(),
@@ -170,9 +177,7 @@ public class TourListingService {
                 listing.getPostDate(),
                 listing.getTourDescription(),
                 listing.isReserved(),
-                listing.getHost().getFirstName(),
-                listing.getHost().getLastName(),
-                listing.getHost().getUsername()
+                hostDetails
         );
     }
 
