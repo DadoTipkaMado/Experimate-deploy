@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -33,6 +34,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponse illegalArg = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
         return new ResponseEntity<>(illegalArg, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(AuthenticationException ex) {
+        ErrorResponse illegalArg = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);
+        return new ResponseEntity<>(illegalArg, HttpStatus.UNAUTHORIZED);
     }
 
     private ErrorResponse createErrorResponse(HttpStatus status, Exception ex) {
