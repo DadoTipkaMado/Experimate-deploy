@@ -38,19 +38,13 @@
     </div>
 
     <div class="acc-section">
-      <div class="section-label">Bio</div>
+      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        Bio
+        <a href="/account/edit" style="font-size:10px;color:var(--accent);text-decoration:none;letter-spacing:0.06em;">Edit</a>
+      </div>
       <div class="bio-box" id="account-bio" style="color: var(--text-3);">No bio set.</div>
     </div>
 
-    <div class="acc-section" id="user-prefs">
-      <div class="section-label">Preferences</div>
-      <div class="settings-row">
-        <span class="settings-row__label">Available to meet</span>
-        <div class="toggle" id="availability-toggle" onclick="toggleAvailability(this)">
-          <div class="toggle__thumb"></div>
-        </div>
-      </div>
-    </div>
 
     <div style="padding: 18px 18px 8px;">
       <a href="/account/edit" class="new-listing-link">Edit Profile</a>
@@ -83,22 +77,10 @@
           `<img src="${user.profilePhotoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
       }
 
-      const toggle = document.getElementById('availability-toggle');
-      toggle.dataset.userId = user.id;
-      if (user.availableToMeet) toggle.classList.add('toggle--on');
     });
   }
 
-  function toggleAvailability(el) {
-    toggleSwitch(el);
-    const isOn   = el.classList.contains('toggle--on');
-    const userId = parseInt(el.dataset.userId, 10);
-    UserAPI.update(userId, { availableToMeet: isOn })
-      .then(() => showToast(isOn ? "You're now available to meet" : 'Set as unavailable'))
-      .catch(() => { toggleSwitch(el); showToast('Could not save preference.'); });
-  }
-
-  loadAccount();
+loadAccount();
 </script>
 </body>
 </html>

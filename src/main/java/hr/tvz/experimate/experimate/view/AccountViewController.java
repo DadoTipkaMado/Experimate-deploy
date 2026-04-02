@@ -12,4 +12,10 @@ public class AccountViewController {
         model.addAttribute("currentPage", "account");
         return "account";
     }
+
+    @GetMapping("/account/edit")
+    public String accountEdit(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "account-edit";
+    }
 }
