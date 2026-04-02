@@ -10,6 +10,9 @@ public record TourListingResponse(
         LocalDateTime meetingDate,
         LocalDateTime postDate,
         String tourDescription,
-        boolean reserved
+        boolean reserved,
+        String hostFirstName,
+        String hostLastName,
+        String hostUsername
 ) {
 }
