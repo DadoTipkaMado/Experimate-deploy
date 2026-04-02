@@ -90,6 +90,9 @@
     .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
     .meet-empty__sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; line-height: 1.6; max-width: 220px; }
 
+    /* ── MEETUPS TAB PANEL ── */
+    #tab-meetups:not([hidden]) { display: flex; }
+
     /* ── CANCEL MODAL ── */
     .modal-backdrop {
       display: none; position: fixed; inset: 0; z-index: 200;
@@ -131,7 +134,7 @@
         <div class="page-subtitle" style="margin-bottom: 14px;">Discover local tours · manage your meetups</div>
         <div class="tab-bar">
           <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
-          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Meetups</div>
+          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Tours</div>
         </div>
       </div>
       <a href="/listings/new" class="tours-fab" title="New listing">+</a>
@@ -149,7 +152,7 @@
     </div>
 
     <!-- ── MY MEETUPS TAB ── -->
-    <div id="tab-meetups" hidden style="padding: 14px 18px; display: flex; flex-direction: column; gap: 14px;">
+    <div id="tab-meetups" hidden style="padding: 14px 18px; flex-direction: column; gap: 14px;">
       <div class="section-label">Upcoming</div>
       <div id="meetups-upcoming"></div>
       <div class="section-label" style="margin-top: 8px;">Past</div>
@@ -255,8 +258,8 @@
 
     list.innerHTML = listings.map(listing => {
       const reserved = listing.reserved;
-      const hasCoords = listing.lat != null && listing.lng != null;
-      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
+      const hasCoords = listing.latitude != null && listing.longitude != null;
+      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.latitude}" data-lng="${listing.longitude}" onclick="goToMap(this)">📍 Map</button>` : '';
       const reserveBtn = !reserved && currentUserId
         ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Reserve</button>`
         : !reserved
