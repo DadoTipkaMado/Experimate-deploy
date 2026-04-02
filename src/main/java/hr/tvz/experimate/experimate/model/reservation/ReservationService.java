@@ -63,19 +63,19 @@ public class ReservationService {
 
         log.info("Created reservation with id {}", reservation.getId());
 
-        return new ReservationResponse(reservation.getId());
+        return createReservationResponse(reservation);
     }
 
     public List<ReservationResponse> getAllReservations() {
         return reservationRepo.findAll()
                 .stream()
-                .map(reservation -> new ReservationResponse(reservation.getId()))
+                .map(this::createReservationResponse)
                 .toList();
     }
 
     public Optional<ReservationResponse> getReservationById(Integer id) {
         return reservationRepo.findById(id)
-                .map(reservation -> new ReservationResponse(reservation.getId()));
+                .map(this::createReservationResponse);
     }
 
     public void deleteReservation(Integer id) {
@@ -168,5 +168,24 @@ public class ReservationService {
     @EventListener
     void handleBookingRequestAccepted(BookingRequestAcceptedEvent event) {
         createReservation(new CreateReservationDto(event.guestId(), event.listingId()));
+    }
+
+    private ReservationResponse createReservationResponse(Reservation reservation){
+        TourListing tourListing = reservation.getTourListing();
+        User host = tourListing.getHost();
+        User guest = reservation.getGuest();
+
+        return new ReservationResponse(
+                reservation.getId(),
+                reservation.getDateOfReservation(),
+                tourListing.getMeetingDate(),
+                tourListing.getCity(),
+                host.getFirstName(),
+                host.getLastName(),
+                host.getUsername(),
+                guest.getFirstName(),
+                guest.getLastName(),
+                guest.getUsername()
+        );
     }
 }
