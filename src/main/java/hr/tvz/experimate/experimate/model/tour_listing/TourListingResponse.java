@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
+import hr.tvz.experimate.experimate.model.shared.UserDetails;
+
 import java.time.LocalDateTime;
 
 public record TourListingResponse(
@@ -11,8 +13,6 @@ public record TourListingResponse(
         LocalDateTime postDate,
         String tourDescription,
         boolean reserved,
-        String hostFirstName,
-        String hostLastName,
-        String hostUsername
+        UserDetails host
 ) {
 }

@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
+import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
+import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
@@ -175,17 +177,29 @@ public class ReservationService {
         User host = tourListing.getHost();
         User guest = reservation.getGuest();
 
-        return new ReservationResponse(
-                reservation.getId(),
-                reservation.getDateOfReservation(),
-                tourListing.getMeetingDate(),
-                tourListing.getCity(),
+        UserDetails hostDetails = new UserDetails(
                 host.getFirstName(),
                 host.getLastName(),
-                host.getUsername(),
+                host.getUsername()
+        );
+
+        TourListingDetails listingDetails = new TourListingDetails(
+                tourListing.getMeetingDate(),
+                tourListing.getCity(),
+                hostDetails
+        );
+
+        UserDetails guestDetails = new UserDetails(
                 guest.getFirstName(),
                 guest.getLastName(),
                 guest.getUsername()
+        );
+
+        return new ReservationResponse(
+                reservation.getId(),
+                reservation.getDateOfReservation(),
+                listingDetails,
+                guestDetails
         );
     }
 }
