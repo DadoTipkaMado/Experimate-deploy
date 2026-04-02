@@ -49,18 +49,18 @@ public class UserService {
         userRepo.save(user);
         log.info("User created with id {}", user.getId());
 
-        return new UserResponse(user.getId(), user.getUsername(), user.getRating());
+        return createUserResponse(user);
     }
 
     public Optional<UserResponse> getUserById(Integer id) {
         return userRepo.findById(id)
-                .map(user -> new UserResponse(user.getId(), user.getUsername(), user.getRating()));
+                .map(user -> createUserResponse(user));
     }
 
     public List<UserResponse> getAllUsers() {
         return userRepo.findAll()
                 .stream()
-                .map(user -> new UserResponse(user.getId(), user.getUsername(), user.getRating()))
+                .map(user -> createUserResponse(user))
                 .toList();
     }
 
@@ -83,7 +83,7 @@ public class UserService {
         userRepo.save(user);
         log.info("User updated with id {}", id);
 
-        return new UserResponse(user.getId(), user.getUsername(), user.getRating());
+        return createUserResponse(user);
     }
 
     @Transactional
@@ -110,5 +110,16 @@ public class UserService {
             throw new IdNumberTakenException(idNumber);
         }
         return idNumber;
+    }
+
+    private UserResponse createUserResponse(User user){
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getBio(),
+                user.getRating()
+        );
     }
 }
