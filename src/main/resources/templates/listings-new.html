@@ -191,11 +191,15 @@
     const meetingDate = `${yyyy}-${mm}-${dd}T${timeVal}:00`;
 
     try {
+      const latVal = document.getElementById('listingLat').value;
+      const lngVal = document.getElementById('listingLng').value;
       await TourListingAPI.create({
         hostId,
         city:            document.getElementById('city').value,
         meetingDate,
         tourDescription: document.getElementById('tourDescription').value,
+        latitude:  latVal  ? parseFloat(latVal)  : null,
+        longitude: lngVal  ? parseFloat(lngVal)  : null,
       });
       showToast('Tour published!');
       setTimeout(() => window.location.href = '/tours', 800);

@@ -152,7 +152,7 @@
             firstName: document.getElementById('firstName').value,
             lastName: document.getElementById('lastName').value,
             dateOfBirth: dob,
-            idNumber: null,
+            idNumber: crypto.randomUUID(),
             username,
             password,
             bio: document.getElementById('bio').value || null,
