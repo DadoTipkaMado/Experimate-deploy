@@ -51,6 +51,10 @@ public class TourListing {
         this.reserved = false;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
     public User getHost() {
         return host;
     }
@@ -71,6 +75,14 @@ public class TourListing {
         return meetingDate;
     }
 
+    public LocalDateTime getPostDate() {
+        return postDate;
+    }
+
+    public String getTourDescription() {
+        return tourDescription;
+    }
+
     public boolean isReserved() {
         return reserved;
     }
@@ -81,10 +93,6 @@ public class TourListing {
 
     public void setTourDescription(String tourDescription) {
         this.tourDescription = tourDescription;
-    }
-
-    public Integer getId() {
-        return id;
     }
 
     public void setReserved(boolean reservedStatus){

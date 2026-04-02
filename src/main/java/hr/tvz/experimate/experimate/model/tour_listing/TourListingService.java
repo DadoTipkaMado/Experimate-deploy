@@ -65,33 +65,18 @@ public class TourListingService {
         );
         log.info("Created TourListing with id {}", saved.getId());
 
-        return new TourListingResponse(
-                saved.getId(),
-                saved.getCity(),
-                saved.getLongitude(),
-                saved.getLatitude()
-        );
+        return createListingResponse(saved);
     }
 
     public Optional<TourListingResponse> getListingById(Integer id) {
         return listingRepo.findById(id)
-                .map(listing -> new TourListingResponse(
-                        listing.getId(),
-                        listing.getCity(),
-                        listing.getLongitude(),
-                        listing.getLatitude()
-                ));
+                .map(listing -> createListingResponse(listing));
     }
 
     public List<TourListingResponse> getAllListings() {
         return listingRepo.findAll()
                 .stream()
-                .map(listing -> new TourListingResponse(
-                        listing.getId(),
-                        listing.getCity(),
-                        listing.getLongitude(),
-                        listing.getLatitude()
-                ))
+                .map(listing -> createListingResponse(listing))
                 .toList();
     }
 
@@ -109,14 +94,9 @@ public class TourListingService {
         listing.setReserved(dto.isReserved());
 
         TourListing saved = listingRepo.save(listing);
-        log.info("Updated TourListing with id {}", listing.getId());
+        log.info("Updated TourListing with id {}", saved.getId());
 
-        return new TourListingResponse(
-                saved.getId(),
-                saved.getCity(),
-                saved.getLongitude(),
-                saved.getLatitude()
-        );
+        return createListingResponse(saved);
     }
 
     @Transactional
@@ -178,6 +158,19 @@ public class TourListingService {
         );
         int count = listingRepo.deleteAllByHost_Id(hostId);
         log.info("Deleted {} TourListing/s with by host id {}", count, hostId);
+    }
+
+    private TourListingResponse createListingResponse(TourListing listing){
+        return new TourListingResponse(
+                listing.getId(),
+                listing.getCity(),
+                listing.getLongitude(),
+                listing.getLatitude(),
+                listing.getMeetingDate(),
+                listing.getPostDate(),
+                listing.getTourDescription(),
+                listing.isReserved()
+        );
     }
 
     //TODO dodaj metodu koja ce provjeravati jesu li dto atributi ispravni.
