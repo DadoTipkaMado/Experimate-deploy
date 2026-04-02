@@ -83,6 +83,6 @@ const TourListingAPI = {
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
-  create: (dto)        => apiFetch('/api/reservation',        { method: 'POST',   body: JSON.stringify(dto) }),
+  create: (dto)        => apiFetch('/api/booking-request',        { method: 'POST',   body: JSON.stringify(dto) }),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
 };
