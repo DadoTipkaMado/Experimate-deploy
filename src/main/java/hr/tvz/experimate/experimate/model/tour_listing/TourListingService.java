@@ -169,7 +169,10 @@ public class TourListingService {
                 listing.getMeetingDate(),
                 listing.getPostDate(),
                 listing.getTourDescription(),
-                listing.isReserved()
+                listing.isReserved(),
+                listing.getHost().getFirstName(),
+                listing.getHost().getLastName(),
+                listing.getHost().getUsername()
         );
     }
 
