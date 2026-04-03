@@ -73,10 +73,11 @@
 
 ---
 
-## Current state (as of 2026-04-03)
+## Current state (as of 2026-04-04)
 - All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`
 - Old `vito/frontend` branch — ignore it
 - `idNumber` in register sends `crypto.randomUUID()` (backend rejects null)
+- Full UX pass done — see session log 2026-04-04 below
 
 ## Local testing setup (local-test branch)
 - Branch `local-test` = `vito/frontend-clean` + `david/backend` merged together
@@ -108,13 +109,40 @@
 - When David adds the field to backend, add back the toggle UI and `toggleAvailability()` JS function
 
 ## Known pending issues (waiting on David)
-- Profile photo — discussed, deferred ("budemo sliku kasnije")
+- Profile photo — `account-edit.html` has a URL field that saves to `localStorage` as a workaround; `user.profilePhotoUrl` doesn't exist on backend yet
 - `availableToMeet` needs backend infrastructure before toggle can be re-added
 - Token rotation not implemented (intentional for now)
 
 ## Ready to test
 - Needs David to merge both branches into `main`
 - Smoke test: reserve button, My Tours tab, map pins
+
+---
+
+## Session log — 2026-04-04 (UX polish pass)
+
+### Što je napravljeno
+- **Brand rename** — "Experimate" → "ExperiMate" (capital M) across all pages: topbar, login, register, forgot-password
+- **Map gem pin** — fixed color from lime to teal (`rgba(0,201,167,...)`)
+- **Map FAB** — added `+` floating action button on map (`bottom: 108px; right: 14px`) linking to `/listings/new`
+- **Explore page** — added shimmer skeleton cards while loading; initials avatar (hue from username hash); "View Listings" CTA now links to `/tours?host={username}` (filters that host's listings)
+- **tours.html host filter** — `?host=` query param shows only that host's listings with a teal banner + clear link
+- **tours.html empty state** — added `+ Create a listing` CTA button
+- **listings-new.html** — fixed location marker color to teal; added description character counter (0/2000)
+- **account.html** — host stats (Total tours + Active tours) loaded via `Promise.all([UserAPI.getById, TourListingAPI.getAll])`; skeleton loading for name/handle/rating; initials+hue cached to localStorage on load
+- **account-edit.html** — profile photo URL field; saves to `localStorage` as `photo_{userId}`; prefills from localStorage
+- **Topbar avatar** — replaced 👤 emoji with initials/photo from localStorage via inline IIFE (no flash); uses `user_initials` + `user_hue` keys
+- **register.html** — saves `user_initials` + `user_hue` to localStorage after successful registration
+- **Page transitions** — fade-in on load (`.app-shell` CSS animation), fade-out on navigate (`.app-shell--exit` class + JS click interceptor with setTimeout); final durations: ~25ms in, ~19ms out
+
+### localStorage keys in use
+| Key | Value |
+|-----|-------|
+| `jwt` | JWT token string |
+| `userId` | numeric user id |
+| `user_initials` | e.g. "VK" |
+| `user_hue` | 0–359 (HSL hue from username hash) |
+| `photo_{userId}` | profile photo URL (local workaround until backend supports it) |
 
 ---
 
