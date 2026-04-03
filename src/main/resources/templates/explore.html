@@ -136,7 +136,7 @@
           <div class="explore-card__handle">@${user.username}</div>
           <div class="explore-card__desc">${user.bio ?? 'No bio yet.'}</div>
           <div class="explore-card__cta">
-            <a href="/tours" class="btn btn--primary">View Listings</a>
+            <a href="/tours?host=${user.username}" class="btn btn--primary">View Listings</a>
           </div>
         </div>
       </div>`;

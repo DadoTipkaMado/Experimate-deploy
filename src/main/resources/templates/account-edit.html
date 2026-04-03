@@ -67,6 +67,12 @@
         <span class="form-field__hint">Max 200 characters</span>
       </div>
 
+      <div class="form-field">
+        <label for="photoUrl">Profile photo URL <span style="color: var(--text-3);">(optional)</span></label>
+        <input type="url" id="photoUrl" name="photoUrl" placeholder="https://..." autocomplete="off">
+        <span class="form-field__hint">Paste any public image URL — stored locally on this device</span>
+      </div>
+
       <hr class="form-divider">
 
       <div class="form-field">
@@ -102,6 +108,7 @@
   UserAPI.getById(userId).then(user => {
     document.getElementById('username').value = user.username ?? '';
     document.getElementById('bio').value      = user.bio ?? '';
+    document.getElementById('photoUrl').value = localStorage.getItem('photo_' + userId) ?? '';
   });
 
   document.getElementById('edit-form').addEventListener('submit', async function(e) {
@@ -128,6 +135,9 @@
     btn.disabled = true; btn.textContent = 'Saving...';
     try {
       await UserAPI.update(userId, dto);
+      const photoVal = document.getElementById('photoUrl').value.trim();
+      if (photoVal) localStorage.setItem('photo_' + userId, photoVal);
+      else localStorage.removeItem('photo_' + userId);
       btn.textContent = 'Saved ✓';
       showToast('Profile saved!');
       setTimeout(() => window.location.href = '/account', 800);
