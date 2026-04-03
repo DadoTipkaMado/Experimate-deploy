@@ -99,6 +99,12 @@
       document.getElementById('account-bio').textContent = user.bio || 'No bio set.';
       document.getElementById('account-bio').style.color = user.bio ? '' : 'var(--text-3)';
 
+      // Cache initials for topbar
+      const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      localStorage.setItem('user_initials', initials);
+      localStorage.setItem('user_hue', hue);
+
       // Host stats
       const myListings = (listings || []).filter(l => l.host && l.host.username === user.username);
       const activeCount = myListings.filter(l => !l.reserved).length;
