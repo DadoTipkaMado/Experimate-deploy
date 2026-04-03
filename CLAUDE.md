@@ -1,75 +1,155 @@
 # Experimate — Claude Instructions
 
 ## Team split
-- **Vito** → frontend only (`vito/frontend-clean` branch)
+- **Vito** → frontend + view controllers (`vito/frontend-clean` branch)
 - **David** → backend only (`david/backend` branch)
-- Merge into `production` branch for testing
+- David merges both into `main` for testing
 
 ## Frontend rules (stupidly dumb frontend)
 1. **UI + map only.** No business logic on the frontend.
-2. **Never hash passwords on the frontend.** HTTPS handles transit, Spring handles hashing. Hashing on the frontend makes the hash the password and defeats the purpose.
-3. **Age verification** — date of birth input, check 18+ client-side only as UX (not security). No ID scanning — that's a "pro+" feature for later if ever.
+2. **Never hash passwords on the frontend.** HTTPS handles transit, Spring handles hashing.
+3. **Age verification** — date of birth input, check 18+ client-side only as UX (not security).
 4. **Sign in with Google** — do not touch until David wires Spring backend to support it.
 5. **Map is Vito's domain** — full freedom here, this is the one purely frontend feature.
 6. **Send data to backend, don't think too much.** Forms submit, JS fetches, templates render.
 
-## Current state (as of 2026-04-01)
-- App compiles and runs. Pages load. Registration and login work.
-- `vito/frontend-clean` is clean — only `src/main/resources/` (templates + static). No Java.
-- `david/backend` has full backend + view controllers.
-- Both branches merged into `main` by David for testing.
-- JWT filter temporarily disabled by David for easier testing.
-- Old `vito/frontend` branch — ignore it.
+## Claude's role
+- Help Vito with **frontend + view controllers** (`src/main/resources/` + `src/main/java/.../view/`).
+- Do NOT edit Java files outside `view/` unless Vito explicitly gives permission.
+- Reading any backend file for context is always fine.
 
 ## Git workflow (agreed with David)
-- Vito pushes only to `vito/frontend-clean` — only `src/main/resources/` files
-- David pushes only to `david/backend` — only Java files
+- Vito commits only `src/main/resources/` and `src/main/java/.../view/` to `vito/frontend-clean`
+- David commits only Java files to `david/backend`
 - No overlapping folders = no merge conflicts
 - David merges both into `main` when ready to test
-- For experimental testing: create a throwaway branch from main, mess around, delete if broken
+- To pull David's latest: `git checkout david/backend && git pull origin david/backend && git checkout vito/frontend-clean`
+- For experimental testing: throwaway branch from main, mess around, delete if broken
+- Commit command: `git add src/main/resources/ src/main/java/hr/tvz/experimate/experimate/view/`
 
-## View controllers (view/ package) — DONE
-- All view controllers simplified to just serve HTML templates — no model population, no session-based auth
+## View controllers (view/ package)
+- Vito owns these — David doesn't touch Thymeleaf/view controllers
+- All view controllers just serve HTML templates — no model population, no session auth
 - JS handles all data fetching and auth via JWT/localStorage
-- `AuthController` renamed to `AuthViewController` to avoid conflict with REST `AuthController`
-- Session-based guards removed — JS handles auth redirects
+- **Current routes mapped:**
+  - `/map` → MapController
+  - `/explore` → ExploreController
+  - `/community` → CommunityViewController
+  - `/tours` → TourListingViewController
+  - `/listings/new` → TourListingViewController
+  - `/account` → AccountViewController
+  - `/account/edit` → AccountViewController
+  - `/login` → AuthViewController
+  - `/register` → AuthViewController
+  - `/forgot-password` → AuthViewController
+  - `/meet` → MeetViewController (legacy, can ignore)
+- **Do NOT** use `controller/` package for view controllers — those were duplicates and got deleted. Only `view/` package.
 
-## Blocking backend issue (David's job)
-- **Response DTOs are too stripped down** — JS gets `undefined`/`NaN` everywhere because:
-  - `UserResponse` only has `id`, `username`, `rating` — missing `firstName`, `lastName`, `bio`, `profilePhotoUrl`, `availableToMeet`
-  - `TourListingResponse` only has `id`, `city`, `longitude`, `latitude` — missing `meetingDate`, `tourDescription`, `reserved`, `host` (firstName, lastName, username)
-  - `ReservationResponse` only has `id` — missing `dateOfReservation`, `tourListing` (meetingDate, city, host), `guestId`
-  - JS uses `listing.lat` / `listing.lng` — DTO uses `latitude`/`longitude` (rename needed)
+## Roadmap (agreed 2026-04-03)
+1. **MVP** — finish and merge to `main` (targeting ~2026-04-10)
+2. **AI integration** — after MVP
+3. **Gamification** — after AI
 
-## What Vito can do now (no backend needed)
-1. **Map page** — fully Vito's domain, zero backend dependency.
-2. **Layout/UI polish** — any page that is pure HTML/CSS structure.
+### Post-MVP feature ideas (don't build yet)
+- Achievements + ELO-style rating system, seasonal point collection
+- Tokens earned through activity; premium gives multiplier not paywall
+- Community tab split: local events (dog walking, running) vs travel section (like Nomadtable)
 
-## Claude's role
-- Help Vito with **frontend only**. Do not edit Java files unless Vito explicitly gives permission.
-- Reading backend files for context is fine — editing is not by default.
+### Post-MVP UX ideas (discussed 2026-04-03, don't build yet)
+- TikTok-style UX philosophy: everything in 3 clicks, feed-like layout
+- Dyslexia/accessibility support (e.g. accessibility toolbar widget)
+- UI reorganization toward a social feed feel
 
-## Repo structure
-Stays as-is for now. Frontend/backend repo separation is a later problem.
+### Post-MVP trust & safety — Couchsurfing model (don't build yet)
+1. **Mutual reviews** — both host and guest leave a reference after a tour; neither sees the other's until both submit (prevents retaliation). `rating` field already exists on `UserResponse`.
+2. **Vouching** — trusted users can vouch for someone, boosting credibility. Implies a social graph.
+3. **Profile completeness score** — more filled in (bio, photo, verified email) = higher trust signal. Incentivises non-ghost profiles.
+4. **Verified ID / verified phone** — optional verification badge on profile; backend marks a field, frontend shows a badge.
+5. **Response rate + last active** — "responds 90% of the time", "last online 2 days ago" — reduces anxiety when booking a stranger.
+6. **References visible on profile** — all past reviews public on profile page, not just an average number.
+
+### Presentation priority
+- **Braun (professor/mentor) said UX and prototype UI matter most** — polish > features for the demo
 
 ---
 
-## Session log — 2026-04-01
+## Current state (as of 2026-04-03)
+- All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`
+- JWT filter temporarily disabled by David for easier testing
+- Old `vito/frontend` branch — ignore it
+- `idNumber` in register sends `crypto.randomUUID()` (backend rejects null)
+
+## Response DTO status
+| DTO | Status | Shape |
+|-----|--------|-------|
+| `UserResponse` | ✅ DONE | `id, username, firstName, lastName, bio, rating` |
+| `TourListingResponse` | ✅ DONE | `id, city, lat, lng, meetingDate, postDate, tourDescription, reserved, host{firstName, lastName, username}` |
+| `ReservationResponse` | ✅ DONE | `id, dateOfReservation, tourListing{meetingDate, city, host{firstName, lastName, username}}, guest{firstName, lastName, username}` |
+
+- JS uses `listing.lat` / `listing.lng` — matches `TourListingResponse` naming
+- `CreateTourListingDto` uses full `latitude`/`longitude` — `listings-new.html` is correct
+- `AuthResponse` only returns `{ token }` — no id, login falls back to `UserAPI.getAll()` to resolve userId
+- `guest` in `ReservationResponse` has no `id` — "My Tours" tab filters by `guest.username` via `Auth.getUsername()`
+- `BookingRequestAPI` wired up with all endpoints (create, accept, decline, getAll, getById, delete)
+- Reserve button uses `POST /booking-request` with `{ guestId, listingId }`
+
+## Available to meet toggle — REMOVED (temporarily)
+- Removed from `account.html` because `User` entity and `UpdateUserDto` have no `availableToMeet` field
+- When David adds the field to backend, add back the toggle UI and `toggleAvailability()` JS function
+
+## Known pending issues (waiting on David)
+- Profile photo — discussed, deferred ("budemo sliku kasnije")
+- `availableToMeet` needs backend infrastructure before toggle can be re-added
+- Token rotation not implemented (intentional for now)
+
+## Ready to test
+- Needs David to merge both branches into `main`
+- Smoke test: reserve button, My Tours tab, map pins
+
+---
+
+## Session log — 2026-04-03 (afternoon chat with David)
+
+### Što je rečeno
+- David predložio gamification (achievements, ELO, tokeni, premium multiplier) — **post-MVP**
+- David predložio community tab split (lokalni eventi vs travel sekcija) — **post-MVP**
+- Dogovoreni roadmap: MVP → AI → gamification
+- David potvrdio da je sve na frontendu usklađeno s Vitovim pushovima, čeka merge u `main`
+- **Braun rekao da im je najvažniji UX i prototip UI** — fokus na polish za prezentaciju
+- Nema konkretnog frontend posla iz ovog razgovora — čeka se David da mergea u `main`
+
+---
+
+## Session log — 2026-04-03 (morning — Claude session)
 
 ### Što je napravljeno
+- **Pulled David's latest** (`david/backend`) — all 3 DTOs now confirmed done
+- **`POST /booking-request`** — wired up in `tours.html`, switched from `ReservationAPI.create` to `BookingRequestAPI.create` with `{ guestId, listingId }`
+- **`BookingRequestAPI`** — added to `api.js` with all endpoints (accept, decline, getAll, getById, delete)
+- **`lat`/`lng` fix** — `tours.html` and `map.js` reverted to short names matching `TourListingResponse`
+- **"My Tours" guest filter** — changed from `r.guest.id === currentUserId` to `r.guest.username === Auth.getUsername()` (UserDetails has no id)
+- **Login userId** — improved to check `res.id` first, falls back to `getAll` lookup (AuthResponse only returns token)
+- Committed and pushed to `vito/frontend-clean`
+
+---
+
+## Session log — 2026-04-02
+
+### Što je napravljeno
+- **Responsive layout fix** — `#tab-meetups` imao `display:flex` inline koji overridea `hidden` atribut → premješteno u CSS s `:not([hidden])` selektorom
+- **"My Meetups" → "My Tours"** — tab preimenovan per David's prijedlog
+- **Bio edit** — dodan "Edit" link pored Bio labela na account stranici
+- **Available to meet toggle** — maknut (nema backend infrastrukture)
+- **Zagreb topbar** — ostavljen kao hardcoded fallback, maknut iz staged izmjena nakon greške
+- **lat/lng naming fix** — `tours.html` i `map.js` promijenjeni s `listing.lat/lng` na `listing.latitude/longitude`
+- **listings-new.html** — `latitude`/`longitude` dodani u API create payload
+- **register.html** — `idNumber: null` → `crypto.randomUUID()` (bio "fixan" ranije ali nije bio commitano)
+- **View controller rute** — dodane sve rute koje su nedostajale: `/tours`, `/listings/new`, `/account/edit`, `/login`, `/register`, `/forgot-password`
+- **Duplicate view controllers** — obrisani iz `controller/` paketa (bili su duplikati `view/` paketa, pucali Spring)
+- **AuthViewController** — kreiran novi za auth rute
+
+### Session log — 2026-04-01
 - `api.js` — dodani `accept` i `decline` metode u `BookingRequestAPI`
-- `register.html` — fix: `idNumber: crypto.randomUUID()` umjesto `null` (backend odbijao null)
-- View controlleri (`view/` paket) — simplificirani da samo serviraju HTML, nema model populacije ni session authova; `AuthController` → `AuthViewController` (ime konflikta s REST controllerom)
-- `vito/frontend-clean` — očišćen od Java/backend fajlova, sad samo `src/main/resources/`
-- Swagger/OpenAPI dodan (`http://localhost:8080/swagger-ui/index.html`) — David dodao springdoc
-
-### Poznati problemi (čeka Davida)
-- Response DTOs premali — `UserResponse`, `TourListingResponse`, `ReservationResponse` nemaju dovoljno polja (detalji u "Blocking backend issue" sekciji)
-- `decline` endpoint u `requests.http` ima copy-paste bug — pokazuje `/accept/` umjesto `/decline/`
-- Token rotacija nije implementirana (namjerno, za sad, David će proširiti)
-
-### Što treba provjeriti kad David fixa Response DTOs
-- Tours stranica → listing kartice pokazuju ime hosta, datum, opis (ne undefined/NaN)
-- Account stranica → pokazuje ime, bio, rating
-- Explore stranica → pokazuje korisnike s imenom i bio
-- Map → pinovi se prikazuju (lat/lng polja moraju se zvati `lat`/`lng` u response-u)
+- View controlleri (`view/` paket) — simplificirani; `AuthController` → `AuthViewController`
+- `vito/frontend-clean` — očišćen od Java/backend fajlova
+- Swagger/OpenAPI dodan — David dodao springdoc (`http://localhost:8080/swagger-ui/index.html`)
