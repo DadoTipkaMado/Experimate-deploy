@@ -57,7 +57,7 @@
     .listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
     .listing-card__status--available { color: var(--accent); }
     .listings-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
-    .listings-empty__icon { font-size: 36px; opacity: 0.2; }
+    .listings-empty__icon { font-size: 36px; opacity: 0.35; }
     .listings-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
     .listings-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
 
@@ -299,7 +299,13 @@
     const list    = document.getElementById('listings-list');
 
     if (!listings || listings.length === 0) {
-      list.innerHTML = `<div class="listings-empty"><div class="listings-empty__icon">🗺️</div><div class="listings-empty__title">No tours yet</div><div class="listings-empty__sub">Be the first to create a tour listing and start hosting.</div></div>`;
+      list.innerHTML = `
+        <div class="listings-empty">
+          <div style="font-size:44px;line-height:1;margin-bottom:4px;">🗺️</div>
+          <div class="listings-empty__title">No tours yet</div>
+          <div class="listings-empty__sub">Be the first to host a local experience.</div>
+          <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
+        </div>`;
       return;
     }
 

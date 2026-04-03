@@ -75,9 +75,19 @@
 
 ## Current state (as of 2026-04-03)
 - All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`
-- JWT filter temporarily disabled by David for easier testing
 - Old `vito/frontend` branch — ignore it
 - `idNumber` in register sends `crypto.randomUUID()` (backend rejects null)
+
+## Local testing setup (local-test branch)
+- Branch `local-test` = `vito/frontend-clean` + `david/backend` merged together
+- Missing Java files were pulled from `david/backend` manually (see session log below)
+- `application.properties` on `local-test` needs:
+  - `jwt.secret=ZXhwZXJpbWF0ZWxvY2FsZGV2c2VjcmV0a2V5Zm9ydGVzdGluZ29ubHkyMDI2` (Base64, ≥256 bit)
+  - `spring.datasource.url=jdbc:h2:~/experimateDb;AUTO_SERVER=TRUE`
+  - `spring.datasource.username=` (empty)
+  - `spring.datasource.password=` (empty)
+- David's `application.properties` uses a different H2 path + credentials — don't commit local-test's properties to either main branch
+- H2 ENUM warning on startup is harmless — app still runs
 
 ## Response DTO status
 | DTO | Status | Shape |
@@ -105,6 +115,22 @@
 ## Ready to test
 - Needs David to merge both branches into `main`
 - Smoke test: reserve button, My Tours tab, map pins
+
+---
+
+## Session log — 2026-04-03 (evening — local testing + UX pass)
+
+### Što je napravljeno
+- **local-test branch** — pulled all missing Java files from `david/backend` (Reservation, DTOs, exceptions, events, repos)
+- **JWT secret** — set Base64-encoded secret in `application.properties` (was empty → 500 on login/register)
+- **UX overhaul** — login, register, forgot-password, tours, account, account-edit, listings-new, community all redesigned
+  - Auth pages: dark glassmorphism card, animated teal/orange orbs, hardcoded colors (bypass CSS variable issue)
+  - tours.html: shimmer skeleton cards, host initials avatar, glowing availability dot, staggered fade-in
+  - account.html: teal hero gradient, skeleton loading for name/handle/rating
+  - community.html: full teaser with feature preview cards
+  - navbar.html: Account tab added (5th item)
+  - main.css: skeleton shimmer keyframes + `.skeleton` classes, `fadeIn` animation
+- **App confirmed running** at `localhost:8080` — register and login work end-to-end
 
 ---
 
