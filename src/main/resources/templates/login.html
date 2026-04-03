@@ -92,9 +92,13 @@
           document.getElementById('password').value
         );
         Auth.saveToken(res.token);
-        const users = await UserAPI.getAll();
-        const me = users.find(u => u.username === Auth.getUsername());
-        if (me) Auth.saveUserId(me.id);
+        if (res.id) {
+          Auth.saveUserId(res.id);
+        } else {
+          const users = await UserAPI.getAll();
+          const me = users.find(u => u.username === Auth.getUsername());
+          if (me) Auth.saveUserId(me.id);
+        }
         window.location.href = '/map';
       } catch (err) {
         errorEl.textContent = err.message;
