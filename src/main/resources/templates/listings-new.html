@@ -190,6 +190,8 @@
     const [dd, mm, yyyy] = dateVal.split('/');
     const meetingDate = `${yyyy}-${mm}-${dd}T${timeVal}:00`;
 
+    const btn = document.querySelector('#listing-form button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Publishing...';
     try {
       const latVal = document.getElementById('listingLat').value;
       const lngVal = document.getElementById('listingLng').value;
@@ -201,11 +203,13 @@
         latitude:  latVal  ? parseFloat(latVal)  : null,
         longitude: lngVal  ? parseFloat(lngVal)  : null,
       });
+      btn.textContent = 'Published ✓';
       showToast('Tour published!');
       setTimeout(() => window.location.href = '/tours', 800);
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Publish';
     }
   });
 

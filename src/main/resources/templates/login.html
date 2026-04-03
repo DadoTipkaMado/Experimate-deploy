@@ -8,51 +8,209 @@
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      height: unset !important;
+      overflow: unset !important;
+      background: #0a0a0a !important;
+    }
+
+    body {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 100vh !important;
+      color: #efefef !important;
+      color-scheme: dark;
+    }
+
+    /* ── Orb background ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.18;
+      pointer-events: none;
+      animation: drift linear infinite;
+    }
+    .orb-1 {
+      width: 420px; height: 420px;
+      background: #00c9a7;
+      top: -120px; left: -100px;
+      animation-duration: 18s;
+    }
+    .orb-2 {
+      width: 320px; height: 320px;
+      background: #ff6b35;
+      bottom: -80px; right: -60px;
+      animation-duration: 24s;
+      animation-delay: -8s;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      background: #00c9a7;
+      bottom: 30%; left: 10%;
+      opacity: 0.08;
+      animation-duration: 30s;
+      animation-delay: -14s;
+    }
+
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      33%  { transform: translate(30px, -20px) scale(1.05); }
+      66%  { transform: translate(-20px, 30px) scale(0.97); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
+    /* ── Card ── */
     .auth-card {
-      width: min(360px, 92vw);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px 28px;
-      display: flex; flex-direction: column; gap: 20px;
+      position: relative;
+      width: min(380px, 92vw);
+      background: rgba(20, 20, 20, 0.72);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      box-shadow: 0 0 0 1px rgba(0,201,167,0.06), 0 32px 64px rgba(0,0,0,0.5);
+      animation: card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
-    .auth-logo { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); letter-spacing: -0.02em; }
-    .auth-logo span { color: var(--accent); }
-    .auth-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); }
-    .auth-subtitle { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 4px; }
-    .auth-field { display: flex; flex-direction: column; gap: 6px; }
-    .auth-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
-    .auth-field input {
-      background: var(--surface-2);
-      border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm);
-      padding: 11px 14px;
-      color: var(--text);
-      font-family: var(--font-mono);
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── Logo ── */
+    .auth-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 30px;
+      color: #efefef;
+      letter-spacing: -0.03em;
+    }
+    .auth-logo span { color: #00c9a7; }
+
+    .auth-tagline {
+      font-size: 14px;
+      color: #888;
+      margin-top: 6px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Headings ── */
+    .auth-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: #efefef;
+    }
+    .auth-subtitle {
       font-size: 13px;
-      width: 100%; box-sizing: border-box;
-      transition: border-color var(--t-fast);
+      color: #555;
+      letter-spacing: 0.04em;
+      margin-top: 4px;
     }
-    .auth-field input:focus { outline: none; border-color: var(--accent-border); }
+
+    /* ── Fields ── */
+    .auth-field { display: flex; flex-direction: column; gap: 6px; }
+    .auth-field label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .auth-field input {
+      background: #1c1c1c;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #efefef;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      width: 100%;
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+    .auth-field input:focus {
+      outline: none;
+      border-color: #00c9a7;
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.12);
+    }
+
+    /* ── Error ── */
     .auth-error {
       background: rgba(255,80,80,0.08);
       border: 1px solid rgba(255,80,80,0.2);
-      border-radius: var(--radius-sm);
+      border-radius: 8px;
       padding: 10px 14px;
-      font-size: 11px; color: rgba(255,100,100,0.9);
+      font-size: 11px;
+      color: rgba(255,100,100,0.9);
       letter-spacing: 0.03em;
     }
-    .auth-footer { font-size: 11px; color: var(--text-3); text-align: center; }
-    .auth-footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Button ── */
+    .btn-signin {
+      position: relative;
+      height: 46px;
+      margin-top: 4px;
+      overflow: hidden;
+      background: #00c9a7 !important;
+      color: #000 !important;
+    }
+    .btn-signin::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -100%; }
+      50%  { left: 150%; }
+      100% { left: 150%; }
+    }
+
+    /* ── Footer links ── */
+    .auth-footer { font-size: 13px; color: #555; text-align: center; }
+    .auth-footer a { color: #00c9a7; text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
+
+    /* ── Divider ── */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #444;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #222;
+    }
   </style>
 </head>
 <body>
+  <!-- Background orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
   <div class="auth-card">
     <div>
       <div class="auth-logo">Experi<span>mate</span></div>
+      <div class="auth-tagline">meet locals. get experiences.</div>
     </div>
+
     <div>
       <div class="auth-title">Welcome back</div>
       <div class="auth-subtitle">Sign in to continue</div>
@@ -67,9 +225,14 @@
       </div>
       <div class="auth-field">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" autocomplete="current-password" required>
+        <div style="position:relative;">
+          <input type="password" id="password" name="password" autocomplete="current-password" required style="padding-right:42px;">
+          <button type="button" id="pw-toggle" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;padding:0;display:flex;">
+            <svg id="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
-      <button type="submit" class="btn btn--primary" style="height: 44px; margin-top: 4px;">Sign in</button>
+      <button type="submit" id="signin-btn" class="btn btn--primary btn-signin">Sign in</button>
     </form>
 
     <div class="auth-footer">
@@ -79,12 +242,22 @@
       Don't have an account? <a href="/register">Register</a>
     </div>
   </div>
+
   <script src="/js/api.js"></script>
   <script>
+    function togglePw() {
+      const input = document.getElementById('password');
+      input.type = input.type === 'password' ? 'text' : 'password';
+      document.getElementById('pw-eye').style.opacity = input.type === 'text' ? '1' : '0.45';
+    }
+
     document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const errorEl = document.getElementById('auth-error');
+      const btn = document.getElementById('signin-btn');
       errorEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
 
       try {
         const res = await AuthAPI.login(
@@ -99,10 +272,13 @@
           const me = users.find(u => u.username === Auth.getUsername());
           if (me) Auth.saveUserId(me.id);
         }
+        btn.textContent = 'Welcome back ✓';
         window.location.href = '/map';
       } catch (err) {
         errorEl.textContent = err.message;
         errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
       }
     });
   </script>

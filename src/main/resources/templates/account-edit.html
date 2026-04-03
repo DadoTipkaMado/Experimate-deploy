@@ -124,13 +124,17 @@
       password: password || null,
     };
 
+    const btn = document.querySelector('#edit-form button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Saving...';
     try {
       await UserAPI.update(userId, dto);
+      btn.textContent = 'Saved ✓';
       showToast('Profile saved!');
       setTimeout(() => window.location.href = '/account', 800);
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Save';
     }
   });
 </script>
