@@ -82,6 +82,21 @@
     <div class="navbar__pip"></div>
   </a>
 
+  <!-- ACCOUNT -->
+  <a th:href="@{/account}"
+     th:classappend="${currentPage == 'account'} ? ' navbar__item--active'"
+     class="navbar__item"
+     aria-label="Account">
+    <div class="navbar__icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <span class="navbar__label">Account</span>
+    <div class="navbar__pip"></div>
+  </a>
 
 </nav>
 
