@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shell = document.querySelector('.app-shell');
     if (shell) {
       shell.classList.add('app-shell--exit');
-      setTimeout(() => { window.location.href = href; }, 150);
+      setTimeout(() => { window.location.href = href; }, 75);
     } else {
       window.location.href = href;
     }
