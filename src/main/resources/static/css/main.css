@@ -777,6 +777,22 @@ svg { display: block; flex-shrink: 0; }
 /* ───────────────────────────────────────────────
    7. ANIMATIONS
 ─────────────────────────────────────────────── */
+
+/* Page-level enter/exit transitions */
+.app-shell {
+  animation: pageIn 0.22s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.app-shell--exit {
+  opacity: 0 !important;
+  transform: translateY(-4px) !important;
+  transition: opacity 0.15s ease, transform 0.15s ease !important;
+  pointer-events: none;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }

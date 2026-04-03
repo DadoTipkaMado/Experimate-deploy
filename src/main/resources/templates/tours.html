@@ -140,6 +140,13 @@
       <a href="/listings/new" class="tours-fab" title="New listing">+</a>
     </div>
 
+    <!-- Host filter banner (shown when coming from Explore) -->
+    <div id="host-filter-banner" style="display:none;align-items:center;gap:8px;margin:10px 18px 0;padding:8px 14px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-sm);font-size:11px;color:var(--accent);letter-spacing:0.04em;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span></span>
+      <a href="/tours" style="margin-left:auto;font-size:10px;color:var(--text-3);text-decoration:none;letter-spacing:0.06em;">Clear ✕</a>
+    </div>
+
     <!-- IRL notice — always visible above both tabs -->
     <div class="irl-notice">
       🤝&nbsp; Experimate is IRL only — no messages, just meetups.
@@ -244,6 +251,9 @@
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
+  /* ── Host filter from URL ── */
+  const _hostFilter = new URLSearchParams(window.location.search).get('host');
+
   /* ── City filter ── */
   function filterCity(city) {
     document.querySelectorAll('.listing-card').forEach(card => {
@@ -297,6 +307,13 @@
     const currentUserId = Auth.getUserId();
     const cityBar = document.getElementById('city-filter-bar');
     const list    = document.getElementById('listings-list');
+
+    // Apply host filter if coming from Explore
+    if (_hostFilter) {
+      listings = (listings || []).filter(l => l.host && l.host.username === _hostFilter);
+      const banner = document.getElementById('host-filter-banner');
+      if (banner) { banner.querySelector('span').textContent = `Showing tours by @${_hostFilter}`; banner.style.display = 'flex'; }
+    }
 
     if (!listings || listings.length === 0) {
       list.innerHTML = `
