@@ -86,3 +86,15 @@ const ReservationAPI = {
   create: (dto)        => apiFetch('/api/reservation',        { method: 'POST',   body: JSON.stringify(dto) }),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
 };
+
+/* ───────────────────────────────────────────────
+   BOOKING REQUESTS  /api/booking-request
+─────────────────────────────────────────────── */
+const BookingRequestAPI = {
+  getAll: ()           => apiFetch('/api/booking-request'),
+  getById: (id)        => apiFetch(`/api/booking-request/${id}`),
+  create: (dto)        => apiFetch('/api/booking-request',             { method: 'POST',   body: JSON.stringify(dto) }),
+  accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
+  decline: (id)        => apiFetch(`/api/booking-request/decline/${id}`, { method: 'PATCH' }),
+  delete: (id)         => apiFetch(`/api/booking-request/${id}`,       { method: 'DELETE' }),
+};

@@ -213,7 +213,7 @@
     const guestId   = Auth.getUserId();
     if (!guestId) { window.location.href = '/login'; return; }
     btn.disabled = true;
-    ReservationAPI.create({ guestId, tourListingId: listingId })
+    BookingRequestAPI.create({ guestId, listingId })
       .then(() => { showToast('Reserved!'); btn.textContent = 'Reserved'; btn.classList.remove('btn--primary'); })
       .catch(err => { showToast(err.message); btn.disabled = false; });
   }
@@ -258,8 +258,8 @@
 
     list.innerHTML = listings.map(listing => {
       const reserved = listing.reserved;
-      const hasCoords = listing.latitude != null && listing.longitude != null;
-      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.latitude}" data-lng="${listing.longitude}" onclick="goToMap(this)">📍 Map</button>` : '';
+      const hasCoords = listing.lat != null && listing.lng != null;
+      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
       const reserveBtn = !reserved && currentUserId
         ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Reserve</button>`
         : !reserved
@@ -295,7 +295,8 @@
       return;
     }
 
-    const mine = reservations.filter(r => r.guest && r.guest.id === currentUserId);
+    const currentUsername = Auth.getUsername();
+    const mine = reservations.filter(r => r.guest && r.guest.username === currentUsername);
     const now   = new Date();
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
     const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
