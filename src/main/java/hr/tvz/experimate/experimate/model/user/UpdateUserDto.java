@@ -5,6 +5,7 @@ import java.util.Optional;
 public record UpdateUserDto(
         String username,
         String password,
-        String bio
+        String bio,
+        String profilePhotoUrl
 ) {
 }

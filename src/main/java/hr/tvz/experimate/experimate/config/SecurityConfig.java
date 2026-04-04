@@ -39,10 +39,10 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> req
-/*                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()        //login svima dostupan
-                        .requestMatchers(HttpMethod.POST, "/api/user").permitAll()       //registracija svima dostupna*/
-                        .anyRequest().permitAll())                          //za sve ostale rute treba autentikacija
-/*                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)*/
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()        //login svima dostupan
+                        .requestMatchers(HttpMethod.POST, "/api/user").permitAll()       //registracija svima dostupna
+                        .anyRequest().authenticated())                          //za sve ostale rute treba autentikacija
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authenticationProvider(authenticationProvider(userDetailsService));
 
         return http.build();
