@@ -14,7 +14,7 @@
 
   <!-- Logo -->
   <a th:href="@{/map}" class="topbar__logo">
-    Experi<span>mate</span>
+    Experi<span>Mate</span>
   </a>
 
   <div class="topbar__right">
@@ -26,18 +26,31 @@
     </div>
 
     <!-- Avatar — links to account page -->
-    <a th:href="@{/account}" class="topbar__avatar" aria-label="My account">
-      <img th:if="${userPhotoUrl != null and !userPhotoUrl.isEmpty()}"
-           th:src="${userPhotoUrl}"
-           alt="Profile"
-           style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-      <span th:unless="${userPhotoUrl != null and !userPhotoUrl.isEmpty()}"
-            th:text="${userEmoji} ?: '👤'">👤</span>
+    <a th:href="@{/account}" class="topbar__avatar" id="topbar-avatar" aria-label="My account">
+      <span>👤</span>
     </a>
 
   </div>
 
 </header>
+
+<script>
+  (function() {
+    const el = document.getElementById('topbar-avatar');
+    if (!el) return;
+    const userId   = localStorage.getItem('userId');
+    const initials = localStorage.getItem('user_initials');
+    const hue      = localStorage.getItem('user_hue');
+    const photo    = userId ? localStorage.getItem('photo_' + userId) : null;
+    if (photo) {
+      el.innerHTML = `<img src="${photo}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else if (initials) {
+      el.innerHTML = `<span style="font-weight:800;font-size:13px;color:hsl(${hue},60%,72%);font-family:sans-serif;">${initials}</span>`;
+      el.style.background = `hsl(${hue},35%,22%)`;
+      el.style.border = `1.5px solid hsl(${hue},40%,35%)`;
+    }
+  })();
+</script>
 
 </body>
 </html>

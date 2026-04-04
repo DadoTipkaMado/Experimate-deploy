@@ -9,7 +9,7 @@
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
     .account-hero { padding: 28px 18px 22px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; overflow: hidden; }
-    .account-hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(ellipse, rgba(200,255,0,0.05) 0%, transparent 70%); pointer-events: none; }
+    .account-hero::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 300px; height: 200px; background: radial-gradient(ellipse, rgba(0,201,167,0.08) 0%, transparent 70%); pointer-events: none; }
     .account-hero__avatar { width: 76px; height: 76px; border-radius: 50%; background: var(--surface-2); border: 2px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-size: 30px; position: relative; z-index: 1; }
     .account-hero__name { font-family: var(--font-display); font-weight: 800; font-size: 22px; position: relative; z-index: 1; letter-spacing: -0.01em; }
     .account-hero__handle { font-size: 11px; color: var(--text-2); letter-spacing: 0.08em; position: relative; z-index: 1; margin-top: -4px; }
@@ -30,11 +30,26 @@
 
   <main class="page-content">
 
-    <div class="account-hero">
-      <div class="account-hero__avatar" id="account-avatar"><span>👤</span></div>
-      <div class="account-hero__name" id="account-name">—</div>
-      <div class="account-hero__handle" id="account-handle">@—</div>
-      <div class="account-hero__rating">★ <span id="account-rating">0.0</span></div>
+    <div class="account-hero" id="account-hero">
+      <div class="account-hero__avatar" id="account-avatar" style="background:var(--surface-2);overflow:hidden;"></div>
+      <div id="account-name-wrap" style="display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;">
+        <div class="skeleton skeleton-line skeleton-line--lg" style="width:140px;" id="account-name-sk"></div>
+        <div class="skeleton skeleton-line skeleton-line--sm" style="width:90px;" id="account-handle-sk"></div>
+        <div class="skeleton skeleton-line" style="width:70px;height:26px;border-radius:20px;" id="account-rating-sk"></div>
+      </div>
+      <div id="account-name" style="display:none;font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-0.01em;"></div>
+      <div id="account-handle" style="display:none;font-size:11px;color:var(--text-2);letter-spacing:0.08em;margin-top:-4px;"></div>
+      <div class="account-hero__rating" id="account-rating-badge" style="display:none;">★ <span id="account-rating">0.0</span></div>
+      <div id="account-stats" style="display:none;gap:24px;margin-top:4px;">
+        <div style="text-align:center;">
+          <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);" id="stat-total">0</div>
+          <div style="font-size:9px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Tours</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--accent);" id="stat-active">0</div>
+          <div style="font-size:9px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Active</div>
+        </div>
+      </div>
     </div>
 
     <div class="acc-section">
@@ -65,18 +80,51 @@
     const userId = Auth.getUserId();
     if (!userId) { window.location.href = '/login'; return; }
 
-    UserAPI.getById(userId).then(user => {
-      document.getElementById('account-name').textContent    = user.firstName + ' ' + user.lastName;
-      document.getElementById('account-handle').textContent  = '@' + user.username;
-      document.getElementById('account-rating').textContent  = user.rating ?? '0.0';
-      document.getElementById('account-bio').textContent     = user.bio || 'No bio set.';
-      document.getElementById('account-bio').style.color     = user.bio ? '' : 'var(--text-3)';
+    Promise.all([UserAPI.getById(userId), TourListingAPI.getAll()]).then(([user, listings]) => {
+      // Swap skeletons for real data
+      ['account-name-sk','account-handle-sk','account-rating-sk'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      const nameEl   = document.getElementById('account-name');
+      const handleEl = document.getElementById('account-handle');
+      const ratingEl = document.getElementById('account-rating-badge');
+      nameEl.textContent   = user.firstName + ' ' + user.lastName;
+      handleEl.textContent = '@' + user.username;
+      document.getElementById('account-rating').textContent = user.rating ?? '0.0';
+      nameEl.style.display   = '';
+      handleEl.style.display = '';
+      ratingEl.style.display = '';
 
-      if (user.profilePhotoUrl) {
-        document.getElementById('account-avatar').innerHTML =
-          `<img src="${user.profilePhotoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      document.getElementById('account-bio').textContent = user.bio || 'No bio set.';
+      document.getElementById('account-bio').style.color = user.bio ? '' : 'var(--text-3)';
+
+      // Cache initials for topbar
+      const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      localStorage.setItem('user_initials', initials);
+      localStorage.setItem('user_hue', hue);
+
+      // Host stats
+      const myListings = (listings || []).filter(l => l.host && l.host.username === user.username);
+      const activeCount = myListings.filter(l => !l.reserved).length;
+      document.getElementById('stat-total').textContent  = myListings.length;
+      document.getElementById('stat-active').textContent = activeCount;
+      document.getElementById('account-stats').style.display = 'flex';
+
+      // Avatar: photo URL from localStorage, then initials fallback
+      const avatarEl = document.getElementById('account-avatar');
+      const storedPhoto = localStorage.getItem('photo_' + userId);
+      const photoUrl = user.profilePhotoUrl || storedPhoto;
+      if (photoUrl) {
+        avatarEl.innerHTML = `<img src="${photoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      } else {
+        const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
+        const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+        avatarEl.style.background = `hsl(${hue},35%,22%)`;
+        avatarEl.style.border = `2px solid hsl(${hue},40%,35%)`;
+        avatarEl.innerHTML = `<span style="font-family:var(--font-display);font-weight:800;font-size:28px;color:hsl(${hue},60%,72%);">${initials}</span>`;
       }
-
     });
   }
 

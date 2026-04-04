@@ -9,13 +9,95 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     .community-header { padding: 22px 18px 18px; border-bottom: 1px solid var(--border); }
-    .community-soon {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 80px 32px; gap: 14px; text-align: center;
+
+    /* ── Coming soon hero ── */
+    .cs-hero {
+      position: relative;
+      padding: 48px 24px 32px;
+      text-align: center;
+      overflow: hidden;
     }
-    .community-soon__icon { font-size: 40px; opacity: 0.2; }
-    .community-soon__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
-    .community-soon__sub { font-size: 11px; color: var(--text-3); line-height: 1.7; max-width: 240px; }
+    .cs-hero__orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+      animation: orb-drift linear infinite;
+    }
+    .cs-hero__orb-1 { width: 300px; height: 300px; background: var(--accent); opacity: 0.07; top: -80px; left: -60px; animation-duration: 20s; }
+    .cs-hero__orb-2 { width: 220px; height: 220px; background: var(--warm); opacity: 0.07; bottom: -40px; right: -40px; animation-duration: 26s; animation-delay: -8s; }
+    @keyframes orb-drift {
+      0%   { transform: translate(0,0) scale(1); }
+      50%  { transform: translate(15px,-10px) scale(1.05); }
+      100% { transform: translate(0,0) scale(1); }
+    }
+
+    .cs-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      border-radius: var(--radius-pill); padding: 5px 14px;
+      font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 18px; position: relative; z-index: 1;
+    }
+    .cs-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .cs-title {
+      font-family: var(--font-display); font-weight: 800; font-size: 28px;
+      color: var(--text); letter-spacing: -0.02em; line-height: 1.1;
+      margin-bottom: 12px; position: relative; z-index: 1;
+    }
+    .cs-title span { color: var(--accent); }
+    .cs-sub {
+      font-size: 13px; color: var(--text-2); line-height: 1.7;
+      max-width: 300px; margin: 0 auto; position: relative; z-index: 1;
+    }
+
+    /* ── Feature preview cards ── */
+    .cs-features { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+    .cs-feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex; align-items: flex-start; gap: 14px;
+      position: relative; overflow: hidden;
+      transition: border-color var(--t-base);
+    }
+    .cs-feature:hover { border-color: var(--border-2); }
+    .cs-feature--locked::after {
+      content: 'Coming soon';
+      position: absolute; top: 12px; right: 12px;
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: var(--radius-pill); padding: 3px 9px;
+    }
+
+    .cs-feature__icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .cs-feature__icon--teal { background: var(--accent-dim); border: 1px solid var(--accent-border); }
+    .cs-feature__icon--warm { background: var(--warm-dim); border: 1px solid var(--warm-border); }
+    .cs-feature__icon--muted { background: var(--surface-2); border: 1px solid var(--border-2); }
+
+    .cs-feature__title {
+      font-family: var(--font-display); font-weight: 700; font-size: 14px;
+      color: var(--text); margin-bottom: 3px;
+    }
+    .cs-feature__desc { font-size: 11px; color: var(--text-2); line-height: 1.6; }
+
+    /* ── Divider ── */
+    .cs-divider {
+      display: flex; align-items: center; gap: 12px;
+      padding: 4px 16px 0; color: var(--text-3);
+      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .cs-divider::before, .cs-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
   </style>
 </head>
 <body>
@@ -26,14 +108,59 @@
   <main class="page-content">
     <div class="community-header">
       <div class="page-title">Community</div>
-      <div class="page-subtitle">Connect with people who share your interests</div>
+      <div class="page-subtitle">Connect with people who share your vibe</div>
     </div>
 
-    <div class="community-soon">
-      <div class="community-soon__icon">🏘️</div>
-      <div class="community-soon__title">Communities coming soon</div>
-      <div class="community-soon__sub">Join interest-based groups, discover local events, and meet like-minded travellers.</div>
+    <div class="cs-hero">
+      <div class="cs-hero__orb cs-hero__orb-1"></div>
+      <div class="cs-hero__orb cs-hero__orb-2"></div>
+
+      <div class="cs-badge">
+        <div class="cs-badge__dot"></div>
+        In development
+      </div>
+      <div class="cs-title">Your <span>people</span><br>are out there</div>
+      <div class="cs-sub">Communities are launching soon — local groups, shared interests, real meetups.</div>
     </div>
+
+    <div class="cs-divider">What's coming</div>
+
+    <div class="cs-features">
+
+      <div class="cs-feature cs-feature--locked">
+        <div class="cs-feature__icon cs-feature__icon--teal">🏃</div>
+        <div>
+          <div class="cs-feature__title">Local activity groups</div>
+          <div class="cs-feature__desc">Running clubs, dog walking, cycling — find people doing what you love nearby.</div>
+        </div>
+      </div>
+
+      <div class="cs-feature cs-feature--locked">
+        <div class="cs-feature__icon cs-feature__icon--warm">✈️</div>
+        <div>
+          <div class="cs-feature__title">Travel section</div>
+          <div class="cs-feature__desc">Connect with travellers passing through your city. Be their local guide or join them.</div>
+        </div>
+      </div>
+
+      <div class="cs-feature cs-feature--locked">
+        <div class="cs-feature__icon cs-feature__icon--muted">🎯</div>
+        <div>
+          <div class="cs-feature__title">Interest matching</div>
+          <div class="cs-feature__desc">Get matched with locals who share your interests — not just your location.</div>
+        </div>
+      </div>
+
+      <div class="cs-feature cs-feature--locked">
+        <div class="cs-feature__icon cs-feature__icon--teal">🏆</div>
+        <div>
+          <div class="cs-feature__title">Achievements & ratings</div>
+          <div class="cs-feature__desc">Earn points for hosting, exploring, and connecting. Build your local reputation.</div>
+        </div>
+      </div>
+
+    </div>
+
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>

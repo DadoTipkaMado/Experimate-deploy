@@ -99,8 +99,12 @@
         <label for="tourDescription">Description</label>
         <textarea id="tourDescription" name="tourDescription"
                   placeholder="Describe the experience — what will guests see, do, and feel?"
-                  required minlength="20" maxlength="2000"></textarea>
-        <span class="form-field__hint">20–2000 characters</span>
+                  required minlength="20" maxlength="2000"
+                  oninput="document.getElementById('desc-counter').textContent=this.value.length+'/2000';"></textarea>
+        <div style="display:flex;justify-content:space-between;">
+          <span class="form-field__hint">Min 20 characters</span>
+          <span class="form-field__hint" id="desc-counter">0/2000</span>
+        </div>
       </div>
 
       <!-- Map location picker -->
@@ -190,6 +194,8 @@
     const [dd, mm, yyyy] = dateVal.split('/');
     const meetingDate = `${yyyy}-${mm}-${dd}T${timeVal}:00`;
 
+    const btn = document.querySelector('#listing-form button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Publishing...';
     try {
       const latVal = document.getElementById('listingLat').value;
       const lngVal = document.getElementById('listingLng').value;
@@ -201,11 +207,13 @@
         latitude:  latVal  ? parseFloat(latVal)  : null,
         longitude: lngVal  ? parseFloat(lngVal)  : null,
       });
+      btn.textContent = 'Published ✓';
       showToast('Tour published!');
       setTimeout(() => window.location.href = '/tours', 800);
     } catch (err) {
       errorEl.textContent = err.message;
       errorEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Publish';
     }
   });
 
@@ -234,7 +242,7 @@
       locationMarker.setLatLng([lat, lng]);
     } else {
       locationMarker = L.circleMarker([lat, lng], {
-        radius: 8, color: '#c8ff00', fillColor: '#c8ff00', fillOpacity: 0.7, weight: 2,
+        radius: 8, color: '#00c9a7', fillColor: '#00c9a7', fillOpacity: 0.7, weight: 2,
       }).addTo(locationMap);
       document.getElementById('location-map').classList.add('map--pinned');
     }
