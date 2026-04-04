@@ -6,6 +6,7 @@ public record UserResponse(
         String firstName,
         String lastName,
         String bio,
-        double rating
+        double rating,
+        String profilePhotoUrl
 ) {
 }
