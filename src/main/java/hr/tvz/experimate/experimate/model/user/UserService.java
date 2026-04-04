@@ -78,7 +78,8 @@ public class UserService {
             );
         if (updateUserDto.bio() != null)
             user.setBio(updateUserDto.bio());
-
+        if (updateUserDto.profilePhotoUrl() != null)
+            user.setProfilePhotoUrl(updateUserDto.profilePhotoUrl());
 
         userRepo.save(user);
         log.info("User updated with id {}", id);
@@ -119,7 +120,8 @@ public class UserService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getBio(),
-                user.getRating()
+                user.getRating(),
+                user.getProfilePhotoUrl()
         );
     }
 }
