@@ -1,18 +1,16 @@
 package hr.tvz.experimate.experimate.model.refresh_token;
 
 import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.model.shared.TokenResponse;
 import hr.tvz.experimate.experimate.security.JwtService;
-import org.apache.commons.lang3.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.Optional;
 
 @Service
 public class RefreshTokenService {
@@ -31,7 +29,27 @@ public class RefreshTokenService {
         this.jwtService = jwtService;
     }
 
-    public RefreshToken createOrUpdateToken(User user) {
+    public TokenResponse rotateAccessToken(String refreshTokenString) {
+        RefreshToken refreshToken = refreshTokenRepo.findByToken(refreshTokenString);
+
+        if(!isValid(refreshToken)) {
+            log.warn("Invalid refresh token");
+            throw new InvalidRefreshTokenException(refreshToken.getId(), refreshToken.getToken());
+        }
+
+        String newRefreshToken = createOrUpdateRefreshToken(refreshToken.getUser());
+        String newAccessToken = jwtService.generateToken(
+                refreshToken.getUser().getUsername()
+        );
+
+        log.info("Created new refresh token for user with id {}", refreshToken.getUser().getId());
+        return new TokenResponse(
+                newAccessToken,
+                newRefreshToken
+        );
+    }
+
+    public String createOrUpdateRefreshToken(User user) {
         String token = generateToken();
         LocalDateTime expiration = LocalDateTime.now().plusSeconds(expirationMs / 1000);
 
@@ -43,10 +61,17 @@ public class RefreshTokenService {
                 .orElse(new RefreshToken(token, user, expiration));
 
         log.info("Created refresh token for user {}", user.getUsername());
-        return refreshTokenRepo.save(refreshToken);
+        return refreshTokenRepo.save(refreshToken).getToken();
     }
 
-
+    private boolean isValid(RefreshToken refreshToken) {
+        return (refreshTokenRepo.existsByTokenAndUser_Id(
+                refreshToken.getToken(),
+                refreshToken.getUser().getId()
+        ) &&
+                refreshToken.getExpirationDateTime().isAfter(LocalDateTime.now())
+        );
+    }
 
     private String generateToken() {
         SecureRandom random = new SecureRandom();
