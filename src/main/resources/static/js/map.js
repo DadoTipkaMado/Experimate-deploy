@@ -61,10 +61,10 @@ function loadPins() {
     .then(res => res.ok ? res.json() : [])
     .then(listings => {
       listings.forEach(listing => {
-        if (listing.latitude == null || listing.longitude == null) return;
+        if (listing.lat == null || listing.lng == null) return;
         addPin({
-          lat:  listing.latitude,
-          lng:  listing.longitude,
+          lat:  listing.lat,
+          lng:  listing.lng,
           name: listing.city + (listing.host ? ' · ' + listing.host.firstName : ''),
           type: 'event',
         });

@@ -173,6 +173,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initDateInputs();
 
+  // Page exit transition — intercept internal link clicks
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href]');
+    if (!a) return;
+    const href = a.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto') || a.target === '_blank') return;
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    e.preventDefault();
+    const shell = document.querySelector('.app-shell');
+    if (shell) {
+      shell.classList.add('app-shell--exit');
+      setTimeout(() => { window.location.href = href; }, 19);
+    } else {
+      window.location.href = href;
+    }
+  });
+
   // Bottom sheet drag-to-expand (touch + mouse)
   const sheet = document.getElementById('bottom-sheet');
   if (sheet) {

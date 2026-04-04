@@ -777,6 +777,22 @@ svg { display: block; flex-shrink: 0; }
 /* ───────────────────────────────────────────────
    7. ANIMATIONS
 ─────────────────────────────────────────────── */
+
+/* Page-level enter/exit transitions */
+.app-shell {
+  animation: pageIn 0.025s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.app-shell--exit {
+  opacity: 0 !important;
+  transform: translateY(-4px) !important;
+  transition: opacity 0.019s ease, transform 0.038s ease !important;
+  pointer-events: none;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -787,8 +803,22 @@ svg { display: block; flex-shrink: 0; }
   50%       { opacity: 0.4; }
 }
 
+@keyframes shimmer-move {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .anim-fade-up {
   animation: fadeUp 0.28s ease both;
+}
+
+.anim-fade-in {
+  animation: fadeIn 0.3s ease both;
 }
 
 /* Staggered children */
@@ -797,6 +827,37 @@ svg { display: block; flex-shrink: 0; }
 .anim-stagger > *:nth-child(3) { animation-delay: 0.12s; }
 .anim-stagger > *:nth-child(4) { animation-delay: 0.16s; }
 .anim-stagger > *:nth-child(5) { animation-delay: 0.20s; }
+
+/* ── Skeleton shimmer ── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 0%,
+    var(--surface-3) 50%,
+    var(--surface-2) 100%
+  );
+  background-size: 600px 100%;
+  animation: shimmer-move 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-line { height: 12px; }
+.skeleton-line--lg { height: 18px; }
+.skeleton-line--sm { height: 10px; }
+.skeleton-line--w-full { width: 100%; }
+.skeleton-line--w-3q   { width: 75%; }
+.skeleton-line--w-half { width: 50%; }
+.skeleton-line--w-third { width: 33%; }
 
 /* ───────────────────────────────────────────────
    SCROLLBAR

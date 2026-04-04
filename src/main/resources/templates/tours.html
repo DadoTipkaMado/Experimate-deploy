@@ -57,7 +57,7 @@
     .listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
     .listing-card__status--available { color: var(--accent); }
     .listings-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
-    .listings-empty__icon { font-size: 36px; opacity: 0.2; }
+    .listings-empty__icon { font-size: 36px; opacity: 0.35; }
     .listings-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
     .listings-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
 
@@ -140,6 +140,13 @@
       <a href="/listings/new" class="tours-fab" title="New listing">+</a>
     </div>
 
+    <!-- Host filter banner (shown when coming from Explore) -->
+    <div id="host-filter-banner" style="display:none;align-items:center;gap:8px;margin:10px 18px 0;padding:8px 14px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-sm);font-size:11px;color:var(--accent);letter-spacing:0.04em;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span></span>
+      <a href="/tours" style="margin-left:auto;font-size:10px;color:var(--text-3);text-decoration:none;letter-spacing:0.06em;">Clear ✕</a>
+    </div>
+
     <!-- IRL notice — always visible above both tabs -->
     <div class="irl-notice">
       🤝&nbsp; Experimate is IRL only — no messages, just meetups.
@@ -148,7 +155,54 @@
     <!-- ── DISCOVER TAB ── -->
     <div id="tab-discover">
       <div id="city-filter-bar" class="city-filter pill-group"></div>
-      <div id="listings-list" class="listings-list"></div>
+      <div id="listings-list" class="listings-list">
+        <!-- Skeleton loading state -->
+        <div class="skeleton-card" id="sk1">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+              <div class="skeleton skeleton-line skeleton-line--lg skeleton-line--w-half"></div>
+              <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-3q"></div>
+            </div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:70px;margin-left:12px;"></div>
+          </div>
+          <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+          <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-third"></div>
+            <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" id="sk2">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+              <div class="skeleton skeleton-line skeleton-line--lg" style="width:40%;"></div>
+              <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-half"></div>
+            </div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:60px;margin-left:12px;"></div>
+          </div>
+          <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+          <div class="skeleton skeleton-line skeleton-line--w-half"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-third"></div>
+            <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" id="sk3">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+              <div class="skeleton skeleton-line skeleton-line--lg skeleton-line--w-3q"></div>
+              <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-half"></div>
+            </div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:65px;margin-left:12px;"></div>
+          </div>
+          <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+          <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-third"></div>
+            <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ── MY MEETUPS TAB ── -->
@@ -192,6 +246,13 @@
     const d = new Date(iso);
     return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
+  function fmtTime(iso) {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  /* ── Host filter from URL ── */
+  const _hostFilter = new URLSearchParams(window.location.search).get('host');
 
   /* ── City filter ── */
   function filterCity(city) {
@@ -213,7 +274,7 @@
     const guestId   = Auth.getUserId();
     if (!guestId) { window.location.href = '/login'; return; }
     btn.disabled = true;
-    ReservationAPI.create({ guestId, tourListingId: listingId })
+    BookingRequestAPI.create({ guestId, listingId })
       .then(() => { showToast('Reserved!'); btn.textContent = 'Reserved'; btn.classList.remove('btn--primary'); })
       .catch(err => { showToast(err.message); btn.disabled = false; });
   }
@@ -247,8 +308,21 @@
     const cityBar = document.getElementById('city-filter-bar');
     const list    = document.getElementById('listings-list');
 
+    // Apply host filter if coming from Explore
+    if (_hostFilter) {
+      listings = (listings || []).filter(l => l.host && l.host.username === _hostFilter);
+      const banner = document.getElementById('host-filter-banner');
+      if (banner) { banner.querySelector('span').textContent = `Showing tours by @${_hostFilter}`; banner.style.display = 'flex'; }
+    }
+
     if (!listings || listings.length === 0) {
-      list.innerHTML = `<div class="listings-empty"><div class="listings-empty__icon">🗺️</div><div class="listings-empty__title">No tours yet</div><div class="listings-empty__sub">Be the first to create a tour listing and start hosting.</div></div>`;
+      list.innerHTML = `
+        <div class="listings-empty">
+          <div style="font-size:44px;line-height:1;margin-bottom:4px;">🗺️</div>
+          <div class="listings-empty__title">No tours yet</div>
+          <div class="listings-empty__sub">Be the first to host a local experience.</div>
+          <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
+        </div>`;
       return;
     }
 
@@ -256,27 +330,39 @@
     cityBar.innerHTML = `<div class="pill pill--active" data-city="all" onclick="selectPill(this); filterCity('all')">All</div>` +
       cities.map(c => `<div class="pill" data-city="${c}" onclick="selectPill(this); filterCity(this.dataset.city)">${c}</div>`).join('');
 
-    list.innerHTML = listings.map(listing => {
+    list.innerHTML = listings.map((listing, i) => {
       const reserved = listing.reserved;
-      const hasCoords = listing.latitude != null && listing.longitude != null;
-      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.latitude}" data-lng="${listing.longitude}" onclick="goToMap(this)">📍 Map</button>` : '';
+      const hasCoords = listing.lat != null && listing.lng != null;
+      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
       const reserveBtn = !reserved && currentUserId
         ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Reserve</button>`
         : !reserved
-          ? `<a href="/login" style="color:var(--accent);font-size:10px;">Login to reserve</a>`
+          ? `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to reserve</a>`
           : '';
+      const hostName = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
+      const hostHandle = listing.host ? listing.host.username : '?';
+      const initials = listing.host ? (listing.host.firstName[0] || '') + (listing.host.lastName[0] || '') : '?';
       return `
-        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}">
+        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.05}s;">
           <div class="listing-card__head">
-            <div>
+            <div style="flex:1;min-width:0;">
               <div class="listing-card__city">${listing.city}</div>
-              <div class="listing-card__host">by ${listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?'} · @${listing.host ? listing.host.username : '?'}</div>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:5px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">${initials.toUpperCase()}</div>
+                <div class="listing-card__host">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></div>
+              </div>
             </div>
-            <div class="listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
+            <div style="text-align:right;flex-shrink:0;padding-top:2px;">
+              <div class="listing-card__date">${fmtDate(listing.meetingDate)}</div>
+              <div style="font-size:9px;color:var(--text-3);letter-spacing:0.04em;margin-top:2px;">${fmtTime(listing.meetingDate)}</div>
+            </div>
           </div>
           <div class="listing-card__desc">${listing.tourDescription}</div>
           <div class="listing-card__foot">
-            <div class="listing-card__status${reserved ? '' : ' listing-card__status--available'}">${reserved ? 'Already reserved' : 'Available'}</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:${reserved ? 'var(--text-3)' : 'var(--accent)'};flex-shrink:0;${reserved ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
+              <div class="listing-card__status${reserved ? '' : ' listing-card__status--available'}">${reserved ? 'Reserved' : 'Available'}</div>
+            </div>
             <div style="display:flex;gap:6px;align-items:center;">${mapBtn}${reserveBtn}</div>
           </div>
         </div>`;
@@ -295,7 +381,8 @@
       return;
     }
 
-    const mine = reservations.filter(r => r.guest && r.guest.id === currentUserId);
+    const currentUsername = Auth.getUsername();
+    const mine = reservations.filter(r => r.guest && r.guest.username === currentUsername);
     const now   = new Date();
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
     const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);

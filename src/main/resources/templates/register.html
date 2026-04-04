@@ -8,53 +8,116 @@
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); padding: 24px 0; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      height: unset !important;
+      overflow: unset !important;
+      background: #0a0a0a !important;
+    }
+    body {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 100vh !important;
+      color: #efefef !important;
+      color-scheme: dark;
+      padding: 32px 0;
+    }
+
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); opacity: 0.14; pointer-events: none; animation: drift linear infinite; }
+    .orb-1 { width: 500px; height: 500px; background: #00c9a7; top: -180px; right: -100px; animation-duration: 22s; }
+    .orb-2 { width: 300px; height: 300px; background: #ff6b35; bottom: -60px; left: -60px; animation-duration: 28s; animation-delay: -10s; }
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      33%  { transform: translate(20px, -15px) scale(1.04); }
+      66%  { transform: translate(-15px, 20px) scale(0.97); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
     .auth-card {
-      width: min(380px, 92vw);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px 28px;
-      display: flex; flex-direction: column; gap: 18px;
+      position: relative;
+      width: min(400px, 92vw);
+      background: rgba(20, 20, 20, 0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex; flex-direction: column; gap: 20px;
+      box-shadow: 0 0 0 1px rgba(0,201,167,0.06), 0 32px 64px rgba(0,0,0,0.5);
+      animation: card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
-    .auth-logo { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); letter-spacing: -0.02em; }
-    .auth-logo span { color: var(--accent); }
-    .auth-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); }
-    .auth-subtitle { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 4px; }
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .auth-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; color: #efefef; letter-spacing: -0.03em; }
+    .auth-logo span { color: #00c9a7; }
+    .auth-tagline { font-size: 13px; color: #666; margin-top: 5px; }
+    .auth-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 19px; color: #efefef; }
+    .auth-subtitle { font-size: 13px; color: #555; margin-top: 4px; }
+
     .auth-field { display: flex; flex-direction: column; gap: 6px; }
-    .auth-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+    .auth-field label { font-size: 11px; color: #888; letter-spacing: 0.08em; text-transform: uppercase; }
     .auth-field input, .auth-field textarea {
-      background: var(--surface-2);
-      border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm);
-      padding: 11px 14px;
-      color: var(--text);
-      font-family: var(--font-mono);
+      background: #1c1c1c;
+      border: 1px solid #2e2e2e;
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #efefef;
+      font-family: 'DM Mono', monospace;
       font-size: 13px;
-      width: 100%; box-sizing: border-box;
-      transition: border-color var(--t-fast);
+      width: 100%;
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
     }
-    .auth-field input:focus, .auth-field textarea:focus { outline: none; border-color: var(--accent-border); }
-    .auth-field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
-    .auth-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
+    .auth-field input:focus, .auth-field textarea:focus {
+      outline: none; border-color: #00c9a7;
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.12);
+    }
+    .auth-field textarea { resize: vertical; min-height: 80px; line-height: 1.6; padding-right: 14px; }
+    .auth-field__hint { font-size: 10px; color: #444; letter-spacing: 0.03em; }
     .auth-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Password strength */
+    .pw-strength { display: flex; gap: 4px; margin-top: 2px; }
+    .pw-strength__bar { flex: 1; height: 3px; border-radius: 2px; background: #2e2e2e; transition: background 0.2s ease; }
+    .pw-strength__bar--weak   { background: #ff4444; }
+    .pw-strength__bar--fair   { background: #ff9944; }
+    .pw-strength__bar--good   { background: #44bb44; }
+    .pw-strength__bar--strong { background: #00c9a7; }
+    .pw-strength__label { font-size: 10px; color: #555; margin-top: 2px; letter-spacing: 0.04em; }
+
+    /* Bio counter */
+    .bio-counter { font-size: 10px; color: #444; text-align: right; margin-top: 2px; }
+    .bio-counter--warn { color: #ff9944; }
+
     .auth-error {
-      background: rgba(255,80,80,0.08);
-      border: 1px solid rgba(255,80,80,0.2);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      font-size: 11px; color: rgba(255,100,100,0.9);
-      letter-spacing: 0.03em;
+      background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 11px; color: rgba(255,100,100,0.9); letter-spacing: 0.03em;
     }
-    .auth-footer { font-size: 11px; color: var(--text-3); text-align: center; }
-    .auth-footer a { color: var(--accent); text-decoration: none; }
+
+    .auth-footer { font-size: 13px; color: #555; text-align: center; }
+    .auth-footer a { color: #00c9a7; text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
+
+    .btn-register {
+      height: 46px; margin-top: 4px;
+      background: #00c9a7 !important; color: #000 !important;
+    }
+    .btn-register:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
   <div class="auth-card">
     <div>
-      <div class="auth-logo">Experi<span>mate</span></div>
+      <div class="auth-logo">Experi<span>Mate</span></div>
+      <div class="auth-tagline">meet locals. get experiences.</div>
     </div>
     <div>
       <div class="auth-title">Create account</div>
@@ -78,7 +141,7 @@
 
       <div class="auth-field">
         <label for="dateOfBirth">Date of birth</label>
-        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" data-date-format="date" autocomplete="off" required>
+        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required>
         <span class="auth-field__hint">Format: DD/MM/YYYY · Must be 18 or older</span>
       </div>
 
@@ -90,55 +153,103 @@
 
       <div class="auth-field">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" autocomplete="new-password" required>
+        <div style="position:relative;">
+          <input type="password" id="password" name="password" autocomplete="new-password" required style="padding-right:42px;" oninput="updateStrength(this.value)">
+          <button type="button" onclick="togglePw('password','eye1')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;padding:0;display:flex;">
+            <svg id="eye1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:0.45"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="pw-strength">
+          <div class="pw-strength__bar" id="s1"></div>
+          <div class="pw-strength__bar" id="s2"></div>
+          <div class="pw-strength__bar" id="s3"></div>
+          <div class="pw-strength__bar" id="s4"></div>
+        </div>
+        <span class="pw-strength__label" id="pw-label"></span>
       </div>
 
       <div class="auth-field">
         <label for="confirmPassword">Confirm password</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required>
+        <div style="position:relative;">
+          <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required style="padding-right:42px;">
+          <button type="button" onclick="togglePw('confirmPassword','eye2')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;padding:0;display:flex;">
+            <svg id="eye2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:0.45"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
 
       <div class="auth-field">
-        <label for="bio">Bio <span style="color: var(--text-3);">(optional)</span></label>
-        <textarea id="bio" name="bio" maxlength="200" placeholder="Tell other travellers about yourself..."></textarea>
-        <span class="auth-field__hint">Max 200 characters</span>
+        <label for="bio">Bio <span style="color:#444;">(optional)</span></label>
+        <textarea id="bio" name="bio" maxlength="200" placeholder="Tell other travellers about yourself..." oninput="updateBioCounter(this)"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="auth-field__hint">Max 200 characters</span>
+          <span class="bio-counter" id="bio-counter">0/200</span>
+        </div>
       </div>
 
-      <button type="submit" class="btn btn--primary" style="height: 44px; margin-top: 4px;">Create account</button>
+      <button type="submit" id="register-btn" class="btn btn--primary btn-register">Create account</button>
     </form>
 
     <div class="auth-footer">
       Already have an account? <a href="/login">Sign in</a>
     </div>
   </div>
+
   <script src="/js/api.js"></script>
   <script>
+    function togglePw(inputId, eyeId) {
+      const input = document.getElementById(inputId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+      document.getElementById(eyeId).style.opacity = input.type === 'text' ? '1' : '0.45';
+    }
+
+    function updateStrength(val) {
+      const bars = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+      const label = document.getElementById('pw-label');
+      bars.forEach(b => b.className = 'pw-strength__bar');
+      if (!val) { label.textContent = ''; return; }
+      let score = 0;
+      if (val.length >= 8) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      const levels = ['weak','fair','good','strong'];
+      const labels = ['Weak','Fair','Good','Strong'];
+      const cls = 'pw-strength__bar--' + levels[score - 1] || '';
+      for (let i = 0; i < score; i++) bars[i].classList.add('pw-strength__bar--' + levels[score - 1]);
+      label.textContent = score > 0 ? labels[score - 1] : '';
+      label.style.color = ['#ff4444','#ff9944','#44bb44','#00c9a7'][score - 1] || '#555';
+    }
+
+    function updateBioCounter(el) {
+      const counter = document.getElementById('bio-counter');
+      const len = el.value.length;
+      counter.textContent = len + '/200';
+      counter.className = 'bio-counter' + (len > 160 ? ' bio-counter--warn' : '');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('register-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const errorEl = document.getElementById('auth-error');
+        const btn = document.getElementById('register-btn');
         errorEl.style.display = 'none';
 
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-
         if (password !== confirmPassword) {
           errorEl.textContent = 'Passwords do not match';
           errorEl.style.display = 'block';
           return;
         }
 
-        // Parse DD/MM/YYYY → YYYY-MM-DD for backend
         const [dd, mm, yyyy] = document.getElementById('dateOfBirth').value.split('/');
         const dob = `${yyyy}-${mm}-${dd}`;
-
-        // 18+ check (UX only)
         const birthDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-
         if (age < 18) {
           errorEl.textContent = 'You must be 18 or older to register';
           errorEl.style.display = 'block';
@@ -146,6 +257,8 @@
         }
 
         const username = document.getElementById('username').value;
+        btn.disabled = true;
+        btn.textContent = 'Creating account...';
 
         try {
           await UserAPI.create({
@@ -161,11 +274,22 @@
           Auth.saveToken(loginRes.token);
           const users = await UserAPI.getAll();
           const me = users.find(u => u.username === Auth.getUsername());
-          if (me) Auth.saveUserId(me.id);
+          if (me) {
+            Auth.saveUserId(me.id);
+            const fn = document.getElementById('firstName').value;
+            const ln = document.getElementById('lastName').value;
+            const initials = ((fn[0] ?? '') + (ln[0] ?? '')).toUpperCase();
+            const hue = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+            localStorage.setItem('user_initials', initials);
+            localStorage.setItem('user_hue', hue);
+          }
+          btn.textContent = 'Welcome ✓';
           window.location.href = '/map';
         } catch (err) {
           errorEl.textContent = err.message;
           errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Create account';
         }
       });
     });
