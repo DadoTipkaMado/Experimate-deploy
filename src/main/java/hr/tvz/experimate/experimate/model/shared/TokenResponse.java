@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.security;
+package hr.tvz.experimate.experimate.model.shared;
 
-public record AuthResponse(String accessToken, String refreshToken) {
+public record TokenResponse(String accessToken, String refreshToken) {
 }
