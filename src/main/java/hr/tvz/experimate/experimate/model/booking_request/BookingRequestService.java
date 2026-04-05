@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.model.booking_request;
 
+import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
+import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestDeclinedEvent;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
@@ -74,28 +76,20 @@ public class BookingRequestService {
         BookingRequest request = bookingRequestRepo.save(new BookingRequest(guest, listing));
         log.info("Created booking request with id {}", request.getId());
 
-        return new BookingRequestResponse(
-                request.getId(),
-                request.getStatus());
+        return createBookingRequestResponse(request);
     }
 
     public List<BookingRequestResponse> getAllBookingRequests() {
         return bookingRequestRepo.findAll()
                 .stream()
-                .map(request -> new BookingRequestResponse(
-                        request.getId(),
-                        request.getStatus()
-                ))
+                .map(this::createBookingRequestResponse)
                 .toList();
     }
 
     public Optional<BookingRequestResponse> getBookingRequestById(Integer id) {
         Optional<BookingRequest> request = bookingRequestRepo.findById(id);
 
-        return request.map(bookingRequest -> new BookingRequestResponse(
-                bookingRequest.getId(),
-                bookingRequest.getStatus()
-        ));
+        return request.map(this::createBookingRequestResponse);
     }
 
     //Cannot be updated directly from api endpoint, used only internally
@@ -147,24 +141,47 @@ public class BookingRequestService {
 
         log.info("Booking request accepted with id {}", acceptedId);
 
-        return new  BookingRequestResponse(
-                acceptedId,
-                BookingRequestStatus.ACCEPTED);
+        return createBookingRequestResponse(acceptedRequest);
     }
 
     public BookingRequestResponse declineBookingRequest(Integer id) {
-        updateBookingRequest(id, BookingRequestStatus.DECLINED);
+        BookingRequest request = updateBookingRequest(id, BookingRequestStatus.DECLINED);
         log.info("Booking request declined with id {}", id);
 
-        return new BookingRequestResponse(
-                id,
-                BookingRequestStatus.DECLINED
-        );
+        return createBookingRequestResponse(request);
     }
 
     //Batch updating
     private void updateBookingRequests(List<Integer> ids, BookingRequestStatus status) {
         Integer updatedCount = bookingRequestRepo.updateStatusByIds(ids, status);
         log.info("Updated {}/{} BookingRequest statuses to DECLINED.", updatedCount, ids.size());
+    }
+
+    private BookingRequestResponse createBookingRequestResponse(BookingRequest request){
+        UserDetails hostDetails = new UserDetails(
+                request.getListing().getHost().getFirstName(),
+                request.getListing().getHost().getLastName(),
+                request.getListing().getHost().getUsername()
+        );
+
+        UserDetails guestDetails = new UserDetails(
+                request.getGuest().getFirstName(),
+                request.getGuest().getLastName(),
+                request.getGuest().getUsername()
+        );
+
+        TourListingDetails listingDetails = new TourListingDetails(
+                request.getListing().getMeetingDate(),
+                request.getListing().getCity(),
+                hostDetails
+        );
+
+        return new BookingRequestResponse(
+                request.getId(),
+                request.getStatus(),
+                request.getRequestDate(),
+                listingDetails,
+                guestDetails
+        );
     }
 }
