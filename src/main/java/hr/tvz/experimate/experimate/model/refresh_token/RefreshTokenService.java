@@ -42,7 +42,7 @@ public class RefreshTokenService {
                 refreshToken.getUser().getUsername()
         );
 
-        log.info("Created new refresh token for user with id {}", refreshToken.getUser().getId());
+        log.debug("Created new refresh token for user with id {}", refreshToken.getUser().getId());
         return new TokenResponse(
                 newAccessToken,
                 newRefreshToken
