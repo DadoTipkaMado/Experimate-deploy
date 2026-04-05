@@ -21,6 +21,20 @@
     .logout-btn:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
     .new-listing-link { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border-2); color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background var(--t-base), border-color var(--t-base), color var(--t-base); }
     .new-listing-link:hover { background: var(--surface-2); border-color: var(--accent-border); color: var(--accent); }
+    .req-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .req-card__meta { font-size: 11px; color: var(--text-2); }
+    .req-card__name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
+    .req-card__city { font-size: 11px; color: var(--accent); letter-spacing: 0.05em; }
+    .req-card__actions { display: flex; gap: 8px; margin-top: 4px; }
+    .req-btn { flex: 1; height: 36px; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border: 1px solid; transition: background var(--t-base), color var(--t-base); }
+    .req-btn--accept { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .req-btn--accept:hover { background: var(--accent); color: #000; }
+    .req-btn--decline { background: transparent; border-color: var(--border-2); color: var(--text-3); }
+    .req-btn--decline:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
+    .req-status-badge { display: inline-block; padding: 2px 10px; border-radius: var(--radius-pill); font-size: 10px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+    .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
+    .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
+    .req-empty { font-size: 12px; color: var(--text-3); padding: 8px 0 12px; }
   </style>
 </head>
 <body>
@@ -60,6 +74,17 @@
       <div class="bio-box" id="account-bio" style="color: var(--text-3);">No bio set.</div>
     </div>
 
+
+    <div class="acc-section" id="requests-section">
+      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+        Booking Requests
+        <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
+      </div>
+      <div id="requests-list" style="margin-top:12px;">
+        <div class="skeleton skeleton-line" style="width:100%;height:80px;border-radius:var(--radius);margin-bottom:10px;"></div>
+        <div class="skeleton skeleton-line" style="width:100%;height:80px;border-radius:var(--radius);margin-bottom:10px;"></div>
+      </div>
+    </div>
 
     <div style="padding: 18px 18px 8px;">
       <a href="/account/edit" class="new-listing-link">Edit Profile</a>
@@ -129,6 +154,76 @@
   }
 
 loadAccount();
+
+  async function loadBookingRequests() {
+    const username = Auth.getUsername();
+    const listEl = document.getElementById('requests-list');
+
+    try {
+      const requests = await BookingRequestAPI.getAll();
+
+      // TODO: once David expands BookingRequestResponse to include guest + tourListing,
+      // filter to only requests where tourListing.host.username === username
+      // For now, show all pending requests.
+      const pending = (requests || []).filter(r => r.status === 'PENDING');
+
+      if (pending.length === 0) {
+        listEl.innerHTML = '<p class="req-empty">No pending requests.</p>';
+        return;
+      }
+
+      const badge = document.getElementById('requests-badge');
+      badge.textContent = pending.length;
+      badge.style.display = '';
+
+      listEl.innerHTML = pending.map(r => `
+        <div class="req-card" id="req-${r.id}">
+          <div class="req-card__name">
+            <!-- TODO: replace with r.guest.firstName + ' ' + r.guest.lastName once David expands DTO -->
+            Request #${r.id}
+          </div>
+          <div class="req-card__meta">
+            <!-- TODO: r.tourListing.city + ' · ' + r.tourListing.meetingDate -->
+            Status: ${r.status}
+          </div>
+          <div class="req-card__actions">
+            <button class="req-btn req-btn--accept" onclick="handleRequest('accept', ${r.id})">Accept</button>
+            <button class="req-btn req-btn--decline" onclick="handleRequest('decline', ${r.id})">Decline</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      listEl.innerHTML = '<p class="req-empty">Could not load requests.</p>';
+    }
+  }
+
+  async function handleRequest(action, id) {
+    const card = document.getElementById('req-' + id);
+    const btns = card.querySelectorAll('.req-btn');
+    btns.forEach(b => b.disabled = true);
+
+    try {
+      if (action === 'accept') {
+        await BookingRequestAPI.accept(id);
+        card.querySelector('.req-card__actions').innerHTML =
+          '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
+      } else {
+        await BookingRequestAPI.decline(id);
+        card.querySelector('.req-card__actions').innerHTML =
+          '<span class="req-status-badge req-status-badge--declined">Declined</span>';
+      }
+      // Update badge count
+      const remaining = document.querySelectorAll('.req-btn--accept').length;
+      const badge = document.getElementById('requests-badge');
+      if (remaining === 0) badge.style.display = 'none';
+      else badge.textContent = remaining;
+    } catch (e) {
+      btns.forEach(b => b.disabled = false);
+      showToast(e.message || 'Something went wrong.');
+    }
+  }
+
+  loadBookingRequests();
 </script>
 </body>
 </html>
