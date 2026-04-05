@@ -162,10 +162,10 @@ loadAccount();
     try {
       const requests = await BookingRequestAPI.getAll();
 
-      // TODO: once David expands BookingRequestResponse to include guest + tourListing,
-      // filter to only requests where tourListing.host.username === username
-      // For now, show all pending requests.
-      const pending = (requests || []).filter(r => r.status === 'PENDING');
+      const pending = (requests || []).filter(r =>
+        r.status === 'PENDING' &&
+        r.tourListing?.host?.username === username
+      );
 
       if (pending.length === 0) {
         listEl.innerHTML = '<p class="req-empty">No pending requests.</p>';
@@ -176,22 +176,23 @@ loadAccount();
       badge.textContent = pending.length;
       badge.style.display = '';
 
-      listEl.innerHTML = pending.map(r => `
+      listEl.innerHTML = pending.map(r => {
+        const guestName = r.user ? `${r.user.firstName} ${r.user.lastName}` : `Guest #${r.id}`;
+        const city = r.tourListing?.city ?? '';
+        const date = r.tourListing?.meetingDate
+          ? new Date(r.tourListing.meetingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+          : '';
+        const meta = [city, date].filter(Boolean).join(' · ');
+        return `
         <div class="req-card" id="req-${r.id}">
-          <div class="req-card__name">
-            <!-- TODO: replace with r.guest.firstName + ' ' + r.guest.lastName once David expands DTO -->
-            Request #${r.id}
-          </div>
-          <div class="req-card__meta">
-            <!-- TODO: r.tourListing.city + ' · ' + r.tourListing.meetingDate -->
-            Status: ${r.status}
-          </div>
+          <div class="req-card__name">${guestName}</div>
+          <div class="req-card__meta">${meta}</div>
           <div class="req-card__actions">
             <button class="req-btn req-btn--accept" onclick="handleRequest('accept', ${r.id})">Accept</button>
             <button class="req-btn req-btn--decline" onclick="handleRequest('decline', ${r.id})">Decline</button>
           </div>
         </div>
-      `).join('');
+      `}).join('');
     } catch (e) {
       listEl.innerHTML = '<p class="req-empty">Could not load requests.</p>';
     }
