@@ -38,6 +38,7 @@ public class AuthService {
                 .orElseThrow(() -> new UserNotFoundException(username));
 
         log.info("User {} logged in successfully.", user.getUsername());
+        log.debug("Log in successful, generating new JWT");
         return new TokenResponse(
                 jwtService.generateToken(auth.getName()),
                 refreshTokenService.createOrUpdateRefreshToken(user)
@@ -45,6 +46,7 @@ public class AuthService {
     }
 
     public TokenResponse refreshAccessToken(String refreshToken){
+
         return refreshTokenService.rotateAccessToken(refreshToken);
     }
 
