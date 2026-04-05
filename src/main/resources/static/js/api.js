@@ -29,7 +29,7 @@ const Auth = {
   },
 };
 
-async function apiFetch(path, options = {}) {
+async function apiFetch(path, options = {}, _isRetry = false) {
   const token = Auth.getToken();
   const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -37,6 +37,21 @@ async function apiFetch(path, options = {}) {
     headers: { 'Content-Type': 'application/json', ...authHeader, ...options.headers },
     ...options,
   });
+
+  if (res.status === 401 && !_isRetry) {
+    const refreshRes = await fetch(API_BASE + '/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (!refreshRes.ok) {
+      Auth.logout();
+      return;
+    }
+    const { token: newToken } = await refreshRes.json();
+    Auth.saveToken(newToken);
+    return apiFetch(path, options, true);
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
     throw new Error(err.message || `HTTP ${res.status}`);
