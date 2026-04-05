@@ -73,11 +73,12 @@
 
 ---
 
-## Current state (as of 2026-04-04)
+## Current state (as of 2026-04-05)
 - All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`
 - Old `vito/frontend` branch — ignore it
 - `idNumber` in register sends `crypto.randomUUID()` (backend rejects null)
 - Full UX pass done — see session log 2026-04-04 below
+- JWT refresh, booking requests section, and photo file picker added — see session log 2026-04-05 below
 
 ## Local testing setup (local-test branch)
 - Branch `local-test` = `vito/frontend-clean` + `david/backend` merged together
@@ -109,13 +110,27 @@
 - When David adds the field to backend, add back the toggle UI and `toggleAvailability()` JS function
 
 ## Known pending issues (waiting on David)
-- Profile photo — `account-edit.html` has a URL field that saves to `localStorage` as a workaround; `user.profilePhotoUrl` doesn't exist on backend yet
+- Profile photo — file picker built, saves base64 to `localStorage` as workaround; needs `POST /api/user/{id}/photo` (multipart) + `profilePhotoUrl` on `UserResponse`; TODO comment in `account-edit.html` submit handler marks the swap point
+- `BookingRequestResponse` only returns `{ id, status }` — needs `guest { firstName, lastName, username }` and `tourListing { id, city, meetingDate }` to show useful data in booking requests section
 - `availableToMeet` needs backend infrastructure before toggle can be re-added
-- Token rotation not implemented (intentional for now)
+- JWT refresh wired — David's `/api/auth/refresh` uses httpOnly cookie, frontend handles 401 → refresh → retry automatically
 
 ## Ready to test
 - Needs David to merge both branches into `main`
-- Smoke test: reserve button, My Tours tab, map pins
+- Smoke test: reserve button, My Tours tab, map pins, JWT refresh on expiry, booking requests accept/decline
+
+---
+
+## Session log — 2026-04-05 (JWT refresh + booking requests + photo picker)
+
+### Što je napravljeno
+- **JWT refresh** — `apiFetch` now intercepts 401, calls `POST /api/auth/refresh` (browser sends httpOnly cookie automatically), saves new token, retries original request; if refresh fails → `Auth.logout()`
+- **Booking requests section** — added to `account.html`; fetches all PENDING requests, renders cards with Accept/Decline buttons wired to `BookingRequestAPI`; pending count badge; skeleton loading; error state
+- **Photo file picker** — `account-edit.html` URL field replaced with a styled file picker; tap avatar to open file explorer; previews image immediately; saves base64 to `localStorage` on form save; Remove photo button; full TODO comment marks where to swap for API call when David adds the endpoint
+
+### Čeka David
+- `BookingRequestResponse` treba proširiti s `guest { firstName, lastName, username }` i `tourListing { id, city, meetingDate }`
+- `POST /api/user/{id}/photo` endpoint (multipart/form-data) + `profilePhotoUrl` na `UserResponse`
 
 ---
 
