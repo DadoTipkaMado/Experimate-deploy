@@ -31,7 +31,10 @@ public class RefreshTokenService {
 
     public TokenResponse rotateAccessToken(String refreshTokenString) {
         RefreshToken refreshToken = refreshTokenRepo.findByToken(refreshTokenString)
-                .orElseThrow(() -> new InvalidRefreshTokenException(refreshTokenString));
+                .orElseThrow(() -> {
+                    log.debug("Refresh token not found. Cannot rotate token.");
+                     return new InvalidRefreshTokenException(refreshTokenString);
+                });
 
         if(!isValid(refreshToken)) {
             log.warn("Invalid refresh token");
