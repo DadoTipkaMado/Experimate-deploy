@@ -15,12 +15,12 @@ function showToast(message, type = 'default') {
   if (!toast) return;
 
   toast.textContent = message;
-  toast.classList.add('toast--visible');
+  toast.className = 'toast toast--visible' + (type !== 'default' ? ' toast--' + type : '');
 
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => {
     toast.classList.remove('toast--visible');
-  }, 2200);
+  }, 2400);
 }
 
 /* ───────────────────────────────────────────────

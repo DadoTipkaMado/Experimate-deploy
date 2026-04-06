@@ -75,6 +75,7 @@
       <div class="form-field">
         <label for="city">City</label>
         <input type="text" id="city" name="city" placeholder="e.g. Zagreb" required>
+        <span class="form-field__error" id="city-error">Please enter a city name.</span>
       </div>
 
       <!-- Separate date and time inputs -->
@@ -135,6 +136,23 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
+  /* ── CITY VALIDATION ── */
+  const cityInput = document.getElementById('city');
+  const cityError = document.getElementById('city-error');
+  cityInput.addEventListener('blur', () => {
+    if (!cityInput.value.trim()) {
+      cityInput.classList.add('input--error');
+      cityError.classList.add('form-field__error--visible');
+    } else {
+      cityInput.classList.remove('input--error');
+      cityError.classList.remove('form-field__error--visible');
+    }
+  });
+  cityInput.addEventListener('input', () => {
+    cityInput.classList.remove('input--error');
+    cityError.classList.remove('form-field__error--visible');
+  });
+
   /* ── DATE VALIDATION ── */
   const meetingDateInput = document.getElementById('meetingDateInput');
   const meetingTimeInput = document.getElementById('meetingTimeInput');
@@ -211,7 +229,7 @@
       showToast('Tour published!');
       setTimeout(() => window.location.href = '/tours', 800);
     } catch (err) {
-      errorEl.textContent = err.message;
+      errorEl.textContent = err.message || 'Could not publish — please try again.';
       errorEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Publish';
     }

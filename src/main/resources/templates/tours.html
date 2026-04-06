@@ -275,8 +275,8 @@
     if (!guestId) { window.location.href = '/login'; return; }
     btn.disabled = true;
     BookingRequestAPI.create({ guestId, listingId })
-      .then(() => { showToast('Reserved!'); btn.textContent = 'Reserved'; btn.classList.remove('btn--primary'); })
-      .catch(err => { showToast(err.message); btn.disabled = false; });
+      .then(() => { showToast('Booking request sent!', 'success'); btn.textContent = 'Requested'; btn.classList.remove('btn--primary'); })
+      .catch(err => { showToast(err.message || 'Booking failed — please try again.', 'error'); btn.disabled = false; });
   }
 
   /* ── Cancel modal ── */
@@ -297,8 +297,8 @@
     if (!reason) { showToast('Please provide a reason.'); return; }
     if (_cancelBtn) _cancelBtn.disabled = true;
     ReservationAPI.delete(_cancelResId)
-      .then(() => { _cancelBtn.closest('.meet-card').remove(); closeCancelModal(); showToast('Reservation cancelled.'); })
-      .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message); });
+      .then(() => { _cancelBtn.closest('.meet-card').remove(); closeCancelModal(); showToast('Reservation cancelled.', 'success'); })
+      .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message || 'Could not cancel — please try again.', 'error'); });
   }
   document.getElementById('cancel-modal').addEventListener('click', function(e) { if (e.target === this) closeCancelModal(); });
 
@@ -411,7 +411,7 @@
   /* ── Load data ── */
   Promise.all([TourListingAPI.getAll(), ReservationAPI.getAll()])
     .then(([listings, reservations]) => { renderListings(listings); renderMeetups(reservations); })
-    .catch(() => { renderListings([]); renderMeetups([]); });
+    .catch(() => { renderListings([]); renderMeetups([]); showToast('Could not load tours — check your connection.', 'error'); });
 </script>
 </body>
 </html>
