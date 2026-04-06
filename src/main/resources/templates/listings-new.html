@@ -100,10 +100,10 @@
         <label for="tourDescription">Description</label>
         <textarea id="tourDescription" name="tourDescription"
                   placeholder="Describe the experience — what will guests see, do, and feel?"
-                  required minlength="20" maxlength="2000"
+                  required minlength="200" maxlength="2000"
                   oninput="document.getElementById('desc-counter').textContent=this.value.length+'/2000';"></textarea>
         <div style="display:flex;justify-content:space-between;">
-          <span class="form-field__hint">Min 20 characters</span>
+          <span class="form-field__hint">Min 200 characters</span>
           <span class="form-field__hint" id="desc-counter">0/2000</span>
         </div>
       </div>
