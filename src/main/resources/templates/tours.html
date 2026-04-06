@@ -469,8 +469,8 @@
           <div class="listing-card__desc">${listing.tourDescription}</div>
           <div class="listing-card__foot">
             <div style="display:flex;align-items:center;gap:6px;">
-              <div style="width:6px;height:6px;border-radius:50%;background:${reserved ? 'var(--text-3)' : 'var(--accent)'};flex-shrink:0;${reserved ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
-              <div class="listing-card__status${(reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id))) ? '' : ' listing-card__status--available'}">${reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? 'Requested' : 'Available'}</div>
+              <div style="width:6px;height:6px;border-radius:50%;background:${reserved ? 'var(--text-3)' : (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? '#ff9944' : 'var(--accent)'};flex-shrink:0;${reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
+              <div class="listing-card__status${reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? '' : ' listing-card__status--available'}">${reserved ? 'Booked' : (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? 'Requested' : 'Available'}</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">${mapBtn}${reserveBtn}</div>
           </div>
