@@ -745,7 +745,8 @@ svg { display: block; flex-shrink: 0; }
   opacity: 0;
   transition: opacity var(--t-base), transform var(--t-base);
   z-index: 9999;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
   pointer-events: none;
   max-width: calc(100% - 48px);
   text-align: center;
