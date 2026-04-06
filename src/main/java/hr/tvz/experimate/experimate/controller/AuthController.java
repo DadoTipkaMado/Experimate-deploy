@@ -64,13 +64,19 @@ public class AuthController {
 
     private String extractRequestCookie(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
-        if(cookies != null) throw new MissingCookieException(name);
+        if(cookies == null) {
+            log.debug("No cookies found.");
+            throw new MissingCookieException(name);
+        }
 
         return Arrays.stream(cookies)
                 .filter(cookie -> cookie.getName().equals(name))
                 .map(Cookie::getValue)
                 .findFirst()
-                .orElseThrow(() -> new MissingCookieException(name));
+                .orElseThrow(() -> {
+                    log.debug("{} cookie not found.", name);
+                    return new MissingCookieException(name);
+                    });
     }
 
     private ResponseCookie buildResponseCookie(String name, String value) {
