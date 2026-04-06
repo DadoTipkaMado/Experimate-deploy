@@ -1,6 +1,5 @@
 package hr.tvz.experimate.experimate.security;
 
-import hr.tvz.experimate.experimate.model.user.User;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,14 +7,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
+import java.util.*;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -24,10 +27,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final AppUserDetailsService userDetailsService;
+    private final HandlerExceptionResolver resolver;
 
-    public JwtAuthFilter(JwtService jwtService, AppUserDetailsService userDetailsService) {
+    private final Map<String, String> PUBLIC_ENDPOINTS = Map.of(
+            "ANY", "/api/auth",
+            "POST", "/api/user"
+    );
+
+    public JwtAuthFilter(JwtService jwtService,
+                         AppUserDetailsService userDetailsService,
+                         @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.resolver = resolver;
     }
 
     @Override
@@ -36,10 +48,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        if (isPublicEndpoint(request)) {
+            log.debug("PUBLIC ENDPOINT: [{}]", request.getServletPath());
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.debug("Authorization header not present");
             filterChain.doFilter(request, response);
             return;
         }
@@ -50,8 +68,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             username = jwtService.extractUsername(token);
         } catch (JwtException e) {
-            log.error(e.getMessage());
-            filterChain.doFilter(request, response);
+            log.debug(e.getMessage());
+            resolver.resolveException(request, response, null, new BadCredentialsException("JWT invalid.", e));
             return;
         }
 
@@ -65,5 +83,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    //Check for determining if request should not be filtered in doFilterInternal
+    private boolean isPublicEndpoint(HttpServletRequest request) {
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+        return PUBLIC_ENDPOINTS.entrySet().stream()
+                .anyMatch(entry -> {
+                    if(path.contains(entry.getValue())){
+                        if(entry.getKey().equalsIgnoreCase("ANY"))
+                            return true;
+                        if(entry.getKey().equalsIgnoreCase(method))
+                            return true;
+                        return false;
+                    }
+                    return false;
+                });
     }
 }
