@@ -126,21 +126,30 @@ function initDateInputs() {
   document.querySelectorAll('[data-date-format]').forEach(input => {
     const mode = input.dataset.dateFormat; // "date" or "datetime"
     input.addEventListener('keydown', e => {
-      // Allow backspace, delete, tab, arrows
       if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
-      // Only allow digits
       if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
     });
-    input.addEventListener('input', () => {
+    input.addEventListener('input', e => {
+      const adding = !e.inputType || e.inputType.startsWith('insert');
       let digits = input.value.replace(/\D/g, '');
       const max  = mode === 'datetime' ? 12 : 8;
       if (digits.length > max) digits = digits.slice(0, max);
-      input.value = mode === 'datetime'
-        ? formatDatetime(digits)
-        : formatDate(digits);
+
+      if (adding && mode !== 'datetime') {
+        // Auto leading zero for day: if only 1 digit and > 3, it must be 04-09 → prepend 0
+        if (digits.length === 1 && parseInt(digits) > 3) {
+          digits = '0' + digits;
+        }
+        // Auto leading zero for month: if 3rd digit > 1, it must be 02-09 → prepend 0
+        else if (digits.length === 3 && parseInt(digits[2]) > 1) {
+          digits = digits.slice(0, 2) + '0' + digits.slice(2);
+        }
+      }
+
+      input.value = mode === 'datetime' ? formatDatetime(digits) : formatDate(digits);
     });
     input.addEventListener('blur', () => {
-      // Auto-pad: 5/3/2000 → 05/03/2000
+      // Pad on blur: 5/3/2000 → 05/03/2000
       const parts = input.value.split('/');
       if (parts.length >= 2) {
         parts[0] = parts[0].padStart(2, '0');

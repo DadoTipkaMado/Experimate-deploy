@@ -147,7 +147,7 @@
 
       <div class="auth-field">
         <label for="dateOfBirth">Date of birth</label>
-        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required>
+        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required data-date-format="date" inputmode="numeric">
         <span class="auth-field__hint">Format: DD/MM/YYYY · Must be 18 or older</span>
         <span class="field-error" id="err-dob"></span>
       </div>
@@ -204,6 +204,7 @@
     </div>
   </div>
 
+  <script src="/js/main.js"></script>
   <script src="/js/api.js"></script>
   <script>
     function fieldErr(errId, inputEl, msg) {

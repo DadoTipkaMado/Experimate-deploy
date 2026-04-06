@@ -251,6 +251,15 @@
       document.getElementById('pw-eye').style.opacity = input.type === 'text' ? '1' : '0.45';
     }
 
+    // Auto-redirect if already logged in (or refresh token still valid)
+    (async function () {
+      if (!Auth.getToken()) return;
+      try {
+        const result = await apiFetch('/api/user');
+        if (result !== undefined) window.location.href = '/map';
+      } catch { /* stay on login */ }
+    })();
+
     document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const errorEl = document.getElementById('auth-error');
