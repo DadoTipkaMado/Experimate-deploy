@@ -38,7 +38,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
     ...options,
   });
 
-  if (res.status === 401 && !_isRetry) {
+  if ((res.status === 401 || res.status === 403) && !_isRetry) {
     const refreshRes = await fetch(API_BASE + '/api/auth/refresh', {
       method: 'POST',
       credentials: 'include',

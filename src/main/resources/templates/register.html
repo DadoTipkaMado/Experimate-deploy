@@ -108,6 +108,10 @@
       background: #00c9a7 !important; color: #000 !important;
     }
     .btn-register:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .auth-field input.input--error { border-color: rgba(255,80,80,0.5) !important; box-shadow: 0 0 0 3px rgba(255,80,80,0.08) !important; }
+    .field-error { font-size: 10px; color: rgba(255,100,100,0.85); margin-top: 3px; display: none; }
+    .field-error--visible { display: block; }
   </style>
 </head>
 <body>
@@ -132,10 +136,12 @@
         <div class="auth-field">
           <label for="firstName">First name</label>
           <input type="text" id="firstName" name="firstName" required>
+          <span class="field-error" id="err-firstName">Required.</span>
         </div>
         <div class="auth-field">
           <label for="lastName">Last name</label>
           <input type="text" id="lastName" name="lastName" required>
+          <span class="field-error" id="err-lastName">Required.</span>
         </div>
       </div>
 
@@ -143,12 +149,14 @@
         <label for="dateOfBirth">Date of birth</label>
         <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required>
         <span class="auth-field__hint">Format: DD/MM/YYYY · Must be 18 or older</span>
+        <span class="field-error" id="err-dob"></span>
       </div>
 
       <div class="auth-field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" minlength="4" maxlength="15" autocomplete="username" required>
         <span class="auth-field__hint">4–15 characters</span>
+        <span class="field-error" id="err-username"></span>
       </div>
 
       <div class="auth-field">
@@ -176,6 +184,7 @@
             <svg id="eye2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:0.45"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
+        <span class="field-error" id="err-confirm">Passwords don't match.</span>
       </div>
 
       <div class="auth-field">
@@ -197,6 +206,18 @@
 
   <script src="/js/api.js"></script>
   <script>
+    function fieldErr(errId, inputEl, msg) {
+      const err = document.getElementById(errId);
+      if (msg) {
+        err.textContent = msg;
+        err.classList.add('field-error--visible');
+        inputEl.classList.add('input--error');
+      } else {
+        err.classList.remove('field-error--visible');
+        inputEl.classList.remove('input--error');
+      }
+    }
+
     function togglePw(inputId, eyeId) {
       const input = document.getElementById(inputId);
       input.type = input.type === 'password' ? 'text' : 'password';
@@ -229,6 +250,42 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // ── Inline blur validation ──
+      document.getElementById('firstName').addEventListener('blur', function() {
+        fieldErr('err-firstName', this, this.value.trim() ? null : 'Required.');
+      });
+      document.getElementById('lastName').addEventListener('blur', function() {
+        fieldErr('err-lastName', this, this.value.trim() ? null : 'Required.');
+      });
+      document.getElementById('username').addEventListener('blur', function() {
+        const v = this.value.trim();
+        fieldErr('err-username', this, v.length < 4 ? 'At least 4 characters.' : v.length > 15 ? 'Max 15 characters.' : null);
+      });
+      document.getElementById('username').addEventListener('input', function() {
+        fieldErr('err-username', this, null);
+      });
+      document.getElementById('dateOfBirth').addEventListener('blur', function() {
+        const val = this.value.trim();
+        if (!val) { fieldErr('err-dob', this, 'Required.'); return; }
+        const parts = val.split('/');
+        if (parts.length !== 3 || parts[2].length !== 4) { fieldErr('err-dob', this, 'Use DD/MM/YYYY.'); return; }
+        const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        const today = new Date();
+        let age = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+        fieldErr('err-dob', this, age < 18 ? 'You must be 18 or older.' : null);
+      });
+      document.getElementById('confirmPassword').addEventListener('blur', function() {
+        const match = this.value === document.getElementById('password').value;
+        fieldErr('err-confirm', this, match || !this.value ? null : "Passwords don't match.");
+      });
+      document.getElementById('confirmPassword').addEventListener('input', function() {
+        if (!this.value) return;
+        const match = this.value === document.getElementById('password').value;
+        fieldErr('err-confirm', this, match ? null : "Passwords don't match.");
+      });
+
       document.getElementById('register-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const errorEl = document.getElementById('auth-error');
@@ -286,7 +343,7 @@
           btn.textContent = 'Welcome ✓';
           window.location.href = '/map';
         } catch (err) {
-          errorEl.textContent = err.message;
+          errorEl.textContent = err.message || 'Something went wrong — please try again.';
           errorEl.style.display = 'block';
           btn.disabled = false;
           btn.textContent = 'Create account';
