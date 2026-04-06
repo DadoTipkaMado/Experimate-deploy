@@ -129,20 +129,31 @@ function initDateInputs() {
       if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
       if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
     });
+    let _padTimer = null;
     input.addEventListener('input', e => {
+      clearTimeout(_padTimer);
       const adding = !e.inputType || e.inputType.startsWith('insert');
       let digits = input.value.replace(/\D/g, '');
       const max  = mode === 'datetime' ? 12 : 8;
       if (digits.length > max) digits = digits.slice(0, max);
 
       if (adding && mode !== 'datetime') {
-        // Auto leading zero for day: if only 1 digit and > 3, it must be 04-09 → prepend 0
+        // Immediate leading zero: day digit > 3 or month digit > 1 can only mean 0x
         if (digits.length === 1 && parseInt(digits) > 3) {
           digits = '0' + digits;
-        }
-        // Auto leading zero for month: if 3rd digit > 1, it must be 02-09 → prepend 0
-        else if (digits.length === 3 && parseInt(digits[2]) > 1) {
+        } else if (digits.length === 3 && parseInt(digits[2]) > 1) {
           digits = digits.slice(0, 2) + '0' + digits.slice(2);
+        } else if (digits.length === 1 || digits.length === 3) {
+          // Ambiguous (1/2/3 for day, 1 for month): wait 500ms, then pad if still same length
+          const snapshot = digits;
+          _padTimer = setTimeout(() => {
+            let cur = input.value.replace(/\D/g, '');
+            if (cur === snapshot) {
+              if (cur.length === 1) cur = '0' + cur;
+              else if (cur.length === 3) cur = cur.slice(0, 2) + '0' + cur.slice(2);
+              input.value = formatDate(cur);
+            }
+          }, 500);
         }
       }
 
@@ -193,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shell = document.querySelector('.app-shell');
     if (shell) {
       shell.classList.add('app-shell--exit');
-      setTimeout(() => { window.location.href = href; }, 19);
+      setTimeout(() => { window.location.href = href; }, 10);
     } else {
       window.location.href = href;
     }
