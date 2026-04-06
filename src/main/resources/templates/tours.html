@@ -119,6 +119,25 @@
     .modal-actions .btn { flex: 1; height: 44px; }
     .btn--danger { background: rgba(255,80,80,0.1); border-color: rgba(255,80,80,0.25); color: rgba(255,100,100,0.85); }
     .btn--danger:hover { background: rgba(255,80,80,0.18); border-color: rgba(255,80,80,0.45); }
+
+    /* ── RATING MODAL ── */
+    .star-picker { display: flex; gap: 6px; justify-content: center; padding: 8px 0; }
+    .star-picker__star {
+      font-size: 28px; cursor: pointer; opacity: 0.25;
+      transition: opacity var(--t-fast), transform var(--t-fast);
+      user-select: none;
+    }
+    .star-picker__star--active { opacity: 1; }
+    .star-picker__star:hover { transform: scale(1.15); }
+    .meet-card__rate {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 5px 10px; border-radius: var(--radius-pill);
+      border: 1px solid var(--accent-border); background: var(--accent-dim);
+      color: var(--accent); cursor: pointer; flex-shrink: 0;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+    .meet-card__rate:hover { background: var(--accent); color: #000; }
+    .badge--rated { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -232,6 +251,26 @@
   </div>
 </div>
 
+<!-- ── RATING MODAL ── -->
+<div id="rating-modal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-title">Rate your host</div>
+    <div class="modal-sub" id="rating-host-label" style="color:var(--text-2);margin-top:0;"></div>
+    <div class="star-picker" id="star-picker">
+      <span class="star-picker__star" data-val="1" onclick="setRating(1)">★</span>
+      <span class="star-picker__star" data-val="2" onclick="setRating(2)">★</span>
+      <span class="star-picker__star" data-val="3" onclick="setRating(3)">★</span>
+      <span class="star-picker__star" data-val="4" onclick="setRating(4)">★</span>
+      <span class="star-picker__star" data-val="5" onclick="setRating(5)">★</span>
+    </div>
+    <textarea id="rating-review" placeholder="Leave a review (optional)..." maxlength="500" style="min-height:80px;"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeRatingModal()" class="btn btn--ghost">Cancel</button>
+      <button onclick="submitRating()" class="btn btn--primary" id="rating-submit-btn">Submit</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
@@ -274,9 +313,21 @@
     const guestId   = Auth.getUserId();
     if (!guestId) { window.location.href = '/login'; return; }
     btn.disabled = true;
+    btn.textContent = 'Sending...';
     BookingRequestAPI.create({ guestId, listingId })
-      .then(() => { showToast('Booking request sent!', 'success'); btn.textContent = 'Requested'; btn.classList.remove('btn--primary'); })
-      .catch(err => { showToast(err.message || 'Booking failed — please try again.', 'error'); btn.disabled = false; });
+      .then(() => {
+        showToast('Request sent!', 'success');
+        btn.textContent = 'Pending';
+        btn.classList.remove('btn--primary');
+        btn.style.cssText += ';border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);';
+        // Update the status dot in the same card
+        const card = btn.closest('.listing-card');
+        if (card) {
+          const statusEl = card.querySelector('.listing-card__status');
+          if (statusEl) { statusEl.textContent = 'Requested'; statusEl.classList.add('listing-card__status--available'); }
+        }
+      })
+      .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = 'Request'; });
   }
 
   /* ── Cancel modal ── */
@@ -301,6 +352,60 @@
       .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message || 'Could not cancel — please try again.', 'error'); });
   }
   document.getElementById('cancel-modal').addEventListener('click', function(e) { if (e.target === this) closeCancelModal(); });
+
+  /* ── Rating modal ── */
+  let _ratingResId = null, _ratingHostUsername = null, _ratingBtn = null, _ratingScore = 0;
+
+  function openRatingModal(btn) {
+    _ratingResId = parseInt(btn.dataset.resId, 10);
+    _ratingHostUsername = btn.dataset.hostUsername;
+    _ratingBtn = btn;
+    _ratingScore = 0;
+    document.getElementById('rating-review').value = '';
+    document.getElementById('rating-host-label').textContent = btn.dataset.hostName || _ratingHostUsername;
+    setRating(0);
+    document.getElementById('rating-modal').classList.add('modal-backdrop--visible');
+  }
+  function closeRatingModal() {
+    document.getElementById('rating-modal').classList.remove('modal-backdrop--visible');
+    _ratingResId = null; _ratingHostUsername = null; _ratingBtn = null; _ratingScore = 0;
+  }
+  function setRating(val) {
+    _ratingScore = val;
+    document.querySelectorAll('.star-picker__star').forEach(s => {
+      s.classList.toggle('star-picker__star--active', parseInt(s.dataset.val) <= val);
+    });
+  }
+  async function submitRating() {
+    if (_ratingScore === 0) { showToast('Please select a star rating.', 'warn'); return; }
+    const submitBtn = document.getElementById('rating-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    try {
+      // Resolve host ID from username
+      const users = await UserAPI.getAll();
+      const host = users.find(u => u.username === _ratingHostUsername);
+      if (!host) throw new Error('Host not found.');
+      await RatingAPI.create({
+        raterId: Auth.getUserId(),
+        ratedId: host.id,
+        score: _ratingScore,
+        review: document.getElementById('rating-review').value.trim() || null,
+      });
+      localStorage.setItem('rated_' + _ratingResId, '1');
+      if (_ratingBtn) {
+        _ratingBtn.outerHTML = `<div class="badge--rated">Rated ✓</div>`;
+      }
+      showToast('Rating submitted!', 'success');
+      closeRatingModal();
+    } catch (e) {
+      showToast(e.message || 'Could not submit rating — try again.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }
+  }
+  document.getElementById('rating-modal').addEventListener('click', function(e) { if (e.target === this) closeRatingModal(); });
 
   /* ── Render listings ── */
   function renderListings(listings) {
@@ -335,9 +440,9 @@
       const hasCoords = listing.lat != null && listing.lng != null;
       const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
       const reserveBtn = !reserved && currentUserId
-        ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Reserve</button>`
+        ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
         : !reserved
-          ? `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to reserve</a>`
+          ? `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`
           : '';
       const hostName = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
       const hostHandle = listing.host ? listing.host.username : '?';
@@ -361,7 +466,7 @@
           <div class="listing-card__foot">
             <div style="display:flex;align-items:center;gap:6px;">
               <div style="width:6px;height:6px;border-radius:50%;background:${reserved ? 'var(--text-3)' : 'var(--accent)'};flex-shrink:0;${reserved ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
-              <div class="listing-card__status${reserved ? '' : ' listing-card__status--available'}">${reserved ? 'Reserved' : 'Available'}</div>
+              <div class="listing-card__status${reserved ? '' : ' listing-card__status--available'}">${reserved ? 'Requested' : 'Available'}</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">${mapBtn}${reserveBtn}</div>
           </div>
@@ -389,6 +494,14 @@
 
     const mkCard = (res, isPast) => {
       const d = new Date(res.tourListing.meetingDate);
+      const alreadyRated = !!localStorage.getItem('rated_' + res.id);
+      const hostUsername = res.tourListing.host?.username ?? '';
+      const hostName = res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?';
+      const actionEl = isPast
+        ? (alreadyRated
+            ? `<div class="badge--rated">Rated ✓</div>`
+            : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">Rate</button>`)
+        : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>`;
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
           <div class="meet-card__date">
@@ -396,11 +509,11 @@
             <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
           </div>
           <div class="meet-card__info">
-            <div class="meet-card__who">👤 ${res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?'}</div>
+            <div class="meet-card__who">👤 ${hostName}</div>
             <div class="meet-card__where">${res.tourListing.city}</div>
             <div class="meet-card__booked">Booked ${fmtDate(res.dateOfReservation)}</div>
           </div>
-          ${isPast ? '<div class="badge badge--past">past</div>' : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>`}
+          ${actionEl}
         </div>`;
     };
 

@@ -29,6 +29,9 @@ const Auth = {
   },
 };
 
+// Shared refresh promise — prevents parallel calls from each triggering /refresh separately
+let _refreshPromise = null;
+
 async function apiFetch(path, options = {}, _isRetry = false) {
   const token = Auth.getToken();
   const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -39,16 +42,21 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   });
 
   if ((res.status === 401 || res.status === 403) && !_isRetry) {
-    const refreshRes = await fetch(API_BASE + '/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (!refreshRes.ok) {
-      Auth.logout();
+    if (!_refreshPromise) {
+      _refreshPromise = fetch(API_BASE + '/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      }).then(async (refreshRes) => {
+        if (!refreshRes.ok) { Auth.logout(); throw new Error('refresh_failed'); }
+        const { token: newToken } = await refreshRes.json();
+        Auth.saveToken(newToken);
+      }).finally(() => { _refreshPromise = null; });
+    }
+    try {
+      await _refreshPromise;
+    } catch {
       return;
     }
-    const { token: newToken } = await refreshRes.json();
-    Auth.saveToken(newToken);
     return apiFetch(path, options, true);
   }
 
@@ -112,4 +120,14 @@ const BookingRequestAPI = {
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
   decline: (id)        => apiFetch(`/api/booking-request/decline/${id}`, { method: 'PATCH' }),
   delete: (id)         => apiFetch(`/api/booking-request/${id}`,       { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   RATINGS  /api/rating
+─────────────────────────────────────────────── */
+const RatingAPI = {
+  getAll: ()           => apiFetch('/api/rating'),
+  create: (dto)        => apiFetch('/api/rating',       { method: 'POST',  body: JSON.stringify(dto) }),
+  update: (id, dto)    => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  delete: (id, raterId) => apiFetch(`/api/rating/${id}?raterId=${raterId}`, { method: 'DELETE' }),
 };
