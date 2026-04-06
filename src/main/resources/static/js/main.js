@@ -153,7 +153,7 @@ function initDateInputs() {
               else if (cur.length === 3) cur = cur.slice(0, 2) + '0' + cur.slice(2);
               input.value = formatDate(cur);
             }
-          }, 500);
+          }, 300);
         }
       }
 
