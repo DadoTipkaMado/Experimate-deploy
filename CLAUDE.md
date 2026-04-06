@@ -73,6 +73,23 @@
 
 ---
 
+## Current state (as of 2026-04-06)
+- Full local-test smoke tested — register, login, create tour, request, accept, rate all working
+- Listing status dot has 3 states: Available (teal) / Requested (orange, sessionStorage) / Booked (grey, reserved=true)
+- map.js now uses apiFetch — pins load correctly with auth
+- WebSocket reconnect disabled — backend endpoint not yet implemented
+- Page transitions removed entirely
+- Description minimum is 200 chars (backend enforces via IllegalArgumentException → 400)
+- `BookingRequest.status` column fixed to VARCHAR(20) in local-test — David needs same fix on his branch
+- Rating system works — Rate button appears on past tours in My Tours tab
+
+## Known pending issues (waiting on David) — updated 2026-04-06
+- **`ReservationService.createReservation`** — `validatedListing.setReserved(true)` is called but method is not `@Transactional` and listing is not explicitly saved. Fix: add `@Transactional` to `createReservation` or call `tourListingRepo.save(validatedListing)` after setting reserved.
+- **`BookingRequest.status`** — needs `@Column(columnDefinition = "VARCHAR(20)")` alongside `@Enumerated(EnumType.STRING)` in `BookingRequest.java` (H2 creates ENUM type otherwise, breaks queries)
+- Profile photo — file picker built, saves base64 to localStorage; needs `POST /api/user/{id}/photo` + `profilePhotoUrl` on `UserResponse`
+- `availableToMeet` toggle removed — needs backend field
+- WebSocket `/ws/map` — reconnect disabled on frontend until David implements the endpoint
+
 ## Current state (as of 2026-04-05)
 - All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`
 - Old `vito/frontend` branch — ignore it
