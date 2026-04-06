@@ -22,10 +22,12 @@ import java.util.Arrays;
 public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
 
-    public AuthController(AuthService authService,
-                          RefreshTokenService refreshService) {
+    private final String REFRESH_COOKIE = "refresh_token";
+
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
@@ -33,7 +35,7 @@ public class AuthController {
     ResponseEntity<AuthResponse> authenticate(@RequestBody LoginRequest loginRequest) {
         TokenResponse tokenResponse = authService.login(loginRequest.username(), loginRequest.password());
 
-        ResponseCookie cookie = buildResponseCookie("refresh_token", tokenResponse.refreshToken());
+        ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, tokenResponse.refreshToken());
 
         log.debug("Returning new JWT.");
         return ResponseEntity.ok()
@@ -43,13 +45,14 @@ public class AuthController {
 
     @PostMapping("/refresh")
     ResponseEntity<AuthResponse> refresh(HttpServletRequest request) {
-        String incomingRefreshToken = extractRequestCookie(request, "refresh_token");
+        log.debug("Attempting to refresh token.");
+        String incomingRefreshToken = extractRequestCookie(request, REFRESH_COOKIE);
 
         TokenResponse tokenResponse = authService.refreshAccessToken(incomingRefreshToken);
         String outgoingRefreshToken = tokenResponse.refreshToken();
         String outgoingAccessToken = tokenResponse.accessToken();
 
-        ResponseCookie cookie = buildResponseCookie("refresh_token", outgoingRefreshToken);
+        ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, outgoingRefreshToken);
 
         log.debug("JWT refreshed: {}. New refresh token: {}",  outgoingAccessToken, outgoingRefreshToken);
         return ResponseEntity.ok()
@@ -60,7 +63,10 @@ public class AuthController {
     }
 
     private String extractRequestCookie(HttpServletRequest request, String name) {
-        return Arrays.stream(request.getCookies())
+        Cookie[] cookies = request.getCookies();
+        if(cookies != null) throw new MissingCookieException(name);
+
+        return Arrays.stream(cookies)
                 .filter(cookie -> cookie.getName().equals(name))
                 .map(Cookie::getValue)
                 .findFirst()
@@ -74,5 +80,4 @@ public class AuthController {
                 .path("/api/auth")
                 .build();
     }
-
 }

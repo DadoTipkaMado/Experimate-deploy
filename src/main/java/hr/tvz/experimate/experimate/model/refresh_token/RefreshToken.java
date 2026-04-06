@@ -49,7 +49,8 @@ public class RefreshToken {
     }
 
     public void updateToken(String token, LocalDateTime expiration) {
-
+        this.token = validateToken(token);
+        this.expirationDateTime = validateExpirationDateTime(expiration);
     }
 
     private LocalDateTime validateExpirationDateTime(LocalDateTime expirationDateTime) {

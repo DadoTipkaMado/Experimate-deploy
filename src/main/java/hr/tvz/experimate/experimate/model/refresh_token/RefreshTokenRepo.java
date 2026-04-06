@@ -10,5 +10,5 @@ public interface RefreshTokenRepo extends JpaRepository<RefreshToken, Integer> {
 
     Optional<RefreshToken> findByUser_Id(Integer id);
 
-    RefreshToken findByToken(String token);
+    Optional<RefreshToken> findByToken(String token);
 }
