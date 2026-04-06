@@ -57,8 +57,7 @@ function initMap() {
    LOAD PINS — fetches tour listings from API
 ─────────────────────────────────────────────── */
 function loadPins() {
-  fetch('/api/tour-listing')
-    .then(res => res.ok ? res.json() : [])
+  apiFetch('/api/tour-listing')
     .then(listings => {
       listings.forEach(listing => {
         if (listing.lat == null || listing.lng == null) return;
