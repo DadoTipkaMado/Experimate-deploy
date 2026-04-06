@@ -316,6 +316,7 @@
     btn.textContent = 'Sending...';
     BookingRequestAPI.create({ guestId, listingId })
       .then(() => {
+        sessionStorage.setItem('pending_' + listingId, '1');
         showToast('Request sent!', 'success');
         btn.textContent = 'Pending';
         btn.classList.remove('btn--primary');
@@ -439,11 +440,14 @@
       const reserved = listing.reserved;
       const hasCoords = listing.lat != null && listing.lng != null;
       const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
-      const reserveBtn = !reserved && currentUserId
-        ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
-        : !reserved
-          ? `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`
-          : '';
+      const isOwnListing = currentUserId && listing.host && listing.host.username === Auth.getUsername();
+      const hasPending = sessionStorage.getItem('pending_' + listing.id);
+      const reserveBtn = isOwnListing ? ''
+        : reserved || hasPending
+          ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Pending</button>`
+          : currentUserId
+            ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
+            : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`;
       const hostName = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
       const hostHandle = listing.host ? listing.host.username : '?';
       const initials = listing.host ? (listing.host.firstName[0] || '') + (listing.host.lastName[0] || '') : '?';
@@ -466,7 +470,7 @@
           <div class="listing-card__foot">
             <div style="display:flex;align-items:center;gap:6px;">
               <div style="width:6px;height:6px;border-radius:50%;background:${reserved ? 'var(--text-3)' : 'var(--accent)'};flex-shrink:0;${reserved ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
-              <div class="listing-card__status${reserved ? '' : ' listing-card__status--available'}">${reserved ? 'Requested' : 'Available'}</div>
+              <div class="listing-card__status${(reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id))) ? '' : ' listing-card__status--available'}">${reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? 'Requested' : 'Available'}</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">${mapBtn}${reserveBtn}</div>
           </div>
