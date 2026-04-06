@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.model.shared;
 import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
+import hr.tvz.experimate.experimate.model.shared.exception.RefreshTokenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -37,9 +38,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(AuthenticationException ex) {
-        ErrorResponse illegalArg = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);
-        return new ResponseEntity<>(illegalArg, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        ErrorResponse authentication = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);
+        return new ResponseEntity<>(authentication, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(RefreshTokenException.class)
+    public ResponseEntity<ErrorResponse> handleAppAuthException(RefreshTokenException ex) {
+        ErrorResponse auth = createErrorResponse(HttpStatus.FORBIDDEN, ex);
+        return new ResponseEntity<>(auth, HttpStatus.FORBIDDEN);
     }
 
     private ErrorResponse createErrorResponse(HttpStatus status, Exception ex) {
