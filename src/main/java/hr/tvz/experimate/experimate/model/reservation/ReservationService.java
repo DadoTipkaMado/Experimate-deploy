@@ -2,15 +2,9 @@ package hr.tvz.experimate.experimate.model.reservation;
 
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
-import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
-import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
-import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
-import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.*;
 import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingRepo;
+import hr.tvz.experimate.experimate.model.tour_listing.*;
 import hr.tvz.experimate.experimate.model.user.User;
 import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
@@ -19,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -44,24 +39,35 @@ public class ReservationService {
         this.publisher = publisher;
     }
 
-    private ReservationResponse createReservation(CreateReservationDto dto) {
-        ValidatedReservationData validatedData = validateCreationDto(dto);
+    @Transactional
+    protected ReservationResponse createReservation(Integer guestId, Integer listingId) {
+        User guest = userRepo.findById(guestId)
+                .orElseThrow(() -> {
+                    log.warn("User not found with id {}", guestId);
+                    return new UserNotFoundException(guestId);
+                });
 
-        User validatedGuest = validatedData.guest();
-        TourListing validatedListing = validatedData.listing();
+        TourListing listing = tourListingRepo.findById(guestId)
+                .orElseThrow(() -> {
+                    log.warn("User not found with id {}", listingId);
+                    return new TourListingNotFoundException(listingId);
+                });
 
-        if (!guestAvailableAtDate(validatedGuest, validatedListing.getMeetingDate().toLocalDate())) {
+        if (!guestAvailableAtDate(guest, listing.getMeetingDate().toLocalDate())) {
             log.warn("Guest with id {} has already booked a listing on the date {}.",
-                    validatedGuest.getId(), validatedListing.getMeetingDate().toLocalDate());
-            throw new GuestAlreadyBookedException(validatedGuest.getId());
+                    guest.getId(), listing.getMeetingDate().toLocalDate());
+            throw new GuestAlreadyBookedException(guest.getId());
         }
 
         Reservation reservation = reservationRepo.save(
                 new Reservation(
-                        validatedGuest,
-                        validatedListing
+                        guest,
+                        listing
                 ));
-        validatedListing.setReserved(true);
+        publisher.publishEvent(new TourListingReservedEvent(
+                listingId,
+                new UpdateTourListingDto(null, null, true)
+        ));
 
         log.info("Created reservation with id {}", reservation.getId());
 
@@ -90,36 +96,6 @@ public class ReservationService {
                     "Reservation with id %d could not be deleted. Not found.".formatted(id
                     ));
         }
-    }
-
-    private ValidatedReservationData validateCreationDto(CreateReservationDto dto) {
-        User guest = extractUser(dto);
-        TourListing listing = extractListing(dto);
-
-        if (dto.guestId().equals(listing.getHost().getId())) {
-            log.warn("Guest's id matches host's id {}", guest.getId());
-            throw new IllegalArgumentException(
-                    "Guest id cannot be the same as the tour listing's host id."
-            );
-        }
-
-        if (listing.isReserved()) {
-            log.warn("Tour listing with id {} is already reserved!", listing.getId());
-            throw new TourListingAlreadyReservedException(listing.getId());
-        }
-
-        return new ValidatedReservationData(guest, listing);
-    }
-
-    private User extractUser(CreateReservationDto dto) {
-        return userRepo.findById(dto.guestId())
-                .orElseThrow(() -> new UserNotFoundException(dto.guestId()));
-
-    }
-
-    private TourListing extractListing(CreateReservationDto dto) {
-        return tourListingRepo.findById(dto.tourListingId())
-                .orElseThrow(() -> new TourListingNotFoundException(dto.tourListingId()));
     }
 
     private record ValidatedReservationData(User guest, TourListing listing) {
@@ -169,7 +145,7 @@ public class ReservationService {
 
     @EventListener
     void handleBookingRequestAccepted(BookingRequestAcceptedEvent event) {
-        createReservation(new CreateReservationDto(event.guestId(), event.listingId()));
+        createReservation(event.guestId(), event.listingId());
     }
 
     private ReservationResponse createReservationResponse(Reservation reservation){
