@@ -1,10 +1,7 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
-import hr.tvz.experimate.experimate.model.shared.event.ReservationsDeletedEvent;
-import hr.tvz.experimate.experimate.model.shared.event.TourListingDeletedEvent;
-import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedForHostEvent;
-import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.*;
 import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.model.user.User;
 import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
@@ -150,6 +147,12 @@ public class TourListingService {
                 });
 
         log.info("{} listings flagged as not reserved.", count);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    void handleTourListingReservedEvent(TourListingReservedEvent event) {
+        updateListing(event.listingId(), event.updateDetails());
+        log.info("Tour listing with id {} is now reserved.", event.listingId());
     }
 
     private void deleteListingsByHostId(Integer hostId) {
