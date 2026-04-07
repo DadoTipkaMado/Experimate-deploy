@@ -15,12 +15,12 @@ function showToast(message, type = 'default') {
   if (!toast) return;
 
   toast.textContent = message;
-  toast.classList.add('toast--visible');
+  toast.className = 'toast toast--visible' + (type !== 'default' ? ' toast--' + type : '');
 
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => {
     toast.classList.remove('toast--visible');
-  }, 2200);
+  }, 2400);
 }
 
 /* ───────────────────────────────────────────────
@@ -126,21 +126,41 @@ function initDateInputs() {
   document.querySelectorAll('[data-date-format]').forEach(input => {
     const mode = input.dataset.dateFormat; // "date" or "datetime"
     input.addEventListener('keydown', e => {
-      // Allow backspace, delete, tab, arrows
       if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
-      // Only allow digits
       if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
     });
-    input.addEventListener('input', () => {
+    let _padTimer = null;
+    input.addEventListener('input', e => {
+      clearTimeout(_padTimer);
+      const adding = !e.inputType || e.inputType.startsWith('insert');
       let digits = input.value.replace(/\D/g, '');
       const max  = mode === 'datetime' ? 12 : 8;
       if (digits.length > max) digits = digits.slice(0, max);
-      input.value = mode === 'datetime'
-        ? formatDatetime(digits)
-        : formatDate(digits);
+
+      if (adding && mode !== 'datetime') {
+        // Immediate leading zero: day digit > 3 or month digit > 1 can only mean 0x
+        if (digits.length === 1 && parseInt(digits) > 3) {
+          digits = '0' + digits;
+        } else if (digits.length === 3 && parseInt(digits[2]) > 1) {
+          digits = digits.slice(0, 2) + '0' + digits.slice(2);
+        } else if (digits.length === 1 || digits.length === 3) {
+          // Ambiguous (1/2/3 for day, 1 for month): wait 500ms, then pad if still same length
+          const snapshot = digits;
+          _padTimer = setTimeout(() => {
+            let cur = input.value.replace(/\D/g, '');
+            if (cur === snapshot) {
+              if (cur.length === 1) cur = '0' + cur;
+              else if (cur.length === 3) cur = cur.slice(0, 2) + '0' + cur.slice(2);
+              input.value = formatDate(cur);
+            }
+          }, 300);
+        }
+      }
+
+      input.value = mode === 'datetime' ? formatDatetime(digits) : formatDate(digits);
     });
     input.addEventListener('blur', () => {
-      // Auto-pad: 5/3/2000 → 05/03/2000
+      // Pad on blur: 5/3/2000 → 05/03/2000
       const parts = input.value.split('/');
       if (parts.length >= 2) {
         parts[0] = parts[0].padStart(2, '0');
@@ -184,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shell = document.querySelector('.app-shell');
     if (shell) {
       shell.classList.add('app-shell--exit');
-      setTimeout(() => { window.location.href = href; }, 19);
+      window.location.href = href;
     } else {
       window.location.href = href;
     }

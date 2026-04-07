@@ -63,8 +63,7 @@ function connectWebSocket() {
   };
 
   _ws.onclose = () => {
-    console.info('websocket.js: connection closed, retrying...');
-    scheduleReconnect();
+    // WebSocket endpoint not yet implemented on backend — don't retry
   };
 }
 
