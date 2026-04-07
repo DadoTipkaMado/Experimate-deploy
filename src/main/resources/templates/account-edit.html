@@ -81,15 +81,14 @@
           <div class="photo-picker__preview" id="photo-preview" onclick="document.getElementById('photo-file').click()">
             <span id="photo-initials" style="font-family:var(--font-display);font-weight:800;font-size:28px;"></span>
           </div>
-          <!-- Hidden file input — TODO: when David adds POST /api/user/{id}/photo,
-               upload selectedFile here instead of writing base64 to localStorage -->
+          <!-- File input — base64 data URL sent via profilePhotoUrl in UpdateUserDto -->
           <input type="file" id="photo-file" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)">
           <div style="display:flex;flex-direction:column;gap:4px;">
             <span class="photo-picker__label" onclick="document.getElementById('photo-file').click()">Change photo</span>
             <span class="photo-picker__remove" id="photo-remove" onclick="removePhoto()">Remove photo</span>
           </div>
         </div>
-        <span class="form-field__hint" id="photo-hint">Stored locally on this device until backend upload is available</span>
+        <span class="form-field__hint" id="photo-hint">Photo is saved to your profile</span>
       </div>
 
       <hr class="form-divider">
@@ -125,15 +124,16 @@
 
   let pendingPhotoBase64 = null;   // set when user picks a new file
   let removePhotoFlag    = false;  // set when user hits "Remove photo"
+  let currentPhotoUrl    = null;   // loaded from API on prefill
 
   // Prefill form + photo preview
   UserAPI.getById(userId).then(user => {
     document.getElementById('username').value = user.username ?? '';
     document.getElementById('bio').value      = user.bio ?? '';
 
-    const storedPhoto = localStorage.getItem('photo_' + userId);
-    if (storedPhoto) {
-      showPhotoPreview(storedPhoto);
+    currentPhotoUrl = user.profilePhotoUrl || localStorage.getItem('photo_' + userId) || null;
+    if (currentPhotoUrl) {
+      showPhotoPreview(currentPhotoUrl);
     } else {
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
@@ -153,7 +153,7 @@
     preview.style.borderColor = 'var(--accent-border)';
     preview.innerHTML = `<img src="${src}" alt="Profile photo">`;
     document.getElementById('photo-remove').style.display = '';
-    document.getElementById('photo-hint').textContent = 'New photo selected — will save when you click Save';
+    document.getElementById('photo-hint').textContent = 'Photo will be saved when you click Save';
   }
 
   function handlePhotoSelect(input) {
@@ -181,7 +181,7 @@
     preview.style.borderStyle   = 'dashed';
     preview.style.borderColor   = 'var(--border-2)';
     preview.innerHTML = `<span id="photo-initials" style="font-family:var(--font-display);font-weight:800;font-size:28px;color:hsl(${hue},60%,72%);">${initials}</span>`;
-    document.getElementById('photo-hint').textContent = 'Stored locally on this device until backend upload is available';
+    document.getElementById('photo-hint').textContent = 'Photo is saved to your profile';
   }
 
   document.getElementById('edit-form').addEventListener('submit', async function(e) {
@@ -198,10 +198,16 @@
       return;
     }
 
+    let photoUrl;
+    if (pendingPhotoBase64)   photoUrl = pendingPhotoBase64;
+    else if (removePhotoFlag) photoUrl = null;
+    else                      photoUrl = currentPhotoUrl;
+
     const dto = {
-      username: document.getElementById('username').value,
-      bio:      document.getElementById('bio').value || null,
-      password: password || null,
+      username:        document.getElementById('username').value,
+      bio:             document.getElementById('bio').value || null,
+      password:        password || null,
+      profilePhotoUrl: photoUrl,
     };
 
     const btn = document.querySelector('#edit-form button[type="submit"]');
@@ -209,10 +215,9 @@
     try {
       await UserAPI.update(userId, dto);
 
-      // TODO: when David adds POST /api/user/{id}/photo, send pendingPhotoBase64 (or the raw File)
-      // there instead of writing to localStorage. Remove the localStorage block below at that point.
-      if (pendingPhotoBase64)       localStorage.setItem('photo_' + userId, pendingPhotoBase64);
-      else if (removePhotoFlag)     localStorage.removeItem('photo_' + userId);
+      // Keep localStorage in sync for topbar avatar IIFE
+      if (pendingPhotoBase64)   localStorage.setItem('photo_' + userId, pendingPhotoBase64);
+      else if (removePhotoFlag) localStorage.removeItem('photo_' + userId);
 
       btn.textContent = 'Saved ✓';
       showToast('Profile saved!');
