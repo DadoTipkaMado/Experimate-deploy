@@ -98,6 +98,121 @@ public class ReservationService {
         }
     }
 
+    public CheckInResponse checkUserIn(Integer userId, Integer reservationId) {
+        Reservation reservation = reservationRepo.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found with id {}", reservationId);
+                    return new ReservationNotFoundException(reservationId);
+                });
+
+        if (!reservation.getStatus().equals(ReservationStatus.CONFIRMED))
+            throw new IllegalReservationStateException("Users can be checked into reservation only during 'CONFIRMED' phase");
+
+        if (reservation.getGuest().getId().equals(userId)
+                && !reservation.isGuestCheckedIn()) {
+            reservation.checkGuestIn();
+            log.info("Guest with id {} checked in for reservation with id {}", userId, reservationId);
+        } else if (reservation.getTourListing().getHost().getId().equals(userId)
+                && !reservation.isHostCheckedIn()) {
+            reservation.checkHostIn();
+            log.info("Host with id {} checked in for reservation with id {}", userId, reservationId);
+        } else {
+            log.warn("Not a participant, cannot check in.");
+            throw new IllegalArgumentException("User with id %d is not a participant of reservation with id %d"
+                    .formatted(userId, reservationId));
+        }
+
+        if (reservation.bothCheckedIn()) {
+            reservation.activate();
+            log.info("Reservation with id {} activated.",  reservationId);
+        }
+
+        reservationRepo.save(reservation);
+        log.info("User with id {} checked in for reservation with id {}", userId,  reservation.getId());
+
+        return new CheckInResponse(
+                reservation.getId(),
+                reservation.getStatus(),
+                reservation.isGuestCheckedIn(),
+                reservation.isHostCheckedIn(),
+                reservation.getGuestCheckInTimestamp(),
+                reservation.getHostCheckInTimestamp(),
+                reservation.getStartTimestamp()
+        );
+    }
+
+    public EndTourResponse endTour(Integer userId, Integer reservationId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("User not found with id {}", userId);
+                    return new UserNotFoundException(userId);
+                });
+
+        Reservation reservation = reservationRepo.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found with id {}", reservationId);
+                    return new ReservationNotFoundException(reservationId);
+                });
+
+        if (!reservation.getStatus().equals(ReservationStatus.ACTIVE))
+            throw new IllegalReservationStateException("Tour can be ended only during 'ACTIVE' phase.");
+
+        if (!reservation.getGuest().getId().equals(userId) &&
+                !reservation.getTourListing().getHost().getId().equals(user.getId())) {
+            log.warn("Not a participant, cannot end tour.");
+            throw new IllegalArgumentException("User with id %d is not a participant of reservation with id %d"
+                    .formatted(userId, reservationId));
+        }
+
+        reservation.endBy(user);
+        reservationRepo.save(reservation);
+        log.info("Reservation with id {} has ended.", reservation.getId());
+
+        return new EndTourResponse(
+                reservation.getId(),
+                reservation.getStatus(),
+                reservation.getEndedBy().getUsername(),
+                reservation.getEndTimestamp()
+        );
+    }
+
+    public CancelTourResponse cancelTour(Integer userId, Integer reservationId) {
+        Reservation reservation = reservationRepo.findById(reservationId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found with id {}", reservationId);
+                    return new ReservationNotFoundException(reservationId);
+                });
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("User not found with id {}", userId);
+                    return new UserNotFoundException(userId);
+                });
+
+        if (!reservation.getStatus().equals(ReservationStatus.CONFIRMED))
+            throw new IllegalReservationStateException("Reservation can be cancelled only during 'CONFIRMED' phase.");
+
+        if (!reservation.getGuest().getId().equals(user.getId()) &&
+                !reservation.getTourListing().getHost().getId().equals(user.getId())) {
+            log.warn("Not a participant, cannot cancel tour.");
+            throw new IllegalArgumentException("User with id %d is not a participant of reservation with id %d"
+                    .formatted(userId, reservationId));
+        }
+
+        reservation.cancel();
+        reservationRepo.save(reservation);
+        log.info("Reservation with id {} has been cancelled by user with id {}",
+                reservation.getId(),
+                user.getId());
+
+        return new CancelTourResponse(
+                reservation.getId(),
+                reservation.getStatus(),
+                user.getUsername(),
+                reservation.getCancelTimeStamp()
+        );
+    }
+
     private record ValidatedReservationData(User guest, TourListing listing) {
     }
 
@@ -120,9 +235,9 @@ public class ReservationService {
     }
 
     @EventListener
-    void handleListingsDeletedForHost(TourListingsDeletedForHostEvent event){
+    void handleListingsDeletedForHost(TourListingsDeletedForHostEvent event) {
         Integer hostId = event.hostId();
-        if(!reservationRepo.existsByTourListing_Host_Id(hostId)) {
+        if (!reservationRepo.existsByTourListing_Host_Id(hostId)) {
             log.warn("Cannot find a single reservation for host with id {}", hostId);
             return;
         }
@@ -131,9 +246,9 @@ public class ReservationService {
     }
 
     @EventListener
-    void handleUserDeleted(UserDeletedEvent event){
+    void handleUserDeleted(UserDeletedEvent event) {
         Integer guestId = event.userId();
-        if(!reservationRepo.existsByGuest_Id(guestId)){
+        if (!reservationRepo.existsByGuest_Id(guestId)) {
             log.warn("Could not find a single reservation for guest with id {}", guestId);
             return;
         }
@@ -148,7 +263,7 @@ public class ReservationService {
         createReservation(event.guestId(), event.listingId());
     }
 
-    private ReservationResponse createReservationResponse(Reservation reservation){
+    private ReservationResponse createReservationResponse(Reservation reservation) {
         TourListing tourListing = reservation.getTourListing();
         User host = tourListing.getHost();
         User guest = reservation.getGuest();
