@@ -8,10 +8,12 @@ import java.util.Collection;
 import java.util.List;
 
 public class AppUserDetails implements UserDetails {
+    private Integer id;
     private String username;
     private String password;
 
-    public AppUserDetails(String username, String password) {
+    public AppUserDetails(Integer id, String username, String password) {
+        this.id = id;
         this.username = username;
         this.password = password;
     }
@@ -30,5 +32,9 @@ public class AppUserDetails implements UserDetails {
     @Override
     public String getUsername() {
         return username;
+    }
+    
+    public Integer getId(){
+        return id;
     }
 }
