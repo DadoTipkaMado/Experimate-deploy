@@ -138,6 +138,9 @@
     }
     .meet-card__rate:hover { background: var(--accent); color: #000; }
     .badge--rated { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); flex-shrink: 0; }
+    .meet-card__here { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); flex-shrink: 0; opacity: 0.4; cursor: not-allowed; }
+    /* ── LISTING DETAIL MODAL ── */
+    .listing-modal__desc { font-size: 12px; color: rgba(239,239,239,0.65); line-height: 1.75; max-height: 40vh; overflow-y: auto; }
   </style>
 </head>
 <body>
@@ -251,6 +254,24 @@
   </div>
 </div>
 
+<!-- ── LISTING DETAIL MODAL ── -->
+<div id="listing-modal" class="modal-backdrop">
+  <div class="modal-card" style="max-height:82vh;overflow-y:auto;gap:12px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+      <div>
+        <div id="lm-city" style="font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--text);letter-spacing:-0.01em;"></div>
+        <div id="lm-host" style="font-size:10px;color:var(--accent);letter-spacing:0.06em;margin-top:5px;"></div>
+      </div>
+      <div id="lm-date" style="font-size:10px;color:var(--text-2);letter-spacing:0.06em;text-align:right;flex-shrink:0;padding-top:2px;"></div>
+    </div>
+    <div id="lm-desc" class="listing-modal__desc"></div>
+    <div id="lm-foot" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"></div>
+    <div class="modal-actions" style="margin-top:0;">
+      <button onclick="closeListingModal()" class="btn btn--ghost">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── RATING MODAL ── -->
 <div id="rating-modal" class="modal-backdrop">
   <div class="modal-card">
@@ -276,6 +297,42 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let _allListings = [];
+
+  /* ── Listing detail modal ── */
+  function openListingModal(listingId) {
+    const listing = _allListings.find(l => l.id === listingId);
+    if (!listing) return;
+    const currentUserId = Auth.getUserId();
+    const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
+    const hostHandle = listing.host?.username ?? '';
+    document.getElementById('lm-city').textContent = listing.city;
+    document.getElementById('lm-host').innerHTML = `${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span>`;
+    document.getElementById('lm-date').innerHTML = `${fmtDate(listing.meetingDate)}<br><span style="font-size:9px;color:var(--text-3);">${fmtTime(listing.meetingDate)}</span>`;
+    document.getElementById('lm-desc').textContent = listing.tourDescription;
+    const isOwn    = currentUserId && listing.host?.username === Auth.getUsername();
+    const isPending = sessionStorage.getItem('pending_' + listing.id);
+    const hasCoords = listing.lat != null && listing.lng != null;
+    const mapBtn = hasCoords
+      ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
+      : '';
+    const reserveBtn = isOwn ? ''
+      : listing.reserved || isPending
+        ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>${isPending ? 'Pending' : 'Booked'}</button>`
+        : currentUserId
+          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
+          : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`;
+    const dot = `<div style="display:flex;align-items:center;gap:6px;margin-right:auto;">
+      <div style="width:6px;height:6px;border-radius:50%;background:${listing.reserved ? 'var(--text-3)' : isPending ? '#ff9944' : 'var(--accent)'};${listing.reserved || isPending ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
+      <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${listing.reserved || isPending ? 'var(--text-3)' : 'var(--accent)'};">${listing.reserved ? 'Booked' : isPending ? 'Requested' : 'Available'}</div>
+    </div>`;
+    document.getElementById('lm-foot').innerHTML = dot + mapBtn + reserveBtn;
+    document.getElementById('listing-modal').classList.add('modal-backdrop--visible');
+  }
+  function closeListingModal() {
+    document.getElementById('listing-modal').classList.remove('modal-backdrop--visible');
+  }
+  document.getElementById('listing-modal').addEventListener('click', function(e) { if (e.target === this) closeListingModal(); });
 
   function fmtDate(iso) {
     const d = new Date(iso);
@@ -410,6 +467,7 @@
 
   /* ── Render listings ── */
   function renderListings(listings) {
+    _allListings = listings || [];
     const currentUserId = Auth.getUserId();
     const cityBar = document.getElementById('city-filter-bar');
     const list    = document.getElementById('listings-list');
@@ -452,13 +510,13 @@
       const hostHandle = listing.host ? listing.host.username : '?';
       const initials = listing.host ? (listing.host.firstName[0] || '') + (listing.host.lastName[0] || '') : '?';
       return `
-        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.05}s;">
+        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.05}s;cursor:pointer;" onclick="openListingModal(${listing.id})">
           <div class="listing-card__head">
             <div style="flex:1;min-width:0;">
               <div class="listing-card__city">${listing.city}</div>
               <div style="display:flex;align-items:center;gap:7px;margin-top:5px;">
                 <div style="width:22px;height:22px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">${initials.toUpperCase()}</div>
-                <div class="listing-card__host">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></div>
+                <a href="/explore?q=${hostHandle}" class="listing-card__host" style="text-decoration:none;" onclick="event.stopPropagation()">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>
               </div>
             </div>
             <div style="text-align:right;flex-shrink:0;padding-top:2px;">
@@ -478,7 +536,7 @@
               <div style="width:6px;height:6px;border-radius:50%;background:${reserved ? 'var(--text-3)' : (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? '#ff9944' : 'var(--accent)'};flex-shrink:0;${reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? '' : 'box-shadow:0 0 6px var(--accent);'}"></div>
               <div class="listing-card__status${reserved || (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? '' : ' listing-card__status--available'}">${reserved ? 'Booked' : (currentUserId && sessionStorage.getItem('pending_' + listing.id)) ? 'Requested' : 'Available'}</div>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;">${mapBtn}${reserveBtn}</div>
+            <div style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">${mapBtn}${reserveBtn}</div>
           </div>
         </div>`;
     }).join('');
@@ -511,7 +569,10 @@
         ? (alreadyRated
             ? `<div class="badge--rated">Rated ✓</div>`
             : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">Rate</button>`)
-        : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>`;
+        : `<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
+             <button class="meet-card__here" disabled title="Coming soon — you and your host will confirm the meetup here">I'm here</button>
+             <button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>
+           </div>`;
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
           <div class="meet-card__date">
