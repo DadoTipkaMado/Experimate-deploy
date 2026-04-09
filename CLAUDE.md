@@ -73,20 +73,29 @@
 
 ---
 
-## Current state (as of 2026-04-06)
+## Current state (as of 2026-04-09)
 - Full local-test smoke tested — register, login, create tour, request, accept, rate all working
 - Listing status dot has 3 states: Available (teal) / Requested (orange, sessionStorage) / Booked (grey, reserved=true)
 - map.js now uses apiFetch — pins load correctly with auth
 - WebSocket reconnect disabled — backend endpoint not yet implemented
 - Page transitions removed entirely
-- Description minimum is 200 chars (backend enforces via IllegalArgumentException → 400)
+- Description minimum is 200 chars — counter turns teal at 200 (red below)
 - `BookingRequest.status` column fixed to VARCHAR(20) in local-test — David needs same fix on his branch
 - Rating system works — Rate button appears on past tours in My Tours tab
+- `RatingAPI` fully wired: `getAll`, `getById`, `create`, `update`, `delete`
+- `profilePhotoUrl` now in `UserResponse` — account.html reads from API first, syncs to localStorage for topbar
+- `account.html` has "Overview" / "My Listings" tab bar — My Listings shows own listings with delete
+- `tours.html` — tap any listing card to open full-description modal with Reserve/Map buttons
+- `tours.html` — upcoming meetup cards have disabled "I'm here" placeholder button (ready for David's endpoint)
+- `tours.html` — host name on listing cards links to `/explore?q={username}`
+- `explore.js` — pre-fills search from `?q=` URL param
+- `experiences.html` and `tour-listings.html` — dead/unlinked templates, ignore them
 
-## Known pending issues (waiting on David) — updated 2026-04-06
+## Known pending issues (waiting on David) — updated 2026-04-09
 - **`ReservationService.createReservation`** — `validatedListing.setReserved(true)` is called but method is not `@Transactional` and listing is not explicitly saved. Fix: add `@Transactional` to `createReservation` or call `tourListingRepo.save(validatedListing)` after setting reserved.
 - **`BookingRequest.status`** — needs `@Column(columnDefinition = "VARCHAR(20)")` alongside `@Enumerated(EnumType.STRING)` in `BookingRequest.java` (H2 creates ENUM type otherwise, breaks queries)
-- Profile photo — file picker built, saves base64 to localStorage; needs `POST /api/user/{id}/photo` + `profilePhotoUrl` on `UserResponse`
+- **`BookingRequestResponse`** — only returns `{ id, status }`. Needs `guest { firstName, lastName, username }` and `tourListing { id, city, meetingDate, host }` — frontend already handles both cases gracefully
+- **"I'm here" / meeting confirmation flow** — David's design: both parties tap "I'm here" → confirmation dialog → blocking overlay → "We're done" → rating prompt. Disabled button is already on the UI, needs backend endpoint.
 - `availableToMeet` toggle removed — needs backend field
 - WebSocket `/ws/map` — reconnect disabled on frontend until David implements the endpoint
 
@@ -111,30 +120,56 @@
 ## Response DTO status
 | DTO | Status | Shape |
 |-----|--------|-------|
-| `UserResponse` | ✅ DONE | `id, username, firstName, lastName, bio, rating` |
+| `UserResponse` | ✅ DONE | `id, username, firstName, lastName, bio, rating, profilePhotoUrl` |
 | `TourListingResponse` | ✅ DONE | `id, city, lat, lng, meetingDate, postDate, tourDescription, reserved, host{firstName, lastName, username}` |
 | `ReservationResponse` | ✅ DONE | `id, dateOfReservation, tourListing{meetingDate, city, host{firstName, lastName, username}}, guest{firstName, lastName, username}` |
+| `BookingRequestResponse` | ⚠️ SLIM | `id, status` — needs guest + tourListing fields |
+| `RatingResponse` | ✅ DONE | `id, score, review` |
+| `CreateRatingDto` | ✅ DONE | `raterId, ratedId, score, review` |
 
 - JS uses `listing.lat` / `listing.lng` — matches `TourListingResponse` naming
 - `CreateTourListingDto` uses full `latitude`/`longitude` — `listings-new.html` is correct
 - `AuthResponse` only returns `{ token }` — no id, login falls back to `UserAPI.getAll()` to resolve userId
 - `guest` in `ReservationResponse` has no `id` — "My Tours" tab filters by `guest.username` via `Auth.getUsername()`
 - `BookingRequestAPI` wired up with all endpoints (create, accept, decline, getAll, getById, delete)
+- `RatingAPI` wired up with all endpoints (getAll, getById, create, update, delete)
 - Reserve button uses `POST /booking-request` with `{ guestId, listingId }`
+- Rating submit resolves `ratedId` by calling `UserAPI.getAll()` and matching by username
 
 ## Available to meet toggle — REMOVED (temporarily)
 - Removed from `account.html` because `User` entity and `UpdateUserDto` have no `availableToMeet` field
 - When David adds the field to backend, add back the toggle UI and `toggleAvailability()` JS function
 
-## Known pending issues (waiting on David)
-- Profile photo — file picker built, saves base64 to `localStorage` as workaround; needs `POST /api/user/{id}/photo` (multipart) + `profilePhotoUrl` on `UserResponse`; TODO comment in `account-edit.html` submit handler marks the swap point
-- `BookingRequestResponse` only returns `{ id, status }` — needs `guest { firstName, lastName, username }` and `tourListing { id, city, meetingDate }` to show useful data in booking requests section
-- `availableToMeet` needs backend infrastructure before toggle can be re-added
-- JWT refresh wired — David's `/api/auth/refresh` uses httpOnly cookie, frontend handles 401 → refresh → retry automatically
-
 ## Ready to test
 - Needs David to merge both branches into `main`
-- Smoke test: reserve button, My Tours tab, map pins, JWT refresh on expiry, booking requests accept/decline
+- Smoke test: reserve button, My Tours tab, map pins, JWT refresh on expiry, booking requests accept/decline, listing modal, My Listings tab + delete, rating flow
+
+---
+
+## Session log — 2026-04-09 (RatingAPI, photo sync, UI polish pass)
+
+### Što je napravljeno
+- **`RatingAPI.getById`** — added missing method to `api.js`
+- **Profile photo sync** — `account.html` now syncs `user.profilePhotoUrl` to `localStorage` on load so the topbar IIFE always reflects the latest photo; stale localStorage cleared if server has no photo
+- **Description counter** — turns red below 200 chars, teal at or above (visual feedback for backend minimum)
+- **My Listings tab** — `account.html` now has "Overview" / "My Listings" tab bar; My Listings tab renders own listings (reuses already-fetched data) with city, date, status dot, and a Delete button (`TourListingAPI.delete`)
+- **Listing full-description modal** — tapping any listing card in `tours.html` opens a modal with the full (untruncated) description, host, date, status dot, and working Reserve/Map buttons; buttons inside cards use `stopPropagation` to not bubble to modal
+- **"I'm here" placeholder** — disabled teal button added to upcoming meetup cards in My Tours tab, tooltip explains it's coming; ready to wire when David adds the backend endpoint
+- **Host profile link** — host name on listing cards now links to `/explore?q={username}`
+- **`explore.js` URL param** — `?q=` pre-fills search on load and filters to that user's card
+- **Booking requests filter** — graceful fallback: shows all PENDING if `tourListing.host` isn't in the response yet; card renders guest name/handle/city/date when available, honest placeholder when not
+- **Dead templates** — `experiences.html` and `tour-listings.html` confirmed unlinked (no routes); safe to ignore
+
+### David pushed (2026-04-08)
+- `RatingController` — `POST/GET/PATCH/DELETE /api/rating` all live
+- `UserResponse` now includes `profilePhotoUrl`
+- `TourListingReservedEvent` — internal backend event, no frontend action needed
+
+### Čeka David
+- `BookingRequestResponse` expand with `guest { firstName, lastName, username }` + `tourListing { id, city, meetingDate, host }`
+- "I'm here" / meeting confirmation endpoint (both parties confirm → rating prompt)
+- `availableToMeet` field on User entity
+- WebSocket `/ws/map`
 
 ---
 
