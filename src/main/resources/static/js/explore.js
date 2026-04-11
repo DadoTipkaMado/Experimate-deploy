@@ -86,6 +86,13 @@ function initSearch() {
     // Recalculate heights after filter
     setCardHeights();
   });
+
+  // Pre-fill from ?q= URL param (e.g. coming from host link on tours page)
+  const urlQ = new URLSearchParams(window.location.search).get('q');
+  if (urlQ) {
+    input.value = urlQ;
+    input.dispatchEvent(new Event('input'));
+  }
 }
 
 /* ───────────────────────────────────────────────
