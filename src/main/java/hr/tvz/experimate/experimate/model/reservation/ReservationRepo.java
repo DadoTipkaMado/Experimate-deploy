@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     boolean existsByGuestAndTourListing_MeetingDateBetween(User guest, LocalDateTime start, LocalDateTime end);
@@ -18,4 +19,8 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
 
     int deleteAllByTourListing_Host_Id(Integer hostId);
     int deleteAllByGuest_Id(Integer guestId);
+
+    List<Reservation> findAllByStatusAndEndTimestampBefore(ReservationStatus status, LocalDateTime endTimestampBefore);
+
+    Optional<Reservation> findByGuest_IdAndTourListing_Host_IdAndStatus(Integer guestId, Integer tourListingHostId, ReservationStatus status);
 }

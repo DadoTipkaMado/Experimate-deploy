@@ -1,12 +1,14 @@
 package hr.tvz.experimate.experimate.model.rating;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
 public interface RatingRepo extends JpaRepository<Rating, Integer> {
 
-    List<Rating> findAllByRated_Id(Integer ratedId);
+    @Query("SELECT AVG(score) FROM Rating WHERE rated.id = :userId")
+    Double averageRatingScoreByUserId(Integer userId);
 
     boolean existsByRater_IdAndRated_Id(Integer raterId, Integer ratedId);
 

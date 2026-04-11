@@ -1,12 +1,15 @@
 package hr.tvz.experimate.experimate.model.rating;
 
 import hr.tvz.experimate.experimate.model.booking_request.BookingRequest;
+import hr.tvz.experimate.experimate.model.shared.event.RatingCreatedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.User;
 import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,30 +24,49 @@ public class RatingService {
 
     private final RatingRepo ratingRepo;
     private final UserRepo userRepo;
+    private final ApplicationEventPublisher publisher;
 
-    public RatingService(RatingRepo ratingRepo, UserRepo userRepo) {
+    public RatingService(RatingRepo ratingRepo, UserRepo userRepo, ApplicationEventPublisher publisher) {
         this.ratingRepo = ratingRepo;
         this.userRepo = userRepo;
+        this.publisher = publisher;
     }
 
+    @Transactional
     public RatingResponse createRating(CreateRatingDto dto) {
         User rater = userRepo.findById(dto.raterId())
                 .orElseThrow(() -> new UserNotFoundException(dto.raterId()));
         User rated = userRepo.findById(dto.ratedId())
                 .orElseThrow(() -> new UserNotFoundException(dto.ratedId()));
 
+        if(rater == rated)
+            throw new IllegalArgumentException("User cannot rate themselves.");
+
+        if(ratingRepo.existsByRater_IdAndRated_Id(rater.getId(), rated.getId()))
+            throw new DuplicateRatingException(rater.getId(), rated.getId());
+
         Rating rating = new Rating(rater, rated, dto.score(), dto.review());
         ratingRepo.save(rating);
 
-        recalculateRating(rated);
-
         log.info("Rating created with id {}", rating.getId());
 
-        return new RatingResponse(
+        RatingResponse response = new RatingResponse(
                 rating.getId(),
                 rating.getScore(),
                 rating.getReview()
         );
+
+        publisher.publishEvent(new RatingCreatedEvent(
+                rater.getId(),
+                rated.getId())
+        );
+
+        publisher.publishEvent(new RatingRecalculatedEvent(
+                rated.getId(),
+                ratingRepo.averageRatingScoreByUserId(rated.getId())
+        ));
+
+        return response;
     }
 
     public Optional<RatingResponse> getRatingById(Integer id) {
@@ -67,6 +89,7 @@ public class RatingService {
                 .toList();
     }
 
+    @Transactional
     public RatingResponse updateRating(Integer id, UpdateRatingDto dto) {
         Rating rating = ratingRepo.findById(id)
                 .orElseThrow(() -> new RatingNotFoundException(id));
@@ -77,9 +100,13 @@ public class RatingService {
             rating.setReview(dto.review());
 
         ratingRepo.save(rating);
-        recalculateRating(rating.getRated());
 
         log.info("Rating updated with id {}", id);
+
+        publisher.publishEvent(new RatingRecalculatedEvent(
+                rating.getRated().getId(),
+                ratingRepo.averageRatingScoreByUserId(rating.getRated().getId())
+        ));
 
         return new RatingResponse(
                 rating.getId(),
@@ -98,7 +125,11 @@ public class RatingService {
 
         User rated = rating.getRated();
         ratingRepo.deleteById(id);
-        recalculateRating(rated);
+
+        publisher.publishEvent(new RatingRecalculatedEvent(
+                rated.getId(),
+                ratingRepo.averageRatingScoreByUserId(rated.getId())
+        ));
 
         log.info("Rating deleted with id {}", id);
     }
@@ -110,13 +141,6 @@ public class RatingService {
         log.info("Deleted all ratings for user with id {}", event.userId());
     }
 
-    private void recalculateRating(User rated) {
-        List<Rating> ratings = ratingRepo.findAllByRated_Id(rated.getId());
+    //TODO popravi kaj si zdrko na poslu tu, provjeri logiku i flow ratinga sa userima
 
-        double average = ratings.isEmpty() ? 0.0
-                : ratings.stream().mapToInt(Rating::getScore).average().orElse(0.0);
-
-        rated.setRating(average);
-        userRepo.save(rated);
-    }
 }
