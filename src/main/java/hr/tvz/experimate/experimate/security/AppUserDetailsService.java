@@ -22,6 +22,7 @@ public class AppUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         return new AppUserDetails(
+                user.getId(),
                 user.getUsername(),
                 user.getPassword()
         );

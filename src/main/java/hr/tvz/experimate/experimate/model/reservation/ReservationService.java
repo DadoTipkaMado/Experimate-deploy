@@ -12,10 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,9 +51,9 @@ public class ReservationService {
                     return new UserNotFoundException(guestId);
                 });
 
-        TourListing listing = tourListingRepo.findById(guestId)
+        TourListing listing = tourListingRepo.findById(listingId)
                 .orElseThrow(() -> {
-                    log.warn("User not found with id {}", listingId);
+                    log.warn("Tour listing not found with id {}", listingId);
                     return new TourListingNotFoundException(listingId);
                 });
 
@@ -124,11 +128,11 @@ public class ReservationService {
 
         if (reservation.bothCheckedIn()) {
             reservation.activate();
-            log.info("Reservation with id {} activated.",  reservationId);
+            log.info("Reservation with id {} activated.", reservationId);
         }
 
         reservationRepo.save(reservation);
-        log.info("User with id {} checked in for reservation with id {}", userId,  reservation.getId());
+        log.info("User with id {} checked in for reservation with id {}", userId, reservation.getId());
 
         return new CheckInResponse(
                 reservation.getId(),
@@ -261,6 +265,48 @@ public class ReservationService {
     @EventListener
     void handleBookingRequestAccepted(BookingRequestAcceptedEvent event) {
         createReservation(event.guestId(), event.listingId());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    void handleRatingCreatedEvent(RatingCreatedEvent event) {
+        Integer raterId = event.raterId();
+        Integer ratedId = event.ratedId();
+        //default dto check
+        Optional<Reservation> reservation = reservationRepo.findByGuest_IdAndTourListing_Host_IdAndStatus(
+                raterId, ratedId, ReservationStatus.CLOSED);
+
+        reservation.ifPresent(value -> value.setHostRated(true));
+
+        if(reservation.isEmpty())
+            reservation = reservationRepo.findByGuest_IdAndTourListing_Host_IdAndStatus(
+                    ratedId, raterId, ReservationStatus.CLOSED);
+
+        reservation.ifPresent(value -> value.setGuestRated(true));
+
+        if(reservation.isEmpty()) {
+            log.warn("No reservation found for given event parameters.");
+            throw new ReservationNotFoundException("No reservation found for given event parameters.");
+        }
+
+        if(reservation.get().guestRated() && reservation.get().hostRated()){
+            reservation.get().complete();
+            log.debug("Both users have been rated after the tour.");
+        }
+
+        reservationRepo.save(reservation.get());
+        log.info("Reservation/tour completed with both ratings (guest: {}, {}).", event.raterId(), event.ratedId());
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    public void expireClosedReservations() {
+        log.debug("Attempting to proccess expired reservations.");
+        List<Reservation> expired = reservationRepo.findAllByStatusAndEndTimestampBefore(
+                ReservationStatus.CLOSED,
+                LocalDateTime.now().minusHours(48)
+        );
+        expired.forEach(Reservation::expire);
+        reservationRepo.saveAll(expired);
+        log.info("Processed {} closed reservations.",  expired.size());
     }
 
     private ReservationResponse createReservationResponse(Reservation reservation) {

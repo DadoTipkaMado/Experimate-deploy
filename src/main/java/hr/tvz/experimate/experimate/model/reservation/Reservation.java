@@ -27,8 +27,14 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
 
+    @Column(name="hostCheckedIn")
     private boolean hostCheckedIn;
+    @Column(name="hostRated")
+    private boolean hostRated;
+    @Column(name="guestCheckedIn")
     private boolean guestCheckedIn;
+    @Column(name="guestRated")
+    private boolean guestRated;
 
     @ManyToOne
     @JoinColumn(name="endedByUser_id")
@@ -100,8 +106,16 @@ public class Reservation {
         return guestCheckedIn;
     }
 
+    public boolean guestRated(){
+        return guestRated;
+    }
+
     public boolean isHostCheckedIn(){
         return hostCheckedIn;
+    }
+
+    public boolean hostRated(){
+        return hostRated;
     }
 
     public boolean bothCheckedIn(){
@@ -126,6 +140,14 @@ public class Reservation {
         hostCheckInTimestamp = LocalDateTime.now();
     }
 
+    public void setGuestRated(boolean value){
+        guestRated = value;
+    }
+
+    public void setHostRated(boolean value){
+        hostRated = value;
+    }
+
     public void endBy(User user){
         status = ReservationStatus.CLOSED;
         endedBy = user;
@@ -140,6 +162,15 @@ public class Reservation {
     public void cancel(){
         status = ReservationStatus.CANCELLED;
         cancelledTimestamp = LocalDateTime.now();
+    }
+
+    public void expire(){
+        status = ReservationStatus.EXPIRED;
+    }
+
+    public void complete(){
+        status = ReservationStatus.COMPLETED;
+        completedTimestamp = LocalDateTime.now();
     }
 
     private User validateGuest(User guest){
