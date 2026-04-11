@@ -37,7 +37,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.checkUserIn(userDetails.getId(), reservationId));
     }
 
-    @PatchMapping(value = "/end-tour/{reservationid}")
+    @PatchMapping(value = "/end-tour/{reservationId}")
     public ResponseEntity<EndTourResponse> endTour(@PathVariable Integer reservationId,
                                                    @AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.ok(reservationService.endTour(userDetails.getId(), reservationId));
