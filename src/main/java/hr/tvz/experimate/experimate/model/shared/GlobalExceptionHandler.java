@@ -37,6 +37,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(illegalArg, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalStateException ex) {
+        ErrorResponse illegalState = createErrorResponse(HttpStatus.CONFLICT, ex);
+        return new ResponseEntity<>(illegalState, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
         ErrorResponse authentication = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);

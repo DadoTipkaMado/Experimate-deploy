@@ -1,14 +1,15 @@
 package hr.tvz.experimate.experimate.model.user;
 
+import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 import java.util.Optional;
@@ -124,4 +125,18 @@ public class UserService {
                 user.getProfilePhotoUrl()
         );
     }
+
+    @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
+    void handleRatingRecalculatedEvent(RatingRecalculatedEvent event) {
+        User user = userRepo.findById(event.userId())
+                .orElseThrow(() -> {
+                    log.warn("No user found for given id {}.", event.userId());
+                    return new UserNotFoundException(event.userId());
+                });
+
+        user.setRating(event.ratingScore());
+    }
+
+    //TODO dodaj handling za rating evente
+    //TODO dodaj metodue recalculate rating score
 }
