@@ -126,8 +126,9 @@ const BookingRequestAPI = {
    RATINGS  /api/rating
 ─────────────────────────────────────────────── */
 const RatingAPI = {
-  getAll: ()           => apiFetch('/api/rating'),
-  create: (dto)        => apiFetch('/api/rating',       { method: 'POST',  body: JSON.stringify(dto) }),
-  update: (id, dto)    => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
+  getAll: ()            => apiFetch('/api/rating'),
+  getById: (id)         => apiFetch(`/api/rating/${id}`),
+  create: (dto)         => apiFetch('/api/rating',       { method: 'POST',  body: JSON.stringify(dto) }),
+  update: (id, dto)     => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id, raterId) => apiFetch(`/api/rating/${id}?raterId=${raterId}`, { method: 'DELETE' }),
 };
