@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
 
     int deleteAllByTourListing_Host_Id(Integer hostId);
     int deleteAllByGuest_Id(Integer guestId);
+    int deleteAllByTourListing_IdIn(Collection<Integer> tourListingIds);
 
     List<Reservation> findAllByStatusAndEndTimestampBefore(ReservationStatus status, LocalDateTime endTimestampBefore);
 

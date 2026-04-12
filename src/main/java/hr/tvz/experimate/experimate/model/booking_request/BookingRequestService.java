@@ -5,10 +5,8 @@ import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestDeclinedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingDeletedEvent;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingRepo;
+import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedEvent;
+import hr.tvz.experimate.experimate.model.tour_listing.*;
 import hr.tvz.experimate.experimate.model.user.User;
 import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
@@ -20,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +56,11 @@ public class BookingRequestService {
 
         User guest = userRepo.findById(guestId)
                 .orElseThrow(() -> new UserNotFoundException(guestId));
+
+        if(listing.getMeetingDate().isBefore(LocalDateTime.now())) {
+            log.warn("Listing with id {} has been expired", listingId);
+            throw new TourListingExpiredException(listing.getId());
+        }
 
         if (guestId.equals(listing.getHost().getId())) {
             log.warn("Guest id {} matches host id — cannot send booking request to yourself", guestId);
@@ -156,14 +161,21 @@ public class BookingRequestService {
 
     @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
     void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
-        BookingRequest request = bookingRequestRepo.findByListing_Id(event.listingId())
-                .orElseThrow(() -> {
-                    log.warn("Booking request not found for given listing id {}", event.listingId());
-                    return new BookingRequestNotFoundException("Could not find booking request for given listing id " + event.listingId());
-                });
+        Optional<BookingRequest> request = bookingRequestRepo.findByListing_Id(event.listingId());
 
-        bookingRequestRepo.deleteById(request.getId());
-        log.info("Booking request deleted with id {}", request.getId());
+        if(request.isEmpty()) {
+            log.debug("No booking requests for given event parameters");
+            return;
+        }
+
+        bookingRequestRepo.deleteById(request.get().getId());
+        log.info("Booking request deleted with id {}", request.get().getId());
+    }
+
+    @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
+    void handleTourListingsDeletedEvent(TourListingsDeletedEvent event) {
+        int count = bookingRequestRepo.deleteAllByListing_IdIn(event.listingIds());
+        log.info("Deleted {} Booking Requests due to expired Tour Listings.", count);
     }
 
     //Batch updating
