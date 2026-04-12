@@ -301,6 +301,18 @@ public class ReservationService {
         log.info("Reservation/tour completed with both ratings (guest: {}, {}).", event.raterId(), event.ratedId());
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
+        Reservation reservation = reservationRepo.findByTourListing_Id(event.listingId())
+                .orElseThrow(() -> {
+                    log.warn("No reservation found for given Tour Listing id {}", event.listingId());
+                    return new ReservationNotFoundException("Cannot find reservation for given tour listing id " + event.listingId());
+                });
+
+        reservationRepo.deleteById(reservation.getId());
+        log.info("Reservation deleted by id {}", reservation.getId());
+    }
+
     @Scheduled(fixedRate = 1800000)
     public void expireClosedReservations() {
         log.debug("Attempting to proccess expired reservations.");
