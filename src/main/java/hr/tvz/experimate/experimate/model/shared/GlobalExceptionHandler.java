@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalStateException ex) {
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
         ErrorResponse illegalState = createErrorResponse(HttpStatus.CONFLICT, ex);
         return new ResponseEntity<>(illegalState, HttpStatus.CONFLICT);
     }
