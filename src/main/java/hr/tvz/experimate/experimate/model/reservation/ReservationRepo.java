@@ -23,4 +23,6 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     List<Reservation> findAllByStatusAndEndTimestampBefore(ReservationStatus status, LocalDateTime endTimestampBefore);
 
     Optional<Reservation> findByGuest_IdAndTourListing_Host_IdAndStatus(Integer guestId, Integer tourListingHostId, ReservationStatus status);
+
+    Optional<Reservation> findByTourListing_Id(Integer listingId);
 }
