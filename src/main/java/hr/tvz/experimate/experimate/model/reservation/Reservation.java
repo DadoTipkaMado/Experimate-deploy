@@ -25,16 +25,17 @@ public class Reservation {
     private LocalDateTime dateOfReservation;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20)")
     private ReservationStatus status;
 
     @Column(name="hostCheckedIn")
-    private boolean hostCheckedIn;
+    private Boolean hostCheckedIn;
     @Column(name="hostRated")
-    private boolean hostRated;
+    private Boolean hostRated;
     @Column(name="guestCheckedIn")
-    private boolean guestCheckedIn;
+    private Boolean guestCheckedIn;
     @Column(name="guestRated")
-    private boolean guestRated;
+    private Boolean guestRated;
 
     @ManyToOne
     @JoinColumn(name="endedByUser_id")
@@ -60,6 +61,8 @@ public class Reservation {
         status = ReservationStatus.CONFIRMED;
         hostCheckedIn = false;
         guestCheckedIn = false;
+        hostRated = false;
+        guestRated = false;
     }
 
     public User getGuest() {
@@ -102,23 +105,23 @@ public class Reservation {
         return cancelledTimestamp;
     }
 
-    public boolean isGuestCheckedIn(){
+    public Boolean isGuestCheckedIn(){
         return guestCheckedIn;
     }
 
-    public boolean guestRated(){
+    public Boolean guestRated(){
         return guestRated;
     }
 
-    public boolean isHostCheckedIn(){
+    public Boolean isHostCheckedIn(){
         return hostCheckedIn;
     }
 
-    public boolean hostRated(){
+    public Boolean hostRated(){
         return hostRated;
     }
 
-    public boolean bothCheckedIn(){
+    public Boolean bothCheckedIn(){
         return hostCheckedIn && guestCheckedIn;
     }
 
@@ -140,11 +143,11 @@ public class Reservation {
         hostCheckInTimestamp = LocalDateTime.now();
     }
 
-    public void setGuestRated(boolean value){
+    public void setGuestRated(Boolean value){
         guestRated = value;
     }
 
-    public void setHostRated(boolean value){
+    public void setHostRated(Boolean value){
         hostRated = value;
     }
 
