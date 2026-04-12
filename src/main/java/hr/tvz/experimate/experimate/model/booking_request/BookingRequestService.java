@@ -4,6 +4,7 @@ import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestDeclinedEvent;
+import hr.tvz.experimate.experimate.model.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingAlreadyReservedException;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingNotFoundException;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 import java.util.Optional;
@@ -149,6 +152,18 @@ public class BookingRequestService {
         log.info("Booking request declined with id {}", id);
 
         return createBookingRequestResponse(request);
+    }
+
+    @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
+    void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
+        BookingRequest request = bookingRequestRepo.findByListing_Id(event.listingId())
+                .orElseThrow(() -> {
+                    log.warn("Booking request not found for given listing id {}", event.listingId());
+                    return new BookingRequestNotFoundException("Could not find booking request for given listing id " + event.listingId());
+                });
+
+        bookingRequestRepo.deleteById(request.getId());
+        log.info("Booking request deleted with id {}", request.getId());
     }
 
     //Batch updating

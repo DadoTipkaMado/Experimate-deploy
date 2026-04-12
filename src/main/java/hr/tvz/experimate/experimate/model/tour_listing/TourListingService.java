@@ -104,8 +104,7 @@ public class TourListingService {
                     return new TourListingNotFoundException(id);
                 });
 
-        if (listing.isReserved())
-            publisher.publishEvent(new TourListingDeletedEvent(id));
+        publisher.publishEvent(new TourListingDeletedEvent(listing.getId()));
 
         listingRepo.deleteById(id);
         log.info("Deleted TourListing with id {}", id);
