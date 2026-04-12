@@ -57,6 +57,10 @@ public class ReservationService {
                     return new TourListingNotFoundException(listingId);
                 });
 
+        //TODO tweakaj da se ne moze rezervirati na isti dan kada je i meetingDate ili da iskoci prompt da se hosta pita je li mu problem pricekati
+        if(listing.getMeetingDate().isBefore(LocalDateTime.now()))
+            throw new IllegalArgumentException("Cannot book a listing whose meeting date is in the past.");
+
         if (!guestAvailableAtDate(guest, listing.getMeetingDate().toLocalDate())) {
             log.warn("Guest with id {} has already booked a listing on the date {}.",
                     guest.getId(), listing.getMeetingDate().toLocalDate());
