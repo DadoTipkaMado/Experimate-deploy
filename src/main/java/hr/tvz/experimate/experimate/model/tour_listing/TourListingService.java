@@ -10,12 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -116,6 +118,23 @@ public class TourListingService {
                 DateTimeUtil.getStartOfDay(meetingDate),
                 DateTimeUtil.getEndOfDay(meetingDate)
         );
+    }
+
+    @Transactional
+    @Scheduled(fixedRate = 1800000)
+    public void cleanUpExpiredListings(){
+        log.debug("Attempting to clean up expired listings");
+        List<Integer> listingIds = listingRepo.findAllByReservedAndMeetingDateBefore(
+                false,
+                LocalDateTime.now()
+        ).stream()
+                .map(TourListing::getId)
+                .toList();
+
+        publisher.publishEvent(new TourListingsDeletedEvent(listingIds));
+
+        listingRepo.deleteAllById(listingIds);
+        log.info("Deleted expired listings.");
     }
 
     @EventListener
