@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Ratings — ExperiMate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .ratings-header {
+      padding: 22px 18px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rating-score-hero {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 28px 18px 20px; border-bottom: 1px solid var(--border);
+      gap: 6px; position: relative; overflow: hidden;
+    }
+    .rating-score-hero::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 280px; height: 160px;
+      background: radial-gradient(ellipse, rgba(0,201,167,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .rating-score-num {
+      font-family: var(--font-display); font-weight: 800; font-size: 52px;
+      color: var(--text); letter-spacing: -0.03em; line-height: 1; position: relative; z-index: 1;
+    }
+    .rating-stars { display: flex; gap: 4px; position: relative; z-index: 1; }
+    .rating-star { font-size: 20px; color: var(--accent); opacity: 0.25; transition: opacity var(--t-fast); }
+    .rating-star--lit { opacity: 1; }
+    .rating-sub { font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; position: relative; z-index: 1; }
+
+    .section-divider {
+      padding: 16px 18px 8px;
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-3);
+    }
+    .review-card {
+      margin: 0 18px 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .review-card__stars { display: flex; gap: 3px; }
+    .review-card__star { font-size: 13px; color: var(--accent); opacity: 0.2; }
+    .review-card__star--lit { opacity: 1; }
+    .review-card__text { font-size: 11px; color: rgba(239,239,239,0.65); line-height: 1.7; }
+    .review-card__empty { font-size: 10px; color: var(--text-3); font-style: italic; }
+
+    .reviews-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 24px; gap: 10px; text-align: center;
+    }
+    .reviews-empty__icon { font-size: 36px; opacity: 0.2; }
+    .reviews-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .reviews-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+
+    .notice-bar {
+      margin: 0 18px 12px; padding: 10px 14px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      border-radius: var(--radius-sm);
+      font-size: 10px; color: var(--accent); line-height: 1.5; letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="ratings-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <a href="/account" style="color:var(--text-3);text-decoration:none;font-size:18px;line-height:1;">‹</a>
+        <div>
+          <div class="page-title">Ratings</div>
+          <div class="page-subtitle">Your score and community reviews</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score hero -->
+    <div class="rating-score-hero">
+      <div class="rating-score-num" id="score-num">—</div>
+      <div class="rating-stars" id="score-stars">
+        <span class="rating-star">★</span>
+        <span class="rating-star">★</span>
+        <span class="rating-star">★</span>
+        <span class="rating-star">★</span>
+        <span class="rating-star">★</span>
+      </div>
+      <div class="rating-sub" id="score-sub">Loading your rating…</div>
+    </div>
+
+    <div class="section-divider">All reviews</div>
+
+    <div class="notice-bar">
+      Reviews show score and text only — rater names require a backend update (coming soon).
+    </div>
+
+    <div id="reviews-list"></div>
+
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  function renderStars(container, score) {
+    container.querySelectorAll('.rating-star, .review-card__star').forEach((s, i) => {
+      s.classList.toggle(s.classList.contains('rating-star') ? 'rating-star--lit' : 'review-card__star--lit', i < score);
+    });
+  }
+
+  function mkReviewCard(r) {
+    const stars = Array.from({ length: 5 }, (_, i) =>
+      `<span class="review-card__star${i < r.score ? ' review-card__star--lit' : ''}">★</span>`
+    ).join('');
+    const text = r.review
+      ? `<div class="review-card__text">"${r.review}"</div>`
+      : `<div class="review-card__empty">No written review.</div>`;
+    return `
+      <div class="review-card">
+        <div class="review-card__stars">${stars}</div>
+        ${text}
+      </div>`;
+  }
+
+  async function loadRatings() {
+    const userId = Auth.getUserId();
+    const reviewsEl = document.getElementById('reviews-list');
+
+    if (!userId) {
+      reviewsEl.innerHTML = `<div class="reviews-empty"><div class="reviews-empty__icon">🔒</div><div class="reviews-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
+      return;
+    }
+
+    // Skeleton
+    reviewsEl.innerHTML = `
+      <div class="review-card" style="margin-bottom:10px;">
+        <div class="skeleton skeleton-line" style="width:80px;height:13px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-3q" style="margin-top:6px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-half" style="margin-top:4px;"></div>
+      </div>
+      <div class="review-card">
+        <div class="skeleton skeleton-line" style="width:80px;height:13px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-full" style="margin-top:6px;"></div>
+      </div>`;
+
+    try {
+      const [user, allRatings] = await Promise.all([UserAPI.getById(userId), RatingAPI.getAll()]);
+
+      // Score hero
+      const score = user.rating ?? 0;
+      document.getElementById('score-num').textContent = score > 0 ? Number(score).toFixed(1) : '—';
+      renderStars(document.getElementById('score-stars'), Math.round(score));
+      document.getElementById('score-sub').textContent = score > 0
+        ? `Average score based on community ratings`
+        : 'No ratings yet — complete a tour to receive your first';
+
+      // Reviews list — show all since API doesn't filter by user yet
+      if (!allRatings || allRatings.length === 0) {
+        reviewsEl.innerHTML = `
+          <div class="reviews-empty">
+            <div class="reviews-empty__icon">★</div>
+            <div class="reviews-empty__title">No reviews yet</div>
+            <div class="reviews-empty__sub">Complete a tour and your host or guest can leave you a review.</div>
+          </div>`;
+        return;
+      }
+
+      reviewsEl.innerHTML = allRatings.map(mkReviewCard).join('');
+    } catch(e) {
+      reviewsEl.innerHTML = `<div style="padding:16px 18px;font-size:11px;color:rgba(255,100,100,0.6);">Could not load ratings — check your connection.</div>`;
+    }
+  }
+
+  loadRatings();
+</script>
+</body>
+</html>

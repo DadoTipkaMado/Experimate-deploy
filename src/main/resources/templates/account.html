@@ -35,14 +35,6 @@
     .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
     .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
     .req-empty { font-size: 12px; color: var(--text-3); padding: 8px 0 12px; }
-    .my-listing-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-    .my-listing-card__info { flex: 1; min-width: 0; }
-    .my-listing-card__city { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
-    .my-listing-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; margin-top: 2px; }
-    .my-listing-card__status { font-size: 9px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px; }
-    .my-listing-card__status--active { color: var(--accent); }
-    .my-listing-delete { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid rgba(255,80,80,0.2); background: transparent; color: rgba(255,100,100,0.6); cursor: pointer; flex-shrink: 0; transition: border-color var(--t-fast), color var(--t-fast); }
-    .my-listing-delete:hover { border-color: rgba(255,80,80,0.5); color: rgba(255,100,100,0.9); }
   </style>
 </head>
 <body>
@@ -74,44 +66,41 @@
       </div>
     </div>
 
-    <div style="padding: 0 18px; border-bottom: 1px solid var(--border);">
-      <div class="tab-bar">
-        <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'overview')">Overview</div>
-        <div class="tab-bar__item" onclick="switchTab(this, 'listings')">My Listings</div>
-      </div>
-    </div>
-
-    <div id="tab-overview">
-
-    <div class="acc-section">
-      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="acc-section" style="padding-bottom:14px;">
+      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         Bio
         <a href="/account/edit" style="font-size:10px;color:var(--accent);text-decoration:none;letter-spacing:0.06em;">Edit</a>
       </div>
-      <div class="bio-box" id="account-bio" style="color: var(--text-3);">No bio set.</div>
+      <div id="account-bio" style="font-size:11px;line-height:1.7;color:var(--text-3);">No bio set.</div>
     </div>
 
 
-    <div class="acc-section" id="requests-section">
-      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
-        Booking Requests
-        <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
-      </div>
-      <div id="requests-list" style="margin-top:12px;">
-        <div class="skeleton skeleton-line" style="width:100%;height:80px;border-radius:var(--radius);margin-bottom:10px;"></div>
-        <div class="skeleton skeleton-line" style="width:100%;height:80px;border-radius:var(--radius);margin-bottom:10px;"></div>
-      </div>
+    <div class="acc-section">
+      <a href="/requests" id="requests-link" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color var(--t-fast);">
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Booking Requests</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View and manage incoming tour requests</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
+          <span style="color:var(--text-3);font-size:16px;">›</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="acc-section">
+      <a href="/ratings" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color var(--t-fast);">
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Ratings</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View ratings and reviews</div>
+        </div>
+        <span style="color:var(--text-3);font-size:16px;">›</span>
+      </a>
     </div>
 
     <div style="padding: 18px 18px 8px;">
       <a href="/account/edit" class="new-listing-link">Edit Profile</a>
       <button onclick="Auth.logout()" class="logout-btn" style="margin-top: 10px;">Log out</button>
-    </div>
-
-    </div><!-- end #tab-overview -->
-
-    <div id="tab-listings" hidden style="padding: 16px 18px 32px;">
-      <div id="my-listings-list"></div>
     </div>
 
   </main>
@@ -144,8 +133,9 @@
       handleEl.style.display = '';
       ratingEl.style.display = '';
 
-      document.getElementById('account-bio').textContent = user.bio || 'No bio set.';
-      document.getElementById('account-bio').style.color = user.bio ? '' : 'var(--text-3)';
+      const bioEl = document.getElementById('account-bio');
+      bioEl.textContent = user.bio || 'No bio set.';
+      bioEl.style.color = user.bio ? 'rgba(239,239,239,0.65)' : 'var(--text-3)';
 
       // Cache initials for topbar
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
@@ -159,8 +149,6 @@
       document.getElementById('stat-total').textContent  = myListings.length;
       document.getElementById('stat-active').textContent = activeCount;
       document.getElementById('account-stats').style.display = 'flex';
-
-      renderMyListings(myListings);
 
       // Avatar: photo URL from API, then localStorage fallback; keep localStorage in sync for topbar
       const avatarEl = document.getElementById('account-avatar');
@@ -182,145 +170,22 @@
 
 loadAccount();
 
-  async function loadBookingRequests() {
-    const username = Auth.getUsername();
-    const listEl = document.getElementById('requests-list');
-
+  async function loadRequestsBadge() {
     try {
+      const username = Auth.getUsername();
       const requests = await BookingRequestAPI.getAll();
-
-      // Filter by host username when tourListing is available; fallback to all PENDING
-      // (tourListing not yet in BookingRequestResponse — waiting on David to expand DTO)
-      const pending = (requests || []).filter(r => {
-        if (r.status !== 'PENDING') return false;
-        if (r.tourListing?.host?.username) return r.tourListing.host.username === username;
-        return true; // can't filter — show all PENDING until DTO is expanded
-      });
-
-      if (pending.length === 0) {
-        listEl.innerHTML = `
-          <div style="display:flex;flex-direction:column;align-items:center;padding:24px 0 16px;gap:8px;text-align:center;">
-            <div style="font-size:28px;opacity:0.25;">📭</div>
-            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text-2);">No pending requests</div>
-            <div style="font-size:11px;color:var(--text-3);line-height:1.6;max-width:200px;">When travellers book your tours, they'll appear here.</div>
-          </div>`;
-        return;
+      const pending = (requests || []).filter(r =>
+        r.status === 'PENDING' && r.tourListing?.host?.username === username
+      );
+      if (pending.length > 0) {
+        const badge = document.getElementById('requests-badge');
+        badge.textContent = pending.length;
+        badge.style.display = '';
       }
-
-      const badge = document.getElementById('requests-badge');
-      badge.textContent = pending.length;
-      badge.style.display = '';
-
-      listEl.innerHTML = pending.map(r => {
-        const guestName = r.guest ? `${r.guest.firstName} ${r.guest.lastName}` : null;
-        const guestHandle = r.guest?.username ? `@${r.guest.username}` : null;
-        const city = r.tourListing?.city ?? null;
-        const date = r.tourListing?.meetingDate
-          ? new Date(r.tourListing.meetingDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-          : null;
-        const nameHtml = guestName
-          ? `<div class="req-card__name">${guestName}${guestHandle ? `<span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);margin-left:6px;">${guestHandle}</span>` : ''}</div>`
-          : `<div class="req-card__name" style="color:var(--text-3);">Request #${r.id}</div>`;
-        const metaHtml = (city || date)
-          ? `<div class="req-card__meta">${[city, date].filter(Boolean).join(' · ')}</div>`
-          : `<div class="req-card__meta" style="font-style:italic;">Guest details loading once David expands the API</div>`;
-        return `
-        <div class="req-card" id="req-${r.id}">
-          ${nameHtml}
-          ${metaHtml}
-          <div class="req-card__actions">
-            <button class="req-btn req-btn--accept" onclick="handleRequest('accept', ${r.id})">Accept</button>
-            <button class="req-btn req-btn--decline" onclick="handleRequest('decline', ${r.id})">Decline</button>
-          </div>
-        </div>
-      `}).join('');
-    } catch (e) {
-      listEl.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 0 12px;gap:6px;text-align:center;">
-          <div style="font-size:11px;color:rgba(255,100,100,0.6);">Could not load requests — check your connection.</div>
-        </div>`;
-    }
+    } catch(e) { /* badge is optional, fail silently */ }
   }
 
-  async function handleRequest(action, id) {
-    const card = document.getElementById('req-' + id);
-    const btns = card.querySelectorAll('.req-btn');
-    btns.forEach(b => b.disabled = true);
-
-    try {
-      if (action === 'accept') {
-        await BookingRequestAPI.accept(id);
-        card.querySelector('.req-card__actions').innerHTML =
-          '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
-        showToast('Request accepted!', 'success');
-      } else {
-        await BookingRequestAPI.decline(id);
-        card.querySelector('.req-card__actions').innerHTML =
-          '<span class="req-status-badge req-status-badge--declined">Declined</span>';
-        showToast('Request declined.', 'default');
-      }
-      // Update badge count
-      const remaining = document.querySelectorAll('.req-btn--accept').length;
-      const badge = document.getElementById('requests-badge');
-      if (remaining === 0) badge.style.display = 'none';
-      else badge.textContent = remaining;
-    } catch (e) {
-      btns.forEach(b => b.disabled = false);
-      showToast(e.message || 'Something went wrong — please try again.', 'error');
-    }
-  }
-
-  function renderMyListings(listings) {
-    const el = document.getElementById('my-listings-list');
-    if (!listings || listings.length === 0) {
-      el.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0 16px;gap:8px;text-align:center;">
-          <div style="font-size:32px;opacity:0.2;">🗺️</div>
-          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text-2);">No listings yet</div>
-          <div style="font-size:11px;color:var(--text-3);line-height:1.6;max-width:200px;">Create your first tour listing and start hosting experiences.</div>
-          <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:38px;padding:0 20px;font-size:11px;">+ New Listing</a>
-        </div>`;
-      return;
-    }
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    el.innerHTML = listings.map(l => {
-      const d = new Date(l.meetingDate);
-      const dateStr = `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-      const statusClass = l.reserved ? '' : ' my-listing-card__status--active';
-      const statusText  = l.reserved ? 'Booked' : 'Available';
-      return `
-        <div class="my-listing-card" id="my-listing-${l.id}">
-          <div class="my-listing-card__info">
-            <div class="my-listing-card__city">${l.city}</div>
-            <div class="my-listing-card__date">${dateStr}</div>
-            <div class="my-listing-card__status${statusClass}">${statusText}</div>
-          </div>
-          <button class="my-listing-delete" onclick="deleteMyListing(${l.id}, this)">Delete</button>
-        </div>`;
-    }).join('');
-  }
-
-  async function deleteMyListing(id, btn) {
-    if (!confirm('Delete this listing?')) return;
-    btn.disabled = true;
-    btn.textContent = '...';
-    try {
-      await TourListingAPI.delete(id);
-      document.getElementById('my-listing-' + id).remove();
-      showToast('Listing deleted.', 'success');
-      // Update stats
-      const total  = document.querySelectorAll('.my-listing-card').length;
-      const active = document.querySelectorAll('.my-listing-card__status--active').length;
-      document.getElementById('stat-total').textContent  = total;
-      document.getElementById('stat-active').textContent = active;
-    } catch (e) {
-      btn.disabled = false;
-      btn.textContent = 'Delete';
-      showToast(e.message || 'Could not delete listing.', 'error');
-    }
-  }
-
-  loadBookingRequests();
+  loadRequestsBadge();
 </script>
 </body>
 </html>
