@@ -57,11 +57,12 @@
         </svg>
         <input type="text" id="explore-search-input" placeholder="Search locals..." autocomplete="off">
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
         <div id="sort-rating" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('rating')">Top rated</div>
         <div id="sort-name" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('name')">Name</div>
         <div id="sort-listings" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('listings')">Most tours</div>
+        <div id="filter-saved" class="pill" style="font-size:10px;padding:4px 10px;margin-left:4px;" onclick="toggleSavedFilter(this)">Saved ♥</div>
       </div>
     </div>
 
@@ -99,13 +100,45 @@
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
 <script>
+  // Saved locals — persisted in localStorage as a Set of usernames
+  function _getSaved() {
+    try { return new Set(JSON.parse(localStorage.getItem('saved_locals') || '[]')); } catch { return new Set(); }
+  }
+  function _setSaved(set) {
+    localStorage.setItem('saved_locals', JSON.stringify([...set]));
+  }
+
+  let _showSavedOnly = false;
+
   function toggleSave(el) {
-    const saved = el.classList.toggle('side-action--saved');
+    const card = el.closest('.explore-card');
+    const username = card.dataset.username;
+    const saved = _getSaved();
+    const isSaved = saved.has(username);
+    if (isSaved) { saved.delete(username); } else { saved.add(username); }
+    _setSaved(saved);
+
+    const nowSaved = !isSaved;
+    el.classList.toggle('side-action--saved', nowSaved);
     const heart = el.querySelector('.save-heart');
-    heart.setAttribute('fill', saved ? 'var(--warm)' : 'none');
-    heart.setAttribute('stroke', saved ? 'var(--warm)' : 'var(--text)');
-    const name = el.closest('.explore-card').dataset.name;
-    showToast(saved ? 'Saved ' + name : 'Removed ' + name);
+    heart.setAttribute('fill', nowSaved ? 'var(--warm)' : 'none');
+    heart.setAttribute('stroke', nowSaved ? 'var(--warm)' : 'var(--text)');
+    const name = card.dataset.name;
+    showToast(nowSaved ? 'Saved ' + name : 'Removed ' + name);
+
+    // If Saved filter is active and we just un-saved, hide the card
+    if (_showSavedOnly && !nowSaved) card.style.display = 'none';
+  }
+
+  function toggleSavedFilter(el) {
+    _showSavedOnly = !_showSavedOnly;
+    el.classList.toggle('pill--active', _showSavedOnly);
+    const saved = _getSaved();
+    document.querySelectorAll('.explore-card').forEach(card => {
+      if (!_showSavedOnly) { card.style.display = ''; return; }
+      card.style.display = saved.has(card.dataset.username) ? '' : 'none';
+    });
+    setCardHeights();
   }
 
   let _exploreUsers    = [];
@@ -190,6 +223,17 @@
     setCardHeights();
     initScrollHint();
     initSearch();
+
+    // Restore saved hearts
+    const saved = _getSaved();
+    document.querySelectorAll('.explore-card').forEach(card => {
+      if (!saved.has(card.dataset.username)) return;
+      const action = card.querySelector('.side-action');
+      if (!action) return;
+      action.classList.add('side-action--saved');
+      const heart = action.querySelector('.save-heart');
+      if (heart) { heart.setAttribute('fill','var(--warm)'); heart.setAttribute('stroke','var(--warm)'); }
+    });
   }
 
   Promise.all([UserAPI.getAll(), TourListingAPI.getAll()])

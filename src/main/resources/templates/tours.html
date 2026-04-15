@@ -274,11 +274,12 @@
 
     <!-- ── MY MEETUPS TAB ── -->
     <div id="tab-meetups" hidden style="flex-direction: column; gap: 0;">
-      <!-- Sub-tab bar: As Guest / As Host -->
+      <!-- Sub-tab bar: As Guest / As Host / My Listings -->
       <div style="padding: 0 18px; border-bottom: 1px solid var(--border);">
         <div class="tab-bar">
           <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetupTab(this,'guest')">As Guest</div>
           <div class="tab-bar__item" onclick="switchMeetupTab(this,'host')">As Host</div>
+          <div class="tab-bar__item" onclick="switchMeetupTab(this,'listings')">My Listings</div>
         </div>
       </div>
 
@@ -297,6 +298,9 @@
         <div class="section-label" style="margin-top: 8px;">Past tours hosted</div>
         <div id="host-past"></div>
       </div>
+
+      <!-- My Listings view -->
+      <div id="meetup-panel-listings" style="display:none;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
     </div>
 
   </main>
@@ -874,8 +878,9 @@
   function switchMeetupTab(el, panel) {
     el.closest('.tab-bar').querySelectorAll('.tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
     el.classList.add('tab-bar__item--active');
-    document.getElementById('meetup-panel-guest').style.display = panel === 'guest' ? 'flex' : 'none';
-    document.getElementById('meetup-panel-host').style.display  = panel === 'host'  ? 'flex' : 'none';
+    document.getElementById('meetup-panel-guest').style.display    = panel === 'guest'    ? 'flex' : 'none';
+    document.getElementById('meetup-panel-host').style.display     = panel === 'host'     ? 'flex' : 'none';
+    document.getElementById('meetup-panel-listings').style.display = panel === 'listings' ? 'flex' : 'none';
   }
 
   /* ── Render host meetups ── */
@@ -921,6 +926,67 @@
       : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past tours hosted yet.</div>';
   }
 
+  /* ── Render My Listings (host's own listings with delete) ── */
+  function renderMyListings() {
+    const currentUsername = Auth.getUsername();
+    const el = document.getElementById('meetup-panel-listings');
+    if (!currentUsername) {
+      el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to manage your listings.</div>`;
+      return;
+    }
+    const mine = _allListings.filter(l => l.host?.username === currentUsername)
+                             .sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
+    if (!mine.length) {
+      el.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:10px;text-align:center;">
+          <div style="font-size:32px;opacity:0.2;">🗺️</div>
+          <div style="font-size:12px;color:var(--text-3);">You have no listings yet.</div>
+          <a href="/listings/new" class="btn btn--primary" style="margin-top:4px;height:38px;padding:0 20px;font-size:11px;">+ Create one</a>
+        </div>`;
+      return;
+    }
+    el.innerHTML = mine.map(listing => {
+      const isPast = new Date(listing.meetingDate) < new Date();
+      const dotColor = listing.reserved ? 'var(--text-3)' : isPast ? 'var(--text-3)' : 'var(--accent)';
+      const dotGlow  = !listing.reserved && !isPast ? 'box-shadow:0 0 5px var(--accent);' : '';
+      const statusLabel = listing.reserved ? 'Booked' : isPast ? 'Past' : 'Available';
+      return `
+        <div class="listing-card" id="my-listing-${listing.id}" style="opacity:${isPast ? '0.5' : '1'};">
+          <div class="listing-card__head">
+            <div style="flex:1;min-width:0;">
+              <div class="listing-card__city">${listing.city}</div>
+              <div class="listing-card__date" style="margin-top:3px;">${fmtDatetime(listing.meetingDate)}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+              <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};${dotGlow}"></div>
+              <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};">${statusLabel}</div>
+            </div>
+          </div>
+          <div class="listing-card__desc">${listing.tourDescription}</div>
+          <div style="display:flex;justify-content:flex-end;">
+            <button class="meet-card__cancel" data-listing-id="${listing.id}" onclick="deleteMyListing(this)">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function deleteMyListing(btn) {
+    const id = parseInt(btn.dataset.listingId, 10);
+    if (!confirm('Delete this listing? This cannot be undone.')) return;
+    btn.disabled = true;
+    TourListingAPI.delete(id)
+      .then(() => {
+        document.getElementById('my-listing-' + id)?.remove();
+        _allListings = _allListings.filter(l => l.id !== id);
+        _baseListings = _baseListings.filter(l => l.id !== id);
+        showToast('Listing deleted.', 'success');
+      })
+      .catch(err => {
+        btn.disabled = false;
+        showToast(err.message || 'Could not delete listing.', 'error');
+      });
+  }
+
   /* ── Auto-switch tab if flagged (e.g. after ending a tour) ── */
   (function () {
     const tab = sessionStorage.getItem('openTab');
@@ -945,6 +1011,7 @@
       renderListings(listings);
       renderMeetups(reservations);
       renderHostMeetups(reservations);
+      renderMyListings();
       initCountdownAndTakeover(reservations);
     })
     .catch(() => { renderListings([]); renderMeetups([]); showToast('Could not load tours — check your connection.', 'error'); });

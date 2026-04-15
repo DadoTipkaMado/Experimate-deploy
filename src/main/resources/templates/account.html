@@ -78,6 +78,26 @@
     </div>
 
 
+    <!-- Available to meet toggle — localStorage only until David adds the field -->
+    <div class="acc-section" style="padding-bottom:14px;" id="available-section" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Available to meet</div>
+          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Let others know you're open to meetups right now</div>
+        </div>
+        <button id="avail-toggle" onclick="toggleAvailability()" style="
+          width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;
+          position:relative;transition:background var(--t-base);flex-shrink:0;
+          background:var(--border-2);">
+          <span id="avail-knob" style="
+            position:absolute;top:3px;left:3px;
+            width:20px;height:20px;border-radius:50%;
+            background:#fff;transition:transform var(--t-base);
+            display:block;"></span>
+        </button>
+      </div>
+    </div>
+
     <div class="acc-section">
       <a href="/requests" id="requests-link" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color var(--t-fast);">
         <div>
@@ -206,6 +226,32 @@ loadAccount();
   }
 
   loadRequestsBadge();
+
+  // Available to meet — localStorage until David adds field to UserResponse + UpdateUserDto
+  (function initAvailToggle() {
+    const userId = Auth.getUserId();
+    if (!userId) return;
+    const section = document.getElementById('available-section');
+    section.style.display = '';
+    const toggle = document.getElementById('avail-toggle');
+    const knob   = document.getElementById('avail-knob');
+    let isAvail  = localStorage.getItem('availableToMeet_' + userId) === 'true';
+
+    function applyState(val) {
+      toggle.style.background = val ? 'var(--accent)' : 'var(--border-2)';
+      knob.style.transform    = val ? 'translateX(18px)' : 'translateX(0)';
+    }
+    applyState(isAvail);
+
+    window.toggleAvailability = function() {
+      isAvail = !isAvail;
+      localStorage.setItem('availableToMeet_' + userId, isAvail);
+      applyState(isAvail);
+      // Optimistic API call — will succeed once David adds the field
+      UserAPI.update(userId, { availableToMeet: isAvail }).catch(() => {});
+      showToast(isAvail ? 'You\'re available to meet!' : 'Availability turned off', 'success');
+    };
+  })();
 </script>
 </body>
 </html>
