@@ -1,7 +1,7 @@
 package hr.tvz.experimate.experimate.model.refresh_token;
 
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.shared.TokenResponse;
+import hr.tvz.experimate.experimate.model.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.security.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

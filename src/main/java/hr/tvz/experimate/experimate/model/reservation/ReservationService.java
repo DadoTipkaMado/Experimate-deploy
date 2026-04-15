@@ -1,12 +1,20 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
+import hr.tvz.experimate.experimate.model.reservation.exception.GuestAlreadyBookedException;
+import hr.tvz.experimate.experimate.model.reservation.exception.IllegalReservationStateException;
+import hr.tvz.experimate.experimate.model.reservation.exception.ReservationNotFoundException;
+import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.*;
 import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.model.tour_listing.*;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingNotFoundException;
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

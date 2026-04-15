@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.model.user.exception;
 
 import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 

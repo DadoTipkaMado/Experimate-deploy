@@ -1,11 +1,12 @@
 package hr.tvz.experimate.experimate.model.rating;
 
-import hr.tvz.experimate.experimate.model.booking_request.BookingRequest;
+import hr.tvz.experimate.experimate.model.rating.exception.DuplicateRatingException;
+import hr.tvz.experimate.experimate.model.rating.exception.RatingNotFoundException;
 import hr.tvz.experimate.experimate.model.shared.event.RatingCreatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

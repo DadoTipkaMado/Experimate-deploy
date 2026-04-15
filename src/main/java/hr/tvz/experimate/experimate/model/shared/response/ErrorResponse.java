@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.shared;
+package hr.tvz.experimate.experimate.model.shared.response;
 
 import java.time.LocalDateTime;
 
