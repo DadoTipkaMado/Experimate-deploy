@@ -4,8 +4,10 @@ import hr.tvz.experimate.experimate.model.tour_listing.CreateTourListingDto;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingResponse;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingService;
 import hr.tvz.experimate.experimate.model.tour_listing.UpdateTourListingDto;
+import hr.tvz.experimate.experimate.security.AppUserDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +23,9 @@ public class TourListingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TourListingResponse>> getAllTourListings() {
+    public ResponseEntity<List<TourListingResponse>> getAllTourListings(@AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.ok(
-                tourListingService.getAllListings()
+                tourListingService.getAllListings(userDetails.getId())
         );
     }
 

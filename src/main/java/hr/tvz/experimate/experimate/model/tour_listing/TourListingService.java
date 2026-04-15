@@ -21,6 +21,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -74,10 +75,11 @@ public class TourListingService {
                 .map(listing -> createListingResponse(listing));
     }
 
-    public List<TourListingResponse> getAllListings() {
+    public List<TourListingResponse> getAllListings(Integer resourceOwnerId) {
         return listingRepo.findAll()
                 .stream()
-                .map(listing -> createListingResponse(listing))
+                .filter(listing -> (!listing.getHost().getId().equals(resourceOwnerId)))
+                .map(this::createListingResponse)
                 .toList();
     }
 
