@@ -301,15 +301,23 @@
           return;
         }
 
-        const [dd, mm, yyyy] = document.getElementById('dateOfBirth').value.split('/');
-        const dob = `${yyyy}-${mm}-${dd}`;
+        const dobRaw = document.getElementById('dateOfBirth').value.trim();
+        const dobParts = dobRaw.split('/');
+        if (dobParts.length !== 3 || dobParts[2].length !== 4 || dobParts.some(p => !p)) {
+          errorEl.textContent = 'Please enter your date of birth in DD/MM/YYYY format.';
+          errorEl.style.display = 'block';
+          document.getElementById('dateOfBirth').focus();
+          return;
+        }
+        const [dd, mm, yyyy] = dobParts;
+        const dob = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
         const birthDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
         if (age < 18) {
-          errorEl.textContent = 'You must be 18 or older to register';
+          errorEl.textContent = 'You must be 18 or older to register.';
           errorEl.style.display = 'block';
           return;
         }

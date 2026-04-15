@@ -54,7 +54,7 @@
   <main class="page-content">
     <div class="edit-header">
       <div class="page-title">Edit Profile</div>
-      <div class="page-subtitle">Update your username, bio, or password</div>
+      <div class="page-subtitle">Update your username, photo, or bio</div>
     </div>
 
     <form id="edit-form" class="edit-form">
@@ -89,18 +89,6 @@
           </div>
         </div>
         <span class="form-field__hint" id="photo-hint">Photo is saved to your profile</span>
-      </div>
-
-      <hr class="form-divider">
-
-      <div class="form-field">
-        <label for="password">New password <span style="color: var(--text-3);">(leave blank to keep current)</span></label>
-        <input type="password" id="password" name="password" autocomplete="new-password">
-      </div>
-
-      <div class="form-field">
-        <label for="confirmPassword">Confirm new password</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
       </div>
 
       <div class="form-actions">
@@ -189,15 +177,6 @@
     const errorEl = document.getElementById('form-error');
     errorEl.style.display = 'none';
 
-    const password        = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    if (password && password !== confirmPassword) {
-      errorEl.textContent = 'Passwords do not match';
-      errorEl.style.display = 'block';
-      return;
-    }
-
     let photoUrl;
     if (pendingPhotoBase64)   photoUrl = pendingPhotoBase64;
     else if (removePhotoFlag) photoUrl = null;
@@ -206,7 +185,6 @@
     const dto = {
       username:        document.getElementById('username').value,
       bio:             document.getElementById('bio').value || null,
-      password:        password || null,
       profilePhotoUrl: photoUrl,
     };
 

@@ -18,4 +18,16 @@ public class AccountViewController {
         model.addAttribute("currentPage", "account");
         return "account-edit";
     }
+
+    @GetMapping("/requests")
+    public String requests(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "requests";
+    }
+
+    @GetMapping("/ratings")
+    public String ratings(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "ratings";
+    }
 }

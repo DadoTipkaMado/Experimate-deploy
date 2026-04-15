@@ -253,10 +253,11 @@
 
     // Auto-redirect if already logged in (or refresh token still valid)
     (async function () {
-      if (!Auth.getToken()) return;
       try {
+        // apiFetch will attempt refresh if token is expired (401)
+        // On 403 or refresh failure it throws → catch stays on login
         const result = await apiFetch('/api/user');
-        if (result !== undefined) window.location.href = '/map';
+        if (result) window.location.href = '/map';
       } catch { /* stay on login */ }
     })();
 

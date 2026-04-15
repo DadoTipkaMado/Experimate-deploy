@@ -47,15 +47,21 @@ async function apiFetch(path, options = {}, _isRetry = false) {
         method: 'POST',
         credentials: 'include',
       }).then(async (refreshRes) => {
-        if (!refreshRes.ok) { Auth.logout(); throw new Error('refresh_failed'); }
+        if (!refreshRes.ok) {
+          Auth.clearToken();
+          localStorage.removeItem('userId');
+          const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
+          if (!onAuthPage) window.location.href = '/login';
+          throw new Error('Session expired. Please sign in.');
+        }
         const { token: newToken } = await refreshRes.json();
         Auth.saveToken(newToken);
       }).finally(() => { _refreshPromise = null; });
     }
     try {
       await _refreshPromise;
-    } catch {
-      return;
+    } catch (e) {
+      throw e;
     }
     return apiFetch(path, options, true);
   }
@@ -108,6 +114,9 @@ const ReservationAPI = {
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
   create: (dto)        => apiFetch('/api/reservation',        { method: 'POST',   body: JSON.stringify(dto) }),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
+  checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
+  endTour: (id)        => apiFetch(`/api/reservation/end-tour/${id}`,  { method: 'PATCH' }),
+  cancelTour: (id)     => apiFetch(`/api/reservation/cancel-tour/${id}`, { method: 'PATCH' }),
 };
 
 /* ───────────────────────────────────────────────
