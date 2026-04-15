@@ -69,9 +69,17 @@ public class UserService {
         User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         if (updateUserDto.username() != null) {
-            user.setUsername(
-                    validateUsername(updateUserDto.username())
-            );
+            try{
+                user.setUsername(
+                        validateUsername(updateUserDto.username())
+                );
+            }catch(UsernameTakenException e){
+                if(!updateUserDto.username().equals(user.getUsername())) {
+                    log.warn("Attempted to update username to another user's username.");
+                    throw new IllegalArgumentException("Cannot set username to a taken username.");
+                }
+                log.debug("Username has stayed the same in latest update for profile.");
+            }
         }
         if (updateUserDto.password() != null)
             user.setPassword(
