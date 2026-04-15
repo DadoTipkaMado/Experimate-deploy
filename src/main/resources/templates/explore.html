@@ -57,6 +57,12 @@
         </svg>
         <input type="text" id="explore-search-input" placeholder="Search locals..." autocomplete="off">
       </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
+        <div id="sort-rating" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('rating')">Top rated</div>
+        <div id="sort-name" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('name')">Name</div>
+        <div id="sort-listings" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('listings')">Most tours</div>
+      </div>
     </div>
 
     <div id="explore-feed">
@@ -102,6 +108,30 @@
     showToast(saved ? 'Saved ' + name : 'Removed ' + name);
   }
 
+  let _exploreUsers    = [];
+  let _exploreSort     = 'rating';
+  let _listingCountMap = {}; // username → active listing count
+
+  function setExploreSort(val) {
+    _exploreSort = val;
+    ['rating','name','listings'].forEach(k => {
+      document.getElementById('sort-' + k).classList.toggle('pill--active', k === val);
+    });
+    renderExploreSorted();
+  }
+
+  function renderExploreSorted() {
+    let sorted = _exploreUsers.slice();
+    if (_exploreSort === 'rating') {
+      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    } else if (_exploreSort === 'name') {
+      sorted.sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
+    } else if (_exploreSort === 'listings') {
+      sorted.sort((a, b) => (_listingCountMap[b.username] ?? 0) - (_listingCountMap[a.username] ?? 0));
+    }
+    renderExplore(sorted);
+  }
+
   function renderExplore(users) {
     const feed = document.getElementById('explore-feed');
     if (!users || users.length === 0) {
@@ -113,16 +143,29 @@
         </div>`;
       return;
     }
+    const now = new Date();
     feed.innerHTML = users.map(user => {
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      const activeCount = _listingCountMap[user.username] ?? 0;
+      const listingBadge = activeCount > 0
+        ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${activeCount} tour${activeCount > 1 ? 's' : ''}</span>`
+        : '';
+      // Photo or initials avatar
+      const storedPhoto = user.profilePhotoUrl || localStorage.getItem('photo_' + user.id);
+      const avatarBg = storedPhoto
+        ? `background:hsl(${hue},22%,14%);`
+        : `background:hsl(${hue},22%,14%);`;
+      const avatarInner = storedPhoto
+        ? `<img src="${storedPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="">`
+        : `<span style="font-family:var(--font-display);font-weight:800;font-size:32px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>`;
       return `
-      <div class="explore-card" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}">
-        <div class="explore-card__bg" style="background:hsl(${hue},22%,14%);font-size:0;">
-          <div style="width:90px;height:90px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:32px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</div>
+      <div class="explore-card" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}" data-username="${user.username}">
+        <div class="explore-card__bg" style="${avatarBg}font-size:0;">
+          <div style="width:90px;height:90px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;overflow:hidden;">${avatarInner}</div>
         </div>
         <div class="explore-card__gradient"></div>
-        <div class="explore-card__rating">★ ${user.rating ?? '0.0'}</div>
+        <div class="explore-card__rating">★ ${user.rating > 0 ? Number(user.rating).toFixed(1) : '—'}</div>
         <div class="explore-card__side">
           <div class="side-action" onclick="toggleSave(this)">
             <div class="side-action__icon">
@@ -132,11 +175,14 @@
           </div>
         </div>
         <div class="explore-card__content">
-          <div class="explore-card__name">${user.firstName} ${user.lastName}</div>
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <div class="explore-card__name" style="margin-bottom:0;">${user.firstName} ${user.lastName}</div>
+            ${listingBadge}
+          </div>
           <div class="explore-card__handle">@${user.username}</div>
           <div class="explore-card__desc">${user.bio ?? 'No bio yet.'}</div>
           <div class="explore-card__cta">
-            <a href="/tours?host=${user.username}" class="btn btn--primary">View Listings</a>
+            <a href="/tours?host=${user.username}" class="btn btn--primary">${activeCount > 0 ? `View ${activeCount} Tour${activeCount > 1 ? 's' : ''}` : 'View Profile'}</a>
           </div>
         </div>
       </div>`;
@@ -146,7 +192,19 @@
     initSearch();
   }
 
-  UserAPI.getAll().then(renderExplore).catch(() => renderExplore([]));
+  Promise.all([UserAPI.getAll(), TourListingAPI.getAll()])
+    .then(([users, listings]) => {
+      const now = new Date();
+      _exploreUsers = users || [];
+      // Build listing count map: username → number of non-reserved upcoming listings
+      _listingCountMap = {};
+      (listings || []).forEach(l => {
+        if (!l.host?.username || l.reserved || new Date(l.meetingDate) <= now) return;
+        _listingCountMap[l.host.username] = (_listingCountMap[l.host.username] ?? 0) + 1;
+      });
+      renderExploreSorted();
+    })
+    .catch(() => renderExplore([]));
 </script>
 </body>
 </html>

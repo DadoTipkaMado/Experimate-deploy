@@ -211,6 +211,17 @@
     <!-- ── DISCOVER TAB ── -->
     <div id="tab-discover">
       <div id="city-filter-bar" class="city-filter pill-group"></div>
+
+      <!-- Sort + filter controls -->
+      <div id="discover-controls" style="display:flex;align-items:center;justify-content:space-between;padding:6px 18px 2px;gap:8px;">
+        <div style="display:flex;gap:5px;align-items:center;">
+          <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
+          <div id="sort-btn-asc" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('asc')">Soonest</div>
+          <div id="sort-btn-desc" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('desc')">Latest</div>
+        </div>
+        <div id="pill-avail-discover" class="pill" style="font-size:10px;padding:4px 10px;" onclick="toggleDiscoverAvailable(this)">Available only</div>
+      </div>
+
       <div id="listings-list" class="listings-list">
         <!-- Skeleton loading state -->
         <div class="skeleton-card" id="sk1">
@@ -262,11 +273,30 @@
     </div>
 
     <!-- ── MY MEETUPS TAB ── -->
-    <div id="tab-meetups" hidden style="padding: 14px 18px; flex-direction: column; gap: 14px;">
-      <div class="section-label">Upcoming</div>
-      <div id="meetups-upcoming"></div>
-      <div class="section-label" style="margin-top: 8px;">Past</div>
-      <div id="meetups-past"></div>
+    <div id="tab-meetups" hidden style="flex-direction: column; gap: 0;">
+      <!-- Sub-tab bar: As Guest / As Host -->
+      <div style="padding: 0 18px; border-bottom: 1px solid var(--border);">
+        <div class="tab-bar">
+          <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetupTab(this,'guest')">As Guest</div>
+          <div class="tab-bar__item" onclick="switchMeetupTab(this,'host')">As Host</div>
+        </div>
+      </div>
+
+      <!-- Guest view -->
+      <div id="meetup-panel-guest" style="display:flex;flex-direction:column;gap:14px;padding:14px 18px;">
+        <div class="section-label">Upcoming</div>
+        <div id="meetups-upcoming"></div>
+        <div class="section-label" style="margin-top: 8px;">Past</div>
+        <div id="meetups-past"></div>
+      </div>
+
+      <!-- Host view -->
+      <div id="meetup-panel-host" style="display:none;flex-direction:column;gap:14px;padding:14px 18px;">
+        <div class="section-label">Incoming guests</div>
+        <div id="host-upcoming"></div>
+        <div class="section-label" style="margin-top: 8px;">Past tours hosted</div>
+        <div id="host-past"></div>
+      </div>
     </div>
 
   </main>
@@ -346,7 +376,11 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let _allListings = [];
+  let _allListings  = [];   // full API response — never filtered (used by modal lookup)
+  let _baseListings = [];   // after host-filter; source for discover controls
+  let _discoverSort          = 'asc';   // 'asc' = soonest first
+  let _discoverAvailableOnly = false;
+  let _discoverCity          = 'all';
 
   /* ── Listing detail modal ── */
   function openListingModal(listingId) {
@@ -355,8 +389,20 @@
     const currentUserId = Auth.getUserId();
     const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
     const hostHandle = listing.host?.username ?? '';
+    // Host's other upcoming tours (excluding this one)
+    const now = new Date();
+    const hostOtherUpcoming = _allListings.filter(l =>
+      l.id !== listing.id &&
+      l.host?.username === hostHandle &&
+      !l.reserved &&
+      new Date(l.meetingDate) > now
+    ).length;
+    const hostTourHint = hostOtherUpcoming > 0
+      ? `<span style="font-size:9px;color:var(--text-3);margin-left:6px;letter-spacing:0.04em;">+${hostOtherUpcoming} more tour${hostOtherUpcoming > 1 ? 's' : ''}</span>`
+      : '';
+
     document.getElementById('lm-city').textContent = listing.city;
-    document.getElementById('lm-host').innerHTML = `${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span>`;
+    document.getElementById('lm-host').innerHTML = `<a href="/explore?q=${hostHandle}" style="color:var(--accent);text-decoration:none;">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>${hostTourHint}`;
     document.getElementById('lm-date').innerHTML = `${fmtDate(listing.meetingDate)}<br><span style="font-size:9px;color:var(--text-3);">${fmtTime(listing.meetingDate)}</span>`;
     document.getElementById('lm-desc').textContent = listing.tourDescription;
     const isOwn    = currentUserId && listing.host?.username === Auth.getUsername();
@@ -408,12 +454,34 @@
   /* ── Host filter from URL ── */
   const _hostFilter = new URLSearchParams(window.location.search).get('host');
 
-  /* ── City filter ── */
+  /* ── Discover controls ── */
   function filterCity(city) {
-    document.querySelectorAll('.listing-card').forEach(card => {
-      const cardCity = card.querySelector('.listing-card__city').textContent.trim();
-      card.style.display = (city === 'all' || cardCity === city) ? '' : 'none';
+    _discoverCity = city;
+    applyDiscover();
+  }
+
+  function setDiscoverSort(val) {
+    _discoverSort = val;
+    document.getElementById('sort-btn-asc').classList.toggle('pill--active', val === 'asc');
+    document.getElementById('sort-btn-desc').classList.toggle('pill--active', val === 'desc');
+    applyDiscover();
+  }
+
+  function toggleDiscoverAvailable(el) {
+    _discoverAvailableOnly = !_discoverAvailableOnly;
+    el.classList.toggle('pill--active', _discoverAvailableOnly);
+    applyDiscover();
+  }
+
+  function applyDiscover() {
+    let items = _baseListings.slice();
+    if (_discoverCity !== 'all') items = items.filter(l => l.city === _discoverCity);
+    if (_discoverAvailableOnly) items = items.filter(l => !l.reserved);
+    items.sort((a, b) => {
+      const da = new Date(a.meetingDate), db = new Date(b.meetingDate);
+      return _discoverSort === 'asc' ? da - db : db - da;
     });
+    renderListingCards(items);
   }
 
   /* ── View on map ── */
@@ -641,42 +709,60 @@
   }
   document.getElementById('rating-modal').addEventListener('click', function(e) { if (e.target === this) closeRatingModal(); });
 
-  /* ── Render listings ── */
+  /* ── Render listings — set up state + city pills, then delegate to applyDiscover ── */
   function renderListings(listings) {
     _allListings = listings || [];
-    const currentUserId = Auth.getUserId();
     const cityBar = document.getElementById('city-filter-bar');
-    const list    = document.getElementById('listings-list');
 
     // Apply host filter if coming from Explore
+    _baseListings = _allListings.slice();
     if (_hostFilter) {
-      listings = (listings || []).filter(l => l.host && l.host.username === _hostFilter);
+      _baseListings = _baseListings.filter(l => l.host && l.host.username === _hostFilter);
       const banner = document.getElementById('host-filter-banner');
       if (banner) { banner.querySelector('span').textContent = `Showing tours by @${_hostFilter}`; banner.style.display = 'flex'; }
     }
 
-    if (!listings || listings.length === 0) {
-      list.innerHTML = `
+    if (_baseListings.length === 0) {
+      document.getElementById('listings-list').innerHTML = `
         <div class="listings-empty">
           <div style="font-size:44px;line-height:1;margin-bottom:4px;">🗺️</div>
           <div class="listings-empty__title">No tours yet</div>
           <div class="listings-empty__sub">Be the first to host a local experience.</div>
           <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
         </div>`;
+      cityBar.innerHTML = '';
       return;
     }
 
-    const cities = [...new Set(listings.map(l => l.city).filter(Boolean))];
+    const cities = [...new Set(_baseListings.map(l => l.city).filter(Boolean))];
     cityBar.innerHTML = `<div class="pill pill--active" data-city="all" onclick="selectPill(this); filterCity('all')">All</div>` +
       cities.map(c => `<div class="pill" data-city="${c}" onclick="selectPill(this); filterCity(this.dataset.city)">${c}</div>`).join('');
+
+    applyDiscover();
+  }
+
+  /* ── Render listing cards (called by applyDiscover) ── */
+  function renderListingCards(listings) {
+    const currentUserId = Auth.getUserId();
+    const list = document.getElementById('listings-list');
+
+    if (!listings.length) {
+      list.innerHTML = `
+        <div class="listings-empty">
+          <div class="listings-empty__icon">🔍</div>
+          <div class="listings-empty__title">No matches</div>
+          <div class="listings-empty__sub">Try changing the city or filter.</div>
+        </div>`;
+      return;
+    }
 
     list.innerHTML = listings.map((listing, i) => {
       const reserved = listing.reserved;
       const hasCoords = listing.lat != null && listing.lng != null;
       const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
       const isOwnListing = currentUserId && listing.host && listing.host.username === Auth.getUsername();
-      const myReq = _myRequests[listing.meetingDate]; // match by meetingDate
-      const reqStatus = myReq?.status; // PENDING | ACCEPTED | DECLINED | null
+      const myReq = _myRequests[listing.meetingDate];
+      const reqStatus = myReq?.status;
 
       const statusLabel = reserved ? 'Booked'
         : reqStatus === 'PENDING'   ? 'Pending'
@@ -704,11 +790,11 @@
           ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
           : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`;
 
-      const hostName = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
+      const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
       const hostHandle = listing.host ? listing.host.username : '?';
-      const initials = listing.host ? (listing.host.firstName[0] || '') + (listing.host.lastName[0] || '') : '?';
+      const initials   = listing.host ? (listing.host.firstName[0] || '') + (listing.host.lastName[0] || '') : '?';
       return `
-        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.05}s;cursor:pointer;" onclick="openListingModal(${listing.id})">
+        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.04}s;cursor:pointer;" onclick="openListingModal(${listing.id})">
           <div class="listing-card__head">
             <div style="flex:1;min-width:0;">
               <div class="listing-card__city">${listing.city}</div>
@@ -784,6 +870,57 @@
     pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past meetups yet.</div>';
   }
 
+  /* ── Sub-tab switcher for My Tours ── */
+  function switchMeetupTab(el, panel) {
+    el.closest('.tab-bar').querySelectorAll('.tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
+    el.classList.add('tab-bar__item--active');
+    document.getElementById('meetup-panel-guest').style.display = panel === 'guest' ? 'flex' : 'none';
+    document.getElementById('meetup-panel-host').style.display  = panel === 'host'  ? 'flex' : 'none';
+  }
+
+  /* ── Render host meetups ── */
+  function renderHostMeetups(reservations) {
+    const currentUsername = Auth.getUsername();
+    const upcomingEl = document.getElementById('host-upcoming');
+    const pastEl     = document.getElementById('host-past');
+    if (!currentUsername) return;
+
+    const mine = reservations.filter(r => r.tourListing?.host?.username === currentUsername);
+    const now  = new Date();
+    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now)
+                         .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
+    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now)
+                         .sort((a, b) => new Date(b.tourListing.meetingDate) - new Date(a.tourListing.meetingDate));
+
+    const mkHostCard = (res, isPast) => {
+      const d = new Date(res.tourListing.meetingDate);
+      const guestName = res.guest ? res.guest.firstName + ' ' + res.guest.lastName : '?';
+      const guestHandle = res.guest?.username ?? '';
+      return `
+        <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
+          <div class="meet-card__date">
+            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
+            <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
+          </div>
+          <div class="meet-card__info">
+            <div class="meet-card__who">👤 ${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></div>
+            <div class="meet-card__where">${res.tourListing.city}</div>
+            <div class="meet-card__booked">${fmtDate(res.tourListing.meetingDate)} · ${fmtTime(res.tourListing.meetingDate)}</div>
+          </div>
+          ${!isPast ? `<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
+            <button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>
+          </div>` : '<div class="badge--rated" style="opacity:0.5;">Past</div>'}
+        </div>`;
+    };
+
+    upcomingEl.innerHTML = upcoming.length
+      ? upcoming.map(r => mkHostCard(r, false)).join('')
+      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming guests.</div>';
+    pastEl.innerHTML = past.length
+      ? past.map(r => mkHostCard(r, true)).join('')
+      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past tours hosted yet.</div>';
+  }
+
   /* ── Auto-switch tab if flagged (e.g. after ending a tour) ── */
   (function () {
     const tab = sessionStorage.getItem('openTab');
@@ -807,6 +944,7 @@
         .forEach(r => { _myRequests[r.tourListing.meetingDate] = { status: r.status, id: r.id }; });
       renderListings(listings);
       renderMeetups(reservations);
+      renderHostMeetups(reservations);
       initCountdownAndTakeover(reservations);
     })
     .catch(() => { renderListings([]); renderMeetups([]); showToast('Could not load tours — check your connection.', 'error'); });
