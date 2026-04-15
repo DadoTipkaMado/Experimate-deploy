@@ -147,11 +147,33 @@
   function handlePhotoSelect(input) {
     const file = input.files[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image too large — max 5 MB.', 'error');
+      input.value = '';
+      return;
+    }
     removePhotoFlag = false;
     const reader = new FileReader();
     reader.onload = e => {
-      pendingPhotoBase64 = e.target.result;
-      showPhotoPreview(pendingPhotoBase64);
+      // Compress: resize to max 400px via canvas before storing
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 400;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width  = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        pendingPhotoBase64 = canvas.toDataURL('image/jpeg', 0.82);
+        showPhotoPreview(pendingPhotoBase64);
+        document.getElementById('photo-hint').textContent =
+          `Photo ready — ${Math.round(pendingPhotoBase64.length / 1024)} KB`;
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
