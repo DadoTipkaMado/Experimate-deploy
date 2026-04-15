@@ -1,7 +1,10 @@
 package hr.tvz.experimate.experimate.controller;
 
 import hr.tvz.experimate.experimate.model.reservation.*;
-import hr.tvz.experimate.experimate.model.shared.UserDetails;
+import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

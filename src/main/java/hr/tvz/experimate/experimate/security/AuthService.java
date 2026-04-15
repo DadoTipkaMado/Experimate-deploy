@@ -1,9 +1,9 @@
 package hr.tvz.experimate.experimate.security;
 
 import hr.tvz.experimate.experimate.model.refresh_token.RefreshTokenService;
-import hr.tvz.experimate.experimate.model.shared.TokenResponse;
+import hr.tvz.experimate.experimate.model.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

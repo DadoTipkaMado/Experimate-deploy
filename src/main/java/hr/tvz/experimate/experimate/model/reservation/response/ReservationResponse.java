@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.reservation;
+package hr.tvz.experimate.experimate.model.reservation.response;
 
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;

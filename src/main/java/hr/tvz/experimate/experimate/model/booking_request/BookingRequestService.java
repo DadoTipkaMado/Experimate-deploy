@@ -1,14 +1,18 @@
 package hr.tvz.experimate.experimate.model.booking_request;
 
+import hr.tvz.experimate.experimate.model.booking_request.exception.BookingAlreadyRequestedException;
+import hr.tvz.experimate.experimate.model.booking_request.exception.BookingRequestNotFoundException;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
-import hr.tvz.experimate.experimate.model.shared.event.BookingRequestDeclinedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedEvent;
 import hr.tvz.experimate.experimate.model.tour_listing.*;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingAlreadyReservedException;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingExpiredException;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingNotFoundException;
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

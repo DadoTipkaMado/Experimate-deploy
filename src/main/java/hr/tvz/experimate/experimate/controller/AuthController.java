@@ -1,7 +1,6 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.refresh_token.RefreshTokenService;
-import hr.tvz.experimate.experimate.model.shared.TokenResponse;
+import hr.tvz.experimate.experimate.model.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.security.AuthResponse;
 import hr.tvz.experimate.experimate.security.AuthService;
 import hr.tvz.experimate.experimate.security.LoginRequest;

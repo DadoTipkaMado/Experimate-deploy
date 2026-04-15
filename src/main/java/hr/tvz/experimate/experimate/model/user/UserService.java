@@ -2,6 +2,9 @@ package hr.tvz.experimate.experimate.model.user;
 
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.model.user.exception.IdNumberTakenException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UsernameTakenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;

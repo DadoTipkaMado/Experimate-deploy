@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.rating;
+package hr.tvz.experimate.experimate.model.rating.exception;
 
 import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 

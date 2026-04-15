@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.booking_request;
+package hr.tvz.experimate.experimate.model.booking_request.exception;
 
 import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 

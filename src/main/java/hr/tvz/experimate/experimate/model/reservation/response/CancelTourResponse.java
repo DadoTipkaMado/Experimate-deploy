@@ -1,4 +1,6 @@
-package hr.tvz.experimate.experimate.model.reservation;
+package hr.tvz.experimate.experimate.model.reservation.response;
+
+import hr.tvz.experimate.experimate.model.reservation.ReservationStatus;
 
 import java.time.LocalDateTime;
 
