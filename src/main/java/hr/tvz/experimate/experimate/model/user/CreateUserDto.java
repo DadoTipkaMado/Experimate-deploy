@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.model.user;
 
 import hr.tvz.experimate.experimate.model.shared.Constraints;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 
@@ -12,7 +13,7 @@ public record CreateUserDto(
         String firstName,
         @NotBlank @Size(min = Constraints.UserConstraints.LAST_NAME_MIN, max = Constraints.UserConstraints.LAST_NAME_MAX)
         String lastName,
-        @Past LocalDate dateOfBirth,
+        @NotNull @Past LocalDate dateOfBirth,
         @NotBlank
         String idNumber,
         @NotBlank @Size(min = Constraints.UserConstraints.USERNAME_MIN, max = Constraints.UserConstraints.USERNAME_MAX)
