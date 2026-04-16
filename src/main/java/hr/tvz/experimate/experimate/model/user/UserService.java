@@ -5,9 +5,12 @@ import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.exception.IdNumberTakenException;
 import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.exception.UsernameTakenException;
+import hr.tvz.experimate.experimate.model.user.response.UserResponse;
+import hr.tvz.experimate.experimate.model.user.response.UserSearchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,12 +75,12 @@ public class UserService {
         User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
         if (updateUserDto.username() != null) {
-            try{
+            try {
                 user.setUsername(
                         validateUsername(updateUserDto.username())
                 );
-            }catch(UsernameTakenException e){
-                if(!updateUserDto.username().equals(user.getUsername())) {
+            } catch (UsernameTakenException e) {
+                if (!updateUserDto.username().equals(user.getUsername())) {
                     log.warn("Attempted to update username to another user's username.");
                     throw new IllegalArgumentException("Cannot set username to a taken username.");
                 }
@@ -97,6 +100,21 @@ public class UserService {
         log.info("User updated with id {}", id);
 
         return createUserResponse(user);
+    }
+
+    public UserSearchResponse search(String query, Sort.Direction direction) {
+        Sort sort = Sort.by(direction, "username", "firstName", "lastName");
+
+        List<UserResponse> result = userRepo.findByUsernameContainingOrFirstNameContainingOrLastNameContaining(
+                        query, query, query, sort
+                ).stream()
+                .map(this::createUserResponse)
+                .toList();
+
+        return new UserSearchResponse(
+                result,
+                result.toArray().length
+        );
     }
 
     @Transactional
@@ -125,7 +143,7 @@ public class UserService {
         return idNumber;
     }
 
-    private UserResponse createUserResponse(User user){
+    private UserResponse createUserResponse(User user) {
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
@@ -137,7 +155,7 @@ public class UserService {
         );
     }
 
-    @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     void handleRatingRecalculatedEvent(RatingRecalculatedEvent event) {
         User user = userRepo.findById(event.userId())
                 .orElseThrow(() -> {

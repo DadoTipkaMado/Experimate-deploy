@@ -2,10 +2,12 @@ package hr.tvz.experimate.experimate.controller;
 
 import hr.tvz.experimate.experimate.model.user.CreateUserDto;
 import hr.tvz.experimate.experimate.model.user.UpdateUserDto;
-import hr.tvz.experimate.experimate.model.user.UserResponse;
+import hr.tvz.experimate.experimate.model.user.response.UserResponse;
 import hr.tvz.experimate.experimate.model.user.UserService;
+import hr.tvz.experimate.experimate.model.user.response.UserSearchResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -47,15 +49,26 @@ public class UserController {
 
     @PatchMapping(value = "/{id}")
     public ResponseEntity<UserResponse> patchUser(@PathVariable @Positive Integer id,
-                                          @Valid @RequestBody UpdateUserDto dto){
+                                                  @Valid @RequestBody UpdateUserDto dto) {
         return ResponseEntity.ok(
                 userService.updateUser(id, dto)
         );
     }
 
-    @DeleteMapping(value="/{id}")
+    @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable @Positive Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping(value = "/search")
+    public ResponseEntity<UserSearchResponse> search(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction direction) {
+        if (query == null)
+            return ResponseEntity.ok(new UserSearchResponse(List.of(), 0));
+        return ResponseEntity.ok(
+                userService.search(query, direction)
+        );
     }
 }
