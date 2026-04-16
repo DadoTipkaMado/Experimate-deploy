@@ -8,62 +8,137 @@
   <title>Profile — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
+    /* ── Nav bar ── */
+    .profile-nav {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+    }
+    .profile-nav__back {
+      color: var(--text-3); text-decoration: none;
+      font-size: 22px; line-height: 1; padding: 2px 4px;
+    }
+    .profile-nav__title {
+      font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text);
+    }
+    .profile-nav__edit {
+      margin-left: auto;
+      font-size: 10px; color: var(--accent); text-decoration: none; letter-spacing: 0.06em;
+    }
+
+    /* ── Hero ── */
     .profile-hero {
-      padding: 28px 18px 22px;
+      padding: 36px 20px 28px;
       border-bottom: 1px solid var(--border);
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-      position: relative; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      position: relative; overflow: hidden; text-align: center;
     }
     .profile-hero::before {
       content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 300px; height: 200px;
-      background: radial-gradient(ellipse, rgba(0,201,167,0.07) 0%, transparent 70%);
+      width: 320px; height: 220px;
+      background: radial-gradient(ellipse, rgba(0,201,167,0.08) 0%, transparent 70%);
       pointer-events: none;
     }
     .profile-avatar {
-      width: 80px; height: 80px; border-radius: 50%;
+      width: 96px; height: 96px; border-radius: 50%;
       background: var(--surface-2); border: 2px solid var(--border-2);
       display: flex; align-items: center; justify-content: center;
-      font-size: 30px; position: relative; z-index: 1; overflow: hidden;
+      font-size: 34px; position: relative; z-index: 1; overflow: hidden;
+      flex-shrink: 0;
     }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .profile-name {
       font-family: var(--font-display); font-weight: 800; font-size: 22px;
-      position: relative; z-index: 1; letter-spacing: -0.01em;
+      position: relative; z-index: 1; letter-spacing: -0.01em; color: var(--text);
     }
-    .profile-handle { font-size: 11px; color: var(--text-2); letter-spacing: 0.08em; position: relative; z-index: 1; margin-top: -4px; }
+    .profile-handle {
+      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em;
+      position: relative; z-index: 1; margin-top: -6px;
+    }
     .profile-rating {
-      padding: 5px 14px; border-radius: var(--radius-pill);
+      padding: 5px 16px; border-radius: var(--radius-pill);
       background: var(--accent-dim); border: 1px solid var(--accent-border);
       font-size: 12px; color: var(--accent); letter-spacing: 0.06em;
       position: relative; z-index: 1;
     }
-    .profile-stats { display: flex; gap: 28px; position: relative; z-index: 1; margin-top: 4px; }
-    .profile-stat { text-align: center; }
-    .profile-stat__num { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); }
-    .profile-stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
-    .profile-bio {
-      font-size: 11px; line-height: 1.75; color: rgba(239,239,239,0.65);
-      padding: 16px 18px; border-bottom: 1px solid var(--border);
+    .profile-stats {
+      display: flex; gap: 36px;
+      position: relative; z-index: 1; margin-top: 4px;
     }
+    .profile-stat { text-align: center; }
+    .profile-stat__num {
+      font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text);
+    }
+    .profile-stat__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-top: 2px;
+    }
+
+    /* ── Bio ── */
+    .profile-bio {
+      padding: 20px 20px; border-bottom: 1px solid var(--border);
+    }
+    .profile-bio__label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 8px;
+    }
+    .profile-bio__text {
+      font-size: 12px; line-height: 1.8; color: rgba(239,239,239,0.6);
+    }
+
+    /* ── Section ── */
     .profile-section-label {
-      padding: 14px 18px 6px;
+      padding: 20px 20px 8px;
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--text-3);
     }
-    .profile-listings { display: flex; flex-direction: column; gap: 10px; padding: 0 18px 32px; }
+    .profile-listings { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 40px; }
+
+    /* ── Listing cards ── */
     .profile-listing-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px;
-      display: flex; flex-direction: column; gap: 8px;
+      border-radius: var(--radius); padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
     }
-    .profile-listing-card__city { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); }
-    .profile-listing-card__date { font-size: 10px; color: var(--text-3); letter-spacing: 0.05em; }
-    .profile-listing-card__desc { font-size: 11px; color: rgba(239,239,239,0.55); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .profile-listing-card__foot { display: flex; align-items: center; justify-content: space-between; }
-    .profile-empty { display: flex; flex-direction: column; align-items: center; padding: 40px 24px; gap: 10px; text-align: center; }
-    .profile-empty__icon { font-size: 32px; opacity: 0.2; }
+    .profile-listing-card__head {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    }
+    .profile-listing-card__city {
+      font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text);
+    }
+    .profile-listing-card__date { font-size: 10px; color: var(--text-3); letter-spacing: 0.05em; flex-shrink: 0; }
+    .profile-listing-card__desc {
+      font-size: 11px; color: rgba(239,239,239,0.5); line-height: 1.65;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .profile-listing-card__foot {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .profile-listing-card__status {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .profile-listing-card__dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 5px var(--accent); flex-shrink: 0;
+    }
+    .profile-listing-card__status-label {
+      font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+    }
+    .profile-listing-card__actions { display: flex; gap: 6px; }
+
+    /* ── Empty / error states ── */
+    .profile-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 24px; gap: 10px; text-align: center;
+    }
+    .profile-empty__icon { font-size: 32px; opacity: 0.18; }
     .profile-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; }
-    .not-found { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 24px; gap: 12px; text-align: center; }
+    .not-found {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 80px 24px; gap: 12px; text-align: center;
+    }
+    .not-found__icon { font-size: 40px; opacity: 0.15; }
+    .not-found__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
+    .not-found__sub { font-size: 11px; color: var(--text-3); }
   </style>
 </head>
 <body>
@@ -73,11 +148,15 @@
 
   <main class="page-content" id="profile-main">
     <!-- Skeleton -->
+    <div class="profile-nav">
+      <a href="/explore" class="profile-nav__back">‹</a>
+      <div class="profile-nav__title">Profile</div>
+    </div>
     <div class="profile-hero" id="profile-hero-sk">
-      <div class="profile-avatar" style="background:var(--surface-2);"></div>
+      <div class="profile-avatar"></div>
       <div class="skeleton skeleton-line skeleton-line--lg" style="width:140px;"></div>
       <div class="skeleton skeleton-line skeleton-line--sm" style="width:90px;"></div>
-      <div class="skeleton skeleton-line" style="width:70px;height:26px;border-radius:20px;"></div>
+      <div class="skeleton skeleton-line" style="width:72px;height:26px;border-radius:20px;"></div>
     </div>
   </main>
 
@@ -90,8 +169,6 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  // Parse username from URL: /profile/{username}
   const _profileUsername = window.location.pathname.split('/').filter(Boolean).pop();
 
   function fmtDate(iso) {
@@ -112,9 +189,9 @@
       if (!user) {
         main.innerHTML = `
           <div class="not-found">
-            <div style="font-size:40px;opacity:0.15;">🧭</div>
-            <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text-2);">User not found</div>
-            <div style="font-size:11px;color:var(--text-3);">@${_profileUsername} doesn't exist.</div>
+            <div class="not-found__icon">🧭</div>
+            <div class="not-found__title">User not found</div>
+            <div class="not-found__sub">@${_profileUsername} doesn't exist.</div>
             <a href="/explore" class="btn btn--ghost" style="margin-top:8px;height:40px;padding:0 20px;font-size:11px;">Back to Explore</a>
           </div>`;
         return;
@@ -129,19 +206,28 @@
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       const photoUrl = user.profilePhotoUrl || localStorage.getItem('photo_' + user.id);
       const avatarInner = photoUrl
-        ? `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" alt="">`
-        : `<span style="font-family:var(--font-display);font-weight:800;font-size:28px;color:hsl(${hue},60%,72%);">${initials}</span>`;
+        ? `<img src="${photoUrl}" alt="">`
+        : `<span style="font-family:var(--font-display);font-weight:800;font-size:32px;color:hsl(${hue},60%,72%);">${initials}</span>`;
       const avatarStyle = photoUrl ? '' : `background:hsl(${hue},35%,22%);border-color:hsl(${hue},40%,35%);`;
 
       const isOwnProfile = Auth.getUsername() === user.username;
-      const backLink = document.referrer.includes('/explore') ? '/explore' : '/explore';
+
+      const bioSection = user.bio ? `
+        <div class="profile-bio">
+          <div class="profile-bio__label">About</div>
+          <div class="profile-bio__text">${user.bio}</div>
+        </div>` : '';
+
+      const editLink = isOwnProfile
+        ? `<a href="/account/edit" class="profile-nav__edit">Edit</a>`
+        : '';
 
       main.innerHTML = `
         <div class="profile-page">
-          <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border);">
-            <a href="/explore" style="color:var(--text-3);text-decoration:none;font-size:20px;line-height:1;">‹</a>
-            <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);">Profile</div>
-            ${isOwnProfile ? `<a href="/account/edit" style="margin-left:auto;font-size:10px;color:var(--accent);text-decoration:none;letter-spacing:0.06em;">Edit</a>` : ''}
+          <div class="profile-nav">
+            <a href="/explore" class="profile-nav__back">‹</a>
+            <div class="profile-nav__title">Profile</div>
+            ${editLink}
           </div>
 
           <div class="profile-hero">
@@ -157,7 +243,7 @@
             </div>
           </div>
 
-          ${user.bio ? `<div class="profile-bio">${user.bio}</div>` : ''}
+          ${bioSection}
 
           <div class="profile-section-label">Upcoming tours</div>
           <div class="profile-listings" id="profile-listings"></div>
@@ -185,25 +271,25 @@
           : '';
         return `
           <div class="profile-listing-card">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+            <div class="profile-listing-card__head">
               <div class="profile-listing-card__city">${listing.city}</div>
               <div class="profile-listing-card__date">${fmtDate(listing.meetingDate)}</div>
             </div>
             <div class="profile-listing-card__desc">${listing.tourDescription}</div>
             <div class="profile-listing-card__foot">
-              <div style="display:flex;align-items:center;gap:5px;">
-                <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 5px var(--accent);"></div>
-                <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);">Available</div>
+              <div class="profile-listing-card__status">
+                <div class="profile-listing-card__dot"></div>
+                <div class="profile-listing-card__status-label">Available</div>
               </div>
-              <div style="display:flex;gap:6px;">${mapBtn}${reserveBtn}</div>
+              <div class="profile-listing-card__actions">${mapBtn}${reserveBtn}</div>
             </div>
           </div>`;
       }).join('');
     })
     .catch(() => {
       document.getElementById('profile-main').innerHTML = `
-        <div style="padding:40px 24px;text-align:center;font-size:11px;color:var(--text-3);">
-          Could not load profile. Check your connection.
+        <div class="profile-empty">
+          <div class="profile-empty__sub">Could not load profile. Check your connection.</div>
         </div>`;
     });
 </script>

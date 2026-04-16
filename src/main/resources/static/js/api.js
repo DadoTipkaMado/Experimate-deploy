@@ -67,8 +67,16 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    const err = await res.json().catch(() => ({}));
+    const friendly = {
+      400: 'Check your input and try again.',
+      401: 'Not signed in.',
+      403: 'You don\'t have permission to do this.',
+      404: 'Not found.',
+      409: 'Already exists.',
+      500: 'Server error — try again shortly.',
+    };
+    throw new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
   }
   if (res.status === 204) return null;
   return res.json();
