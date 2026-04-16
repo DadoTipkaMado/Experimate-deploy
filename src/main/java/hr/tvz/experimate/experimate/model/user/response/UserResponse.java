@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.model.user.response;
 
 public record UserResponse(
         Integer id,
