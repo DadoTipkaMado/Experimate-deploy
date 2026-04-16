@@ -184,6 +184,12 @@ svg { display: block; flex-shrink: 0; }
 /* ───────────────────────────────────────────────
    4. NAVBAR
 ─────────────────────────────────────────────── */
+
+/* Brand hidden on mobile — only shows in desktop sidebar */
+.navbar__brand {
+  display: none;
+}
+
 .navbar {
   height: var(--navbar-h);
   background: var(--bg);
@@ -924,17 +930,22 @@ svg { display: block; flex-shrink: 0; }
   }
 
   /* Logo area at top of sidebar */
-  .navbar::before {
-    content: 'Experi\00B7mate';
+  .navbar__brand {
     display: block;
     font-family: var(--font-display);
     font-weight: 800;
     font-size: 16px;
     letter-spacing: 0.02em;
     color: var(--text);
+    text-decoration: none;
     padding: 8px 12px 24px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+
+  .navbar__brand span {
+    color: var(--accent);
   }
 
   .navbar__item {
@@ -1057,11 +1068,22 @@ svg { display: block; flex-shrink: 0; }
   .acc-section {
     padding: 20px 28px 8px;
     max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
   }
 
   .account-hero {
     padding: 36px 28px 28px;
     max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .acc-bottom {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 18px 28px 8px;
   }
 
   /* ───────────────────────────────────────────

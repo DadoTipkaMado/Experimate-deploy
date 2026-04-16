@@ -16,6 +16,8 @@
 -->
 <nav th:fragment="navbar" class="navbar" aria-label="Main navigation">
 
+  <a href="/" class="navbar__brand">Experi<span>Mate</span></a>
+
   <!-- MAP -->
   <a th:href="@{/map}"
      th:classappend="${currentPage == 'map'} ? ' navbar__item--active'"
