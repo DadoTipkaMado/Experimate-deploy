@@ -39,6 +39,9 @@
   - `/listings/new` → TourListingViewController
   - `/account` → AccountViewController
   - `/account/edit` → AccountViewController
+  - `/requests` → AccountViewController
+  - `/ratings` → AccountViewController
+  - `/profile/{username}` → AccountViewController
   - `/login` → AuthViewController
   - `/register` → AuthViewController
   - `/forgot-password` → AuthViewController
@@ -73,31 +76,46 @@
 
 ---
 
-## Current state (as of 2026-04-09)
+## Current state (as of 2026-04-16)
 - Full local-test smoke tested — register, login, create tour, request, accept, rate all working
-- Listing status dot has 3 states: Available (teal) / Requested (orange, sessionStorage) / Booked (grey, reserved=true)
+- Listing status dot has 3 states: Available (teal) / Requested (orange) / Booked (grey, reserved=true)
 - map.js now uses apiFetch — pins load correctly with auth
 - WebSocket reconnect disabled — backend endpoint not yet implemented
 - Page transitions removed entirely
 - Description minimum is 200 chars — counter turns teal at 200 (red below)
-- `BookingRequest.status` column fixed to VARCHAR(20) in local-test — David needs same fix on his branch
 - Rating system works — Rate button appears on past tours in My Tours tab
 - `RatingAPI` fully wired: `getAll`, `getById`, `create`, `update`, `delete`
 - `profilePhotoUrl` now in `UserResponse` — account.html reads from API first, syncs to localStorage for topbar
-- `account.html` has "Overview" / "My Listings" tab bar — My Listings shows own listings with delete
 - `tours.html` — tap any listing card to open full-description modal with Reserve/Map buttons
-- `tours.html` — upcoming meetup cards have disabled "I'm here" placeholder button (ready for David's endpoint)
+- `tours.html` — My Tours has 3 subtabs: As Guest / As Host / My Listings
+- `tours.html` — "I'm here" button is LIVE and wired: calls `ReservationAPI.checkIn(resId)`, handles both-checked-in → tour takeover overlay, end-tour flow
+- `tours.html` — cancel button opens modal with reason, calls `ReservationAPI.delete` (⚠️ should be `cancelTour` — see bugs)
 - `tours.html` — host name on listing cards links to `/explore?q={username}`
 - `explore.js` — pre-fills search from `?q=` URL param
+- `account.html` — booking requests moved to dedicated `/requests` page; badge shows pending count
+- `requests.html` — dedicated page for host to view/accept/decline booking requests
 - `experiences.html` and `tour-listings.html` — dead/unlinked templates, ignore them
+- **`ReservationAPI`** wired: `getAll`, `getById`, `delete`, `checkIn`, `endTour`, `cancelTour`
+- **`ReservationStatus` enum** (backend): CONFIRMED → ACTIVE → CLOSED → COMPLETED / CANCELLED / EXPIRED
 
-## Known pending issues (waiting on David) — updated 2026-04-09
-- **`ReservationService.createReservation`** — `validatedListing.setReserved(true)` is called but method is not `@Transactional` and listing is not explicitly saved. Fix: add `@Transactional` to `createReservation` or call `tourListingRepo.save(validatedListing)` after setting reserved.
-- **`BookingRequest.status`** — needs `@Column(columnDefinition = "VARCHAR(20)")` alongside `@Enumerated(EnumType.STRING)` in `BookingRequest.java` (H2 creates ENUM type otherwise, breaks queries)
-- **`BookingRequestResponse`** — only returns `{ id, status }`. Needs `guest { firstName, lastName, username }` and `tourListing { id, city, meetingDate, host }` — frontend already handles both cases gracefully
-- **"I'm here" / meeting confirmation flow** — David's design: both parties tap "I'm here" → confirmation dialog → blocking overlay → "We're done" → rating prompt. Disabled button is already on the UI, needs backend endpoint.
-- `availableToMeet` toggle removed — needs backend field
+## Bugs fixed (2026-04-16)
+- **`BookingRequestResponse.user` vs `.guest`** — fixed in `tours.html` and `requests.html`; both now use `r.user`
+- **Cancel uses cancelTour not delete** — `confirmCancel()` now calls `ReservationAPI.cancelTour(id)` (PATCH /cancel-tour, keeps row with CANCELLED status)
+
+## Known pending issues (waiting on David) — updated 2026-04-16
+- **`ReservationResponse` missing `status` field** — frontend can't distinguish CONFIRMED vs CANCELLED reservations; cancelled tours still show in "My Tours" upcoming section. David needs to add `status` to `ReservationResponse`.
+- `availableToMeet` toggle is localStorage-only — needs backend field on User entity + UpdateUserDto + UserResponse (GitHub Issue #2)
 - WebSocket `/ws/map` — reconnect disabled on frontend until David implements the endpoint
+
+## GitHub issues for David (still open as of 2026-04-16)
+All 4 issues sent to David are still valid — none resolved in his latest push:
+
+| # | Issue | Status | Frontend impact |
+|---|-------|--------|-----------------|
+| 1 | `GET /api/user/by-username/{username}` | ❌ Not done | `profile.html` calls `getAll()` and filters client-side — slow, doesn't scale |
+| 2 | `availableToMeet` field on User entity + UpdateUserDto + UserResponse | ❌ Not done | Toggle UI exists, PATCH call silently fails |
+| 3 | `profilePhotoUrl` column type TEXT (not VARCHAR(255)) | ❌ Not done | Base64 JPEG will truncate and corrupt on save |
+| 4 | `GET/POST/DELETE /api/saved/{targetUserId}` (nice to have) | ❌ Not done | Saved locals work via localStorage only — lost on device switch |
 
 ## Current state (as of 2026-04-05)
 - All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`
@@ -122,8 +140,11 @@
 |-----|--------|-------|
 | `UserResponse` | ✅ DONE | `id, username, firstName, lastName, bio, rating, profilePhotoUrl` |
 | `TourListingResponse` | ✅ DONE | `id, city, lat, lng, meetingDate, postDate, tourDescription, reserved, host{firstName, lastName, username}` |
-| `ReservationResponse` | ✅ DONE | `id, dateOfReservation, tourListing{meetingDate, city, host{firstName, lastName, username}}, guest{firstName, lastName, username}` |
-| `BookingRequestResponse` | ⚠️ SLIM | `id, status` — needs guest + tourListing fields |
+| `ReservationResponse` | ⚠️ MISSING STATUS | `id, dateOfReservation, tourListing{meetingDate, city, host{…}}, guest{firstName, lastName, username}` — needs `status` field |
+| `BookingRequestResponse` | ⚠️ FIELD NAME BUG | `id, status, requestDate, tourListing{meetingDate, city, host{…}}, user{firstName, lastName, username}` — field is `user` not `guest`; frontend uses `r.guest` everywhere → broken |
+| `CheckInResponse` | ✅ DONE | `reservationId, status, guestCheckedIn, hostCheckedIn, guestCheckInTimestamp, hostCheckInTimestamp, statusTimestamp` |
+| `EndTourResponse` | ✅ DONE | `reservationId, status, endedByUsername, endTimestamp` |
+| `CancelTourResponse` | ✅ DONE | `reservationId, status, cancelledByUsername, cancelTimestamp` |
 | `RatingResponse` | ✅ DONE | `id, score, review` |
 | `CreateRatingDto` | ✅ DONE | `raterId, ratedId, score, review` |
 
@@ -132,17 +153,46 @@
 - `AuthResponse` only returns `{ token }` — no id, login falls back to `UserAPI.getAll()` to resolve userId
 - `guest` in `ReservationResponse` has no `id` — "My Tours" tab filters by `guest.username` via `Auth.getUsername()`
 - `BookingRequestAPI` wired up with all endpoints (create, accept, decline, getAll, getById, delete)
+- `ReservationAPI` wired up with all endpoints (getAll, getById, delete, checkIn, endTour, cancelTour)
 - `RatingAPI` wired up with all endpoints (getAll, getById, create, update, delete)
 - Reserve button uses `POST /booking-request` with `{ guestId, listingId }`
 - Rating submit resolves `ratedId` by calling `UserAPI.getAll()` and matching by username
 
-## Available to meet toggle — REMOVED (temporarily)
-- Removed from `account.html` because `User` entity and `UpdateUserDto` have no `availableToMeet` field
-- When David adds the field to backend, add back the toggle UI and `toggleAvailability()` JS function
+## Available to meet toggle
+- Toggle UI exists in `account.html` — currently localStorage only (calls `UserAPI.update` optimistically but field doesn't exist yet on backend)
+- When David adds `availableToMeet` to `User` entity and `UpdateUserDto`, it will just start working
 
 ## Ready to test
 - Needs David to merge both branches into `main`
-- Smoke test: reserve button, My Tours tab, map pins, JWT refresh on expiry, booking requests accept/decline, listing modal, My Listings tab + delete, rating flow
+- Smoke test: reserve, check-in flow (I'm here → both checked in → takeover → end tour → rate), booking requests accept/decline, My Listings delete, cancel reservation
+
+---
+
+## Session log — 2026-04-16 (David's 13-commit push — check-in/end-tour/cancel live)
+
+### David pushed (2026-04-16)
+- **Check-in flow** — `PATCH /api/reservation/check-in/{id}` returns `CheckInResponse` with `guestCheckedIn`, `hostCheckedIn`, timestamps; both checked in → status ACTIVE
+- **End tour** — `PATCH /api/reservation/end-tour/{id}` → status CLOSED; 48h later auto-expires to EXPIRED
+- **Cancel tour** — `PATCH /api/reservation/cancel-tour/{id}` → status CANCELLED (keeps row in DB)
+- **`ReservationStatus` enum** — CONFIRMED, ACTIVE, COMPLETED, CLOSED, CANCELLED, EXPIRED
+- **`BookingRequestResponse`** — now fully expanded with `tourListing` and `user` (guest) fields; `requestDate` also included
+- **`ReservationService`** — now `@Transactional`, reservation creation triggered via `BookingRequestAcceptedEvent`
+- **Reservation cascade** — deleting a user or listing cleans up associated reservations and booking requests
+- **`DuplicateRatingException`** — backend now guards against rating the same person twice
+- **Rating events** — `RatingCreatedEvent`, `RatingDeletedEvent`, `RatingRecalculatedEvent` — ratings now recalculate user's average score automatically
+
+### Frontend already had (no changes needed in api.js)
+- `ReservationAPI.checkIn`, `endTour`, `cancelTour` — all existed and are wired in `tours.html`
+- `tours.html` — "I'm here" button, tour takeover overlay, end-tour flow all live
+
+### Bugs found (need fixing)
+- `BookingRequestResponse` field is `user`, not `guest` — `tours.html` and `requests.html` use `r.guest` → breaks request status tracking and request card rendering
+- `confirmCancel()` calls `ReservationAPI.delete` (DELETE removes row) — should call `ReservationAPI.cancelTour` (PATCH sets CANCELLED status)
+
+### Čeka David
+- `ReservationResponse` needs `status` field so frontend can filter out CANCELLED/EXPIRED from "My Tours"
+- `availableToMeet` field on User entity
+- WebSocket `/ws/map`
 
 ---
 
