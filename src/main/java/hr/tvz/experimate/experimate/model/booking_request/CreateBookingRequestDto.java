@@ -1,5 +1,11 @@
 package hr.tvz.experimate.experimate.model.booking_request;
 
-public record CreateBookingRequestDto(Integer guestId,
-                                      Integer listingId) {
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+public record CreateBookingRequestDto(
+        @Positive(message="Guest Id must be positive")
+        Integer guestId,
+        @Positive(message="Listing Id must be positive")
+        Integer listingId) {
 }
