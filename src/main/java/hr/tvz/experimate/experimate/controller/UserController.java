@@ -4,14 +4,18 @@ import hr.tvz.experimate.experimate.model.user.CreateUserDto;
 import hr.tvz.experimate.experimate.model.user.UpdateUserDto;
 import hr.tvz.experimate.experimate.model.user.UserResponse;
 import hr.tvz.experimate.experimate.model.user.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/user")
+@Validated
 public class UserController {
 
     private final UserService userService;
@@ -21,14 +25,14 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody CreateUserDto dto) {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 userService.createUser(dto)
         );
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable @Positive Integer id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -42,15 +46,15 @@ public class UserController {
     }
 
     @PatchMapping(value = "/{id}")
-    public ResponseEntity<UserResponse> patchUser(@PathVariable Integer id,
-                                          @RequestBody UpdateUserDto dto){
+    public ResponseEntity<UserResponse> patchUser(@PathVariable @Positive Integer id,
+                                          @Valid @RequestBody UpdateUserDto dto){
         return ResponseEntity.ok(
                 userService.updateUser(id, dto)
         );
     }
 
     @DeleteMapping(value="/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable @Positive Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
