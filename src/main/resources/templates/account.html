@@ -205,6 +205,8 @@
           </div>`;
         nudge.style.display = '';
       }
+
+      initAvailToggle(user.availableToMeet);
     });
   }
 
@@ -227,15 +229,23 @@ loadAccount();
 
   loadRequestsBadge();
 
-  // Available to meet — localStorage until David adds field to UserResponse + UpdateUserDto
-  (function initAvailToggle() {
+  // Available to meet — reads from API if David has added the field (Issue #2), falls back to localStorage
+  function initAvailToggle(apiValue) {
     const userId = Auth.getUserId();
     if (!userId) return;
     const section = document.getElementById('available-section');
     section.style.display = '';
     const toggle = document.getElementById('avail-toggle');
     const knob   = document.getElementById('avail-knob');
-    let isAvail  = localStorage.getItem('availableToMeet_' + userId) === 'true';
+
+    let isAvail;
+    if (apiValue !== undefined) {
+      // David shipped availableToMeet — use server state and sync to localStorage
+      isAvail = !!apiValue;
+      localStorage.setItem('availableToMeet_' + userId, isAvail);
+    } else {
+      isAvail = localStorage.getItem('availableToMeet_' + userId) === 'true';
+    }
 
     function applyState(val) {
       toggle.style.background = val ? 'var(--accent)' : 'var(--border-2)';
@@ -247,11 +257,10 @@ loadAccount();
       isAvail = !isAvail;
       localStorage.setItem('availableToMeet_' + userId, isAvail);
       applyState(isAvail);
-      // Optimistic API call — will succeed once David adds the field
       UserAPI.update(userId, { availableToMeet: isAvail }).catch(() => {});
       showToast(isAvail ? 'You\'re available to meet!' : 'Availability turned off', 'success');
     };
-  })();
+  }
 </script>
 </body>
 </html>

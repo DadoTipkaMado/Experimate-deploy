@@ -209,7 +209,7 @@
         </div>
         <div class="explore-card__content">
           <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-            <div class="explore-card__name" style="margin-bottom:0;">${user.firstName} ${user.lastName}</div>
+            <a href="/profile/${user.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${user.firstName} ${user.lastName}</a>
             ${listingBadge}
           </div>
           <div class="explore-card__handle">@${user.username}</div>
