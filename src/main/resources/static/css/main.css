@@ -111,37 +111,6 @@ svg { display: block; flex-shrink: 0; }
   background: var(--bg);
 }
 
-/* On large screens: add subtle side shadow + wordmark */
-@media (min-width: 900px) {
-  body {
-    background: #050505;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  body::before {
-    content: 'EXPERIMATE';
-    position: fixed;
-    top: 50%;
-    left: calc(50% - 268px);
-    transform: translateY(-50%) translateX(-100%) rotate(-90deg);
-    font-family: var(--font-display);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.4em;
-    color: #1a1a1a;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-
-  .app-shell {
-    box-shadow:
-      0 0 0 1px #1a1a1a,
-      0 32px 80px rgba(0, 0, 0, 0.7);
-    border-radius: 0;
-  }
-}
 
 /* Page content area */
 .page-content {
@@ -192,17 +161,6 @@ svg { display: block; flex-shrink: 0; }
   gap: 10px;
 }
 
-.topbar__city {
-  font-size: 10px;
-  color: var(--text-2);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 11px;
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  white-space: nowrap;
-}
 
 .topbar__avatar {
   width: 32px;
@@ -804,7 +762,6 @@ svg { display: block; flex-shrink: 0; }
 .app-shell--exit {
   opacity: 0 !important;
   transform: translateY(-4px) !important;
-  opacity: 0 !important;
   pointer-events: none;
 }
 
@@ -931,6 +888,11 @@ svg { display: block; flex-shrink: 0; }
     border-bottom: 1px solid var(--border);
     border-left: 1px solid var(--border);
     padding: 0 28px;
+  }
+
+  /* Sidebar already shows the brand — hide duplicate topbar logo */
+  .topbar__logo {
+    display: none;
   }
 
   /* ───────────────────────────────────────────
