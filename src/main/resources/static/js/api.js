@@ -88,11 +88,13 @@ const AuthAPI = {
    USERS  /api/user
 ─────────────────────────────────────────────── */
 const UserAPI = {
-  getAll: ()           => apiFetch('/api/user'),
-  getById: (id)        => apiFetch(`/api/user/${id}`),
-  create: (dto)        => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
-  update: (id, dto)    => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
-  delete: (id)         => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
+  getAll: ()               => apiFetch('/api/user'),
+  getById: (id)            => apiFetch(`/api/user/${id}`),
+  // TODO: swap profile.html to use this once David adds GET /api/user/by-username/{username} (Issue #1)
+  getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
+  create: (dto)            => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
+  update: (id, dto)        => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
+  delete: (id)             => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────
@@ -129,6 +131,16 @@ const BookingRequestAPI = {
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
   decline: (id)        => apiFetch(`/api/booking-request/decline/${id}`, { method: 'PATCH' }),
   delete: (id)         => apiFetch(`/api/booking-request/${id}`,       { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   SAVED LOCALS  /api/saved
+   TODO: swap explore.html localStorage logic to use this once David adds the endpoints (Issue #4)
+─────────────────────────────────────────────── */
+const SavedAPI = {
+  getAll: ()                   => apiFetch('/api/saved'),
+  save:   (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'POST' }),
+  unsave: (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────

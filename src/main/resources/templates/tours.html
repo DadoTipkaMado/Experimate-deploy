@@ -406,7 +406,7 @@
       : '';
 
     document.getElementById('lm-city').textContent = listing.city;
-    document.getElementById('lm-host').innerHTML = `<a href="/explore?q=${hostHandle}" style="color:var(--accent);text-decoration:none;">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>${hostTourHint}`;
+    document.getElementById('lm-host').innerHTML = `<a href="/profile/${hostHandle}" style="color:var(--accent);text-decoration:none;">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>${hostTourHint}`;
     document.getElementById('lm-date').innerHTML = `${fmtDate(listing.meetingDate)}<br><span style="font-size:9px;color:var(--text-3);">${fmtTime(listing.meetingDate)}</span>`;
     document.getElementById('lm-desc').textContent = listing.tourDescription;
     const isOwn    = currentUserId && listing.host?.username === Auth.getUsername();
@@ -653,7 +653,7 @@
     const reason = document.getElementById('cancel-reason').value.trim();
     if (!reason) { showToast('Please provide a reason.'); return; }
     if (_cancelBtn) _cancelBtn.disabled = true;
-    ReservationAPI.delete(_cancelResId)
+    ReservationAPI.cancelTour(_cancelResId)
       .then(() => { _cancelBtn.closest('.meet-card').remove(); closeCancelModal(); showToast('Reservation cancelled.', 'success'); })
       .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message || 'Could not cancel — please try again.', 'error'); });
   }
@@ -804,7 +804,7 @@
               <div class="listing-card__city">${listing.city}</div>
               <div style="display:flex;align-items:center;gap:7px;margin-top:5px;">
                 <div style="width:22px;height:22px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">${initials.toUpperCase()}</div>
-                <a href="/explore?q=${hostHandle}" class="listing-card__host" style="text-decoration:none;" onclick="event.stopPropagation()">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>
+                <a href="/profile/${hostHandle}" class="listing-card__host" style="text-decoration:none;" onclick="event.stopPropagation()">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>
               </div>
             </div>
             <div style="text-align:right;flex-shrink:0;padding-top:2px;">
@@ -837,7 +837,10 @@
     }
 
     const currentUsername = Auth.getUsername();
-    const mine = reservations.filter(r => r.guest && r.guest.username === currentUsername);
+    const mine = reservations.filter(r =>
+      r.guest && r.guest.username === currentUsername &&
+      (!r.status || (r.status !== 'CANCELLED' && r.status !== 'EXPIRED'))
+    );
     const now   = new Date();
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
     const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
@@ -890,7 +893,10 @@
     const pastEl     = document.getElementById('host-past');
     if (!currentUsername) return;
 
-    const mine = reservations.filter(r => r.tourListing?.host?.username === currentUsername);
+    const mine = reservations.filter(r =>
+      r.tourListing?.host?.username === currentUsername &&
+      (!r.status || (r.status !== 'CANCELLED' && r.status !== 'EXPIRED'))
+    );
     const now  = new Date();
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now)
                          .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
@@ -1006,7 +1012,7 @@
       const currentUsername = Auth.getUsername();
       _myRequests = {};
       (allRequests || [])
-        .filter(r => r.guest?.username === currentUsername && r.tourListing?.meetingDate)
+        .filter(r => r.user?.username === currentUsername && r.tourListing?.meetingDate)
         .forEach(r => { _myRequests[r.tourListing.meetingDate] = { status: r.status, id: r.id }; });
       renderListings(listings);
       renderMeetups(reservations);

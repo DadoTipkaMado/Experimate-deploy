@@ -84,8 +84,8 @@
   }
 
   function mkCard(r) {
-    const guestName = r.guest ? `${r.guest.firstName} ${r.guest.lastName}` : `Request #${r.id}`;
-    const guestHandle = r.guest?.username ? `@${r.guest.username}` : '';
+    const guestName = r.user ? `${r.user.firstName} ${r.user.lastName}` : `Request #${r.id}`;
+    const guestHandle = r.user?.username ? `@${r.user.username}` : '';
     const city = r.tourListing?.city ?? '';
     const date = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
     const meta = [city, date].filter(Boolean).join(' · ');
