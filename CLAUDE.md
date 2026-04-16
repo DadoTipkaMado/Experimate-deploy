@@ -76,6 +76,12 @@
 
 ---
 
+## Current state (as of 2026-04-17)
+- **profile.html** — full layout cleanup: CSS classes replace all inline styles, avatar 96px, bio section with "About" label, better spacing/hierarchy
+- **api.js** — friendly fallback error messages by HTTP status (400 → "Check your input...", 500 → "Server error...", etc.); Spring's own `message` still shown if present
+- **login.html** — redirect logic now tries refresh cookie even if userId missing from localStorage; full flow: JWT → refresh → /map or stay
+- **register.html** — DOB input auto-formats with '/' as you type, leading zeros added on blur, digit-only keydown, isNaN date guard
+
 ## Current state (as of 2026-04-16, evening)
 - Full local-test smoke tested — register, login, create tour, request, accept, rate all working
 - Listing status dot has 3 states: Available (teal) / Requested (orange) / Booked (grey, reserved=true)
