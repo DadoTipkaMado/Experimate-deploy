@@ -137,29 +137,31 @@
       const backLink = document.referrer.includes('/explore') ? '/explore' : '/explore';
 
       main.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border);">
-          <a href="${backLink}" style="color:var(--text-3);text-decoration:none;font-size:20px;line-height:1;">‹</a>
-          <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);">Profile</div>
-          ${isOwnProfile ? `<a href="/account/edit" style="margin-left:auto;font-size:10px;color:var(--accent);text-decoration:none;letter-spacing:0.06em;">Edit</a>` : ''}
-        </div>
+        <div class="profile-page">
+          <div style="display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--border);">
+            <a href="/explore" style="color:var(--text-3);text-decoration:none;font-size:20px;line-height:1;">‹</a>
+            <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);">Profile</div>
+            ${isOwnProfile ? `<a href="/account/edit" style="margin-left:auto;font-size:10px;color:var(--accent);text-decoration:none;letter-spacing:0.06em;">Edit</a>` : ''}
+          </div>
 
-        <div class="profile-hero">
-          <div class="profile-avatar" style="${avatarStyle}">${avatarInner}</div>
-          <div class="profile-name">${user.firstName} ${user.lastName}</div>
-          <div class="profile-handle">@${user.username}</div>
-          <div class="profile-rating">★ ${user.rating > 0 ? Number(user.rating).toFixed(1) : '—'}</div>
-          <div class="profile-stats">
-            <div class="profile-stat">
-              <div class="profile-stat__num">${userListings.length}</div>
-              <div class="profile-stat__label">Tours</div>
+          <div class="profile-hero">
+            <div class="profile-avatar" style="${avatarStyle}">${avatarInner}</div>
+            <div class="profile-name">${user.firstName} ${user.lastName}</div>
+            <div class="profile-handle">@${user.username}</div>
+            <div class="profile-rating">★ ${user.rating > 0 ? Number(user.rating).toFixed(1) : '—'}</div>
+            <div class="profile-stats">
+              <div class="profile-stat">
+                <div class="profile-stat__num">${userListings.length}</div>
+                <div class="profile-stat__label">Tours</div>
+              </div>
             </div>
           </div>
+
+          ${user.bio ? `<div class="profile-bio">${user.bio}</div>` : ''}
+
+          <div class="profile-section-label">Upcoming tours</div>
+          <div class="profile-listings" id="profile-listings"></div>
         </div>
-
-        ${user.bio ? `<div class="profile-bio">${user.bio}</div>` : ''}
-
-        <div class="profile-section-label">Upcoming tours</div>
-        <div class="profile-listings" id="profile-listings"></div>
       `;
 
       const listingsEl = document.getElementById('profile-listings');

@@ -846,6 +846,16 @@ svg { display: block; flex-shrink: 0; }
    Breakpoint: 900px+
 ═══════════════════════════════════════════════ */
 
+/* ───────────────────────────────────────────────
+   Tablet gap fix — no black margins between phone
+   max-width (480px) and the desktop grid (900px)
+─────────────────────────────────────────────── */
+@media (min-width: 481px) and (max-width: 899px) {
+  .app-shell {
+    max-width: 100%;
+  }
+}
+
 @media (min-width: 900px) {
 
   /* ───────────────────────────────────────────
@@ -1052,6 +1062,14 @@ svg { display: block; flex-shrink: 0; }
   .account-hero {
     padding: 36px 28px 28px;
     max-width: 680px;
+  }
+
+  /* ───────────────────────────────────────────
+     PROFILE PAGE — centered, max width
+  ─────────────────────────────────────────── */
+  .profile-page {
+    max-width: 680px;
+    margin: 0 auto;
   }
 
   /* ───────────────────────────────────────────
