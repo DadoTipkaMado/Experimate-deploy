@@ -23,6 +23,7 @@ public class BookingRequestController {
         this.bookingRequestService = bookingRequestService;
     }
 
+
     @PostMapping
     public ResponseEntity<BookingRequestResponse> createBookingRequest(@Valid @RequestBody CreateBookingRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(

@@ -17,7 +17,7 @@ public class User extends Person {
     private String password;
     private String bio;
     private double rating = 0.0;
-    private String profilePhotoUrl;
+    private String profilePhotoFilename;
 
     //For Hibernate to operate
     protected User(){}
@@ -104,12 +104,12 @@ public class User extends Person {
         this.rating = rating;
     }
 
-    public String getProfilePhotoUrl() {
-        return profilePhotoUrl;
+    public String getProfilePhotoFilename() {
+        return profilePhotoFilename;
     }
 
-    public void setProfilePhotoUrl(String profilePhotoUrl) {
-        this.profilePhotoUrl = profilePhotoUrl;
+    public void setProfilePhotoFilename(String profilePhotoFilename) {
+        this.profilePhotoFilename = profilePhotoFilename;
     }
 
     private String validateUsername(String username) {

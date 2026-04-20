@@ -41,4 +41,6 @@ application-local.properties
 *.log
 logs/
 Programiranje/
+uploads/
+http/
 

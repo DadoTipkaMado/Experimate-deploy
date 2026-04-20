@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.model.user;
 
+import hr.tvz.experimate.experimate.model.shared.FileStorageService;
+import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.exception.IdNumberTakenException;
@@ -14,8 +16,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,13 +33,16 @@ public class UserService {
     private final UserRepo userRepo;
     private final ApplicationEventPublisher publisher;
     private final BCryptPasswordEncoder encoder;
+    private final FileStorageService fileStorageService;
 
     public UserService(UserRepo userRepo,
                        ApplicationEventPublisher publisher,
-                       BCryptPasswordEncoder encoder) {
+                       BCryptPasswordEncoder encoder,
+                       FileStorageService fileStorageService) {
         this.userRepo = userRepo;
         this.publisher = publisher;
         this.encoder = encoder;
+        this.fileStorageService = fileStorageService;
     }
 
     public UserResponse createUser(CreateUserDto createUserDto) {
@@ -72,7 +80,7 @@ public class UserService {
     }
 
     public UserResponse updateUser(Integer id, UpdateUserDto updateUserDto) {
-        User user = userRepo.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        User user = findEntityById(id);
 
         if (updateUserDto.username() != null) {
             try {
@@ -93,8 +101,6 @@ public class UserService {
             );
         if (updateUserDto.bio() != null)
             user.setBio(updateUserDto.bio());
-        if (updateUserDto.profilePhotoUrl() != null)
-            user.setProfilePhotoUrl(updateUserDto.profilePhotoUrl());
 
         userRepo.save(user);
         log.info("User updated with id {}", id);
@@ -115,6 +121,57 @@ public class UserService {
                 result,
                 result.toArray().length
         );
+    }
+
+    /**
+     * Stores a new profile photo for the given user and deletes the previous one if present.
+     *
+     * @param id   the user's ID
+     * @param file the uploaded image file
+     * @return updated {@link UserResponse}
+     * @throws UserNotFoundException    if no user exists with the given ID
+     * @throws IllegalArgumentException if the file is empty or has a disallowed content type
+     */
+    public UserResponse uploadProfilePhoto(Integer id, MultipartFile file) {
+        User user = findEntityById(id);
+        String oldFilename = user.getProfilePhotoFilename();
+        String newFilename = fileStorageService.store(file);
+        user.setProfilePhotoFilename(newFilename);
+        if (oldFilename != null) fileStorageService.delete(oldFilename);
+        userRepo.save(user);
+        log.info("Profile photo updated for user {}", id);
+        return createUserResponse(user);
+    }
+
+    /**
+     * Fetches a {@link User} entity by ID, shared internally to avoid duplicating
+     * the not-found handling across service methods.
+     *
+     * @param id the user's ID
+     * @return the {@link User} entity
+     * @throws UserNotFoundException if no user exists with the given ID
+     */
+    private User findEntityById(Integer id) {
+        return userRepo.findById(id).orElseThrow(() -> {
+            log.warn("No user found for id {}", id);
+            return new UserNotFoundException(id);
+        });
+    }
+
+    /**
+     * Returns the profile photo of the given user as a {@link Resource} for HTTP streaming.
+     *
+     * @param id the user's ID
+     * @return the profile photo {@link Resource}
+     * @throws UserNotFoundException if no user exists with the given ID
+     * @throws NotFoundException     if the user has no profile photo
+     */
+    public Resource getProfilePhotoResource(Integer id) {
+        User user = findEntityById(id);
+        if (user.getProfilePhotoFilename() == null) {
+            throw new NotFoundException("User " + id + " has no profile photo");
+        }
+        return fileStorageService.load(user.getProfilePhotoFilename());
     }
 
     @Transactional
@@ -144,6 +201,9 @@ public class UserService {
     }
 
     private UserResponse createUserResponse(User user) {
+        String profilePhotoUrl = user.getProfilePhotoFilename() != null
+                ? "/api/user/" + user.getId() + "/profile-photo"
+                : null;
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
@@ -151,17 +211,13 @@ public class UserService {
                 user.getLastName(),
                 user.getBio(),
                 user.getRating(),
-                user.getProfilePhotoUrl()
+                profilePhotoUrl
         );
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     void handleRatingRecalculatedEvent(RatingRecalculatedEvent event) {
-        User user = userRepo.findById(event.userId())
-                .orElseThrow(() -> {
-                    log.warn("No user found for given id {}.", event.userId());
-                    return new UserNotFoundException(event.userId());
-                });
+        User user = findEntityById(event.userId());
 
         user.setRating(event.ratingScore());
     }

@@ -92,7 +92,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         return PUBLIC_ENDPOINTS.entrySet().stream()
                 .anyMatch(entry -> {
-                    if(path.contains(entry.getValue())){
+                    if(path.equals(entry.getValue())){
                         if(entry.getKey().equalsIgnoreCase("ANY"))
                             return true;
                         if(entry.getKey().equalsIgnoreCase(method))
