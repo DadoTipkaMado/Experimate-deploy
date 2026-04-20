@@ -76,6 +76,10 @@
 
 ---
 
+## Current state (as of 2026-04-20)
+- **explore.js** — search now calls `GET /api/user/search?query=` (David's backend endpoint) with 300ms debounce; clears back to full list when input is empty
+- **api.js** — added `UserAPI.search(query)` method
+
 ## Current state (as of 2026-04-17)
 - **profile.html** — full layout cleanup: CSS classes replace all inline styles, avatar 96px, bio section with "About" label, better spacing/hierarchy
 - **api.js** — friendly fallback error messages by HTTP status (400 → "Check your input...", 500 → "Server error...", etc.); Spring's own `message` still shown if present

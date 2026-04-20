@@ -100,6 +100,7 @@ const UserAPI = {
   getById: (id)            => apiFetch(`/api/user/${id}`),
   // TODO: swap profile.html to use this once David adds GET /api/user/by-username/{username} (Issue #1)
   getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
+  search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
   create: (dto)            => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
   update: (id, dto)        => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id)             => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
