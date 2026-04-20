@@ -88,3 +88,14 @@
 - I am still relatively new to complex development and shipping industry standard solutions and that is what i want to learn.
 - Focus on explaining the what and why of every idea that you recommend to me. I want to be able to write industry standard and competent code.
 - I do not want to blindly let you code for me. If I am facing a new concept, I want to fully understand it before implementation.
+
+### Method ordering in classes
+- Order methods by industry standard conventions: constructors first, then public methods (grouped by functionality), then private helper methods, then static methods.
+- When I write a method or you write a method, reorganize it to match these standards without asking — just reorder.
+- This keeps classes consistent and readable across the codebase.
+
+### Code quality suggestions, not corrections
+- Provide suggestions on how to write code better and align with modern industry conventions.
+- Always explain the why behind the suggestion (e.g., "this pattern is better because..." or "industry standard for X is...").
+- Don't auto-correct me — I want to understand and decide, not have code changed silently.
+- Offer alternatives when they exist, so I learn the tradeoffs.
