@@ -36,8 +36,9 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   const token = Auth.getToken();
   const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
+  const contentTypeHeader = options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' };
   const res = await fetch(API_BASE + path, {
-    headers: { 'Content-Type': 'application/json', ...authHeader, ...options.headers },
+    headers: { ...contentTypeHeader, ...authHeader, ...options.headers },
     ...options,
   });
 
@@ -101,6 +102,7 @@ const UserAPI = {
   // TODO: swap profile.html to use this once David adds GET /api/user/by-username/{username} (Issue #1)
   getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
   search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
+  uploadPhoto: (id, blob)  => { const f = new FormData(); f.append('file', blob, 'photo.jpg'); return apiFetch(`/api/user/${id}/profile-photo`, { method: 'POST', body: f }); },
   create: (dto)            => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
   update: (id, dto)        => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id)             => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
