@@ -62,29 +62,33 @@ function initScrollHint() {
 
 /* ───────────────────────────────────────────────
    SEARCH
-   Hides cards that don't match query.
-   Works on placeholder AND real Thymeleaf data.
+   Calls GET /api/user/search?query= and re-renders
+   results; clears back to full list when empty.
 ─────────────────────────────────────────────── */
 function initSearch() {
   const input = document.getElementById('explore-search-input');
   if (!input) return;
 
+  let _searchTimer = null;
+
   input.addEventListener('input', (e) => {
-    const query = e.target.value.trim().toLowerCase();
-    const cards = document.querySelectorAll('.explore-card');
+    const query = e.target.value.trim();
+    clearTimeout(_searchTimer);
 
-    cards.forEach(card => {
-      if (!query) {
-        card.style.display = '';
-        return;
-      }
-      // Search in name, city, tags, desc
-      const text = card.textContent.toLowerCase();
-      card.style.display = text.includes(query) ? '' : 'none';
-    });
+    if (!query) {
+      // Restored full list
+      if (typeof renderExploreSorted === 'function') renderExploreSorted();
+      return;
+    }
 
-    // Recalculate heights after filter
-    setCardHeights();
+    _searchTimer = setTimeout(() => {
+      UserAPI.search(query)
+        .then(res => {
+          const users = res?.searchResult ?? [];
+          if (typeof renderExplore === 'function') renderExplore(users);
+        })
+        .catch(() => {});
+    }, 300);
   });
 
   // Pre-fill from ?q= URL param (e.g. coming from host link on tours page)
