@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.shared;
 import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
+import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
 import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 import hr.tvz.experimate.experimate.model.shared.exception.RefreshTokenException;
 import jakarta.validation.ConstraintViolation;
@@ -60,6 +61,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAppAuthException(RefreshTokenException ex) {
         ErrorResponse auth = createErrorResponse(HttpStatus.FORBIDDEN, ex);
         return new ResponseEntity<>(auth, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ErrorResponse> handleInternalServerException(InternalServerException ex) {
+        ErrorResponse internalServer = createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex);
+        return new ResponseEntity<>(internalServer, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

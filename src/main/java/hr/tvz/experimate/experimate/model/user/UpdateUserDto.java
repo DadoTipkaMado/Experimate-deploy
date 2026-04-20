@@ -9,7 +9,6 @@ public record UpdateUserDto(
         @Size(min = Constraints.UserConstraints.PASSWORD_MIN, max = Constraints.UserConstraints.PASSWORD_MAX)
         String password,
         @Size(max = Constraints.UserConstraints.BIO_MAX)
-        String bio,
-        String profilePhotoUrl
+        String bio
 ) {
 }

@@ -21,6 +21,22 @@ Content-Type: application/json
   "bio": "Opis korisnikaaaaaaaaaaaa"
 }
 
+### Upload profile photo (stavi photo.png u http/ folder)
+POST http://localhost:8080/api/user/1/profile-photo
+Authorization: Bearer {{jwt}}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="photo1.png"
+Content-Type: image/png
+
+< ./photo1.png
+--boundary--
+
+### Get profile photo
+GET http://localhost:8080/api/user/1/profile-photo
+Authorization: Bearer {{jwt}}
+
 ### Update user
 PATCH http://localhost:8080/api/user/1
 Content-type: application/json
@@ -37,14 +53,16 @@ DELETE http://localhost:8080/api/user/11
 
 //------------------Authentication-----------------------
 
-### login user
+### login user (sprema token u varijablu za ostale requestove)
 POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
   "username": "dtopic",
-  "password": "1234"
+  "password": "123123"
 }
+
+> {% client.global.set("jwt", response.body.accessToken); %}
 ###
 
 //------------------Tour listings-----------------------

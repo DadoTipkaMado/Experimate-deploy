@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.controller;
 
+import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
 import hr.tvz.experimate.experimate.model.user.CreateUserDto;
 import hr.tvz.experimate.experimate.model.user.UpdateUserDto;
 import hr.tvz.experimate.experimate.model.user.response.UserResponse;
@@ -7,11 +8,15 @@ import hr.tvz.experimate.experimate.model.user.UserService;
 import hr.tvz.experimate.experimate.model.user.response.UserSearchResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -59,6 +64,21 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable @Positive Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PostMapping(value = "/{id}/profile-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponse> uploadProfilePhoto(@PathVariable @Positive Integer id,
+                                                           @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(userService.uploadProfilePhoto(id, file));
+    }
+
+    @GetMapping(value = "/{id}/profile-photo")
+    public ResponseEntity<Resource> getProfilePhoto(@PathVariable @Positive Integer id) {
+        Resource resource = userService.getProfilePhotoResource(id);
+        MediaType mediaType = MediaTypeFactory.getMediaType(resource)
+                .orElseThrow(() -> new InternalServerException(
+                        "Could not determine media type for file: " + resource.getFilename()));
+        return ResponseEntity.ok().contentType(mediaType).body(resource);
     }
 
     @GetMapping(value = "/search")
