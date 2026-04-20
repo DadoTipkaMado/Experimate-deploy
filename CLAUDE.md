@@ -77,8 +77,17 @@
 ---
 
 ## Current state (as of 2026-04-20)
-- **explore.js** — search now calls `GET /api/user/search?query=` (David's backend endpoint) with 300ms debounce; clears back to full list when input is empty
-- **api.js** — added `UserAPI.search(query)` method
+- **Profile photo upload** — fully wired to backend; `UserAPI.uploadPhoto(id, blob)` calls `POST /api/user/{id}/profile-photo` (multipart); `account-edit.html` sends canvas-compressed blob, syncs returned `profilePhotoUrl` to localStorage; `profilePhotoUrl` removed from `UpdateUserDto` payload
+- **`apiFetch`** — auto-skips `Content-Type: application/json` when body is `FormData` so browser sets multipart boundary
+- **explore.js** — search calls `GET /api/user/search?query=` (David's endpoint) with 300ms debounce + skeleton loading state; empty state shows "No results for X"; sort pills apply to search results too; `renderExploreSorted` simplified
+- **api.js** — added `UserAPI.search(query)`, `UserAPI.uploadPhoto(id, blob)`
+
+## Known pending issues (updated 2026-04-20)
+- **Remove photo** — UI resets to initials locally but no DELETE endpoint exists yet; localStorage cleared but server file stays
+- **`ReservationResponse` missing `status` field** — cancelled/expired tours still show in upcoming (waiting on David)
+- **`GET /api/user/by-username/{username}`** — Issue #1, still open; profile page can't load other users by username
+- `availableToMeet` — toggle UI is localStorage-only no-op until David adds the field
+- WebSocket `/ws/map` — reconnect disabled until David implements endpoint
 
 ## Current state (as of 2026-04-17)
 - **profile.html** — full layout cleanup: CSS classes replace all inline styles, avatar 96px, bio section with "About" label, better spacing/hierarchy
