@@ -356,7 +356,7 @@
             firstName: document.getElementById('firstName').value,
             lastName: document.getElementById('lastName').value,
             dateOfBirth: dob,
-            idNumber: crypto.randomUUID(),
+            idNumber: crypto.randomUUID(), // TODO: remove when backend makes idNumber optional or generates it server-side
             username,
             password,
             bio: document.getElementById('bio').value || null,
