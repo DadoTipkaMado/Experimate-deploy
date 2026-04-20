@@ -76,18 +76,21 @@ function initSearch() {
     clearTimeout(_searchTimer);
 
     if (!query) {
-      // Restored full list
       if (typeof renderExploreSorted === 'function') renderExploreSorted();
       return;
     }
+
+    showExploreLoading();
 
     _searchTimer = setTimeout(() => {
       UserAPI.search(query)
         .then(res => {
           const users = res?.searchResult ?? [];
-          if (typeof renderExplore === 'function') renderExplore(users);
+          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(users, query);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (typeof renderExploreWithSort === 'function') renderExploreWithSort([], query);
+        });
     }, 300);
   });
 
@@ -97,6 +100,23 @@ function initSearch() {
     input.value = urlQ;
     input.dispatchEvent(new Event('input'));
   }
+}
+
+function showExploreLoading() {
+  const feed = document.getElementById('explore-feed');
+  if (!feed) return;
+  feed.innerHTML = `
+    <div class="explore-card" style="background:var(--surface);">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 16px 20px;">
+        <div class="skeleton skeleton-line skeleton-line--lg" style="width:55%;margin-bottom:8px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--sm" style="width:35%;margin-bottom:14px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-full" style="margin-bottom:6px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-3q" style="margin-bottom:6px;"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-half" style="margin-bottom:18px;"></div>
+        <div class="skeleton skeleton-line" style="width:100%;height:44px;border-radius:12px;"></div>
+      </div>
+    </div>`;
+  setCardHeights();
 }
 
 /* ───────────────────────────────────────────────

@@ -154,7 +154,13 @@
   }
 
   function renderExploreSorted() {
-    let sorted = _exploreUsers.slice();
+    renderExploreWithSort(_exploreUsers);
+  }
+
+  // Sorts users by current _exploreSort then calls renderExplore.
+  // Pass an array to render that instead of _exploreUsers (used by search).
+  function renderExploreWithSort(users, searchQuery) {
+    let sorted = users.slice();
     if (_exploreSort === 'rating') {
       sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     } else if (_exploreSort === 'name') {
@@ -162,17 +168,23 @@
     } else if (_exploreSort === 'listings') {
       sorted.sort((a, b) => (_listingCountMap[b.username] ?? 0) - (_listingCountMap[a.username] ?? 0));
     }
-    renderExplore(sorted);
+    renderExplore(sorted, searchQuery);
   }
 
-  function renderExplore(users) {
+  function renderExplore(users, searchQuery) {
     const feed = document.getElementById('explore-feed');
     if (!users || users.length === 0) {
+      const msg = searchQuery
+        ? `No results for "${searchQuery}"`
+        : 'No locals yet';
+      const sub = searchQuery
+        ? 'Try a different name or username.'
+        : 'Be the first to create a profile and start hosting experiences.';
       feed.innerHTML = `
         <div class="explore-empty">
           <div class="explore-empty__icon">🧭</div>
-          <div class="explore-empty__title">No locals yet</div>
-          <div class="explore-empty__sub">Be the first to create a profile and start hosting experiences.</div>
+          <div class="explore-empty__title">${msg}</div>
+          <div class="explore-empty__sub">${sub}</div>
         </div>`;
       return;
     }
@@ -185,6 +197,7 @@
         ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${activeCount} tour${activeCount > 1 ? 's' : ''}</span>`
         : '';
       // Photo or initials avatar
+      // TODO: remove localStorage fallback once profilePhotoUrl is reliably populated server-side
       const storedPhoto = user.profilePhotoUrl || localStorage.getItem('photo_' + user.id);
       const avatarBg = storedPhoto
         ? `background:hsl(${hue},22%,14%);`
@@ -222,7 +235,6 @@
     }).join('');
     setCardHeights();
     initScrollHint();
-    initSearch();
 
     // Restore saved hearts
     const saved = _getSaved();
