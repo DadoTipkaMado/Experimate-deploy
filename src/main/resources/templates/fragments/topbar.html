@@ -19,12 +19,6 @@
 
   <div class="topbar__right">
 
-    <!-- City label — frend injects ${cityName} from session/model -->
-    <div class="topbar__city"
-         th:text="${cityName} ?: 'Zagreb'">
-      Zagreb
-    </div>
-
     <!-- Avatar — links to account page -->
     <a th:href="@{/account}" class="topbar__avatar" id="topbar-avatar" aria-label="My account">
       <span>👤</span>

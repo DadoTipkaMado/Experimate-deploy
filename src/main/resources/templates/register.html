@@ -265,18 +265,43 @@
       document.getElementById('username').addEventListener('input', function() {
         fieldErr('err-username', this, null);
       });
-      document.getElementById('dateOfBirth').addEventListener('blur', function() {
-        const val = this.value.trim();
-        if (!val) { fieldErr('err-dob', this, 'Required.'); return; }
-        const parts = val.split('/');
-        if (parts.length !== 3 || parts[2].length !== 4) { fieldErr('err-dob', this, 'Use DD/MM/YYYY.'); return; }
-        const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-        const today = new Date();
-        let age = today.getFullYear() - d.getFullYear();
-        const m = today.getMonth() - d.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
-        fieldErr('err-dob', this, age < 18 ? 'You must be 18 or older.' : null);
-      });
+      (function() {
+        const dob = document.getElementById('dateOfBirth');
+        dob.addEventListener('keydown', function(e) {
+          if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+          if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
+        });
+        dob.addEventListener('input', function() {
+          let digits = this.value.replace(/\D/g, '');
+          if (digits.length > 8) digits = digits.slice(0, 8);
+          if (digits.length > 4) {
+            this.value = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
+          } else if (digits.length > 2) {
+            this.value = digits.slice(0,2) + '/' + digits.slice(2);
+          } else {
+            this.value = digits;
+          }
+          fieldErr('err-dob', this, null);
+        });
+        dob.addEventListener('blur', function() {
+          // Add leading zeros to single-digit day/month
+          const parts = this.value.split('/');
+          if (parts[0]?.length === 1) parts[0] = parts[0].padStart(2, '0');
+          if (parts[1]?.length === 1) parts[1] = parts[1].padStart(2, '0');
+          this.value = parts.join('/');
+
+          const val = this.value.trim();
+          if (!val) { fieldErr('err-dob', this, 'Required.'); return; }
+          if (parts.length !== 3 || parts[2].length !== 4) { fieldErr('err-dob', this, 'Use DD/MM/YYYY.'); return; }
+          const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          if (isNaN(d.getTime())) { fieldErr('err-dob', this, 'Invalid date.'); return; }
+          const today = new Date();
+          let age = today.getFullYear() - d.getFullYear();
+          const m = today.getMonth() - d.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+          fieldErr('err-dob', this, age < 18 ? 'You must be 18 or older.' : null);
+        });
+      })();
       document.getElementById('confirmPassword').addEventListener('blur', function() {
         const match = this.value === document.getElementById('password').value;
         fieldErr('err-confirm', this, match || !this.value ? null : "Passwords don't match.");
@@ -301,15 +326,23 @@
           return;
         }
 
-        const [dd, mm, yyyy] = document.getElementById('dateOfBirth').value.split('/');
-        const dob = `${yyyy}-${mm}-${dd}`;
+        const dobRaw = document.getElementById('dateOfBirth').value.trim();
+        const dobParts = dobRaw.split('/');
+        if (dobParts.length !== 3 || dobParts[2].length !== 4 || dobParts.some(p => !p)) {
+          errorEl.textContent = 'Please enter your date of birth in DD/MM/YYYY format.';
+          errorEl.style.display = 'block';
+          document.getElementById('dateOfBirth').focus();
+          return;
+        }
+        const [dd, mm, yyyy] = dobParts;
+        const dob = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
         const birthDate = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
         if (age < 18) {
-          errorEl.textContent = 'You must be 18 or older to register';
+          errorEl.textContent = 'You must be 18 or older to register.';
           errorEl.style.display = 'block';
           return;
         }
@@ -323,7 +356,7 @@
             firstName: document.getElementById('firstName').value,
             lastName: document.getElementById('lastName').value,
             dateOfBirth: dob,
-            idNumber: crypto.randomUUID(),
+            idNumber: crypto.randomUUID(), // TODO: remove when backend makes idNumber optional or generates it server-side
             username,
             password,
             bio: document.getElementById('bio').value || null,

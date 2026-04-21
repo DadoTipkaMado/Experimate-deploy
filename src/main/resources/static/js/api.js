@@ -36,8 +36,9 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   const token = Auth.getToken();
   const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
+  const contentTypeHeader = options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' };
   const res = await fetch(API_BASE + path, {
-    headers: { 'Content-Type': 'application/json', ...authHeader, ...options.headers },
+    headers: { ...contentTypeHeader, ...authHeader, ...options.headers },
     ...options,
   });
 
@@ -47,22 +48,36 @@ async function apiFetch(path, options = {}, _isRetry = false) {
         method: 'POST',
         credentials: 'include',
       }).then(async (refreshRes) => {
-        if (!refreshRes.ok) { Auth.logout(); throw new Error('refresh_failed'); }
+        if (!refreshRes.ok) {
+          Auth.clearToken();
+          localStorage.removeItem('userId');
+          const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
+          if (!onAuthPage) window.location.href = '/login';
+          throw new Error('Session expired. Please sign in.');
+        }
         const { token: newToken } = await refreshRes.json();
         Auth.saveToken(newToken);
       }).finally(() => { _refreshPromise = null; });
     }
     try {
       await _refreshPromise;
-    } catch {
-      return;
+    } catch (e) {
+      throw e;
     }
     return apiFetch(path, options, true);
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    const err = await res.json().catch(() => ({}));
+    const friendly = {
+      400: 'Check your input and try again.',
+      401: 'Not signed in.',
+      403: 'You don\'t have permission to do this.',
+      404: 'Not found.',
+      409: 'Already exists.',
+      500: 'Server error — try again shortly.',
+    };
+    throw new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
   }
   if (res.status === 204) return null;
   return res.json();
@@ -82,11 +97,15 @@ const AuthAPI = {
    USERS  /api/user
 ─────────────────────────────────────────────── */
 const UserAPI = {
-  getAll: ()           => apiFetch('/api/user'),
-  getById: (id)        => apiFetch(`/api/user/${id}`),
-  create: (dto)        => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
-  update: (id, dto)    => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
-  delete: (id)         => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
+  getAll: ()               => apiFetch('/api/user'),
+  getById: (id)            => apiFetch(`/api/user/${id}`),
+  // TODO: swap profile.html to use this once David adds GET /api/user/by-username/{username} (Issue #1)
+  getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
+  search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
+  uploadPhoto: (id, blob)  => { const f = new FormData(); f.append('file', blob, 'photo.jpg'); return apiFetch(`/api/user/${id}/profile-photo`, { method: 'POST', body: f }); },
+  create: (dto)            => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
+  update: (id, dto)        => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
+  delete: (id)             => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────
@@ -108,6 +127,9 @@ const ReservationAPI = {
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
   create: (dto)        => apiFetch('/api/booking-request',        { method: 'POST',   body: JSON.stringify(dto) }),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
+  checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
+  endTour: (id)        => apiFetch(`/api/reservation/end-tour/${id}`,  { method: 'PATCH' }),
+  cancelTour: (id)     => apiFetch(`/api/reservation/cancel-tour/${id}`, { method: 'PATCH' }),
 };
 
 /* ───────────────────────────────────────────────
@@ -120,6 +142,16 @@ const BookingRequestAPI = {
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
   decline: (id)        => apiFetch(`/api/booking-request/decline/${id}`, { method: 'PATCH' }),
   delete: (id)         => apiFetch(`/api/booking-request/${id}`,       { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   SAVED LOCALS  /api/saved
+   TODO: swap explore.html localStorage logic to use this once David adds the endpoints (Issue #4)
+─────────────────────────────────────────────── */
+const SavedAPI = {
+  getAll: ()                   => apiFetch('/api/saved'),
+  save:   (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'POST' }),
+  unsave: (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────

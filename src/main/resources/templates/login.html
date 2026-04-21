@@ -253,10 +253,24 @@
 
     // Auto-redirect if already logged in (or refresh token still valid)
     (async function () {
-      if (!Auth.getToken()) return;
+      // Try existing JWT first
+      const userId = Auth.getUserId();
+      if (userId && Auth.getToken()) {
+        try {
+          const result = await UserAPI.getById(userId);
+          if (result) { window.location.href = '/map'; return; }
+        } catch { /* fall through to refresh */ }
+      }
+      // No valid JWT — try refresh cookie
       try {
-        const result = await apiFetch('/api/user');
-        if (result !== undefined) window.location.href = '/map';
+        const refreshRes = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+        if (!refreshRes.ok) return;
+        const { token } = await refreshRes.json();
+        Auth.saveToken(token);
+        const users = await UserAPI.getAll();
+        const me = users?.find(u => u.username === Auth.getUsername());
+        if (me) Auth.saveUserId(me.id);
+        window.location.href = '/map';
       } catch { /* stay on login */ }
     })();
 
