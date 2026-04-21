@@ -176,9 +176,10 @@
       // Avatar: photo URL from API, then localStorage fallback; keep localStorage in sync for topbar
       const avatarEl = document.getElementById('account-avatar');
       const storedPhoto = localStorage.getItem('photo_' + userId);
-      const photoUrl = user.profilePhotoUrl || storedPhoto;
-      if (user.profilePhotoUrl) localStorage.setItem('photo_' + userId, user.profilePhotoUrl);
-      else if (!user.profilePhotoUrl && !storedPhoto) localStorage.removeItem('photo_' + userId);
+      const resolvedPhoto = UserAPI.photoUrl(user.profilePhotoUrl);
+      const photoUrl = resolvedPhoto || storedPhoto;
+      if (resolvedPhoto) localStorage.setItem('photo_' + userId, resolvedPhoto);
+      else if (!resolvedPhoto && !storedPhoto) localStorage.removeItem('photo_' + userId);
       if (photoUrl) {
         avatarEl.innerHTML = `<img src="${photoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
       } else {

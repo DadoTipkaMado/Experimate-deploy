@@ -197,7 +197,7 @@
         ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${activeCount} tour${activeCount > 1 ? 's' : ''}</span>`
         : '';
       // Photo or initials avatar
-      const storedPhoto = user.profilePhotoUrl || localStorage.getItem('photo_' + user.id);
+      const storedPhoto = UserAPI.photoUrl(user.profilePhotoUrl) || localStorage.getItem('photo_' + user.id);
       const avatarBg = storedPhoto
         ? `background:hsl(${hue},22%,14%);`
         : `background:hsl(${hue},22%,14%);`;
