@@ -72,9 +72,9 @@ public class UserController {
         return ResponseEntity.ok(userService.uploadProfilePhoto(id, file));
     }
 
-    @GetMapping(value = "/{id}/profile-photo")
-    public ResponseEntity<Resource> getProfilePhoto(@PathVariable @Positive Integer id) {
-        Resource resource = userService.getProfilePhotoResource(id);
+    @GetMapping(value = "/profile-photo/{filename}")
+    public ResponseEntity<Resource> getProfilePhoto(@PathVariable String filename) {
+        Resource resource = userService.getProfilePhotoResourceByFilename(filename);
         MediaType mediaType = MediaTypeFactory.getMediaType(resource)
                 .orElseThrow(() -> new InternalServerException(
                         "Could not determine media type for file: " + resource.getFilename()));

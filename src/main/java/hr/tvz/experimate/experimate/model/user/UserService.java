@@ -158,20 +158,8 @@ public class UserService {
         });
     }
 
-    /**
-     * Returns the profile photo of the given user as a {@link Resource} for HTTP streaming.
-     *
-     * @param id the user's ID
-     * @return the profile photo {@link Resource}
-     * @throws UserNotFoundException if no user exists with the given ID
-     * @throws NotFoundException     if the user has no profile photo
-     */
-    public Resource getProfilePhotoResource(Integer id) {
-        User user = findEntityById(id);
-        if (user.getProfilePhotoFilename() == null) {
-            throw new NotFoundException("User " + id + " has no profile photo");
-        }
-        return fileStorageService.load(user.getProfilePhotoFilename());
+    public Resource getProfilePhotoResourceByFilename(String filename) {
+        return fileStorageService.load(filename);
     }
 
     @Transactional
@@ -202,7 +190,7 @@ public class UserService {
 
     private UserResponse createUserResponse(User user) {
         String profilePhotoUrl = user.getProfilePhotoFilename() != null
-                ? "/api/user/" + user.getId() + "/profile-photo"
+                ? "/api/user/profile-photo/" + user.getProfilePhotoFilename()
                 : null;
         return new UserResponse(
                 user.getId(),
