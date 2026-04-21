@@ -71,6 +71,8 @@ public class FileStorageService {
      * @return a {@link FileSystemResource} pointing to the file on disk
      */
     public Resource load(String filename) {
+        if (filename.contains("/") || filename.contains("\\") || filename.contains(".."))
+            throw new IllegalArgumentException("Invalid filename: " + filename);
         return new FileSystemResource(Path.of(uploadDir, filename));
     }
 
