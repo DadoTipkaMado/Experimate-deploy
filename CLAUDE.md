@@ -76,13 +76,21 @@
 
 ---
 
+## Current state (as of 2026-04-21)
+- **JWT refresh loop fix** — `Auth.logout()` and refresh-fail path in `apiFetch` set `sessionStorage.explicit_logout = '1'` before redirecting; login page IIFE bails immediately on that flag so a still-valid refresh cookie can't pull the user back to `/map` after explicit logout. **Partial fix only** — refresh token is never invalidated server-side; full fix requires David to add `POST /api/auth/logout` (see pending issues below)
+- **Topbar profile photo** — login page now stores `photo_{userId}` in localStorage after resolving user data (both form submit and refresh auto-redirect paths); topbar avatar shows photo on first visit without needing to visit account.html first
+- **Profile photos on tours page** — `UserAPI.getAll()` added to the main `Promise.all` on `tours.html` (with `.catch(() => [])` guard); `userAvatar(username, size)` helper renders photo or hue-matched initials; used in listing cards (22px), guest meet-cards (26px), host meet-cards (26px)
+- **Profile photos on map** — `loadPins` uses `Promise.allSettled` to load users alongside listings; `buildPopup` renders a 28px host avatar (photo or initials) inline with host name
+- **`TourListingResponse.host`** — only has `firstName, lastName, username` (no `profilePhotoUrl`); photos fetched separately via `UserAPI.getAll()` and cached in `_userCache` / `MapState.userCache`
+
 ## Current state (as of 2026-04-20)
 - **Profile photo upload** — fully wired to backend; `UserAPI.uploadPhoto(id, blob)` calls `POST /api/user/{id}/profile-photo` (multipart); `account-edit.html` sends canvas-compressed blob, syncs returned `profilePhotoUrl` to localStorage; `profilePhotoUrl` removed from `UpdateUserDto` payload
 - **`apiFetch`** — auto-skips `Content-Type: application/json` when body is `FormData` so browser sets multipart boundary
 - **explore.js** — search calls `GET /api/user/search?query=` (David's endpoint) with 300ms debounce + skeleton loading state; empty state shows "No results for X"; sort pills apply to search results too; `renderExploreSorted` simplified
 - **api.js** — added `UserAPI.search(query)`, `UserAPI.uploadPhoto(id, blob)`
 
-## Known pending issues (updated 2026-04-20)
+## Known pending issues (updated 2026-04-21)
+- **`POST /api/auth/logout`** — David needs to add this endpoint; it must invalidate the refresh token server-side and return `Set-Cookie: refresh_token=; maxAge=0; path=/api/auth; httpOnly` to clear the browser cookie. Once added, wire it in `Auth.logout()` in `api.js` with `await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {})` before the redirect
 - **Remove photo** — UI resets to initials locally but no DELETE endpoint exists yet; localStorage cleared but server file stays
 - **`ReservationResponse` missing `status` field** — cancelled/expired tours still show in upcoming (waiting on David)
 - **`GET /api/user/by-username/{username}`** — Issue #1, still open; profile page can't load other users by username
