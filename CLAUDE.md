@@ -76,6 +76,23 @@
 
 ---
 
+## Current state (as of 2026-04-22)
+- **local-test branch** — merged `vito/frontend-clean` + `david/backend`; missing shared event/exception classes were pulled manually from `origin/david/backend` (`UserDeletedEvent`, `TourListingsDeletedForHostEvent`, `ReservationsDeletedEvent`, `NotFoundException`, `ConflictException`); app runs with `mvn spring-boot:run` from `local-test` branch only (`vito/frontend-clean` has no `pom.xml`)
+- **Map popup "See listing"** — now links to `/tours?listing={id}` instead of `/tours?host=...`; tours page detects `?listing=` param and auto-opens the modal for that listing
+- **Tours listing modal** — wider (`min(740px, 92vw)`), bigger city title, split date/time, host profile card (avatar + name + handle, tappable → `/profile/{username}`)
+- **Explore "View Profile"** — now links to `/profile/{username}` when user has no active tours; was incorrectly linking to `/tours?host=...`
+- **`photoUrl` in api.js** — handles both bare filename and full path: `url.startsWith('/') ? url : /api/user/profile-photo/${url}`
+- **Topbar avatar** — STILL BROKEN; topbar shows empty gray circle for both users (one with photo, one with initials); `user_initials` never ends up in localStorage despite multiple fix attempts; topbar now tries async fetch of `/api/user/{userId}` as last resort but still doesn't work — needs fresh investigation next session
+
+## Known pending issues (updated 2026-04-22)
+- **Topbar avatar broken** — shows empty gray circle; `user_initials` not in localStorage; topbar fetches user async but still doesn't render; root cause unknown — suspect `userId` not in localStorage at topbar render time, or fetch fails silently; needs browser devtools inspection to diagnose
+- **`POST /api/auth/logout`** — David needs to add this endpoint to invalidate refresh token server-side
+- **Remove photo** — no DELETE endpoint yet
+- **`ReservationResponse` missing `status` field** — cancelled/expired tours still show in upcoming
+- **`GET /api/user/by-username/{username}`** — Issue #1, still open
+- `availableToMeet` — localStorage-only no-op
+- WebSocket `/ws/map` — reconnect disabled
+
 ## Current state (as of 2026-04-21)
 - **JWT refresh loop fix** — `Auth.logout()` and refresh-fail path in `apiFetch` set `sessionStorage.explicit_logout = '1'` before redirecting; login page IIFE bails immediately on that flag so a still-valid refresh cookie can't pull the user back to `/map` after explicit logout. **Partial fix only** — refresh token is never invalidated server-side; full fix requires David to add `POST /api/auth/logout` (see pending issues below)
 - **Topbar profile photo** — login page now stores `photo_{userId}` in localStorage after resolving user data (both form submit and refresh auto-redirect paths); topbar avatar shows photo on first visit without needing to visit account.html first
