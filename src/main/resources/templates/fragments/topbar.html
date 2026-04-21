@@ -30,14 +30,24 @@
   function renderTopbarAvatar() {
     const el = document.getElementById('topbar-avatar');
     if (!el) return;
-    const userId   = localStorage.getItem('userId');
-    const initials = localStorage.getItem('user_initials');
-    const hue      = localStorage.getItem('user_hue') || '0';
-    const photo    = userId ? localStorage.getItem('photo_' + userId) : null;
-
     el.innerHTML = '';
     el.style.background = '';
     el.style.border = '';
+
+    // Derive username from JWT — always works if logged in, no localStorage dependency
+    let username = null;
+    try {
+      const token = localStorage.getItem('jwt');
+      if (token) username = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub;
+    } catch {}
+    if (!username) return;
+
+    const initials = localStorage.getItem('user_initials') || username[0].toUpperCase();
+    const hue = localStorage.getItem('user_hue')
+      || String(username.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 360);
+
+    const userId = localStorage.getItem('userId');
+    const photo  = userId ? localStorage.getItem('photo_' + userId) : null;
 
     if (photo) {
       const img = document.createElement('img');
@@ -49,7 +59,7 @@
         renderTopbarAvatar();
       };
       el.appendChild(img);
-    } else if (initials) {
+    } else {
       el.innerHTML = `<span style="font-weight:800;font-size:13px;color:hsl(${hue},60%,72%);font-family:sans-serif;">${initials}</span>`;
       el.style.background = `hsl(${hue},35%,22%)`;
       el.style.border = `1.5px solid hsl(${hue},40%,35%)`;
