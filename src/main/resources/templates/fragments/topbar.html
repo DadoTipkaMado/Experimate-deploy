@@ -32,10 +32,25 @@
   function renderTopbarAvatar() {
     const el = document.getElementById('topbar-avatar');
     if (!el) return;
-    const userId   = localStorage.getItem('userId');
-    const initials = localStorage.getItem('user_initials');
-    const hue      = localStorage.getItem('user_hue');
-    const photo    = userId ? localStorage.getItem('photo_' + userId) : null;
+    const userId = localStorage.getItem('userId');
+    let initials = localStorage.getItem('user_initials');
+    let hue      = parseInt(localStorage.getItem('user_hue') || '0', 10);
+
+    // Derive from JWT if initials weren't saved at login
+    if (!initials) {
+      try {
+        const token = localStorage.getItem('jwt');
+        if (token) {
+          const username = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub;
+          if (username) {
+            initials = username[0].toUpperCase();
+            hue = username.split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 360;
+          }
+        }
+      } catch {}
+    }
+
+    const photo = userId ? localStorage.getItem('photo_' + userId) : null;
     if (photo) {
       const img = document.createElement('img');
       img.src = photo;
