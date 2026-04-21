@@ -29,7 +29,7 @@
 </header>
 
 <script>
-  (function() {
+  function renderTopbarAvatar() {
     const el = document.getElementById('topbar-avatar');
     if (!el) return;
     const userId   = localStorage.getItem('userId');
@@ -37,13 +37,32 @@
     const hue      = localStorage.getItem('user_hue');
     const photo    = userId ? localStorage.getItem('photo_' + userId) : null;
     if (photo) {
-      el.innerHTML = `<img src="${photo}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      const img = document.createElement('img');
+      img.src = photo;
+      img.alt = 'Profile';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+      img.onerror = function() {
+        localStorage.removeItem('photo_' + userId);
+        el.innerHTML = '';
+        if (initials) {
+          el.innerHTML = `<span style="font-weight:800;font-size:13px;color:hsl(${hue},60%,72%);font-family:sans-serif;">${initials}</span>`;
+          el.style.background = `hsl(${hue},35%,22%)`;
+          el.style.border = `1.5px solid hsl(${hue},40%,35%)`;
+        } else {
+          el.innerHTML = '<span>👤</span>';
+        }
+      };
+      el.innerHTML = '';
+      el.appendChild(img);
     } else if (initials) {
       el.innerHTML = `<span style="font-weight:800;font-size:13px;color:hsl(${hue},60%,72%);font-family:sans-serif;">${initials}</span>`;
       el.style.background = `hsl(${hue},35%,22%)`;
       el.style.border = `1.5px solid hsl(${hue},40%,35%)`;
+    } else {
+      el.innerHTML = '<span>👤</span>';
     }
-  })();
+  }
+  renderTopbarAvatar();
 </script>
 
 </body>
