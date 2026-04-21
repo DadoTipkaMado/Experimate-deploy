@@ -273,14 +273,18 @@
         const { token } = await refreshRes.json();
         Auth.saveToken(token);
         const users = await UserAPI.getAll();
-        const me = users?.find(u => u.username === Auth.getUsername());
-        if (me) {
-          Auth.saveUserId(me.id);
-          if (me.profilePhotoUrl) localStorage.setItem('photo_' + me.id, UserAPI.photoUrl(me.profilePhotoUrl));
-          const initials = ((me.firstName?.[0] ?? '') + (me.lastName?.[0] ?? '')).toUpperCase() || me.username?.[0]?.toUpperCase() || '?';
-          const hue = (me.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-          localStorage.setItem('user_initials', initials);
-          localStorage.setItem('user_hue', hue);
+        const uid = users?.find(u => u.username === Auth.getUsername())?.id ?? null;
+        if (uid) {
+          Auth.saveUserId(uid);
+          const me = await UserAPI.getById(uid).catch(() => null);
+          if (me) {
+            if (me.profilePhotoUrl) localStorage.setItem('photo_' + uid, UserAPI.photoUrl(me.profilePhotoUrl));
+            else localStorage.removeItem('photo_' + uid);
+            const initials = ((me.firstName?.[0] ?? '') + (me.lastName?.[0] ?? '')).toUpperCase() || me.username?.[0]?.toUpperCase() || '?';
+            const hue = (me.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+            localStorage.setItem('user_initials', initials);
+            localStorage.setItem('user_hue', hue);
+          }
         }
         window.location.href = '/map';
       } catch { /* stay on login */ }
@@ -300,14 +304,17 @@
           document.getElementById('password').value
         );
         Auth.saveToken(res.token);
-        if (res.id) {
-          Auth.saveUserId(res.id);
-        } else {
+        let uid = res.id || null;
+        if (!uid) {
           const users = await UserAPI.getAll();
-          const me = users.find(u => u.username === Auth.getUsername());
+          uid = users?.find(u => u.username === Auth.getUsername())?.id ?? null;
+        }
+        if (uid) {
+          Auth.saveUserId(uid);
+          const me = await UserAPI.getById(uid).catch(() => null);
           if (me) {
-            Auth.saveUserId(me.id);
-            if (me.profilePhotoUrl) localStorage.setItem('photo_' + me.id, UserAPI.photoUrl(me.profilePhotoUrl));
+            if (me.profilePhotoUrl) localStorage.setItem('photo_' + uid, UserAPI.photoUrl(me.profilePhotoUrl));
+            else localStorage.removeItem('photo_' + uid);
             const initials = ((me.firstName?.[0] ?? '') + (me.lastName?.[0] ?? '')).toUpperCase() || me.username?.[0]?.toUpperCase() || '?';
             const hue = (me.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
             localStorage.setItem('user_initials', initials);
