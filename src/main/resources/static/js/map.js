@@ -93,7 +93,7 @@ function buildPopup(listing) {
   const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
   const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
   const statusLabel = available ? 'Available' : 'Booked';
-  const actionHref  = hostHandle ? `/tours?host=${hostHandle}` : '/tours';
+  const actionHref  = `/tours?listing=${listing.id}`;
 
   let hostHtml = '';
   if (hostName) {

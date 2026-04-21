@@ -474,7 +474,9 @@
   }
 
   /* ── Host filter from URL ── */
-  const _hostFilter = new URLSearchParams(window.location.search).get('host');
+  const _hostFilter   = new URLSearchParams(window.location.search).get('host');
+  const _listingParam = new URLSearchParams(window.location.search).get('listing');
+  const _listingDeepLink = _listingParam ? parseInt(_listingParam, 10) : null;
 
   /* ── Discover controls ── */
   function filterCity(city) {
@@ -1037,6 +1039,7 @@
       renderHostMeetups(reservations);
       renderMyListings();
       initCountdownAndTakeover(reservations);
+      if (_listingDeepLink) openListingModal(_listingDeepLink);
     })
     .catch(() => { renderListings([]); renderMeetups([]); showToast('Could not load tours — check your connection.', 'error'); });
 </script>
