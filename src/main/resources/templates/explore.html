@@ -57,6 +57,13 @@
         </svg>
         <input type="text" id="explore-search-input" placeholder="Search locals..." autocomplete="off">
       </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
+        <div id="sort-rating" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('rating')">Top rated</div>
+        <div id="sort-name" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('name')">Name</div>
+        <div id="sort-listings" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('listings')">Most tours</div>
+        <div id="filter-saved" class="pill" style="font-size:10px;padding:4px 10px;margin-left:4px;" onclick="toggleSavedFilter(this)">Saved ♥</div>
+      </div>
     </div>
 
     <div id="explore-feed">
@@ -93,36 +100,117 @@
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
 <script>
-  function toggleSave(el) {
-    const saved = el.classList.toggle('side-action--saved');
-    const heart = el.querySelector('.save-heart');
-    heart.setAttribute('fill', saved ? 'var(--warm)' : 'none');
-    heart.setAttribute('stroke', saved ? 'var(--warm)' : 'var(--text)');
-    const name = el.closest('.explore-card').dataset.name;
-    showToast(saved ? 'Saved ' + name : 'Removed ' + name);
+  // Saved locals — persisted in localStorage as a Set of usernames
+  function _getSaved() {
+    try { return new Set(JSON.parse(localStorage.getItem('saved_locals') || '[]')); } catch { return new Set(); }
+  }
+  function _setSaved(set) {
+    localStorage.setItem('saved_locals', JSON.stringify([...set]));
   }
 
-  function renderExplore(users) {
+  let _showSavedOnly = false;
+
+  function toggleSave(el) {
+    const card = el.closest('.explore-card');
+    const username = card.dataset.username;
+    const saved = _getSaved();
+    const isSaved = saved.has(username);
+    if (isSaved) { saved.delete(username); } else { saved.add(username); }
+    _setSaved(saved);
+
+    const nowSaved = !isSaved;
+    el.classList.toggle('side-action--saved', nowSaved);
+    const heart = el.querySelector('.save-heart');
+    heart.setAttribute('fill', nowSaved ? 'var(--warm)' : 'none');
+    heart.setAttribute('stroke', nowSaved ? 'var(--warm)' : 'var(--text)');
+    const name = card.dataset.name;
+    showToast(nowSaved ? 'Saved ' + name : 'Removed ' + name);
+
+    // If Saved filter is active and we just un-saved, hide the card
+    if (_showSavedOnly && !nowSaved) card.style.display = 'none';
+  }
+
+  function toggleSavedFilter(el) {
+    _showSavedOnly = !_showSavedOnly;
+    el.classList.toggle('pill--active', _showSavedOnly);
+    const saved = _getSaved();
+    document.querySelectorAll('.explore-card').forEach(card => {
+      if (!_showSavedOnly) { card.style.display = ''; return; }
+      card.style.display = saved.has(card.dataset.username) ? '' : 'none';
+    });
+    setCardHeights();
+  }
+
+  let _exploreUsers    = [];
+  let _exploreSort     = 'rating';
+  let _listingCountMap = {}; // username → active listing count
+
+  function setExploreSort(val) {
+    _exploreSort = val;
+    ['rating','name','listings'].forEach(k => {
+      document.getElementById('sort-' + k).classList.toggle('pill--active', k === val);
+    });
+    renderExploreSorted();
+  }
+
+  function renderExploreSorted() {
+    renderExploreWithSort(_exploreUsers);
+  }
+
+  // Sorts users by current _exploreSort then calls renderExplore.
+  // Pass an array to render that instead of _exploreUsers (used by search).
+  function renderExploreWithSort(users, searchQuery) {
+    let sorted = users.slice();
+    if (_exploreSort === 'rating') {
+      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+    } else if (_exploreSort === 'name') {
+      sorted.sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
+    } else if (_exploreSort === 'listings') {
+      sorted.sort((a, b) => (_listingCountMap[b.username] ?? 0) - (_listingCountMap[a.username] ?? 0));
+    }
+    renderExplore(sorted, searchQuery);
+  }
+
+  function renderExplore(users, searchQuery) {
     const feed = document.getElementById('explore-feed');
     if (!users || users.length === 0) {
+      const msg = searchQuery
+        ? `No results for "${searchQuery}"`
+        : 'No locals yet';
+      const sub = searchQuery
+        ? 'Try a different name or username.'
+        : 'Be the first to create a profile and start hosting experiences.';
       feed.innerHTML = `
         <div class="explore-empty">
           <div class="explore-empty__icon">🧭</div>
-          <div class="explore-empty__title">No locals yet</div>
-          <div class="explore-empty__sub">Be the first to create a profile and start hosting experiences.</div>
+          <div class="explore-empty__title">${msg}</div>
+          <div class="explore-empty__sub">${sub}</div>
         </div>`;
       return;
     }
+    const now = new Date();
     feed.innerHTML = users.map(user => {
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      const activeCount = _listingCountMap[user.username] ?? 0;
+      const listingBadge = activeCount > 0
+        ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${activeCount} tour${activeCount > 1 ? 's' : ''}</span>`
+        : '';
+      // Photo or initials avatar
+      const storedPhoto = user.profilePhotoUrl || localStorage.getItem('photo_' + user.id);
+      const avatarBg = storedPhoto
+        ? `background:hsl(${hue},22%,14%);`
+        : `background:hsl(${hue},22%,14%);`;
+      const avatarInner = storedPhoto
+        ? `<img src="${storedPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="">`
+        : `<span style="font-family:var(--font-display);font-weight:800;font-size:32px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>`;
       return `
-      <div class="explore-card" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}">
-        <div class="explore-card__bg" style="background:hsl(${hue},22%,14%);font-size:0;">
-          <div style="width:90px;height:90px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:32px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</div>
+      <div class="explore-card" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}" data-username="${user.username}">
+        <div class="explore-card__bg" style="${avatarBg}font-size:0;">
+          <div style="width:90px;height:90px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;overflow:hidden;">${avatarInner}</div>
         </div>
         <div class="explore-card__gradient"></div>
-        <div class="explore-card__rating">★ ${user.rating ?? '0.0'}</div>
+        <div class="explore-card__rating">★ ${user.rating > 0 ? Number(user.rating).toFixed(1) : '—'}</div>
         <div class="explore-card__side">
           <div class="side-action" onclick="toggleSave(this)">
             <div class="side-action__icon">
@@ -132,21 +220,46 @@
           </div>
         </div>
         <div class="explore-card__content">
-          <div class="explore-card__name">${user.firstName} ${user.lastName}</div>
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <a href="/profile/${user.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${user.firstName} ${user.lastName}</a>
+            ${listingBadge}
+          </div>
           <div class="explore-card__handle">@${user.username}</div>
           <div class="explore-card__desc">${user.bio ?? 'No bio yet.'}</div>
           <div class="explore-card__cta">
-            <a href="/tours?host=${user.username}" class="btn btn--primary">View Listings</a>
+            <a href="/tours?host=${user.username}" class="btn btn--primary">${activeCount > 0 ? `View ${activeCount} Tour${activeCount > 1 ? 's' : ''}` : 'View Profile'}</a>
           </div>
         </div>
       </div>`;
     }).join('');
     setCardHeights();
     initScrollHint();
-    initSearch();
+
+    // Restore saved hearts
+    const saved = _getSaved();
+    document.querySelectorAll('.explore-card').forEach(card => {
+      if (!saved.has(card.dataset.username)) return;
+      const action = card.querySelector('.side-action');
+      if (!action) return;
+      action.classList.add('side-action--saved');
+      const heart = action.querySelector('.save-heart');
+      if (heart) { heart.setAttribute('fill','var(--warm)'); heart.setAttribute('stroke','var(--warm)'); }
+    });
   }
 
-  UserAPI.getAll().then(renderExplore).catch(() => renderExplore([]));
+  Promise.all([UserAPI.getAll(), TourListingAPI.getAll()])
+    .then(([users, listings]) => {
+      const now = new Date();
+      _exploreUsers = users || [];
+      // Build listing count map: username → number of non-reserved upcoming listings
+      _listingCountMap = {};
+      (listings || []).forEach(l => {
+        if (!l.host?.username || l.reserved || new Date(l.meetingDate) <= now) return;
+        _listingCountMap[l.host.username] = (_listingCountMap[l.host.username] ?? 0) + 1;
+      });
+      renderExploreSorted();
+    })
+    .catch(() => renderExplore([]));
 </script>
 </body>
 </html>

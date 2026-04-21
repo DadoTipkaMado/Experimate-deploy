@@ -1,20 +1,13 @@
 /* ═══════════════════════════════════════════════
    EXPERIMATE — map.js
-   Leaflet map init, pin rendering, filter toggles.
-   WebSocket live updates handled in websocket.js
+   Leaflet map init, clustered pins, rich popups.
 ═══════════════════════════════════════════════ */
 
-/* ───────────────────────────────────────────────
-   STATE
-   All filters start ON — pills all start active.
-─────────────────────────────────────────────── */
 const MapState = {
   map: null,
-  layers: {
-    gems:   L.layerGroup(),
-    events: L.layerGroup(),
-  },
-  activeFilters: new Set(['gems', 'events']),
+  clusterGroup: null,
+  allMarkers: [],       // { marker, listing } — full list for filtering
+  availableOnly: false,
 };
 
 /* ───────────────────────────────────────────────
@@ -37,10 +30,14 @@ function initMap() {
     maxZoom: 19,
   }).addTo(MapState.map);
 
-  // Add all layer groups to map (all visible by default)
-  Object.values(MapState.layers).forEach(layer => layer.addTo(MapState.map));
+  MapState.clusterGroup = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+  });
+  MapState.map.addLayer(MapState.clusterGroup);
 
-  // Zoom control bottom-left so it doesn't overlap bottom sheet
   L.control.zoom({ position: 'bottomleft' }).addTo(MapState.map);
 
   const flyToRaw = sessionStorage.getItem('mapFlyTo');
@@ -54,73 +51,78 @@ function initMap() {
 }
 
 /* ───────────────────────────────────────────────
-   LOAD PINS — fetches tour listings from API
+   LOAD PINS
 ─────────────────────────────────────────────── */
 function loadPins() {
   apiFetch('/api/tour-listing')
     .then(listings => {
-      listings.forEach(listing => {
+      (listings || []).forEach(listing => {
         if (listing.lat == null || listing.lng == null) return;
-        addPin({
-          lat:  listing.lat,
-          lng:  listing.lng,
-          name: listing.city + (listing.host ? ' · ' + listing.host.firstName : ''),
-          type: 'event',
-        });
+        const marker = buildMarker(listing);
+        MapState.allMarkers.push({ marker, listing });
+        MapState.clusterGroup.addLayer(marker);
       });
     })
     .catch(() => {});
 }
 
-/* ───────────────────────────────────────────────
-   ADD PIN
-   pin = { lat, lng, name, type }
-   type = 'gem' | 'event' | 'local'
-─────────────────────────────────────────────── */
-function addPin(pin) {
+function buildMarker(listing) {
   const icon = L.divIcon({
     className: '',
-    html: `<div class="map-pin map-pin--${pin.type}"></div>`,
+    html: `<div class="map-pin map-pin--event"></div>`,
     iconSize:   [14, 14],
     iconAnchor: [7, 14],
     popupAnchor:[0, -16],
   });
 
-  const marker = L.marker([pin.lat, pin.lng], { icon })
-    .bindPopup(buildPopupHTML(pin), { className: 'dark-popup', maxWidth: 200 });
-
-  const layerKey = pin.type === 'gem' ? 'gems' : 'events';
-
-  const layer = MapState.layers[layerKey];
-  if (layer) marker.addTo(layer);
-
+  const marker = L.marker([listing.lat, listing.lng], { icon });
+  marker.bindPopup(buildPopup(listing), { className: 'dark-popup', maxWidth: 220 });
   return marker;
 }
 
-function buildPopupHTML(pin) {
-  const typeLabel = pin.type === 'gem' ? 'Hidden Gem' : 'Event';
+function buildPopup(listing) {
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d = new Date(listing.meetingDate);
+  const dateStr = `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
+  const hostHandle = listing.host?.username ?? '';
+  const available  = !listing.reserved;
+  const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
+  const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
+  const statusLabel = available ? 'Available' : 'Booked';
+  const actionHref  = hostHandle ? `/tours?host=${hostHandle}` : '/tours';
+
   return `
-    <div class="popup-name">${escapeHtml(pin.name)}</div>
-    <div class="popup-type popup-type--${pin.type}">${typeLabel}</div>
+    <div class="popup-name">${escapeHtml(listing.city)}</div>
+    ${hostName ? `<div class="popup-host">👤 ${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:9px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></div>` : ''}
+    <div class="popup-date">📅 ${dateStr}</div>
+    <div class="popup-status">
+      <div class="popup-status__dot" style="background:${dotColor};${dotGlow}"></div>
+      <div class="popup-status__label" style="color:${dotColor};">${statusLabel}</div>
+    </div>
+    <a href="${actionHref}" class="popup-action">See listing →</a>
   `;
 }
 
 /* ───────────────────────────────────────────────
    FILTERS
-   Active pill = layer visible. Inactive = hidden.
-   All start active so initial state matches pills.
 ─────────────────────────────────────────────── */
 function mapFilterToggle(filterName) {
-  const layer = MapState.layers[filterName];
-  if (!layer || !MapState.map) return;
+  // Legacy gem/event filter — no-op for now (all pins are events)
+  // Kept for API compatibility with map.html pill buttons
+}
 
-  if (MapState.activeFilters.has(filterName)) {
-    MapState.map.removeLayer(layer);
-    MapState.activeFilters.delete(filterName);
-  } else {
-    MapState.map.addLayer(layer);
-    MapState.activeFilters.add(filterName);
-  }
+function mapFilterAvailable() {
+  MapState.availableOnly = !MapState.availableOnly;
+  applyMarkerFilter();
+}
+
+function applyMarkerFilter() {
+  MapState.clusterGroup.clearLayers();
+  MapState.allMarkers.forEach(({ marker, listing }) => {
+    if (MapState.availableOnly && listing.reserved) return;
+    MapState.clusterGroup.addLayer(marker);
+  });
 }
 
 /* ───────────────────────────────────────────────
@@ -128,22 +130,15 @@ function mapFilterToggle(filterName) {
 ─────────────────────────────────────────────── */
 const searchInput = document.getElementById('map-search-input');
 if (searchInput) {
-  searchInput.addEventListener('input', (e) => {
+  searchInput.addEventListener('input', e => {
     const query = e.target.value.trim().toLowerCase();
-    if (!query) {
-      Object.entries(MapState.layers).forEach(([key, layer]) => {
-        if (MapState.activeFilters.has(key)) MapState.map.addLayer(layer);
-      });
-      return;
-    }
-    Object.values(MapState.layers).forEach(layer => {
-      layer.eachLayer(marker => {
-        const popup = marker.getPopup();
-        if (!popup) return;
-        const content = popup.getContent() || '';
-        const el = marker.getElement();
-        if (el) el.style.display = content.toLowerCase().includes(query) ? '' : 'none';
-      });
+    MapState.clusterGroup.clearLayers();
+    MapState.allMarkers.forEach(({ marker, listing }) => {
+      if (MapState.availableOnly && listing.reserved) return;
+      if (!query) { MapState.clusterGroup.addLayer(marker); return; }
+      const text = [listing.city, listing.host?.firstName, listing.host?.lastName, listing.host?.username]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (text.includes(query)) MapState.clusterGroup.addLayer(marker);
     });
   });
 }
@@ -151,7 +146,17 @@ if (searchInput) {
 /* ───────────────────────────────────────────────
    PUBLIC API — websocket.js uses addPin()
 ─────────────────────────────────────────────── */
-window.MapAPI = { addPin };
+window.MapAPI = {
+  addPin: (pin) => {
+    // Legacy compat: minimal listing-like object
+    const marker = buildMarker({
+      lat: pin.lat, lng: pin.lng, city: pin.name,
+      meetingDate: new Date().toISOString(), reserved: false, host: null,
+    });
+    MapState.allMarkers.push({ marker, listing: { reserved: false } });
+    MapState.clusterGroup.addLayer(marker);
+  },
+};
 
 /* ───────────────────────────────────────────────
    UTILS

@@ -111,37 +111,6 @@ svg { display: block; flex-shrink: 0; }
   background: var(--bg);
 }
 
-/* On large screens: add subtle side shadow + wordmark */
-@media (min-width: 900px) {
-  body {
-    background: #050505;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  body::before {
-    content: 'EXPERIMATE';
-    position: fixed;
-    top: 50%;
-    left: calc(50% - 268px);
-    transform: translateY(-50%) translateX(-100%) rotate(-90deg);
-    font-family: var(--font-display);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.4em;
-    color: #1a1a1a;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-
-  .app-shell {
-    box-shadow:
-      0 0 0 1px #1a1a1a,
-      0 32px 80px rgba(0, 0, 0, 0.7);
-    border-radius: 0;
-  }
-}
 
 /* Page content area */
 .page-content {
@@ -192,17 +161,6 @@ svg { display: block; flex-shrink: 0; }
   gap: 10px;
 }
 
-.topbar__city {
-  font-size: 10px;
-  color: var(--text-2);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 11px;
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  white-space: nowrap;
-}
 
 .topbar__avatar {
   width: 32px;
@@ -226,6 +184,12 @@ svg { display: block; flex-shrink: 0; }
 /* ───────────────────────────────────────────────
    4. NAVBAR
 ─────────────────────────────────────────────── */
+
+/* Brand hidden on mobile — only shows in desktop sidebar */
+.navbar__brand {
+  display: none;
+}
+
 .navbar {
   height: var(--navbar-h);
   background: var(--bg);
@@ -804,7 +768,6 @@ svg { display: block; flex-shrink: 0; }
 .app-shell--exit {
   opacity: 0 !important;
   transform: translateY(-4px) !important;
-  opacity: 0 !important;
   pointer-events: none;
 }
 
@@ -889,6 +852,16 @@ svg { display: block; flex-shrink: 0; }
    Breakpoint: 900px+
 ═══════════════════════════════════════════════ */
 
+/* ───────────────────────────────────────────────
+   Tablet gap fix — no black margins between phone
+   max-width (480px) and the desktop grid (900px)
+─────────────────────────────────────────────── */
+@media (min-width: 481px) and (max-width: 899px) {
+  .app-shell {
+    max-width: 100%;
+  }
+}
+
 @media (min-width: 900px) {
 
   /* ───────────────────────────────────────────
@@ -933,6 +906,11 @@ svg { display: block; flex-shrink: 0; }
     padding: 0 28px;
   }
 
+  /* Sidebar already shows the brand — hide duplicate topbar logo */
+  .topbar__logo {
+    display: none;
+  }
+
   /* ───────────────────────────────────────────
      NAVBAR → becomes LEFT SIDEBAR
   ─────────────────────────────────────────── */
@@ -952,17 +930,22 @@ svg { display: block; flex-shrink: 0; }
   }
 
   /* Logo area at top of sidebar */
-  .navbar::before {
-    content: 'Experi\00B7mate';
+  .navbar__brand {
     display: block;
     font-family: var(--font-display);
     font-weight: 800;
     font-size: 16px;
     letter-spacing: 0.02em;
     color: var(--text);
+    text-decoration: none;
     padding: 8px 12px 24px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+
+  .navbar__brand span {
+    color: var(--accent);
   }
 
   .navbar__item {
@@ -1085,11 +1068,30 @@ svg { display: block; flex-shrink: 0; }
   .acc-section {
     padding: 20px 28px 8px;
     max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
   }
 
   .account-hero {
     padding: 36px 28px 28px;
     max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .acc-bottom {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 18px 28px 8px;
+  }
+
+  /* ───────────────────────────────────────────
+     PROFILE PAGE — centered, max width
+  ─────────────────────────────────────────── */
+  .profile-page {
+    max-width: 680px;
+    margin: 0 auto;
   }
 
   /* ───────────────────────────────────────────

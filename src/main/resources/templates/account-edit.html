@@ -54,7 +54,7 @@
   <main class="page-content">
     <div class="edit-header">
       <div class="page-title">Edit Profile</div>
-      <div class="page-subtitle">Update your username, bio, or password</div>
+      <div class="page-subtitle">Update your username, photo, or bio</div>
     </div>
 
     <form id="edit-form" class="edit-form">
@@ -81,26 +81,13 @@
           <div class="photo-picker__preview" id="photo-preview" onclick="document.getElementById('photo-file').click()">
             <span id="photo-initials" style="font-family:var(--font-display);font-weight:800;font-size:28px;"></span>
           </div>
-          <!-- File input — base64 data URL sent via profilePhotoUrl in UpdateUserDto -->
-          <input type="file" id="photo-file" accept="image/*" style="display:none;" onchange="handlePhotoSelect(this)">
+          <input type="file" id="photo-file" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handlePhotoSelect(this)">
           <div style="display:flex;flex-direction:column;gap:4px;">
             <span class="photo-picker__label" onclick="document.getElementById('photo-file').click()">Change photo</span>
             <span class="photo-picker__remove" id="photo-remove" onclick="removePhoto()">Remove photo</span>
           </div>
         </div>
         <span class="form-field__hint" id="photo-hint">Photo is saved to your profile</span>
-      </div>
-
-      <hr class="form-divider">
-
-      <div class="form-field">
-        <label for="password">New password <span style="color: var(--text-3);">(leave blank to keep current)</span></label>
-        <input type="password" id="password" name="password" autocomplete="new-password">
-      </div>
-
-      <div class="form-field">
-        <label for="confirmPassword">Confirm new password</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
       </div>
 
       <div class="form-actions">
@@ -122,16 +109,15 @@
   const userId = Auth.getUserId();
   if (!userId) window.location.href = '/login';
 
-  let pendingPhotoBase64 = null;   // set when user picks a new file
-  let removePhotoFlag    = false;  // set when user hits "Remove photo"
-  let currentPhotoUrl    = null;   // loaded from API on prefill
+  let pendingPhotoBlob = null;  // canvas-compressed blob ready to upload
+  let removePhotoFlag  = false;
+  let currentPhotoUrl  = null;
 
-  // Prefill form + photo preview
   UserAPI.getById(userId).then(user => {
     document.getElementById('username').value = user.username ?? '';
     document.getElementById('bio').value      = user.bio ?? '';
 
-    currentPhotoUrl = user.profilePhotoUrl || localStorage.getItem('photo_' + userId) || null;
+    currentPhotoUrl = user.profilePhotoUrl || null;
     if (currentPhotoUrl) {
       showPhotoPreview(currentPhotoUrl);
     } else {
@@ -159,21 +145,43 @@
   function handlePhotoSelect(input) {
     const file = input.files[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image too large — max 5 MB');
+      input.value = '';
+      return;
+    }
     removePhotoFlag = false;
     const reader = new FileReader();
     reader.onload = e => {
-      pendingPhotoBase64 = e.target.result;
-      showPhotoPreview(pendingPhotoBase64);
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width  = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => {
+          pendingPhotoBlob = blob;
+          showPhotoPreview(URL.createObjectURL(blob));
+          document.getElementById('photo-hint').textContent =
+            `Photo ready — ${Math.round(blob.size / 1024)} KB`;
+        }, 'image/jpeg', 0.82);
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
   function removePhoto() {
-    pendingPhotoBase64 = null;
-    removePhotoFlag    = true;
+    pendingPhotoBlob = null;
+    removePhotoFlag  = true;
     document.getElementById('photo-remove').style.display = 'none';
     document.getElementById('photo-file').value = '';
-    // Reset preview to initials (re-use cached values)
     const preview = document.getElementById('photo-preview');
     const initials = localStorage.getItem('user_initials') || '?';
     const hue      = localStorage.getItem('user_hue') || 0;
@@ -181,7 +189,7 @@
     preview.style.borderStyle   = 'dashed';
     preview.style.borderColor   = 'var(--border-2)';
     preview.innerHTML = `<span id="photo-initials" style="font-family:var(--font-display);font-weight:800;font-size:28px;color:hsl(${hue},60%,72%);">${initials}</span>`;
-    document.getElementById('photo-hint').textContent = 'Photo is saved to your profile';
+    document.getElementById('photo-hint').textContent = 'Photo removed';
   }
 
   document.getElementById('edit-form').addEventListener('submit', async function(e) {
@@ -189,35 +197,21 @@
     const errorEl = document.getElementById('form-error');
     errorEl.style.display = 'none';
 
-    const password        = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    if (password && password !== confirmPassword) {
-      errorEl.textContent = 'Passwords do not match';
-      errorEl.style.display = 'block';
-      return;
-    }
-
-    let photoUrl;
-    if (pendingPhotoBase64)   photoUrl = pendingPhotoBase64;
-    else if (removePhotoFlag) photoUrl = null;
-    else                      photoUrl = currentPhotoUrl;
-
-    const dto = {
-      username:        document.getElementById('username').value,
-      bio:             document.getElementById('bio').value || null,
-      password:        password || null,
-      profilePhotoUrl: photoUrl,
-    };
-
     const btn = document.querySelector('#edit-form button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Saving...';
     try {
-      await UserAPI.update(userId, dto);
+      await UserAPI.update(userId, {
+        username: document.getElementById('username').value,
+        bio:      document.getElementById('bio').value || null,
+      });
 
-      // Keep localStorage in sync for topbar avatar IIFE
-      if (pendingPhotoBase64)   localStorage.setItem('photo_' + userId, pendingPhotoBase64);
-      else if (removePhotoFlag) localStorage.removeItem('photo_' + userId);
+      if (pendingPhotoBlob) {
+        const updated = await UserAPI.uploadPhoto(userId, pendingPhotoBlob);
+        // Sync new server URL to localStorage for topbar
+        if (updated?.profilePhotoUrl) localStorage.setItem('photo_' + userId, updated.profilePhotoUrl);
+      } else if (removePhotoFlag) {
+        localStorage.removeItem('photo_' + userId);
+      }
 
       btn.textContent = 'Saved ✓';
       showToast('Profile saved!');
