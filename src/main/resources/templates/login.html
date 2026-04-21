@@ -253,6 +253,11 @@
 
     // Auto-redirect if already logged in (or refresh token still valid)
     (async function () {
+      // Don't auto-redirect after an explicit logout — prevents refresh-cookie loop
+      if (sessionStorage.getItem('explicit_logout')) {
+        sessionStorage.removeItem('explicit_logout');
+        return;
+      }
       // Try existing JWT first
       const userId = Auth.getUserId();
       if (userId && Auth.getToken()) {
@@ -269,7 +274,10 @@
         Auth.saveToken(token);
         const users = await UserAPI.getAll();
         const me = users?.find(u => u.username === Auth.getUsername());
-        if (me) Auth.saveUserId(me.id);
+        if (me) {
+          Auth.saveUserId(me.id);
+          if (me.profilePhotoUrl) localStorage.setItem('photo_' + me.id, UserAPI.photoUrl(me.profilePhotoUrl));
+        }
         window.location.href = '/map';
       } catch { /* stay on login */ }
     })();
@@ -293,7 +301,10 @@
         } else {
           const users = await UserAPI.getAll();
           const me = users.find(u => u.username === Auth.getUsername());
-          if (me) Auth.saveUserId(me.id);
+          if (me) {
+            Auth.saveUserId(me.id);
+            if (me.profilePhotoUrl) localStorage.setItem('photo_' + me.id, UserAPI.photoUrl(me.profilePhotoUrl));
+          }
         }
         btn.textContent = 'Welcome back ✓';
         window.location.href = '/map';

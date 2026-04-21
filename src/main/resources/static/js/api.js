@@ -23,6 +23,7 @@ const Auth = {
     } catch { return null; }
   },
   logout: () => {
+    sessionStorage.setItem('explicit_logout', '1');
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
     window.location.href = '/login';
@@ -49,6 +50,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
         credentials: 'include',
       }).then(async (refreshRes) => {
         if (!refreshRes.ok) {
+          sessionStorage.setItem('explicit_logout', '1');
           Auth.clearToken();
           localStorage.removeItem('userId');
           const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
