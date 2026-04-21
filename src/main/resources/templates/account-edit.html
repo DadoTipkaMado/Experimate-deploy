@@ -117,7 +117,7 @@
     document.getElementById('username').value = user.username ?? '';
     document.getElementById('bio').value      = user.bio ?? '';
 
-    currentPhotoUrl = user.profilePhotoUrl || null;
+    currentPhotoUrl = UserAPI.photoUrl(user.profilePhotoUrl);
     if (currentPhotoUrl) {
       showPhotoPreview(currentPhotoUrl);
     } else {
@@ -208,7 +208,7 @@
       if (pendingPhotoBlob) {
         const updated = await UserAPI.uploadPhoto(userId, pendingPhotoBlob);
         // Sync new server URL to localStorage for topbar
-        if (updated?.profilePhotoUrl) localStorage.setItem('photo_' + userId, updated.profilePhotoUrl);
+        if (updated?.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(updated.profilePhotoUrl));
       } else if (removePhotoFlag) {
         localStorage.removeItem('photo_' + userId);
       }
