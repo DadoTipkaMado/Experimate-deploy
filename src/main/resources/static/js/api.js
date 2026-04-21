@@ -105,7 +105,7 @@ const UserAPI = {
   getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
   search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
   uploadPhoto: (id, blob)  => { const f = new FormData(); f.append('file', blob, 'photo.jpg'); return apiFetch(`/api/user/${id}/profile-photo`, { method: 'POST', body: f }); },
-  photoUrl: (url)          => url || null,
+  photoUrl: (url)          => url ? (url.startsWith('/') ? url : `/api/user/profile-photo/${url}`) : null,
   create: (dto)            => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
   update: (id, dto)        => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id)             => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
