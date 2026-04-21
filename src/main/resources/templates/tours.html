@@ -176,7 +176,22 @@
     }
 
     /* ── LISTING DETAIL MODAL ── */
-    .listing-modal__desc { font-size: 12px; color: rgba(239,239,239,0.65); line-height: 1.75; max-height: 40vh; overflow-y: auto; }
+    .lm-card { width: min(520px, 100%); }
+    .lm-city { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
+    .lm-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .lm-date-block { display: flex; flex-direction: column; gap: 2px; }
+    .lm-date-main { font-size: 13px; color: var(--text-2); font-weight: 600; }
+    .lm-date-time { font-size: 11px; color: var(--text-3); }
+    .lm-divider { height: 1px; background: var(--border-2); margin: 2px 0; }
+    .listing-modal__desc { font-size: 13px; color: rgba(239,239,239,0.7); line-height: 1.8; max-height: 35vh; overflow-y: auto; }
+    .lm-host-btn { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; text-decoration: none; transition: border-color var(--t-fast), background var(--t-fast); width: 100%; box-sizing: border-box; }
+    .lm-host-btn:hover { border-color: var(--accent-border); background: var(--accent-dim); }
+    .lm-host-avatar { width: 36px; height: 36px; border-radius: 50%; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+    .lm-host-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .lm-host-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .lm-host-handle { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+    .lm-host-arrow { margin-left: auto; color: var(--text-3); font-size: 14px; }
+    .lm-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -341,16 +356,26 @@
 
 <!-- ── LISTING DETAIL MODAL ── -->
 <div id="listing-modal" class="modal-backdrop">
-  <div class="modal-card" style="max-height:82vh;overflow-y:auto;gap:12px;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-      <div>
-        <div id="lm-city" style="font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--text);letter-spacing:-0.01em;"></div>
-        <div id="lm-host" style="font-size:10px;color:var(--accent);letter-spacing:0.06em;margin-top:5px;"></div>
+  <div class="modal-card lm-card" style="max-height:88vh;overflow-y:auto;gap:16px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div id="lm-city" class="lm-city"></div>
+      <div class="lm-date-block" style="text-align:right;flex-shrink:0;padding-top:3px;">
+        <div id="lm-date-main" class="lm-date-main"></div>
+        <div id="lm-date-time" class="lm-date-time"></div>
       </div>
-      <div id="lm-date" style="font-size:10px;color:var(--text-2);letter-spacing:0.06em;text-align:right;flex-shrink:0;padding-top:2px;"></div>
     </div>
+    <div class="lm-divider"></div>
     <div id="lm-desc" class="listing-modal__desc"></div>
-    <div id="lm-foot" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"></div>
+    <div class="lm-divider"></div>
+    <a id="lm-host-btn" class="lm-host-btn">
+      <div id="lm-host-avatar" class="lm-host-avatar"></div>
+      <div>
+        <div id="lm-host-name" class="lm-host-name"></div>
+        <div id="lm-host-handle" class="lm-host-handle"></div>
+      </div>
+      <div class="lm-host-arrow">›</div>
+    </a>
+    <div id="lm-foot" class="lm-foot"></div>
     <div class="modal-actions" style="margin-top:0;">
       <button onclick="closeListingModal()" class="btn btn--ghost">Close</button>
     </div>
@@ -411,46 +436,57 @@
     const currentUserId = Auth.getUserId();
     const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
     const hostHandle = listing.host?.username ?? '';
-    // Host's other upcoming tours (excluding this one)
+
+    // City + date
+    document.getElementById('lm-city').textContent = listing.city;
+    document.getElementById('lm-date-main').textContent = fmtDate(listing.meetingDate);
+    document.getElementById('lm-date-time').textContent = fmtTime(listing.meetingDate);
+
+    // Description
+    document.getElementById('lm-desc').textContent = listing.tourDescription;
+
+    // Host card
+    const hostBtn = document.getElementById('lm-host-btn');
+    hostBtn.href = `/profile/${hostHandle}`;
+    const u = _userCache[hostHandle];
+    const hue = hostHandle.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const photoUrl = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
     const now = new Date();
     const hostOtherUpcoming = _allListings.filter(l =>
-      l.id !== listing.id &&
-      l.host?.username === hostHandle &&
-      !l.reserved &&
-      new Date(l.meetingDate) > now
+      l.id !== listing.id && l.host?.username === hostHandle &&
+      !l.reserved && new Date(l.meetingDate) > now
     ).length;
-    const hostTourHint = hostOtherUpcoming > 0
-      ? `<span style="font-size:9px;color:var(--text-3);margin-left:6px;letter-spacing:0.04em;">+${hostOtherUpcoming} more tour${hostOtherUpcoming > 1 ? 's' : ''}</span>`
-      : '';
+    document.getElementById('lm-host-avatar').innerHTML = photoUrl
+      ? `<img src="${photoUrl}" alt="">`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:hsl(${hue},60%,72%);">${((u?.firstName?.[0] ?? '') + (u?.lastName?.[0] ?? '')).toUpperCase() || hostHandle[0]?.toUpperCase() || '?'}</div>`;
+    document.getElementById('lm-host-name').textContent = hostName + (hostOtherUpcoming > 0 ? `  +${hostOtherUpcoming} more tour${hostOtherUpcoming > 1 ? 's' : ''}` : '');
+    document.getElementById('lm-host-handle').textContent = `@${hostHandle}`;
 
-    document.getElementById('lm-city').textContent = listing.city;
-    document.getElementById('lm-host').innerHTML = `<a href="/profile/${hostHandle}" style="color:var(--accent);text-decoration:none;">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>${hostTourHint}`;
-    document.getElementById('lm-date').innerHTML = `${fmtDate(listing.meetingDate)}<br><span style="font-size:9px;color:var(--text-3);">${fmtTime(listing.meetingDate)}</span>`;
-    document.getElementById('lm-desc').textContent = listing.tourDescription;
+    // Footer: status dot + map + reserve
     const isOwn    = currentUserId && listing.host?.username === Auth.getUsername();
     const myReq    = _myRequests[listing.meetingDate];
     const reqStatus = myReq?.status;
     const hasCoords = listing.lat != null && listing.lng != null;
     const mapBtn = hasCoords
-      ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
+      ? `<button class="btn btn--ghost" style="height:40px;font-size:11px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
       : '';
     const reserveBtn = isOwn ? ''
       : listing.reserved
-        ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Booked</button>`
+        ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Booked</button>`
       : reqStatus === 'PENDING'
-        ? `<button class="btn" style="height:36px;font-size:10px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
+        ? `<button class="btn" style="height:40px;font-size:11px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
       : reqStatus === 'ACCEPTED'
-        ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
+        ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
       : reqStatus === 'DECLINED'
-        ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request again</button>`
+        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request again</button>`
       : currentUserId
-        ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
-        : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`;
+        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
+        : `<a href="/login" class="btn btn--ghost" style="height:40px;font-size:11px;">Sign in to request</a>`;
     const dotColor = listing.reserved ? 'var(--text-3)' : reqStatus === 'PENDING' ? '#ff9944' : reqStatus === 'DECLINED' ? 'rgba(255,80,80,0.7)' : 'var(--accent)';
     const dotLabel = listing.reserved ? 'Booked' : reqStatus === 'PENDING' ? 'Pending' : reqStatus === 'ACCEPTED' ? 'Accepted' : reqStatus === 'DECLINED' ? 'Declined' : 'Available';
     const dot = `<div style="display:flex;align-items:center;gap:6px;margin-right:auto;">
-      <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};${!listing.reserved && !reqStatus ? 'box-shadow:0 0 6px var(--accent);' : ''}"></div>
-      <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};">${dotLabel}</div>
+      <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};${!listing.reserved && !reqStatus ? 'box-shadow:0 0 6px var(--accent);' : ''}"></div>
+      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};font-weight:600;">${dotLabel}</div>
     </div>`;
     document.getElementById('lm-foot').innerHTML = dot + mapBtn + reserveBtn;
     document.getElementById('listing-modal').classList.add('modal-backdrop--visible');
