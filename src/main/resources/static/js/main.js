@@ -240,3 +240,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 });
+
+/* ───────────────────────────────────────────────
+   DATE / TIME DISPLAY FORMATTERS
+─────────────────────────────────────────────── */
+const _MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]}`;
+}
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function fmtDatetime(iso) {
+  return `${fmtDate(iso)} · ${fmtTime(iso)}`;
+}
+
+/* ───────────────────────────────────────────────
+   USER AVATAR
+   Returns HTML string for a circular avatar.
+   Pass the cached UserResponse as userObj for photo/initials;
+   omit for username-initial fallback.
+─────────────────────────────────────────────── */
+function userAvatar(username, size, userObj) {
+  size = size || 24;
+  const hue = (username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  const initials = userObj
+    ? ((userObj.firstName?.[0] ?? '') + (userObj.lastName?.[0] ?? '')).toUpperCase() || '?'
+    : (username?.[0]?.toUpperCase() ?? '?');
+  const photoUrl = userObj?.profilePhotoUrl ? UserAPI.photoUrl(userObj.profilePhotoUrl) : null;
+  const base = `width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;`;
+  if (photoUrl) {
+    return `<div style="${base}overflow:hidden;border:1px solid hsl(${hue},40%,30%);"><img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`;
+  }
+  return `<div style="${base}background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</div>`;
+}

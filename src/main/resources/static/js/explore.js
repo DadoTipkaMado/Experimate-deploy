@@ -24,8 +24,12 @@ function setCardHeights() {
   });
 }
 
-// Recalculate on resize (e.g. mobile keyboard opens)
-window.addEventListener('resize', setCardHeights);
+// Recalculate on resize — debounced so it doesn't thrash during drag
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(setCardHeights, 150);
+});
 
 /* ───────────────────────────────────────────────
    SCROLL HINT
@@ -119,31 +123,3 @@ function showExploreLoading() {
   setCardHeights();
 }
 
-/* ───────────────────────────────────────────────
-   SAVE LOCAL
-   Called from th:onclick in explore.html.
-   Frend can hook this up to a real API call.
-
-   Usage: saveLocal(localId, localName)
-─────────────────────────────────────────────── */
-function saveLocal(localId, localName) {
-  // TODO: POST /api/saved-locals when backend ready
-  showToast(`Saved ${localName}`);
-}
-
-/* ───────────────────────────────────────────────
-   VIEW ON MAP
-   Navigates to map page and centers on local's pin.
-   Passes coords via sessionStorage so map.js picks them up.
-
-   Usage: viewOnMap(lat, lng)
-─────────────────────────────────────────────── */
-function viewOnMap(lat, lng) {
-  if (!lat || !lng) {
-    showToast('Location not available');
-    return;
-  }
-  // Store target coords for map.js to read on load
-  sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat, lng, zoom: 16 }));
-  window.location.href = '/map';
-}

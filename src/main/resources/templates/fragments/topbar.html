@@ -5,10 +5,8 @@
 <!--
   TOPBAR FRAGMENT
   ───────────────
-  Used in: layout/base.html
-  Variables expected from controller:
-    - ${cityName}   String  e.g. "Zagreb"   (optional, defaults to "–")
-    - ${userEmoji}  String  e.g. "👤"       (optional)
+  Included in all app pages via th:replace.
+  Avatar is rendered client-side from localStorage / API fallback.
 -->
 <header th:fragment="topbar" class="topbar">
 

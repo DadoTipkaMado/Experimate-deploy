@@ -406,28 +406,12 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   let _allListings  = [];   // full API response — never filtered (used by modal lookup)
   let _baseListings = [];   // after host-filter; source for discover controls
   let _discoverSort          = 'asc';   // 'asc' = soonest first
   let _discoverAvailableOnly = false;
   let _discoverCity          = 'all';
   let _userCache = {};      // username → UserResponse (for photos)
-
-  function userAvatar(username, size) {
-    size = size || 24;
-    const u = _userCache[username];
-    const initials = u
-      ? ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?'
-      : (username?.[0]?.toUpperCase() ?? '?');
-    const hue = (username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-    const photoUrl = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
-    const base = `width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;`;
-    if (photoUrl) {
-      return `<div style="${base}overflow:hidden;border:1px solid hsl(${hue},40%,30%);"><img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`;
-    }
-    return `<div style="${base}background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</div>`;
-  }
 
   /* ── Listing detail modal ── */
   function openListingModal(listingId) {
@@ -496,18 +480,6 @@
   }
   document.getElementById('listing-modal').addEventListener('click', function(e) { if (e.target === this) closeListingModal(); });
 
-  function fmtDate(iso) {
-    const d = new Date(iso);
-    return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]}`;
-  }
-  function fmtDatetime(iso) {
-    const d = new Date(iso);
-    return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
-  function fmtTime(iso) {
-    const d = new Date(iso);
-    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
 
   /* ── Host filter from URL ── */
   const _hostFilter   = new URLSearchParams(window.location.search).get('host');
@@ -858,7 +830,7 @@
             <div style="flex:1;min-width:0;">
               <div class="listing-card__city">${listing.city}</div>
               <div style="display:flex;align-items:center;gap:7px;margin-top:5px;">
-                ${userAvatar(hostHandle, 22)}
+                ${userAvatar(hostHandle, 22, _userCache[hostHandle])}
                 <a href="/profile/${hostHandle}" class="listing-card__host" style="text-decoration:none;" onclick="event.stopPropagation()">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>
               </div>
             </div>
@@ -917,10 +889,10 @@
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
           <div class="meet-card__date">
             <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
+            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
           </div>
           <div class="meet-card__info">
-            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(hostUsername, 26)}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${hostName}</span></div>
+            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${hostName}</span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
             <div class="meet-card__booked">Booked ${fmtDate(res.dateOfReservation)}</div>
           </div>
@@ -966,10 +938,10 @@
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
           <div class="meet-card__date">
             <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
+            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
           </div>
           <div class="meet-card__info">
-            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(guestHandle, 26)}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
+            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(guestHandle, 26, _userCache[guestHandle])}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
             <div class="meet-card__booked">${fmtDate(res.tourListing.meetingDate)} · ${fmtTime(res.tourListing.meetingDate)}</div>
           </div>
