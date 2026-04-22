@@ -168,13 +168,7 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const _profileUsername = window.location.pathname.split('/').filter(Boolean).pop();
-
-  function fmtDate(iso) {
-    const d = new Date(iso);
-    return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
 
   function goToMap(btn) {
     sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
@@ -273,7 +267,7 @@
           <div class="profile-listing-card">
             <div class="profile-listing-card__head">
               <div class="profile-listing-card__city">${listing.city}</div>
-              <div class="profile-listing-card__date">${fmtDate(listing.meetingDate)}</div>
+              <div class="profile-listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
             </div>
             <div class="profile-listing-card__desc">${listing.tourDescription}</div>
             <div class="profile-listing-card__foot">
