@@ -55,7 +55,7 @@ function initMap() {
    LOAD PINS
 ─────────────────────────────────────────────── */
 function loadPins() {
-  Promise.allSettled([apiFetch('/api/tour-listing'), UserAPI.getAll()])
+  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll()])
     .then(([listingsResult, usersResult]) => {
       const listings = listingsResult.status === 'fulfilled' ? listingsResult.value : [];
       const users    = usersResult.status  === 'fulfilled' ? usersResult.value  : [];
@@ -84,9 +84,7 @@ function buildMarker(listing) {
 }
 
 function buildPopup(listing) {
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const d = new Date(listing.meetingDate);
-  const dateStr = `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const dateStr = `${fmtDate(listing.meetingDate)} · ${fmtTime(listing.meetingDate)}`;
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
   const available  = !listing.reserved;
@@ -97,14 +95,7 @@ function buildPopup(listing) {
 
   let hostHtml = '';
   if (hostName) {
-    const u = MapState.userCache[hostHandle];
-    const hue = hostHandle.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-    const initials = listing.host ? ((listing.host.firstName[0]||'') + (listing.host.lastName[0]||'')).toUpperCase() : '?';
-    const photoUrl = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
-    const avatarInner = photoUrl
-      ? `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
-      : `<span style="font-size:10px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</span>`;
-    const avatar = `<div style="width:28px;height:28px;border-radius:50%;overflow:hidden;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${avatarInner}</div>`;
+    const avatar = userAvatar(hostHandle, 28, MapState.userCache[hostHandle]);
     hostHtml = `<div class="popup-host" style="display:flex;align-items:center;gap:7px;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:9px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></div>`;
   }
 
