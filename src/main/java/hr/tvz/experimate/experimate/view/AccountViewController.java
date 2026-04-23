@@ -35,4 +35,10 @@ public class AccountViewController {
     public String profile() {
         return "profile";
     }
+
+    @GetMapping("/settings")
+    public String settings(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "settings";
+    }
 }
