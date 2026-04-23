@@ -112,12 +112,12 @@
     .modal-sub { font-size: 11px; color: var(--text-3); line-height: 1.6; margin-top: -6px; }
     .modal-card textarea {
       background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm); padding: 11px 14px;
+      border-radius: var(--radius-sm); padding: 13px 16px;
       color: var(--text); font-family: var(--font-mono); font-size: 13px;
-      width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.6;
-      transition: border-color var(--t-fast);
+      width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.65;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    .modal-card textarea:focus { outline: none; border-color: var(--accent-border); }
+    .modal-card textarea:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(0,201,167,0.08); }
     .modal-actions { display: flex; gap: 10px; }
     .modal-actions .btn { flex: 1; height: 44px; }
     .btn--danger { background: rgba(255,80,80,0.1); border-color: rgba(255,80,80,0.25); color: rgba(255,100,100,0.85); }
