@@ -63,8 +63,9 @@ public class ReservationController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable @Positive Integer id) {
-        reservationService.deleteReservation(id);
+    public ResponseEntity<Void> deleteReservation(@PathVariable @Positive Integer id,
+                                                   @AuthenticationPrincipal AppUserDetails userDetails) {
+        reservationService.deleteReservation(id, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 }

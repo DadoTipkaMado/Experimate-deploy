@@ -1,10 +1,12 @@
 package hr.tvz.experimate.experimate.controller;
 
 import hr.tvz.experimate.experimate.model.rating.*;
+import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +24,10 @@ public class RatingController {
     }
 
     @PostMapping
-    public ResponseEntity<RatingResponse> createRating(@Valid @RequestBody CreateRatingDto dto) {
+    public ResponseEntity<RatingResponse> createRating(@Valid @RequestBody CreateRatingDto dto,
+                                                        @AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                ratingService.createRating(dto)
+                ratingService.createRating(dto, userDetails.getId())
         );
     }
 
@@ -42,14 +45,15 @@ public class RatingController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<RatingResponse> updateRating(@PathVariable @Positive Integer id,
-                                               @Valid @RequestBody UpdateRatingDto dto) {
-        return ResponseEntity.ok(ratingService.updateRating(id, dto));
+                                                        @Valid @RequestBody UpdateRatingDto dto,
+                                                        @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(ratingService.updateRating(id, dto, userDetails.getId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRating(@PathVariable @Positive Integer id,
-                                             @RequestParam @Positive Integer raterId) {
-        ratingService.deleteRating(id, raterId);
+                                             @AuthenticationPrincipal AppUserDetails userDetails) {
+        ratingService.deleteRating(id, userDetails.getId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

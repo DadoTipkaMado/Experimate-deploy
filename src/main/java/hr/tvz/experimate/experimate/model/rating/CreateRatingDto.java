@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record CreateRatingDto(
-        @Positive Integer raterId,
         @Positive Integer ratedId,
         @Max(Constraints.RatingConstraints.SCORE_MAX) @Min(Constraints.RatingConstraints.SCORE_MIN)
         Integer score,

@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.shared;
 import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
 import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 import hr.tvz.experimate.experimate.model.shared.exception.RefreshTokenException;
@@ -55,6 +56,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
         ErrorResponse authentication = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);
         return new ResponseEntity<>(authentication, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ForbiddenActionException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenActionException(ForbiddenActionException ex) {
+        ErrorResponse forbidden = createErrorResponse(HttpStatus.FORBIDDEN, ex);
+        return new ResponseEntity<>(forbidden, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(RefreshTokenException.class)

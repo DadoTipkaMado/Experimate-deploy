@@ -6,7 +6,6 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 public record CreateTourListingDto(
-        @Positive Integer hostId,
         @NotBlank String city,
         @NotNull @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
         @NotNull @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
