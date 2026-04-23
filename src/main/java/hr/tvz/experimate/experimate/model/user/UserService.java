@@ -111,9 +111,7 @@ public class UserService {
     public UserSearchResponse search(String query, Sort.Direction direction) {
         Sort sort = Sort.by(direction, "username", "firstName", "lastName");
 
-        List<UserResponse> result = userRepo.findByUsernameContainingOrFirstNameContainingOrLastNameContaining(
-                        query, query, query, sort
-                ).stream()
+        List<UserResponse> result = userRepo.search(query, sort).stream()
                 .map(this::createUserResponse)
                 .toList();
 
@@ -128,7 +126,9 @@ public class UserService {
      *
      * @param id   the user's ID
      * @param file the uploaded image file
+     *
      * @return updated {@link UserResponse}
+     *
      * @throws UserNotFoundException    if no user exists with the given ID
      * @throws IllegalArgumentException if the file is empty or has a disallowed content type
      */
@@ -148,7 +148,9 @@ public class UserService {
      * the not-found handling across service methods.
      *
      * @param id the user's ID
+     *
      * @return the {@link User} entity
+     *
      * @throws UserNotFoundException if no user exists with the given ID
      */
     private User findEntityById(Integer id) {
