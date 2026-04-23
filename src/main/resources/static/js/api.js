@@ -43,7 +43,20 @@ async function apiFetch(path, options = {}, _isRetry = false) {
     ...options,
   });
 
-  if ((res.status === 401 || res.status === 403) && !_isRetry) {
+  if (res.status === 403) {
+    // 403 from the refresh endpoint = refresh token expired → logout
+    // 403 from any other endpoint = authorization failure → throw normally, don't touch token
+    if (path === '/api/auth/refresh') {
+      sessionStorage.setItem('explicit_logout', '1');
+      Auth.clearToken();
+      localStorage.removeItem('userId');
+      window.location.href = '/login';
+      throw new Error('Session expired. Please sign in.');
+    }
+    // fall through to !res.ok handler below
+  }
+
+  if (res.status === 401 && !_isRetry) {
     if (!_refreshPromise) {
       _refreshPromise = fetch(API_BASE + '/api/auth/refresh', {
         method: 'POST',
@@ -116,6 +129,7 @@ const UserAPI = {
 ─────────────────────────────────────────────── */
 const TourListingAPI = {
   getAll: ()           => apiFetch('/api/tour-listing'),
+  getMine: ()          => apiFetch('/api/tour-listing/mine'),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
@@ -127,8 +141,8 @@ const TourListingAPI = {
 ─────────────────────────────────────────────── */
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
+  getMine: ()          => apiFetch('/api/reservation/mine'),   // returns { asGuest: [], asHost: [] }
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
-  create: (dto)        => apiFetch('/api/reservation',        { method: 'POST',   body: JSON.stringify(dto) }),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
   endTour: (id)        => apiFetch(`/api/reservation/end-tour/${id}`,  { method: 'PATCH' }),
@@ -165,5 +179,5 @@ const RatingAPI = {
   getById: (id)         => apiFetch(`/api/rating/${id}`),
   create: (dto)         => apiFetch('/api/rating',       { method: 'POST',  body: JSON.stringify(dto) }),
   update: (id, dto)     => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
-  delete: (id, raterId) => apiFetch(`/api/rating/${id}?raterId=${raterId}`, { method: 'DELETE' }),
+  delete: (id)          => apiFetch(`/api/rating/${id}`, { method: 'DELETE' }),
 };

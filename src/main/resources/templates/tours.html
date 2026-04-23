@@ -539,15 +539,12 @@
   /* ── Reserve listing ── */
   function reserveListing(btn) {
     const listingId = parseInt(btn.dataset.listingId, 10);
-    const guestId   = Auth.getUserId();
-    if (!guestId) { window.location.href = '/login'; return; }
+    if (!Auth.getToken()) { window.location.href = '/login'; return; }
     btn.disabled = true;
     btn.textContent = 'Sending...';
-    BookingRequestAPI.create({ guestId, listingId })
+    BookingRequestAPI.create({ listingId })
       .then(res => {
-        // Update local cache so UI reflects new state immediately
-        const listing = _allListings.find(l => l.id === listingId);
-        if (listing) _myRequests[listing.meetingDate] = { status: 'PENDING', id: res?.id };
+        _myRequests[listingId] = { status: 'PENDING', id: res?.id };
         showToast('Request sent!', 'success');
         btn.disabled = true;
         btn.textContent = 'Pending';
@@ -571,9 +568,8 @@
   let _countdownInterval = null;
   let _activeTourResId = null;
 
-  function initCountdownAndTakeover(reservations) {
-    const currentUsername = Auth.getUsername();
-    if (!currentUsername) return;
+  function initCountdownAndTakeover(asGuest) {
+    if (!Auth.getToken()) return;
 
     // If a tour was marked active in a previous session, show takeover immediately
     const stored = localStorage.getItem('activeTour');
@@ -586,8 +582,8 @@
       } catch(e) { localStorage.removeItem('activeTour'); }
     }
 
-    // Find soonest upcoming tour within 1 hour
-    const mine = reservations.filter(r => r.guest && r.guest.username === currentUsername);
+    // Find soonest upcoming CONFIRMED/ACTIVE tour within 1 hour
+    const mine = (asGuest || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
     const now = new Date();
     const ONE_HOUR = 60 * 60 * 1000;
     const soon = mine
@@ -730,12 +726,10 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
     try {
-      // Resolve host ID from username
       const users = await UserAPI.getAll();
       const host = users.find(u => u.username === _ratingHostUsername);
       if (!host) throw new Error('Host not found.');
       await RatingAPI.create({
-        raterId: Auth.getUserId(),
         ratedId: host.id,
         score: _ratingScore,
         review: document.getElementById('rating-review').value.trim() || null,
@@ -807,7 +801,7 @@
       const hasCoords = listing.lat != null && listing.lng != null;
       const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
       const isOwnListing = currentUserId && listing.host && listing.host.username === Auth.getUsername();
-      const myReq = _myRequests[listing.meetingDate];
+      const myReq = _myRequests[listing.id];
       const reqStatus = myReq?.status;
 
       const statusLabel = reserved ? 'Booked'
@@ -866,22 +860,17 @@
   }
 
   /* ── Render meetups ── */
-  function renderMeetups(reservations) {
-    const currentUserId = Auth.getUserId();
+  function renderMeetups(asGuest) {
     const upcomingEl = document.getElementById('meetups-upcoming');
     const pastEl     = document.getElementById('meetups-past');
 
-    if (!currentUserId) {
+    if (!Auth.getToken()) {
       upcomingEl.innerHTML = `<div class="meet-empty"><div class="meet-empty__icon">🔒</div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
       pastEl.innerHTML = '';
       return;
     }
 
-    const currentUsername = Auth.getUsername();
-    const mine = reservations.filter(r =>
-      r.guest && r.guest.username === currentUsername &&
-      (!r.status || (r.status !== 'CANCELLED' && r.status !== 'EXPIRED'))
-    );
+    const mine = (asGuest || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
     const now   = new Date();
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
     const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
@@ -928,16 +917,12 @@
   }
 
   /* ── Render host meetups ── */
-  function renderHostMeetups(reservations) {
-    const currentUsername = Auth.getUsername();
+  function renderHostMeetups(asHost) {
     const upcomingEl = document.getElementById('host-upcoming');
     const pastEl     = document.getElementById('host-past');
-    if (!currentUsername) return;
+    if (!Auth.getToken()) return;
 
-    const mine = reservations.filter(r =>
-      r.tourListing?.host?.username === currentUsername &&
-      (!r.status || (r.status !== 'CANCELLED' && r.status !== 'EXPIRED'))
-    );
+    const mine = (asHost || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
     const now  = new Date();
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now)
                          .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
@@ -974,15 +959,13 @@
   }
 
   /* ── Render My Listings (host's own listings with delete) ── */
-  function renderMyListings() {
-    const currentUsername = Auth.getUsername();
+  function renderMyListings(myListings) {
     const el = document.getElementById('meetup-panel-listings');
-    if (!currentUsername) {
+    if (!Auth.getToken()) {
       el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to manage your listings.</div>`;
       return;
     }
-    const mine = _allListings.filter(l => l.host?.username === currentUsername)
-                             .sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
+    const mine = (myListings || []).sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
     if (!mine.length) {
       el.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:10px;text-align:center;">
@@ -1048,19 +1031,27 @@
   // _myRequests: map of meetingDate ISO string → { status, id } for current user's booking requests
   let _myRequests = {};
 
-  Promise.all([TourListingAPI.getAll(), ReservationAPI.getAll(), BookingRequestAPI.getAll(), UserAPI.getAll().catch(() => [])])
-    .then(([listings, reservations, allRequests, allUsers]) => {
+  Promise.all([
+    TourListingAPI.getAll(),
+    ReservationAPI.getMine(),
+    BookingRequestAPI.getAll(),
+    UserAPI.getAll().catch(() => []),
+    TourListingAPI.getMine().catch(() => []),
+  ])
+    .then(([listings, myReservations, allRequests, allUsers, myListings]) => {
       (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
       const currentUsername = Auth.getUsername();
       _myRequests = {};
       (allRequests || [])
-        .filter(r => r.user?.username === currentUsername && r.tourListing?.meetingDate)
-        .forEach(r => { _myRequests[r.tourListing.meetingDate] = { status: r.status, id: r.id }; });
+        .filter(r => r.user?.username === currentUsername && r.tourListing?.id)
+        .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
+      const asGuest = myReservations?.asGuest ?? [];
+      const asHost  = myReservations?.asHost  ?? [];
       renderListings(listings);
-      renderMeetups(reservations);
-      renderHostMeetups(reservations);
-      renderMyListings();
-      initCountdownAndTakeover(reservations);
+      renderMeetups(asGuest);
+      renderHostMeetups(asHost);
+      renderMyListings(myListings ?? []);
+      initCountdownAndTakeover(asGuest);
       if (_listingDeepLink) openListingModal(_listingDeepLink);
     })
     .catch(() => { renderListings([]); renderMeetups([]); showToast('Could not load tours — check your connection.', 'error'); });

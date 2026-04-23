@@ -177,9 +177,8 @@
     window.location.href = '/map';
   }
 
-  Promise.all([UserAPI.getAll(), TourListingAPI.getAll()])
-    .then(([users, listings]) => {
-      const user = (users || []).find(u => u.username === _profileUsername);
+  Promise.all([UserAPI.getByUsername(_profileUsername).catch(() => null), TourListingAPI.getAll()])
+    .then(([user, listings]) => {
       const main = document.getElementById('profile-main');
 
       if (!user) {
@@ -263,7 +262,7 @@
           ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
           : '';
         const reserveBtn = currentUserId && !isOwnProfile
-          ? `<a href="/tours" class="btn btn--primary" style="height:34px;font-size:10px;">Request</a>`
+          ? `<a href="/tours?listing=${listing.id}" class="btn btn--primary" style="height:34px;font-size:10px;">Request</a>`
           : '';
         return `
           <div class="profile-listing-card">
