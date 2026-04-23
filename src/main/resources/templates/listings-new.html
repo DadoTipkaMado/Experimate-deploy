@@ -18,11 +18,15 @@
     .form-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
     .form-field input, .form-field textarea {
       background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm); padding: 12px 14px;
+      border-radius: var(--radius-sm); padding: 13px 16px;
       color: var(--text); font-family: var(--font-mono); font-size: 13px;
-      width: 100%; box-sizing: border-box; transition: border-color var(--t-fast);
+      width: 100%; box-sizing: border-box;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-border); }
+    .form-field input:focus, .form-field textarea:focus {
+      outline: none; border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.08);
+    }
     .form-field input.input--error { border-color: rgba(255,80,80,0.5); }
     .form-field textarea { resize: vertical; min-height: 140px; line-height: 1.65; }
     .form-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
