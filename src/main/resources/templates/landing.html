@@ -8,33 +8,53 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <script>
-    // If already logged in, skip the landing page
-    if (localStorage.getItem('jwt')) { window.location.replace('/map'); }
+    if (localStorage.getItem('jwt')) {
+      window.location.replace('/map');
+    } else {
+      // Try refresh cookie — if valid, get a new JWT and go straight to the app
+      fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.token) {
+            localStorage.setItem('jwt', data.token);
+            window.location.replace('/map');
+          }
+        })
+        .catch(() => {});
+    }
   </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap');
     :root {
       --accent: #00C9A7;
-      --accent-dim: rgba(0,201,167,0.08);
-      --accent-border: rgba(0,201,167,0.2);
+      --accent-dim: rgba(0,201,167,0.09);
+      --accent-border: rgba(0,201,167,0.22);
       --warm: #ff6b35;
-      --bg: #0a0a0a;
-      --surface: #111111;
-      --surface-2: #1a1a1a;
-      --border: rgba(239,239,239,0.07);
-      --border-2: rgba(239,239,239,0.12);
-      --text: #efefef;
-      --text-2: rgba(239,239,239,0.55);
-      --text-3: rgba(239,239,239,0.28);
-      --font-display: 'Georgia', 'Times New Roman', serif;
-      --font-mono: 'Courier New', Courier, monospace;
-      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --bg: #0d0e16;
+      --surface: #12141f;
+      --surface-2: #191b27;
+      --border: rgba(239,239,239,0.08);
+      --border-2: rgba(239,239,239,0.13);
+      --text: #f0f0f2;
+      --text-2: rgba(240,240,242,0.62);
+      --text-3: rgba(240,240,242,0.38);
+      --font-display: 'Syne', 'Georgia', serif;
+      --font-mono: 'DM Mono', 'Courier New', monospace;
+      --font-sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --radius: 14px;
       --radius-sm: 8px;
       --radius-pill: 999px;
     }
     html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); overflow-x: hidden; }
+    body {
+      background-color: var(--bg);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
+      background-size: 250px 250px;
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow-x: hidden;
+    }
 
     /* ───── UTILITY ───── */
     .accent { color: var(--accent); }
@@ -47,9 +67,10 @@
       pointer-events: none; z-index: 0;
       animation: orb-drift linear infinite;
     }
-    .orb-1 { width: 600px; height: 600px; background: var(--accent); opacity: 0.045; top: -200px; left: -150px; animation-duration: 25s; }
-    .orb-2 { width: 400px; height: 400px; background: var(--warm); opacity: 0.035; bottom: 0; right: -100px; animation-duration: 32s; animation-delay: -12s; }
-    .orb-3 { width: 300px; height: 300px; background: var(--accent); opacity: 0.025; top: 60vh; left: 40vw; animation-duration: 40s; animation-delay: -20s; }
+    .orb-1 { width: 780px; height: 780px; background: var(--accent); opacity: 0.055; top: -280px; left: -200px; animation-duration: 25s; }
+    .orb-2 { width: 520px; height: 520px; background: var(--warm); opacity: 0.045; bottom: -80px; right: -140px; animation-duration: 32s; animation-delay: -12s; }
+    .orb-3 { width: 380px; height: 380px; background: var(--accent); opacity: 0.032; top: 55vh; left: 38vw; animation-duration: 40s; animation-delay: -20s; }
+    .orb-4 { width: 300px; height: 300px; background: #7c3aed; opacity: 0.028; top: 30vh; right: 5vw; animation-duration: 35s; animation-delay: -7s; }
     @keyframes orb-drift {
       0%   { transform: translate(0,0) scale(1); }
       33%  { transform: translate(18px,-22px) scale(1.04); }
@@ -383,19 +404,54 @@
     }
     .btn-cta-ghost:hover { border-color: rgba(0,201,167,0.55); transform: translateY(-1px); }
 
+    /* ───── SECTION ALTERNATING BG ───── */
+    .stats-bar { background: var(--surface); }
+    .why { background: var(--surface); }
+    footer { background: #090a10; }
+
     /* ───── FOOTER ───── */
     footer {
-      padding: 28px clamp(20px, 5vw, 60px);
+      padding: clamp(40px, 6vw, 60px) clamp(20px, 5vw, 60px) 28px;
       border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 12px;
     }
+    .footer-top {
+      display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap;
+      padding-bottom: 36px; border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .footer-brand-block { display: flex; flex-direction: column; gap: 8px; max-width: 260px; }
     .footer-brand {
-      font-family: var(--font-display); font-weight: 700; font-size: 14px;
-      color: var(--text-2); text-decoration: none; letter-spacing: -0.01em;
+      font-family: var(--font-display); font-weight: 800; font-size: 18px;
+      color: var(--text); text-decoration: none; letter-spacing: -0.02em;
     }
     .footer-brand span { color: var(--accent); }
+    .footer-tagline { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+    .footer-credit {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;
+      font-family: var(--font-mono); font-size: 9px; color: var(--text-3);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .footer-links { display: flex; gap: 40px; flex-wrap: wrap; }
+    .footer-links__group { display: flex; flex-direction: column; gap: 10px; }
+    .footer-links__label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 2px;
+    }
+    .footer-links__group a {
+      font-size: 13px; color: var(--text-2); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links__group a:hover { color: var(--text); }
+    .footer-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px;
+    }
     .footer-copy { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; }
+
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .footer-links { gap: 28px; }
+    }
 
     /* ───── SCROLL FADE-IN ───── */
     .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
@@ -407,13 +463,20 @@
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
 
   <!-- NAV -->
   <nav>
     <a href="#" class="nav-brand">Experi<span>Mate</span></a>
-    <div class="nav-actions">
-      <a href="/login" class="btn-nav-ghost">Sign in</a>
-      <a href="/register" class="btn-nav-primary">Get started</a>
+    <div style="display:flex;align-items:center;gap:clamp(12px,3vw,32px);">
+      <div style="display:flex;align-items:center;gap:clamp(12px,2vw,24px);" class="nav-links">
+        <a href="#how" style="font-size:12px;color:var(--text-2);text-decoration:none;letter-spacing:0.04em;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-2)'">How it works</a>
+        <a href="#features" style="font-size:12px;color:var(--text-2);text-decoration:none;letter-spacing:0.04em;transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-2)'">Features</a>
+      </div>
+      <div class="nav-actions">
+        <a href="/login" class="btn-nav-ghost">Sign in</a>
+        <a href="/register" class="btn-nav-primary">Get started</a>
+      </div>
     </div>
   </nav>
 
@@ -504,6 +567,7 @@
   </section>
 
   <!-- HOW IT WORKS -->
+  <span id="how" style="position:relative;top:-70px;display:block;visibility:hidden;"></span>
   <section class="how">
     <div class="section-label fade-in">How it works</div>
     <h2 class="section-title fade-in">Three steps to a<br>real experience</h2>
@@ -562,6 +626,7 @@
   </section>
 
   <!-- FEATURES -->
+  <span id="features" style="position:relative;top:-70px;display:block;visibility:hidden;"></span>
   <section class="features">
     <div class="section-label fade-in">Built for both sides</div>
     <h2 class="section-title fade-in">Whether you're hosting<br>or exploring</h2>
@@ -619,8 +684,39 @@
 
   <!-- FOOTER -->
   <footer>
-    <a href="#" class="footer-brand">Experi<span>Mate</span></a>
-    <div class="footer-copy">Meet a local, not a tourist.</div>
+    <div class="footer-top">
+      <div class="footer-brand-block">
+        <a href="#" class="footer-brand">Experi<span>Mate</span></a>
+        <p class="footer-tagline">Connecting travelers with real locals for authentic city experiences. No scripts, no agencies, just people.</p>
+        <span class="footer-credit">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Built for TVZ — Semifinals 2026
+        </span>
+      </div>
+      <div class="footer-links">
+        <div class="footer-links__group">
+          <div class="footer-links__label">Explore</div>
+          <a href="/map">Interactive map</a>
+          <a href="/explore">Find locals</a>
+          <a href="/community">Community</a>
+          <a href="/listings/new">Post a tour</a>
+        </div>
+        <div class="footer-links__group">
+          <div class="footer-links__label">Account</div>
+          <a href="/register">Sign up — free</a>
+          <a href="/login">Sign in</a>
+        </div>
+        <div class="footer-links__group">
+          <div class="footer-links__label">Learn</div>
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 ExperiMate</div>
+      <div class="footer-copy">Made with <span style="color:var(--accent);">♥</span> in Zagreb</div>
+    </div>
   </footer>
 
   <script>
