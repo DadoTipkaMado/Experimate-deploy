@@ -72,6 +72,11 @@ public class UserService {
                 .map(user -> createUserResponse(user));
     }
 
+    public Optional<UserResponse> getUserByUsername(String username) {
+        return userRepo.findByUsername(username)
+                .map(this::createUserResponse);
+    }
+
     public List<UserResponse> getAllUsers() {
         return userRepo.findAll()
                 .stream()
