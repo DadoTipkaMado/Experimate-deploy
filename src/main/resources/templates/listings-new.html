@@ -314,8 +314,7 @@
     const errorEl = document.getElementById('form-error');
     errorEl.style.display = 'none';
 
-    const hostId = Auth.getUserId();
-    if (!hostId) { window.location.href = '/login'; return; }
+    if (!Auth.getToken()) { window.location.href = '/login'; return; }
 
     const dateVal = meetingDateInput.value.trim();
     const timeVal = meetingTimeInput.value.trim();
@@ -346,7 +345,6 @@
     btn.disabled = true; btn.textContent = 'Publishing...';
     try {
       await TourListingAPI.create({
-        hostId,
         city:            document.getElementById('city').value,
         meetingDate,
         tourDescription: document.getElementById('tourDescription').value,
