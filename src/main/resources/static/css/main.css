@@ -63,6 +63,20 @@
   --t-slow:         0.35s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/* ── Light mode overrides ── */
+body.light-mode {
+  --bg:             #f5f6fa;
+  --surface:        #ffffff;
+  --surface-2:      #eef0f5;
+  --surface-3:      #e4e6ed;
+  --border:         #e0e2ea;
+  --border-2:       #d0d3dd;
+  --border-3:       #bfc3d0;
+  --text:           #111218;
+  --text-2:         #555a70;
+  --text-3:         #8b90a6;
+}
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;

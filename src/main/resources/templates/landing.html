@@ -7,6 +7,8 @@
   <title>ExperiMate — Meet a local, not a tourist</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap">
   <script>
     if (localStorage.getItem('jwt')) {
       window.location.replace('/map');
@@ -23,9 +25,9 @@
         .catch(() => {});
     }
   </script>
+  <script>(function(){ if(localStorage.getItem('theme')==='light') document.documentElement.classList.add('light-mode'); })();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap');
     :root {
       --accent: #00C9A7;
       --accent-dim: rgba(0,201,167,0.09);
@@ -45,6 +47,16 @@
       --radius: 14px;
       --radius-sm: 8px;
       --radius-pill: 999px;
+    }
+    html.light-mode {
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --surface-2: #eef0f5;
+      --border: rgba(0,0,0,0.09);
+      --border-2: rgba(0,0,0,0.14);
+      --text: #111218;
+      --text-2: rgba(17,18,24,0.60);
+      --text-3: rgba(17,18,24,0.36);
     }
     html { scroll-behavior: smooth; }
     body {
@@ -86,6 +98,9 @@
       border-bottom: 1px solid var(--border);
       background: rgba(13,14,22,0.82);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    }
+    html.light-mode nav {
+      background: rgba(245,246,250,0.88);
     }
     .nav-brand {
       font-family: var(--font-display); font-weight: 900; font-size: 18px;
@@ -546,6 +561,7 @@
         <a href="#features" class="nav-link">Features</a>
       </div>
       <div class="nav-actions">
+        <button id="landing-theme-btn" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text-2);display:flex;align-items:center;transition:color 0.2s;"></button>
         <a href="/login" class="btn-nav-ghost">Sign in</a>
         <a href="/register" class="btn-nav-primary">Get started</a>
       </div>
@@ -816,38 +832,48 @@
     document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
     // Hamburger menu
-    const HAMBURGER_OPEN = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    const HAMBURGER_OPEN   = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
     const HAMBURGER_CLOSED = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
-
-    function toggleMobileMenu() {
-      const menu = document.getElementById('mobile-menu');
-      const btn = document.getElementById('hamburger-btn');
-      const isOpen = menu.classList.toggle('open');
-      btn.setAttribute('aria-expanded', isOpen);
-      btn.innerHTML = isOpen ? HAMBURGER_OPEN : HAMBURGER_CLOSED;
-    }
 
     function closeMobileMenu() {
       const menu = document.getElementById('mobile-menu');
-      const btn = document.getElementById('hamburger-btn');
+      const btn  = document.getElementById('hamburger-btn');
       menu.classList.remove('open');
       btn.setAttribute('aria-expanded', 'false');
       btn.innerHTML = HAMBURGER_CLOSED;
     }
 
-    document.getElementById('hamburger-btn').addEventListener('click', toggleMobileMenu);
+    document.getElementById('hamburger-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      const menu = document.getElementById('mobile-menu');
+      const btn  = e.currentTarget;
+      const isOpen = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen);
+      btn.innerHTML = isOpen ? HAMBURGER_OPEN : HAMBURGER_CLOSED;
+    });
 
-    // Close on outside click
     document.addEventListener('click', e => {
       const menu = document.getElementById('mobile-menu');
       if (!menu.classList.contains('open')) return;
-      if (!menu.contains(e.target) && !document.getElementById('hamburger-btn').contains(e.target)) {
-        closeMobileMenu();
-      }
+      if (!menu.contains(e.target)) closeMobileMenu();
     });
 
-    // Close on Escape
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileMenu(); });
+
+    // Theme toggle (landing page — operates on <html> not <body>)
+    const MOON_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    const SUN_SVG  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    (function() {
+      const btn = document.getElementById('landing-theme-btn');
+      if (!btn) return;
+      const update = () => btn.innerHTML = document.documentElement.classList.contains('light-mode') ? MOON_SVG : SUN_SVG;
+      update();
+      btn.addEventListener('click', () => {
+        const isLight = document.documentElement.classList.toggle('light-mode');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        update();
+      });
+    })();
   </script>
 </body>
 </html>
