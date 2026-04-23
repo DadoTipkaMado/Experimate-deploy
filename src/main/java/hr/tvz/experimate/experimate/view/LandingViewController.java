@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class LandingViewController {
 
-    @GetMapping("/landing")
+    @GetMapping({"/", "/landing"})
     public String landing() {
         return "landing";
     }
