@@ -86,18 +86,16 @@
 - **Issue #44 done** — `_myRequests` keyed by `listing.id` (was `meetingDate`); both card list AND modal use it; profile "Request" deep-links to `/tours?listing={id}`
 - **Settings page live** — `/settings` with theme toggle, available-to-meet toggle, links, sign out
 - **Dark/light mode** — `body.light-mode` on app pages, `html.light-mode` on landing; toggle in topbar and settings
-- **#40 (back button)** — built: sessionStorage URL queue, `‹` button in topbar, pops on click
-- **#41 (map geocoding)** — built: city search input on map, Nominatim API, flies map to result
+- **#40 (back button)** — ✅ closed: sessionStorage queue (max 6), `‹` button in topbar, hidden until history exists, auth pages excluded (no topbar fragment)
+- **#41 (map geocoding)** — ✅ closed: Enter key in map search → Nominatim OSS API → flyTo; live pin-filter on typing unchanged; no API key needed
 
 ## Known pending issues (updated 2026-04-23 s3)
 - **Topbar avatar broken** — shows empty gray circle; needs browser devtools to diagnose
-- **Issue C/E** — `RatingResponse` has no `raterUsername`/`ratedUsername`; ratings section on profile blocked; filed with David
+- **Issue C/E** — `RatingResponse` has no `raterUsername`/`ratedUsername`; ratings section on profile blocked; waiting on David
 - **Issue D** — `POST /api/auth/logout` server-side invalidation pending David
 - **Remove photo** — no DELETE endpoint yet
 - **#27 availableToMeet** — localStorage only, post-MVP
 - **#31 saved locals** — post-MVP
-- **#40 back button** — built
-- **#41 map geocoding** — built
 
 ## GitHub issues for David — updated 2026-04-23 s3
 
