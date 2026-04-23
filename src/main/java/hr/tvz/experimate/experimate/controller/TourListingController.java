@@ -26,6 +26,13 @@ public class TourListingController {
         this.tourListingService = tourListingService;
     }
 
+    @GetMapping("/mine")
+    public ResponseEntity<List<TourListingResponse>> getMyListings(@AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(
+                tourListingService.getListingsByHost(userDetails.getId())
+        );
+    }
+
     @GetMapping
     public ResponseEntity<List<TourListingResponse>> getAllTourListings(@AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.ok(
