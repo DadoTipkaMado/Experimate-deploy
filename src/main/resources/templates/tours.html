@@ -455,7 +455,7 @@
 
     // Footer: status dot + map + reserve
     const isOwn    = currentUserId && listing.host?.username === Auth.getUsername();
-    const myReq    = _myRequests[listing.meetingDate];
+    const myReq    = _myRequests[listing.id];
     const reqStatus = myReq?.status;
     const hasCoords = listing.lat != null && listing.lng != null;
     const mapBtn = hasCoords
