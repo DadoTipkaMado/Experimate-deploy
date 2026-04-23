@@ -1,6 +1,9 @@
 package hr.tvz.experimate.experimate.controller;
 
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
+import hr.tvz.experimate.experimate.security.AppUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import hr.tvz.experimate.experimate.model.user.CreateUserDto;
 import hr.tvz.experimate.experimate.model.user.UpdateUserDto;
 import hr.tvz.experimate.experimate.model.user.response.UserResponse;
@@ -62,22 +65,23 @@ public class UserController {
 
     @PatchMapping(value = "/{id}")
     public ResponseEntity<UserResponse> patchUser(@PathVariable @Positive Integer id,
-                                                  @Valid @RequestBody UpdateUserDto dto) {
-        return ResponseEntity.ok(
-                userService.updateUser(id, dto)
-        );
+                                                  @Valid @RequestBody UpdateUserDto dto,
+                                                  @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(userService.updateUser(id, dto, userDetails.getId()));
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable @Positive Integer id) {
-        userService.deleteUser(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable @Positive Integer id,
+                                           @AuthenticationPrincipal AppUserDetails userDetails) {
+        userService.deleteUser(id, userDetails.getId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping(value = "/{id}/profile-photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> uploadProfilePhoto(@PathVariable @Positive Integer id,
-                                                           @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(userService.uploadProfilePhoto(id, file));
+                                                           @RequestParam("file") MultipartFile file,
+                                                           @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(userService.uploadProfilePhoto(id, file, userDetails.getId()));
     }
 
     @GetMapping(value = "/profile-photo/{filename}")

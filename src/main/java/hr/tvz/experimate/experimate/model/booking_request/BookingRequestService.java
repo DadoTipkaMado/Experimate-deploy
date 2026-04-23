@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.model.booking_request;
 
 import hr.tvz.experimate.experimate.model.booking_request.exception.BookingAlreadyRequestedException;
 import hr.tvz.experimate.experimate.model.booking_request.exception.BookingRequestNotFoundException;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEvent;
@@ -46,9 +47,7 @@ public class BookingRequestService {
         this.publisher = publisher;
     }
 
-    //TODO napravi validaciju dto
-    public BookingRequestResponse createBookingRequest(CreateBookingRequestDto dto) {
-        Integer guestId = dto.guestId();
+    public BookingRequestResponse createBookingRequest(CreateBookingRequestDto dto, Integer guestId) {
         Integer listingId = dto.listingId();
 
         TourListing listing = tourListingRepo.findById(listingId)
@@ -116,22 +115,28 @@ public class BookingRequestService {
         return bookingRequestRepo.save(request);
     }
 
-    public void deleteBookingRequest(Integer id) {
-        if (bookingRequestRepo.existsById(id)) {
-            bookingRequestRepo.deleteById(id);
-            log.info("Booking request deleted with id {}", id);
-        } else {
-            log.warn("Booking request not found with id {}", id);
-            throw new BookingRequestNotFoundException(
-                    "Booking request with id %d could not be deleted. Not found.".formatted(id)
-            );
-        }
+    public void deleteBookingRequest(Integer id, Integer callerId) {
+        BookingRequest request = bookingRequestRepo.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Booking request not found with id {}", id);
+                    return new BookingRequestNotFoundException(
+                            "Booking request with id %d could not be deleted. Not found.".formatted(id));
+                });
+
+        if (!request.getGuest().getId().equals(callerId))
+            throw new ForbiddenActionException("Only the guest who created the request can delete it.");
+
+        bookingRequestRepo.deleteById(id);
+        log.info("Booking request deleted with id {}", id);
     }
 
     @Transactional
-    public BookingRequestResponse acceptBookingRequest(Integer acceptedId) {
+    public BookingRequestResponse acceptBookingRequest(Integer acceptedId, Integer callerId) {
         BookingRequest acceptedRequest = bookingRequestRepo.findById(acceptedId)
                 .orElseThrow(() -> new BookingRequestNotFoundException(acceptedId));
+
+        if (!acceptedRequest.getListing().getHost().getId().equals(callerId))
+            throw new ForbiddenActionException("Only the host can accept booking requests.");
 
         publisher.publishEvent(new BookingRequestAcceptedEvent(
                 acceptedRequest.getGuest().getId(),
@@ -155,8 +160,14 @@ public class BookingRequestService {
         return createBookingRequestResponse(acceptedRequest);
     }
 
-    public BookingRequestResponse declineBookingRequest(Integer id) {
-        BookingRequest request = updateBookingRequest(id, BookingRequestStatus.DECLINED);
+    public BookingRequestResponse declineBookingRequest(Integer id, Integer callerId) {
+        BookingRequest request = bookingRequestRepo.findById(id)
+                .orElseThrow(() -> new BookingRequestNotFoundException(id));
+
+        if (!request.getListing().getHost().getId().equals(callerId))
+            throw new ForbiddenActionException("Only the host can decline booking requests.");
+
+        request = updateBookingRequest(id, BookingRequestStatus.DECLINED);
         log.info("Booking request declined with id {}", id);
 
         return createBookingRequestResponse(request);

@@ -48,23 +48,24 @@ public class TourListingController {
     }
 
     @PostMapping
-    public ResponseEntity<TourListingResponse> createTourListing(@Valid @RequestBody CreateTourListingDto dto) {
+    public ResponseEntity<TourListingResponse> createTourListing(@Valid @RequestBody CreateTourListingDto dto,
+                                                                   @AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                tourListingService.createListing(dto)
+                tourListingService.createListing(dto, userDetails.getId())
         );
     }
 
     @PatchMapping(value="/{id}")
     public ResponseEntity<TourListingResponse> patchTourListing(@PathVariable @Positive Integer id,
-                                                        @Valid @RequestBody UpdateTourListingDto dto) {
-        return ResponseEntity.ok(
-                tourListingService.updateListing(id, dto)
-        );
+                                                                  @Valid @RequestBody UpdateTourListingDto dto,
+                                                                  @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(tourListingService.updateListing(id, dto, userDetails.getId()));
     }
 
     @DeleteMapping(value="/{id}")
-    public ResponseEntity<Void>  deleteTourListing(@PathVariable @Positive Integer id) {
-        tourListingService.deleteListing(id);
+    public ResponseEntity<Void> deleteTourListing(@PathVariable @Positive Integer id,
+                                                   @AuthenticationPrincipal AppUserDetails userDetails) {
+        tourListingService.deleteListing(id, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.model.user;
 
 import hr.tvz.experimate.experimate.model.shared.FileStorageService;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
@@ -84,7 +85,9 @@ public class UserService {
                 .toList();
     }
 
-    public UserResponse updateUser(Integer id, UpdateUserDto updateUserDto) {
+    public UserResponse updateUser(Integer id, UpdateUserDto updateUserDto, Integer callerId) {
+        if (!callerId.equals(id))
+            throw new ForbiddenActionException("You can only edit your own profile.");
         User user = findEntityById(id);
 
         if (updateUserDto.username() != null) {
@@ -137,7 +140,9 @@ public class UserService {
      * @throws UserNotFoundException    if no user exists with the given ID
      * @throws IllegalArgumentException if the file is empty or has a disallowed content type
      */
-    public UserResponse uploadProfilePhoto(Integer id, MultipartFile file) {
+    public UserResponse uploadProfilePhoto(Integer id, MultipartFile file, Integer callerId) {
+        if (!callerId.equals(id))
+            throw new ForbiddenActionException("You can only upload a photo to your own profile.");
         User user = findEntityById(id);
         String oldFilename = user.getProfilePhotoFilename();
         String newFilename = fileStorageService.store(file);
@@ -170,7 +175,9 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(Integer id) {
+    public void deleteUser(Integer id, Integer callerId) {
+        if (!callerId.equals(id))
+            throw new ForbiddenActionException("You can only delete your own account.");
         if (!userRepo.existsById(id)) throw new UserNotFoundException(id);
 
         UserDeletedEvent event = new UserDeletedEvent(id);

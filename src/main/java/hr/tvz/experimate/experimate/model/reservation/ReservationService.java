@@ -3,6 +3,7 @@ package hr.tvz.experimate.experimate.model.reservation;
 import hr.tvz.experimate.experimate.model.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.model.reservation.exception.IllegalReservationStateException;
 import hr.tvz.experimate.experimate.model.reservation.exception.ReservationNotFoundException;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
@@ -120,16 +121,21 @@ public class ReservationService {
                 .map(this::createReservationResponse);
     }
 
-    public void deleteReservation(Integer id) {
-        if (reservationRepo.existsById(id)) {
-            reservationRepo.deleteById(id);
-            log.info("Reservation deleted with id {}", id);
-        } else {
-            log.warn("Reservation not found with id {}", id);
-            throw new ReservationNotFoundException(
-                    "Reservation with id %d could not be deleted. Not found.".formatted(id
-                    ));
-        }
+    public void deleteReservation(Integer id, Integer callerId) {
+        Reservation reservation = reservationRepo.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found with id {}", id);
+                    return new ReservationNotFoundException(
+                            "Reservation with id %d could not be deleted. Not found.".formatted(id));
+                });
+
+        boolean isGuest = reservation.getGuest().getId().equals(callerId);
+        boolean isHost = reservation.getTourListing().getHost().getId().equals(callerId);
+        if (!isGuest && !isHost)
+            throw new ForbiddenActionException("Only a participant of the reservation can delete it.");
+
+        reservationRepo.deleteById(id);
+        log.info("Reservation deleted with id {}", id);
     }
 
     public CheckInResponse checkUserIn(Integer userId, Integer reservationId) {
