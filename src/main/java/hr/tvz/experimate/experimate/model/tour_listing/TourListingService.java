@@ -75,6 +75,13 @@ public class TourListingService {
                 .map(listing -> createListingResponse(listing));
     }
 
+    public List<TourListingResponse> getListingsByHost(Integer hostId) {
+        return listingRepo.findAllByHost_Id(hostId)
+                .stream()
+                .map(this::createListingResponse)
+                .toList();
+    }
+
     public List<TourListingResponse> getAllListings(Integer resourceOwnerId) {
         return listingRepo.findAll()
                 .stream()

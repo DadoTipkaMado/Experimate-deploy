@@ -6,6 +6,7 @@ import hr.tvz.experimate.experimate.model.reservation.exception.ReservationNotFo
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.MyReservationsResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
@@ -89,6 +90,22 @@ public class ReservationService {
         log.info("Created reservation with id {}", reservation.getId());
 
         return createReservationResponse(reservation);
+    }
+
+    public MyReservationsResponse getReservationsForUser(Integer userId) {
+        List<Reservation> all = reservationRepo.findAllForUser(userId);
+
+        List<ReservationResponse> asGuest = all.stream()
+                .filter(r -> r.getGuest().getId().equals(userId))
+                .map(this::createReservationResponse)
+                .toList();
+
+        List<ReservationResponse> asHost = all.stream()
+                .filter(r -> r.getTourListing().getHost().getId().equals(userId))
+                .map(this::createReservationResponse)
+                .toList();
+
+        return new MyReservationsResponse(asGuest, asHost);
     }
 
     public List<ReservationResponse> getAllReservations() {
@@ -368,7 +385,8 @@ public class ReservationService {
                 reservation.getId(),
                 reservation.getDateOfReservation(),
                 listingDetails,
-                guestDetails
+                guestDetails,
+                reservation.getStatus()
         );
     }
 }

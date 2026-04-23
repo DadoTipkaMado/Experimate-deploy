@@ -11,4 +11,6 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
     int deleteAllByHost_Id(Integer id);
 
     List<TourListing> findAllByReservedAndMeetingDateBefore(Boolean isReserved, LocalDateTime meetingDateTime);
+
+    List<TourListing> findAllByHost_Id(Integer hostId);
 }

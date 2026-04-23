@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.reservation.response;
 
+import hr.tvz.experimate.experimate.model.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
 
@@ -9,6 +10,7 @@ public record ReservationResponse(
         Integer id,
         LocalDateTime dateOfReservation,
         TourListingDetails tourListing,
-        UserDetails guest
+        UserDetails guest,
+        ReservationStatus status
 ) {
 }
