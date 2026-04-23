@@ -7,6 +7,8 @@
   <title>Tours — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
     .tours-header {
       padding: 22px 18px 0;
@@ -378,6 +380,9 @@
     <div id="lm-foot" class="lm-foot"></div>
     <div class="modal-actions" style="margin-top:0;">
       <button onclick="closeListingModal()" class="btn btn--ghost">Close</button>
+      <button onclick="shareListing()" class="btn btn--ghost" style="flex:0;padding:0 14px;" title="Copy link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -408,6 +413,7 @@
 <script>
   let _allListings  = [];   // full API response — never filtered (used by modal lookup)
   let _baseListings = [];   // after host-filter; source for discover controls
+  let _currentListingId = null;
   let _discoverSort          = 'asc';   // 'asc' = soonest first
   let _discoverAvailableOnly = false;
   let _discoverCity          = 'all';
@@ -415,6 +421,7 @@
 
   /* ── Listing detail modal ── */
   function openListingModal(listingId) {
+    _currentListingId = listingId;
     const listing = _allListings.find(l => l.id === listingId);
     if (!listing) return;
     const currentUserId = Auth.getUserId();
@@ -477,6 +484,13 @@
   }
   function closeListingModal() {
     document.getElementById('listing-modal').classList.remove('modal-backdrop--visible');
+  }
+  function shareListing() {
+    if (!_currentListingId) return;
+    const url = window.location.origin + '/tours?listing=' + _currentListingId;
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!'))
+      .catch(() => showToast('Could not copy link'));
   }
   document.getElementById('listing-modal').addEventListener('click', function(e) { if (e.target === this) closeListingModal(); });
 

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>ExperiMate — Meet a local, not a tourist</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #00C9A7;
+      --accent-dim: rgba(0,201,167,0.08);
+      --accent-border: rgba(0,201,167,0.2);
+      --warm: #ff6b35;
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-2: #1a1a1a;
+      --border: rgba(239,239,239,0.07);
+      --border-2: rgba(239,239,239,0.12);
+      --text: #efefef;
+      --text-2: rgba(239,239,239,0.55);
+      --text-3: rgba(239,239,239,0.28);
+      --font-display: 'Georgia', 'Times New Roman', serif;
+      --font-mono: 'Courier New', Courier, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --radius-pill: 999px;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); overflow-x: hidden; }
+
+    /* ───── UTILITY ───── */
+    .accent { color: var(--accent); }
+    .warm { color: var(--warm); }
+    .mono { font-family: var(--font-mono); }
+
+    /* ───── AMBIENT ORBS ───── */
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(110px);
+      pointer-events: none; z-index: 0;
+      animation: orb-drift linear infinite;
+    }
+    .orb-1 { width: 600px; height: 600px; background: var(--accent); opacity: 0.045; top: -200px; left: -150px; animation-duration: 25s; }
+    .orb-2 { width: 400px; height: 400px; background: var(--warm); opacity: 0.035; bottom: 0; right: -100px; animation-duration: 32s; animation-delay: -12s; }
+    .orb-3 { width: 300px; height: 300px; background: var(--accent); opacity: 0.025; top: 60vh; left: 40vw; animation-duration: 40s; animation-delay: -20s; }
+    @keyframes orb-drift {
+      0%   { transform: translate(0,0) scale(1); }
+      33%  { transform: translate(18px,-22px) scale(1.04); }
+      66%  { transform: translate(-12px,14px) scale(0.97); }
+      100% { transform: translate(0,0) scale(1); }
+    }
+
+    /* ───── NAV ───── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(20px, 5vw, 60px); height: 60px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,0.75);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
+    .nav-brand {
+      font-family: var(--font-display); font-weight: 900; font-size: 18px;
+      color: var(--text); text-decoration: none; letter-spacing: -0.02em;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-nav-ghost {
+      padding: 0 18px; height: 36px; border: 1px solid var(--border-2);
+      border-radius: var(--radius-pill); background: transparent;
+      color: var(--text-2); font-size: 12px; letter-spacing: 0.04em;
+      text-decoration: none; display: inline-flex; align-items: center;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-nav-ghost:hover { border-color: var(--border-2); color: var(--text); }
+    .btn-nav-primary {
+      padding: 0 18px; height: 36px; border-radius: var(--radius-pill);
+      background: var(--accent); border: none; color: #000;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+      text-decoration: none; display: inline-flex; align-items: center;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-nav-primary:hover { opacity: 0.88; transform: scale(1.02); }
+
+    /* ───── SECTIONS ───── */
+    section { position: relative; z-index: 1; }
+
+    /* ───── HERO ───── */
+    .hero {
+      min-height: 100dvh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 80px clamp(20px, 6vw, 80px) 60px;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      border-radius: var(--radius-pill); padding: 6px 16px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 28px;
+    }
+    .hero-eyebrow__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 9vw, 86px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      max-width: 800px;
+      margin-bottom: 22px;
+    }
+    .hero-title .line-accent {
+      color: transparent;
+      background: linear-gradient(90deg, var(--accent) 0%, rgba(0,201,167,0.6) 100%);
+      -webkit-background-clip: text; background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(14px, 2vw, 17px);
+      color: var(--text-2);
+      line-height: 1.7;
+      max-width: 500px;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 60px;
+    }
+    .btn-hero-primary {
+      padding: 0 32px; height: 52px; border-radius: var(--radius-pill);
+      background: var(--accent); border: none; color: #000;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.03em;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-hero-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-hero-ghost {
+      padding: 0 28px; height: 52px; border-radius: var(--radius-pill);
+      border: 1px solid var(--border-2); background: transparent;
+      color: var(--text-2); font-size: 14px; letter-spacing: 0.03em;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-hero-ghost:hover { border-color: rgba(239,239,239,0.25); color: var(--text); transform: translateY(-1px); }
+
+    /* ── Map mockup ── */
+    .hero-visual {
+      width: 100%; max-width: 680px;
+      border: 1px solid var(--border-2); border-radius: 20px;
+      overflow: hidden; position: relative;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+    }
+    .map-mockup {
+      background: #141a1a;
+      height: clamp(200px, 40vw, 320px);
+      position: relative; overflow: hidden;
+    }
+    .map-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,201,167,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,201,167,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .map-road { position: absolute; background: rgba(239,239,239,0.06); border-radius: 2px; }
+    .map-road-h1 { width: 100%; height: 3px; top: 38%; left: 0; }
+    .map-road-h2 { width: 100%; height: 2px; top: 65%; left: 0; opacity: 0.6; }
+    .map-road-v1 { width: 3px; height: 100%; top: 0; left: 28%; }
+    .map-road-v2 { width: 2px; height: 100%; top: 0; left: 62%; opacity: 0.6; }
+    .map-road-v3 { width: 2px; height: 100%; top: 0; left: 80%; opacity: 0.4; }
+
+    .map-pin {
+      position: absolute;
+      display: flex; flex-direction: column; align-items: center;
+      animation: pin-float 3s ease-in-out infinite;
+    }
+    .map-pin__bubble {
+      background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 4px rgba(0,201,167,0.2), 0 4px 16px rgba(0,201,167,0.35);
+    }
+    .map-pin__bubble--lg { width: 36px; height: 36px; }
+    .map-pin__bubble--sm { width: 26px; height: 26px; }
+    .map-pin__bubble img { border-radius: 50%; object-fit: cover; }
+    .map-pin__tail { width: 2px; height: 8px; background: var(--accent); opacity: 0.6; }
+    .map-pin__dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0,201,167,0.3); }
+
+    @keyframes pin-float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-5px); }
+    }
+    .map-pin:nth-child(2) { animation-delay: -1s; }
+    .map-pin:nth-child(3) { animation-delay: -2s; }
+
+    /* Pin popup */
+    .map-popup {
+      position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+      display: flex; flex-direction: column; gap: 4px; min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .map-popup__city { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text); }
+    .map-popup__meta { font-size: 10px; color: var(--text-2); }
+    .map-popup__btn {
+      margin-top: 2px; padding: 5px 0; background: var(--accent); border-radius: 6px;
+      font-size: 10px; font-weight: 700; color: #000; text-align: center; letter-spacing: 0.04em;
+    }
+
+    /* ───── STATS BAR ───── */
+    .stats-bar {
+      display: flex; justify-content: center; gap: clamp(32px, 6vw, 80px);
+      flex-wrap: wrap;
+      padding: 48px clamp(20px, 5vw, 60px);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat { text-align: center; }
+    .stat__num {
+      font-family: var(--font-display); font-weight: 900;
+      font-size: clamp(28px, 5vw, 40px); color: var(--accent);
+      letter-spacing: -0.02em; line-height: 1;
+    }
+    .stat__label {
+      font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-top: 6px;
+    }
+
+    /* ───── HOW IT WORKS ───── */
+    .how { padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px); }
+    .section-label {
+      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: var(--font-display); font-weight: 900;
+      font-size: clamp(28px, 4.5vw, 44px);
+      letter-spacing: -0.02em; line-height: 1.1; color: var(--text);
+      margin-bottom: 48px; max-width: 480px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .step {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: border-color 0.2s;
+    }
+    .step:hover { border-color: var(--border-2); }
+    .step__num {
+      font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
+      letter-spacing: 0.12em;
+    }
+    .step__icon {
+      font-size: 28px; line-height: 1;
+    }
+    .step__title {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 16px; color: var(--text); letter-spacing: -0.01em;
+    }
+    .step__desc {
+      font-size: 12px; color: var(--text-2); line-height: 1.7;
+    }
+
+    /* ───── WHY ───── */
+    .why { padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px); }
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .why-card {
+      border-radius: var(--radius); padding: 28px 24px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .why-card--teal {
+      background: linear-gradient(135deg, rgba(0,201,167,0.10) 0%, rgba(0,201,167,0.04) 100%);
+      border: 1px solid rgba(0,201,167,0.18);
+    }
+    .why-card--warm {
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .why-card__label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em;
+      text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill);
+      display: inline-flex; align-items: center; gap: 6px; width: fit-content;
+    }
+    .why-card__label--good { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
+    .why-card__label--bad  { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2); color: var(--warm); }
+    .why-card__items { display: flex; flex-direction: column; gap: 10px; }
+    .why-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13px; color: var(--text-2); line-height: 1.5;
+    }
+    .why-item__icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+
+    /* ───── FEATURES ───── */
+    .features { padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .feat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px 20px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .feat:hover { border-color: var(--border-2); }
+    .feat__icon {
+      width: 40px; height: 40px; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+    }
+    .feat__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
+    .feat__desc { font-size: 11px; color: var(--text-2); line-height: 1.65; }
+
+    /* ───── FINAL CTA ───── */
+    .cta-section {
+      padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px);
+    }
+    .cta-card {
+      max-width: 680px; margin: 0 auto;
+      background: linear-gradient(135deg, rgba(0,201,167,0.08) 0%, rgba(0,201,167,0.03) 100%);
+      border: 1px solid rgba(0,201,167,0.2);
+      border-radius: 20px; padding: clamp(40px, 6vw, 60px);
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-card::before {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 300px;
+      background: radial-gradient(ellipse, rgba(0,201,167,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-card__eyebrow {
+      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .cta-card__title {
+      font-family: var(--font-display); font-weight: 900;
+      font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em; color: var(--text);
+      margin-bottom: 14px; line-height: 1.1; position: relative; z-index: 1;
+    }
+    .cta-card__sub {
+      font-size: 13px; color: var(--text-2); line-height: 1.7;
+      margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto;
+      position: relative; z-index: 1;
+    }
+    .cta-card__actions {
+      display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .btn-cta {
+      padding: 0 36px; height: 52px; border-radius: var(--radius-pill);
+      background: var(--accent); border: none; color: #000;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.03em;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-cta-ghost {
+      padding: 0 28px; height: 52px; border-radius: var(--radius-pill);
+      border: 1px solid rgba(0,201,167,0.3); background: transparent;
+      color: var(--accent); font-size: 14px; letter-spacing: 0.03em;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .btn-cta-ghost:hover { border-color: rgba(0,201,167,0.55); transform: translateY(-1px); }
+
+    /* ───── FOOTER ───── */
+    footer {
+      padding: 28px clamp(20px, 5vw, 60px);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-brand {
+      font-family: var(--font-display); font-weight: 700; font-size: 14px;
+      color: var(--text-2); text-decoration: none; letter-spacing: -0.01em;
+    }
+    .footer-brand span { color: var(--accent); }
+    .footer-copy { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; }
+
+    /* ───── SCROLL FADE-IN ───── */
+    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-brand">Experi<span>Mate</span></a>
+    <div class="nav-actions">
+      <a href="/login" class="btn-nav-ghost">Sign in</a>
+      <a href="/register" class="btn-nav-primary">Get started</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow__dot"></div>
+      Now available
+    </div>
+    <h1 class="hero-title">
+      Meet a local.<br>
+      <span class="line-accent">Not a tourist.</span>
+    </h1>
+    <p class="hero-sub">
+      ExperiMate connects travelers with real locals for authentic city experiences.
+      No scripted tours. No agency markup. Just people showing what they love.
+    </p>
+    <div class="hero-actions">
+      <a href="/map" class="btn-hero-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Explore the map
+      </a>
+      <a href="/register" class="btn-hero-ghost">
+        Create account
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+
+    <!-- Map visual mockup -->
+    <div class="hero-visual fade-in">
+      <div class="map-mockup">
+        <div class="map-grid"></div>
+        <div class="map-road map-road-h1"></div>
+        <div class="map-road map-road-h2"></div>
+        <div class="map-road map-road-v1"></div>
+        <div class="map-road map-road-v2"></div>
+        <div class="map-road map-road-v3"></div>
+        <!-- Pins -->
+        <div class="map-pin" style="left:27%;top:30%;animation-delay:0s;">
+          <div class="map-pin__bubble map-pin__bubble--lg" style="background:var(--accent);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          </div>
+          <div class="map-pin__tail"></div>
+          <div class="map-pin__dot"></div>
+        </div>
+        <div class="map-pin" style="left:58%;top:55%;animation-delay:-1.2s;">
+          <div class="map-pin__bubble map-pin__bubble--sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          </div>
+          <div class="map-pin__tail"></div>
+          <div class="map-pin__dot"></div>
+        </div>
+        <div class="map-pin" style="left:75%;top:25%;animation-delay:-2s;">
+          <div class="map-pin__bubble map-pin__bubble--sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          </div>
+          <div class="map-pin__tail"></div>
+          <div class="map-pin__dot"></div>
+        </div>
+        <!-- Popup -->
+        <div class="map-popup">
+          <div class="map-popup__city">Zagreb Old Town</div>
+          <div class="map-popup__meta">Ana K. · Sat 14:00 · Available</div>
+          <div class="map-popup__btn">See listing →</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-bar fade-in">
+    <div class="stat">
+      <div class="stat__num">Real</div>
+      <div class="stat__label">Local guides</div>
+    </div>
+    <div class="stat">
+      <div class="stat__num">Free</div>
+      <div class="stat__label">To sign up</div>
+    </div>
+    <div class="stat">
+      <div class="stat__num">Map-first</div>
+      <div class="stat__label">Discovery</div>
+    </div>
+    <div class="stat">
+      <div class="stat__num">Verified</div>
+      <div class="stat__label">Ratings</div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <div class="section-label fade-in">How it works</div>
+    <h2 class="section-title fade-in">Three steps to a<br>real experience</h2>
+    <div class="steps">
+      <div class="step fade-in">
+        <div class="step__num">01</div>
+        <div class="step__icon">📍</div>
+        <div class="step__title">Post your spot</div>
+        <div class="step__desc">Create a listing for a tour of your city — a hidden bar, a rooftop, a hike only locals know. Pick a date and time.</div>
+      </div>
+      <div class="step fade-in">
+        <div class="step__num">02</div>
+        <div class="step__icon">🗺</div>
+        <div class="step__title">Get discovered</div>
+        <div class="step__desc">Travelers browse an interactive map and discover your listing. They request to join — you approve or decline.</div>
+      </div>
+      <div class="step fade-in">
+        <div class="step__num">03</div>
+        <div class="step__icon">✨</div>
+        <div class="step__title">Meet up</div>
+        <div class="step__desc">Both check in on the day. The app confirms you're both there. After the tour, leave a review and build your reputation.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY EXPERIMATE -->
+  <section class="why">
+    <div class="section-label fade-in">Why ExperiMate</div>
+    <h2 class="section-title fade-in">Experiences, not<br>tourist packages</h2>
+    <div class="why-grid fade-in">
+      <div class="why-card why-card--teal">
+        <div class="why-card__label why-card__label--good">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          ExperiMate
+        </div>
+        <div class="why-card__items">
+          <div class="why-item"><div class="why-item__icon">🗺</div><div>Interactive map — see who's hosting near you right now</div></div>
+          <div class="why-item"><div class="why-item__icon">🤝</div><div>Real locals with verified ratings and public reviews</div></div>
+          <div class="why-item"><div class="why-item__icon">💬</div><div>Request-based booking — hosts stay in control</div></div>
+          <div class="why-item"><div class="why-item__icon">✦</div><div>No agency, no script, no markup — just people</div></div>
+        </div>
+      </div>
+      <div class="why-card why-card--warm">
+        <div class="why-card__label why-card__label--bad">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Tour agencies
+        </div>
+        <div class="why-card__items">
+          <div class="why-item"><div class="why-item__icon">🎭</div><div>Scripted routes you can find on any travel blog</div></div>
+          <div class="why-item"><div class="why-item__icon">💸</div><div>Commission-heavy pricing, not going to the guide</div></div>
+          <div class="why-item"><div class="why-item__icon">⏱</div><div>Rushed groups of 20 strangers on a fixed schedule</div></div>
+          <div class="why-item"><div class="why-item__icon">🤖</div><div>No real connection, just a transaction</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-label fade-in">Built for both sides</div>
+    <h2 class="section-title fade-in">Whether you're hosting<br>or exploring</h2>
+    <div class="features-grid">
+      <div class="feat fade-in">
+        <div class="feat__icon">🗺</div>
+        <div class="feat__title">Live map</div>
+        <div class="feat__desc">See every active listing pinned on a real map. Tap a pin to see who's hosting and when.</div>
+      </div>
+      <div class="feat fade-in">
+        <div class="feat__icon">🔒</div>
+        <div class="feat__title">Request-based</div>
+        <div class="feat__desc">Guests request, hosts approve. No random strangers showing up — you stay in control.</div>
+      </div>
+      <div class="feat fade-in">
+        <div class="feat__icon">⭐</div>
+        <div class="feat__title">Verified ratings</div>
+        <div class="feat__desc">After each tour both sides leave a review. Reputation is built over time, not bought.</div>
+      </div>
+      <div class="feat fade-in">
+        <div class="feat__icon">📱</div>
+        <div class="feat__title">Check-in flow</div>
+        <div class="feat__desc">Both parties confirm they're there. The app tracks it and triggers the review when the tour ends.</div>
+      </div>
+      <div class="feat fade-in">
+        <div class="feat__icon">👤</div>
+        <div class="feat__title">Real profiles</div>
+        <div class="feat__desc">Photos, bios, ratings, and past tours — everything you need to trust before you meet.</div>
+      </div>
+      <div class="feat fade-in">
+        <div class="feat__icon">🌍</div>
+        <div class="feat__title">Any city</div>
+        <div class="feat__desc">Not limited to tourist hotspots. If someone wants to host in their hometown, they can.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="cta-section">
+    <div class="cta-card fade-in">
+      <div class="cta-card__eyebrow">Ready to start?</div>
+      <h2 class="cta-card__title">Show them what<br>your city really is</h2>
+      <p class="cta-card__sub">Create a free account, post your first listing, and start connecting with people who want a real experience.</p>
+      <div class="cta-card__actions">
+        <a href="/register" class="btn-cta">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create account
+        </a>
+        <a href="/map" class="btn-cta-ghost">
+          Explore first →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="#" class="footer-brand">Experi<span>Mate</span></a>
+    <div class="footer-copy">Meet a local, not a tourist.</div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

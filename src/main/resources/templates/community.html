@@ -7,97 +7,51 @@
   <title>Community — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
     .community-header { padding: 22px 18px 18px; border-bottom: 1px solid var(--border); }
 
-    /* ── Coming soon hero ── */
-    .cs-hero {
-      position: relative;
-      padding: 48px 24px 32px;
-      text-align: center;
-      overflow: hidden;
+    .city-section { margin-bottom: 8px; }
+    .city-section__label {
+      display: flex; align-items: center; gap: 10px;
+      padding: 18px 18px 10px;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-3);
     }
-    .cs-hero__orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(70px);
-      pointer-events: none;
-      animation: orb-drift linear infinite;
-    }
-    .cs-hero__orb-1 { width: 300px; height: 300px; background: var(--accent); opacity: 0.07; top: -80px; left: -60px; animation-duration: 20s; }
-    .cs-hero__orb-2 { width: 220px; height: 220px; background: var(--warm); opacity: 0.07; bottom: -40px; right: -40px; animation-duration: 26s; animation-delay: -8s; }
-    @keyframes orb-drift {
-      0%   { transform: translate(0,0) scale(1); }
-      50%  { transform: translate(15px,-10px) scale(1.05); }
-      100% { transform: translate(0,0) scale(1); }
-    }
-
-    .cs-badge {
-      display: inline-flex; align-items: center; gap: 7px;
+    .city-section__label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .city-section__count {
       background: var(--accent-dim); border: 1px solid var(--accent-border);
-      border-radius: var(--radius-pill); padding: 5px 14px;
-      font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 18px; position: relative; z-index: 1;
-    }
-    .cs-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-    .cs-title {
-      font-family: var(--font-display); font-weight: 800; font-size: 28px;
-      color: var(--text); letter-spacing: -0.02em; line-height: 1.1;
-      margin-bottom: 12px; position: relative; z-index: 1;
-    }
-    .cs-title span { color: var(--accent); }
-    .cs-sub {
-      font-size: 13px; color: var(--text-2); line-height: 1.7;
-      max-width: 300px; margin: 0 auto; position: relative; z-index: 1;
+      border-radius: var(--radius-pill); padding: 2px 9px;
+      font-size: 9px; color: var(--accent); letter-spacing: 0.08em;
     }
 
-    /* ── Feature preview cards ── */
-    .cs-features { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-    .cs-feature {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex; align-items: flex-start; gap: 14px;
-      position: relative; overflow: hidden;
+    .comm-card {
+      margin: 0 18px 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
       transition: border-color var(--t-base);
+      cursor: pointer; text-decoration: none; color: inherit; display: block;
     }
-    .cs-feature:hover { border-color: var(--border-2); }
-    .cs-feature--locked::after {
-      content: 'Coming soon';
-      position: absolute; top: 12px; right: 12px;
-      font-size: 9px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
-      background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: var(--radius-pill); padding: 3px 9px;
-    }
+    .comm-card:hover { border-color: var(--border-2); }
+    .comm-card__host { display: flex; align-items: center; gap: 9px; }
+    .comm-card__host-name { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.2; }
+    .comm-card__host-handle { font-size: 10px; color: var(--text-3); letter-spacing: 0.04em; }
+    .comm-card__date { margin-left: auto; flex-shrink: 0; font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; text-align: right; line-height: 1.4; }
+    .comm-card__desc { font-size: 11px; color: rgba(239,239,239,0.5); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+    .comm-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .comm-card__status { display: flex; align-items: center; gap: 6px; }
+    .comm-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent); flex-shrink: 0; }
+    .comm-card__status-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+    .comm-card__cta { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); padding: 4px 10px; border: 1px solid var(--border-2); border-radius: var(--radius-pill); background: transparent; white-space: nowrap; }
 
-    .cs-feature__icon {
-      width: 40px; height: 40px; border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
-    }
-    .cs-feature__icon--teal { background: var(--accent-dim); border: 1px solid var(--accent-border); }
-    .cs-feature__icon--warm { background: var(--warm-dim); border: 1px solid var(--warm-border); }
-    .cs-feature__icon--muted { background: var(--surface-2); border: 1px solid var(--border-2); }
+    .comm-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
+    .comm-empty__icon { font-size: 36px; opacity: 0.18; }
+    .comm-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .comm-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
 
-    .cs-feature__title {
-      font-family: var(--font-display); font-weight: 700; font-size: 14px;
-      color: var(--text); margin-bottom: 3px;
-    }
-    .cs-feature__desc { font-size: 11px; color: var(--text-2); line-height: 1.6; }
-
-    /* ── Divider ── */
-    .cs-divider {
-      display: flex; align-items: center; gap: 12px;
-      padding: 4px 16px 0; color: var(--text-3);
-      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
-    }
-    .cs-divider::before, .cs-divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
-    }
+    .comm-sk { margin: 0 18px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
   </style>
 </head>
 <body>
@@ -105,62 +59,39 @@
 
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-  <main class="page-content">
+  <main class="page-content" id="community-main">
     <div class="community-header">
       <div class="page-title">Community</div>
-      <div class="page-subtitle">Connect with people who share your vibe</div>
+      <div class="page-subtitle">Upcoming tours near you</div>
     </div>
 
-    <div class="cs-hero">
-      <div class="cs-hero__orb cs-hero__orb-1"></div>
-      <div class="cs-hero__orb cs-hero__orb-2"></div>
-
-      <div class="cs-badge">
-        <div class="cs-badge__dot"></div>
-        In development
+    <div id="community-feed">
+      <div class="city-section__label" style="padding:18px 18px 10px;">
+        <div class="skeleton skeleton-line" style="width:80px;"></div>
       </div>
-      <div class="cs-title">Your <span>people</span><br>are out there</div>
-      <div class="cs-sub">Communities are launching soon — local groups, shared interests, real meetups.</div>
+      <div class="comm-sk">
+        <div style="display:flex;gap:9px;align-items:center;">
+          <div class="skeleton" style="width:32px;height:32px;border-radius:50%;flex-shrink:0;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+            <div class="skeleton skeleton-line" style="width:110px;"></div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:70px;"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
+      </div>
+      <div class="comm-sk">
+        <div style="display:flex;gap:9px;align-items:center;">
+          <div class="skeleton" style="width:32px;height:32px;border-radius:50%;flex-shrink:0;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+            <div class="skeleton skeleton-line" style="width:90px;"></div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:60px;"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-half"></div>
+      </div>
     </div>
-
-    <div class="cs-divider">What's coming</div>
-
-    <div class="cs-features">
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--teal">🏃</div>
-        <div>
-          <div class="cs-feature__title">Local activity groups</div>
-          <div class="cs-feature__desc">Running clubs, dog walking, cycling — find people doing what you love nearby.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--warm">✈️</div>
-        <div>
-          <div class="cs-feature__title">Travel section</div>
-          <div class="cs-feature__desc">Connect with travellers passing through your city. Be their local guide or join them.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--muted">🎯</div>
-        <div>
-          <div class="cs-feature__title">Interest matching</div>
-          <div class="cs-feature__desc">Get matched with locals who share your interests — not just your location.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--teal">🏆</div>
-        <div>
-          <div class="cs-feature__title">Achievements & ratings</div>
-          <div class="cs-feature__desc">Earn points for hosting, exploring, and connecting. Build your local reputation.</div>
-        </div>
-      </div>
-
-    </div>
-
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
@@ -169,5 +100,90 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  Promise.all([TourListingAPI.getAll(), UserAPI.getAll().catch(() => [])])
+    .then(([listings, users]) => {
+      const feed = document.getElementById('community-feed');
+      const userMap = {};
+      (users || []).forEach(u => { userMap[u.username] = u; });
+
+      const now = new Date();
+      const upcoming = (listings || [])
+        .filter(l => !l.reserved && new Date(l.meetingDate) > now)
+        .sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
+
+      if (!upcoming.length) {
+        feed.innerHTML = `
+          <div class="comm-empty">
+            <div class="comm-empty__icon">🗺️</div>
+            <div class="comm-empty__title">No upcoming tours yet</div>
+            <div class="comm-empty__sub">Be the first to post a tour and show locals what your city has to offer.</div>
+            <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 20px;font-size:11px;">Create a listing</a>
+          </div>`;
+        return;
+      }
+
+      const byCityMap = {};
+      upcoming.forEach(l => {
+        const city = l.city || 'Unknown';
+        if (!byCityMap[city]) byCityMap[city] = [];
+        byCityMap[city].push(l);
+      });
+
+      feed.innerHTML = Object.entries(byCityMap).map(([city, cityListings]) => {
+        const cards = cityListings.map(listing => {
+          const host = listing.host ?? {};
+          const hostUsername = host.username ?? '';
+          const hostName = host.firstName && host.lastName
+            ? host.firstName + ' ' + host.lastName : hostUsername || '?';
+          const u = userMap[hostUsername];
+          const hue = hostUsername.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+          const photoUrl = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
+          const initials = ((host.firstName?.[0] ?? '') + (host.lastName?.[0] ?? '')).toUpperCase() || '?';
+          const avatarHtml = photoUrl
+            ? `<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid hsl(${hue},40%,30%);"><img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" alt=""></div>`
+            : `<div style="width:32px;height:32px;border-radius:50%;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</div>`;
+          return `
+            <a class="comm-card anim-fade-up" href="/tours?listing=${listing.id}">
+              <div class="comm-card__host">
+                ${avatarHtml}
+                <div>
+                  <div class="comm-card__host-name">${hostName}</div>
+                  <div class="comm-card__host-handle">@${hostUsername}</div>
+                </div>
+                <div class="comm-card__date">
+                  ${fmtDate(listing.meetingDate)}<br>
+                  <span style="font-size:9px;color:var(--text-3);">${fmtTime(listing.meetingDate)}</span>
+                </div>
+              </div>
+              <div class="comm-card__desc">${listing.tourDescription}</div>
+              <div class="comm-card__foot">
+                <div class="comm-card__status">
+                  <div class="comm-card__dot"></div>
+                  <div class="comm-card__status-label">Available</div>
+                </div>
+                <span class="comm-card__cta">See listing →</span>
+              </div>
+            </a>`;
+        }).join('');
+
+        return `
+          <div class="city-section">
+            <div class="city-section__label">
+              ${city}
+              <span class="city-section__count">${cityListings.length}</span>
+            </div>
+            ${cards}
+          </div>`;
+      }).join('');
+    })
+    .catch(() => {
+      document.getElementById('community-feed').innerHTML = `
+        <div class="comm-empty">
+          <div class="comm-empty__sub">Could not load tours. Check your connection.</div>
+        </div>`;
+    });
+</script>
 </body>
 </html>
