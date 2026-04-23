@@ -7,6 +7,10 @@
   <title>ExperiMate — Meet a local, not a tourist</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
+  <script>
+    // If already logged in, skip the landing page
+    if (localStorage.getItem('jwt')) { window.location.replace('/map'); }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
