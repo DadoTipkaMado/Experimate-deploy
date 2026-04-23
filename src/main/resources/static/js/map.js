@@ -133,10 +133,11 @@ function applyMarkerFilter() {
 }
 
 /* ───────────────────────────────────────────────
-   SEARCH
+   SEARCH + GEOCODING
 ─────────────────────────────────────────────── */
 const searchInput = document.getElementById('map-search-input');
 if (searchInput) {
+  // Live filter: pins matching the query
   searchInput.addEventListener('input', e => {
     const query = e.target.value.trim().toLowerCase();
     MapState.clusterGroup.clearLayers();
@@ -147,6 +148,33 @@ if (searchInput) {
         .filter(Boolean).join(' ').toLowerCase();
       if (text.includes(query)) MapState.clusterGroup.addLayer(marker);
     });
+  });
+
+  // Enter → geocode via Nominatim and fly to city
+  searchInput.addEventListener('keydown', async e => {
+    if (e.key !== 'Enter') return;
+    const query = searchInput.value.trim();
+    if (!query) return;
+    searchInput.disabled = true;
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      const results = await res.json();
+      if (!results.length) {
+        showToast(`No location found for "${query}"`, 'error');
+        return;
+      }
+      const { lat, lon, display_name } = results[0];
+      MapState.map.flyTo([parseFloat(lat), parseFloat(lon)], 13, { duration: 1.2 });
+      showToast(`Flew to ${display_name.split(',')[0]}`, 'success');
+    } catch {
+      showToast('Could not reach geocoding service.', 'error');
+    } finally {
+      searchInput.disabled = false;
+      searchInput.focus();
+    }
   });
 }
 

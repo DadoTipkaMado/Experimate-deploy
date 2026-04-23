@@ -16,6 +16,9 @@
 
 <header th:fragment="topbar" class="topbar">
 
+  <!-- Back button (shown when nav history exists) -->
+  <button class="topbar__back" id="back-btn" aria-label="Go back">‹</button>
+
   <!-- Logo -->
   <a th:href="@{/map}" class="topbar__logo">
     Experi<span>Mate</span>
@@ -95,6 +98,29 @@
       .catch(() => {});
   }
   renderTopbarAvatar();
+
+  // Back button — sessionStorage URL queue
+  (function() {
+    const KEY = 'navHistory';
+    const MAX = 6;
+    const stack = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+    const current = window.location.pathname + window.location.search;
+    if (stack[stack.length - 1] !== current) {
+      stack.push(current);
+      if (stack.length > MAX) stack.shift();
+      sessionStorage.setItem(KEY, JSON.stringify(stack));
+    }
+    const btn = document.getElementById('back-btn');
+    if (!btn || stack.length < 2) return;
+    btn.style.display = 'flex';
+    btn.addEventListener('click', () => {
+      const s = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+      s.pop(); // remove current
+      const prev = s[s.length - 1] || '/map';
+      sessionStorage.setItem(KEY, JSON.stringify(s));
+      window.location.href = prev;
+    });
+  })();
 
   // Theme toggle
   const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
