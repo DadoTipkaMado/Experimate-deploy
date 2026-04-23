@@ -77,6 +77,47 @@
 
 ---
 
+## Current state (as of 2026-04-23, session 3)
+- **Backend endpoint remapping done** — all caller IDs removed from request bodies; `ReservationAPI.getMine()` → `{asGuest, asHost}`; `TourListingAPI.getMine()`; `GET /api/user/by-username/{username}` live
+- **Issue #42 fixed** — `apiFetch`: 401 → refresh; 403 from non-refresh endpoint → throw normally; prevents token refresh on permission errors
+- **Issue #43 done** — removed `guestId` from `BookingRequestAPI.create`, `raterId` from `RatingAPI.create`/`delete`, `hostId` from `TourListingAPI.create`; tours.html/listings-new.html/profile.html updated
+- **Issue #38 done** — real `ReservationStatus` field now used; workaround filter removed; `renderMeetups`/`renderHostMeetups` use `asGuest`/`asHost` from `getMine()`
+- **Issue #26 done** — profile.html uses `UserAPI.getByUsername()` directly
+- **Issue #44 done** — `_myRequests` keyed by `listing.id` (was `meetingDate`); both card list AND modal use it; profile "Request" deep-links to `/tours?listing={id}`
+- **Settings page live** — `/settings` with theme toggle, available-to-meet toggle, links, sign out
+- **Dark/light mode** — `body.light-mode` on app pages, `html.light-mode` on landing; toggle in topbar and settings
+- **#40 (back button)** — built: sessionStorage URL queue, `‹` button in topbar, pops on click
+- **#41 (map geocoding)** — built: city search input on map, Nominatim API, flies map to result
+
+## Known pending issues (updated 2026-04-23 s3)
+- **Topbar avatar broken** — shows empty gray circle; needs browser devtools to diagnose
+- **Issue C/E** — `RatingResponse` has no `raterUsername`/`ratedUsername`; ratings section on profile blocked; filed with David
+- **Issue D** — `POST /api/auth/logout` server-side invalidation pending David
+- **Remove photo** — no DELETE endpoint yet
+- **#27 availableToMeet** — localStorage only, post-MVP
+- **#31 saved locals** — post-MVP
+- **#40 back button** — built
+- **#41 map geocoding** — built
+
+## GitHub issues for David — updated 2026-04-23 s3
+
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 26 | `GET /api/user/by-username/{username}` | ✅ Done | Wired in profile.html |
+| 27 | `availableToMeet` | 🟡 Post-MVP | localStorage toggle in settings |
+| 30 | `profilePhotoUrl` VARCHAR | ✅ Obsolete | closed |
+| 31 | saved locals | 🟡 Post-MVP | |
+| 38 | `ReservationResponse.status` | ✅ Done | live, workaround removed |
+| 40 | back button | ✅ Done | built frontend-only |
+| 41 | map geocoding | ✅ Done | Nominatim, no API key |
+| 42 | 403 handling | ✅ Done | fixed in apiFetch |
+| 43 | endpoint remapping | ✅ Done | all caller IDs removed |
+| 44 | unlimited listing requests | ✅ Done | keyed by listing.id, deep-link |
+| C/E | `RatingResponse` missing user fields | ❌ Open | blocks profile ratings section |
+| D | `POST /api/auth/logout` | ❌ Open | workaround in place |
+
+---
+
 ## Current state (as of 2026-04-23, session 2)
 - **Dark/light mode** — `localStorage('theme')` drives `body.light-mode` (app pages) / `html.light-mode` (landing); sun/moon toggle button in topbar on every app page and in landing nav; theme-init IIFE runs before paint (no flash); `main.css` has `body.light-mode` overrides for all surface/border/text tokens; landing has its own inline `html.light-mode` block
 - **Settings page** — `/settings` → `AccountViewController`; `settings.html` has: light mode toggle (synced with topbar icon), available-to-meet toggle (localStorage only), links to profile/edit/requests, sign out; accessible from Account page via new "Settings" button
