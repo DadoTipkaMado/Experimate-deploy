@@ -45,6 +45,7 @@
   - `/login` → AuthViewController
   - `/register` → AuthViewController
   - `/forgot-password` → AuthViewController
+  - `/settings` → AccountViewController
   - `/meet` → MeetViewController (legacy, can ignore)
 - **Do NOT** use `controller/` package for view controllers — those were duplicates and got deleted. Only `view/` package.
 
@@ -73,6 +74,24 @@
 
 ### Presentation priority
 - **Braun (professor/mentor) said UX and prototype UI matter most** — polish > features for the demo
+
+---
+
+## Current state (as of 2026-04-23, session 2)
+- **Dark/light mode** — `localStorage('theme')` drives `body.light-mode` (app pages) / `html.light-mode` (landing); sun/moon toggle button in topbar on every app page and in landing nav; theme-init IIFE runs before paint (no flash); `main.css` has `body.light-mode` overrides for all surface/border/text tokens; landing has its own inline `html.light-mode` block
+- **Settings page** — `/settings` → `AccountViewController`; `settings.html` has: light mode toggle (synced with topbar icon), available-to-meet toggle (localStorage only), links to profile/edit/requests, sign out; accessible from Account page via new "Settings" button
+- **Hamburger fix (landing)** — root cause was `toggleMobileMenu()` replacing `btn.innerHTML` which orphaned the clicked SVG child; then document outside-click handler saw the orphan as "not inside button" and closed menu immediately; fixed with `e.currentTarget` + `e.stopPropagation()` on the button listener
+- **@import fix (landing)** — `@import` inside `<style>` after any other rule is silently ignored by browsers; moved to proper `<link>` tag; Syne/DM Mono fonts now actually load
+- **New route** — `/settings` added to `AccountViewController`; template at `settings.html`
+
+## Known pending issues (updated 2026-04-23 s2)
+- **Topbar avatar broken** — shows empty gray circle; `user_initials` not in localStorage; topbar fetches user async but still doesn't render; needs browser devtools inspection
+- **`ReservationResponse` missing `status` field** — two-layer fallback in place; waiting on David
+- **`POST /api/auth/logout`** — server-side token invalidation pending David
+- **Remove photo** — no DELETE endpoint yet
+- **`GET /api/user/by-username/{username}`** — David said he'll implement it; workaround via `getAll()` in place
+- `availableToMeet` — localStorage-only no-op (post-MVP)
+- WebSocket `/ws/map` — reconnect disabled (post-MVP)
 
 ---
 
