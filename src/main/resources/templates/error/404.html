@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Not Found — ExperiMate</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #00C9A7;
+      --text: #efefef;
+      --text-2: rgba(239,239,239,0.6);
+      --text-3: rgba(239,239,239,0.3);
+      --font-display: 'Georgia', serif;
+      --font-mono: 'Courier New', monospace;
+    }
+    body {
+      background: #0a0a0a;
+      color: var(--text);
+      font-family: var(--font-mono);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    /* Orb glow */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      animation: drift linear infinite;
+    }
+    .orb-1 { width: 400px; height: 400px; background: var(--accent); opacity: 0.055; top: -120px; left: -80px; animation-duration: 22s; }
+    .orb-2 { width: 280px; height: 280px; background: #ff6b35; opacity: 0.04; bottom: -60px; right: -60px; animation-duration: 28s; animation-delay: -10s; }
+    @keyframes drift {
+      0%   { transform: translate(0,0) scale(1); }
+      50%  { transform: translate(20px,-14px) scale(1.06); }
+      100% { transform: translate(0,0) scale(1); }
+    }
+
+    .container {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: 20px; max-width: 360px;
+    }
+
+    .code {
+      font-family: var(--font-display);
+      font-size: clamp(72px, 20vw, 120px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: transparent;
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,201,167,0.3) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.7;
+      letter-spacing: 0.02em;
+    }
+
+    .divider {
+      width: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,201,167,0.3), transparent);
+    }
+
+    .btn-home {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 24px; height: 44px;
+      background: transparent;
+      border: 1px solid rgba(0,201,167,0.35);
+      border-radius: 999px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-home:hover {
+      background: rgba(0,201,167,0.08);
+      border-color: rgba(0,201,167,0.6);
+    }
+    .btn-home svg { opacity: 0.7; }
+
+    .hint {
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.08em;
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="container">
+    <div class="code">404</div>
+    <div class="title">This trail goes nowhere</div>
+    <div class="divider"></div>
+    <div class="sub">The page you're looking for doesn't exist, or was moved. Let's get you back on the map.</div>
+    <a href="/map" class="btn-home">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      Back to map
+    </a>
+    <div class="hint">ExperiMate · Meet a local, not a tourist</div>
+  </div>
+</body>
+</html>

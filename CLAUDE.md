@@ -76,6 +76,43 @@
 
 ---
 
+## Current state (as of 2026-04-23)
+- **David's latest push** — profile photo upload/serve fully live; 403 on `GET /api/user/profile-photo/{filename}` fixed; `GET /api/user/search?query=` live returning `UserSearchResponse { searchResult, count }`
+- **Issue #30 (VARCHAR vs TEXT) — OBSOLETE** — David switched to multipart file storage; `profilePhotoUrl` now stores just a short filename, VARCHAR(255) is fine; issue can be closed
+- **Issue #26 (by-username)** — David confirmed he'll implement it; once pushed, swap `profile.html:178` from `getAll()` + filter to `UserAPI.getByUsername(_profileUsername)` — one line change
+- **tours.html reservation filtering** — already has two-layer defense: `(!r.status || (r.status !== 'CANCELLED' && r.status !== 'EXPIRED'))` + `meetingDate >= now` for upcoming. When David adds `status` field it just starts working — zero frontend changes needed
+- **Explore card photos** — already wired via `UserAPI.photoUrl(user.profilePhotoUrl)` in both `getAll()` and search paths; should now show real photos since 403 is fixed
+- **GitHub issues filed this session** — Issue C (`ReservationResponse` needs `status` field), Issue D (`POST /api/auth/logout`), Issue E (`RatingResponse` missing `ratedUsername`/`raterUsername`)
+- **New pages/assets built (2026-04-23)** — `landing.html` (preview at `/landing`), `error/404.html`, `manifest.json`, `icons/icon.svg`; PWA manifest link added to all 14 templates
+- **Community page** — replaced coming-soon teaser with live listings from API grouped by city
+- **Explore cards** — photo used as full-bleed card background when available; hue gradient fallback for users without photo
+- **Share listing button** — added to listing modal in `tours.html`; copies `/tours?listing={id}` to clipboard
+- **Profile nudge** — was already implemented; confirmed working
+- **Ratings on profile** — blocked pending Issue E; `RatingResponse` has no `ratedUsername` field
+
+## Known pending issues (updated 2026-04-23)
+- **Topbar avatar broken** — shows empty gray circle; `user_initials` not in localStorage; topbar fetches user async but still doesn't render; root cause unknown — suspect `userId` not in localStorage at topbar render time, or fetch fails silently; needs browser devtools inspection to diagnose
+- **`ReservationResponse` missing `status` field** — two-layer fallback is in place but CANCELLED future-dated reservations still show; waiting on David
+- **`POST /api/auth/logout`** — server-side token invalidation pending David; current UX is correct (explicit_logout flag prevents re-login loop)
+- **Remove photo** — no DELETE endpoint yet
+- **`GET /api/user/by-username/{username}`** — David said he'll implement it; workaround via `getAll()` already in place
+- `availableToMeet` — localStorage-only no-op (post-MVP)
+- WebSocket `/ws/map` — reconnect disabled (post-MVP)
+
+## GitHub issues for David — updated 2026-04-23
+
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 26 | `GET /api/user/by-username/{username}` | ❌ Open | David confirmed: implementing soon; frontend workaround in place |
+| 27 | `availableToMeet` on User/UpdateUserDto/UserResponse | 🟡 Deferred | Agreed post-MVP; localStorage-only toggle |
+| 30 | `profilePhotoUrl` column type TEXT | ✅ Obsolete | David switched to file storage — filename fits VARCHAR(255); close the issue |
+| 31 | `GET/POST/DELETE /api/saved/{targetUserId}` | 🟡 Post-MVP | David confirmed post-MVP |
+| C  | `ReservationResponse` missing `status` field | ❌ Open | Two-layer fallback in place; frontend ready to filter when field arrives |
+| D  | `POST /api/auth/logout` | ❌ Open | UX workaround in place; server-side invalidation still needed |
+| E  | `RatingResponse` missing `ratedUsername`/`raterUsername` | ❌ Open | `GET /api/rating` returns `{id, score, review}` only — can't filter by user; blocks ratings section on profile page |
+
+---
+
 ## Current state (as of 2026-04-22)
 - **local-test branch** — merged `vito/frontend-clean` + `david/backend`; missing shared event/exception classes were pulled manually from `origin/david/backend` (`UserDeletedEvent`, `TourListingsDeletedForHostEvent`, `ReservationsDeletedEvent`, `NotFoundException`, `ConflictException`); app runs with `mvn spring-boot:run` from `local-test` branch only (`vito/frontend-clean` has no `pom.xml`)
 - **Map popup "See listing"** — now links to `/tours?listing={id}` instead of `/tours?host=...`; tours page detects `?listing=` param and auto-opens the modal for that listing
@@ -157,14 +194,7 @@
 - `availableToMeet` — David questioned its value; agreed post-MVP. Toggle UI stays as localStorage-only no-op for now
 - WebSocket `/ws/map` — reconnect disabled on frontend until David implements the endpoint
 
-## GitHub issues for David — updated 2026-04-16
-
-| # | Issue | Status | Notes |
-|---|-------|--------|-------|
-| 1 | `GET /api/user/by-username/{username}` | ❌ Open | David asked for clarification — replied: needed for viewing OTHER people's profiles via URL `/profile/{username}`, only have username not ID |
-| 2 | `availableToMeet` on User/UpdateUserDto/UserResponse | 🟡 Deferred | Agreed post-MVP; toggle stays as localStorage-only |
-| 3 | `profilePhotoUrl` column type TEXT | ❌ Open | Fixed on local-test; David needs same fix on david/backend |
-| 4 | `GET/POST/DELETE /api/saved/{targetUserId}` | 🟡 Post-MVP | David confirmed: "Može, dobar ux. Def dodam kad ispeglamo mvp." |
+## GitHub issues for David — updated 2026-04-16 (superseded — see 2026-04-23 table above)
 
 ## Current state (as of 2026-04-05)
 - All DTOs fully done and frontend synced — pushed to `vito/frontend-clean`

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0f0f0f"/>
+  <circle cx="256" cy="210" r="130" fill="rgba(0,201,167,0.10)"/>
+  <circle cx="256" cy="210" r="68" fill="#00C9A7"/>
+  <path d="M196 290 Q196 360 256 400 Q316 360 316 290 Q296 314 256 314 Q216 314 196 290 Z" fill="#00C9A7" opacity="0.55"/>
+  <text x="256" y="470" text-anchor="middle" font-family="Georgia, serif" font-weight="900" font-size="80" fill="rgba(239,239,239,0.18)" letter-spacing="2">ExperiMate</text>
+</svg>
