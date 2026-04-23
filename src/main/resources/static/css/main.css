@@ -175,6 +175,21 @@ svg { display: block; flex-shrink: 0; }
   gap: 10px;
 }
 
+.topbar__back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 22px;
+  line-height: 1;
+  padding: 0 2px;
+  display: none;
+  align-items: center;
+  transition: color var(--t-fast);
+  margin-right: 2px;
+}
+.topbar__back:hover { color: var(--text); }
+
 
 .topbar__avatar {
   width: 32px;
