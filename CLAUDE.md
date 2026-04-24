@@ -77,6 +77,14 @@
 
 ---
 
+## Current state (as of 2026-04-24)
+- **Landing page fix** — removed `"/"` from `AuthViewController`; was conflicting with `LandingViewController`; landing page now serves at `/` and JS redirects to `/map` if already logged in
+- **Map button on booked cards** — removed `pointer-events: none` from `.listing-card--reserved`; reserve button is already `disabled` via HTML so blocking all clicks was too broad
+- **Light mode persistence** — theme-init script was outside the `th:fragment="topbar"` definition so Thymeleaf never included it; moved inside the fragment — now runs on every app page load
+- **Light mode colour fixes** — `body.light-mode` was missing `--accent-dim`, `--accent-border`, `--warm-dim`, `--warm-border` overrides; `.btn--ghost`/`.btn--icon` used `rgba(255,255,255,...)` (invisible on light bg); `.settings-row` border used `rgba(255,255,255,0.04)`; `.bottom-sheet` hardcoded dark bg; all fixed in `main.css`
+- **Issue #44 root cause found — pending David** — `TourListingDetails` record is missing `id` field so `r.tourListing?.id` is always `undefined` on the frontend; `_myRequests` is always empty; all listings always show "Request" button. Backend correctly rejects duplicates at service layer. Fix: David adds `Integer id` to `TourListingDetails` and passes `request.getListing().getId()` in `BookingRequestService.createBookingRequestResponse()`
+- **local-test branch** — is LOCAL ONLY, never push to remote
+
 ## Current state (as of 2026-04-23, session 3)
 - **Backend endpoint remapping done** — all caller IDs removed from request bodies; `ReservationAPI.getMine()` → `{asGuest, asHost}`; `TourListingAPI.getMine()`; `GET /api/user/by-username/{username}` live
 - **Issue #42 fixed** — `apiFetch`: 401 → refresh; 403 from non-refresh endpoint → throw normally; prevents token refresh on permission errors
