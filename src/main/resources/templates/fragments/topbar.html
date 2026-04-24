@@ -8,13 +8,8 @@
   Included in all app pages via th:replace.
   Avatar is rendered client-side from localStorage / API fallback.
 -->
-<script>
-  (function() {
-    if (localStorage.getItem('theme') === 'light') document.body.classList.add('light-mode');
-  })();
-</script>
-
 <header th:fragment="topbar" class="topbar">
+  <script>(function(){if(localStorage.getItem('theme')==='light')document.body.classList.add('light-mode');})();</script>
 
   <!-- Back button (shown when nav history exists) -->
   <button class="topbar__back" id="back-btn" aria-label="Go back">‹</button>
