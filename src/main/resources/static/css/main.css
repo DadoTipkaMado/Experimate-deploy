@@ -75,6 +75,41 @@ body.light-mode {
   --text:           #111218;
   --text-2:         #555a70;
   --text-3:         #8b90a6;
+  --accent-dim:     rgba(0, 201, 167, 0.12);
+  --accent-border:  rgba(0, 201, 167, 0.45);
+  --warm-dim:       rgba(255, 107, 53, 0.10);
+  --warm-border:    rgba(255, 107, 53, 0.3);
+}
+
+body.light-mode .btn--ghost {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--border-2);
+}
+body.light-mode .btn--ghost:hover {
+  background: rgba(0, 0, 0, 0.07);
+  border-color: var(--border-3);
+}
+body.light-mode .btn--icon {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--border-2);
+}
+body.light-mode .btn--icon:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+body.light-mode .settings-row {
+  border-bottom-color: var(--border);
+}
+body.light-mode .bottom-sheet {
+  background: var(--surface);
+}
+body.light-mode .toast {
+  background: var(--surface);
+  border-color: var(--border-2);
+  color: var(--text);
+}
+body.light-mode .skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
+  background-size: 600px 100%;
 }
 
 *, *::before, *::after {
