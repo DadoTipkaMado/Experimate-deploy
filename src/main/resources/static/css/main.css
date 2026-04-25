@@ -61,6 +61,13 @@
   --t-fast:         0.14s ease;
   --t-base:         0.22s ease;
   --t-slow:         0.35s cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Elevation */
+  --shadow-sm:      0 1px 4px rgba(0,0,0,0.5);
+  --shadow-md:      0 4px 16px rgba(0,0,0,0.55);
+  --shadow-lg:      0 8px 32px rgba(0,0,0,0.65);
+  --shadow-glow:    0 0 0 3px rgba(0,201,167,0.14);
+  --shadow-glow-warm: 0 0 0 3px rgba(255,107,53,0.14);
 }
 
 /* ── Light mode overrides ── */
@@ -117,6 +124,21 @@ body.light-mode .skeleton {
   padding: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(0, 201, 167, 0.22);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(0, 201, 167, 0.5);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline-offset: 3px;
 }
 
 html {
@@ -488,8 +510,9 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .btn--primary:hover {
-  opacity: 0.88;
+  opacity: 0.9;
   transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 201, 167, 0.28);
 }
 
 .btn--ghost {
@@ -517,6 +540,33 @@ svg { display: block; flex-shrink: 0; }
 
 .btn--icon:hover {
   background: rgba(255, 255, 255, 0.09);
+}
+
+.btn--danger {
+  background: rgba(255, 50, 50, 0.10);
+  color: rgba(255, 110, 110, 0.9);
+  border: 1px solid rgba(255, 80, 80, 0.28);
+  height: 44px;
+  padding: 0 20px;
+}
+
+.btn--danger:hover {
+  background: rgba(255, 50, 50, 0.18);
+  border-color: rgba(255, 80, 80, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn--sm {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.btn--lg {
+  height: 52px;
+  padding: 0 32px;
+  font-size: 13px;
 }
 
 /* — Toggle switch — */
@@ -723,6 +773,8 @@ svg { display: block; flex-shrink: 0; }
 
 .card--interactive:hover {
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-2);
 }
 
 /* — Bottom sheet — */
@@ -820,6 +872,17 @@ svg { display: block; flex-shrink: 0; }
 .u-truncate   { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .u-scroll-x   { overflow-x: auto; }
 .u-scroll-x::-webkit-scrollbar { display: none; }
+.u-muted      { color: var(--text-3); }
+.u-accent     { color: var(--accent); }
+.u-warm       { color: var(--warm); }
+.u-mono       { font-family: var(--font-mono); }
+.u-display    { font-family: var(--font-display); font-weight: 700; }
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
 
 /* ───────────────────────────────────────────────
    7. ANIMATIONS
@@ -885,6 +948,7 @@ svg { display: block; flex-shrink: 0; }
   background-size: 600px 100%;
   animation: shimmer-move 1.6s ease-in-out infinite;
   border-radius: 6px;
+  will-change: background-position;
 }
 
 .skeleton-card {
@@ -910,9 +974,7 @@ svg { display: block; flex-shrink: 0; }
 ─────────────────────────────────────────────── */
 ::-webkit-scrollbar         { width: 3px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: var(--border-2); border-radius: 2px;
-
-}
+::-webkit-scrollbar-thumb   { background: var(--border-2); border-radius: 2px; }
 
 /* ═══════════════════════════════════════════════
    EXPERIMATE — Desktop Responsive Layout
