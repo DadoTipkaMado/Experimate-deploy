@@ -56,8 +56,8 @@
       <div style="display:flex;align-items:center;gap:10px;">
         <a href="/account" style="color:var(--text-3);text-decoration:none;font-size:18px;line-height:1;">‹</a>
         <div>
-          <div class="page-title">Booking Requests</div>
-          <div class="page-subtitle">Manage incoming requests for your tours</div>
+          <div class="page-title">Join Requests</div>
+          <div class="page-subtitle">Manage incoming requests for your days</div>
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@
 
       pendingEl.innerHTML = pending.length
         ? pending.map(mkCard).join('')
-        : `<div class="req-empty"><div class="req-empty__icon">📭</div><div class="req-empty__title">No pending requests</div><div class="req-empty__sub">When travellers book your tours, they'll appear here.</div></div>`;
+        : `<div class="req-empty"><div class="req-empty__icon">📭</div><div class="req-empty__title">No pending requests</div><div class="req-empty__sub">When Mates request your days, they'll appear here.</div></div>`;
 
       recentEl.innerHTML = recent.length
         ? recent.map(mkCard).join('')
