@@ -205,11 +205,11 @@
 
     <div class="tours-header">
       <div class="tours-header__titles">
-        <div class="page-title">Tours</div>
-        <div class="page-subtitle" style="margin-bottom: 14px;">Discover local tours · manage your meetups</div>
+        <div class="page-title">Days</div>
+        <div class="page-subtitle" style="margin-bottom: 14px;">Discover days with local Mates</div>
         <div class="tab-bar">
           <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
-          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Tours</div>
+          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Days</div>
         </div>
       </div>
       <a href="/listings/new" class="tours-fab" title="New listing">+</a>
@@ -293,12 +293,12 @@
 
     <!-- ── MY MEETUPS TAB ── -->
     <div id="tab-meetups" hidden style="flex-direction: column; gap: 0;">
-      <!-- Sub-tab bar: As Guest / As Host / My Listings -->
+      <!-- Sub-tab bar: Joined / Hosted / Open Days -->
       <div style="padding: 0 18px; border-bottom: 1px solid var(--border);">
         <div class="tab-bar">
-          <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetupTab(this,'guest')">As Guest</div>
-          <div class="tab-bar__item" onclick="switchMeetupTab(this,'host')">As Host</div>
-          <div class="tab-bar__item" onclick="switchMeetupTab(this,'listings')">My Listings</div>
+          <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetupTab(this,'guest')">Joined</div>
+          <div class="tab-bar__item" onclick="switchMeetupTab(this,'host')">Hosted</div>
+          <div class="tab-bar__item" onclick="switchMeetupTab(this,'listings')">Open Days</div>
         </div>
       </div>
 
@@ -318,7 +318,7 @@
         <div id="host-past"></div>
       </div>
 
-      <!-- My Listings view -->
+      <!-- Open Days view -->
       <div id="meetup-panel-listings" style="display:none;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
     </div>
 
@@ -336,22 +336,22 @@
 
 <!-- ── ACTIVE TOUR TAKEOVER ── -->
 <div id="tour-takeover" class="tour-takeover">
-  <div style="font-family:var(--font-display);font-weight:800;font-size:30px;color:var(--text);letter-spacing:-0.02em;">Tour is live</div>
+  <div style="font-family:var(--font-display);font-weight:800;font-size:30px;color:var(--text);letter-spacing:-0.02em;">Day is live</div>
   <div class="tour-takeover__pulse">🤝</div>
   <div id="takeover-info" style="font-size:14px;color:var(--text-2);line-height:1.75;"></div>
-  <div style="font-size:11px;color:var(--text-3);max-width:250px;line-height:1.65;margin-top:-4px;">You're on tour! When you're both done, tap End Tour.</div>
-  <button id="end-tour-btn" class="btn btn--primary" style="height:52px;padding:0 40px;font-size:14px;margin-top:12px;" onclick="endActiveTour()">End Tour</button>
+  <div style="font-size:11px;color:var(--text-3);max-width:250px;line-height:1.65;margin-top:-4px;">You're live! Tap End Day when you're both done.</div>
+  <button id="end-tour-btn" class="btn btn--primary" style="height:52px;padding:0 40px;font-size:14px;margin-top:12px;" onclick="endActiveTour()">End Day</button>
 </div>
 
 <!-- ── CANCEL MODAL ── -->
 <div id="cancel-modal" class="modal-backdrop">
   <div class="modal-card">
-    <div class="modal-title">Cancel reservation?</div>
+    <div class="modal-title">Cancel day?</div>
     <div class="modal-sub">Let us know why you're cancelling. This is required before proceeding.</div>
     <textarea id="cancel-reason" placeholder="Reason for cancellation..." maxlength="300"></textarea>
     <div class="modal-actions">
       <button onclick="closeCancelModal()" class="btn btn--ghost">Keep it</button>
-      <button onclick="confirmCancel()" class="btn btn--danger">Cancel reservation</button>
+      <button onclick="confirmCancel()" class="btn btn--danger">Cancel day</button>
     </div>
   </div>
 </div>
@@ -390,7 +390,7 @@
 <!-- ── RATING MODAL ── -->
 <div id="rating-modal" class="modal-backdrop">
   <div class="modal-card">
-    <div class="modal-title">Rate your host</div>
+    <div class="modal-title">Rate your Mate</div>
     <div class="modal-sub" id="rating-host-label" style="color:var(--text-2);margin-top:0;"></div>
     <div class="star-picker" id="star-picker">
       <span class="star-picker__star" data-val="1" onclick="setRating(1)">★</span>
@@ -450,7 +450,7 @@
     document.getElementById('lm-host-avatar').innerHTML = photoUrl
       ? `<img src="${photoUrl}" alt="">`
       : `<div style="width:36px;height:36px;border-radius:50%;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:hsl(${hue},60%,72%);">${((u?.firstName?.[0] ?? '') + (u?.lastName?.[0] ?? '')).toUpperCase() || hostHandle[0]?.toUpperCase() || '?'}</div>`;
-    document.getElementById('lm-host-name').textContent = hostName + (hostOtherUpcoming > 0 ? `  +${hostOtherUpcoming} more tour${hostOtherUpcoming > 1 ? 's' : ''}` : '');
+    document.getElementById('lm-host-name').textContent = hostName + (hostOtherUpcoming > 0 ? `  +${hostOtherUpcoming} more day${hostOtherUpcoming > 1 ? 's' : ''}` : '');
     document.getElementById('lm-host-handle').textContent = `@${hostHandle}`;
 
     // Footer: status dot + map + reserve
@@ -463,18 +463,18 @@
       : '';
     const reserveBtn = isOwn ? ''
       : listing.reserved
-        ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Booked</button>`
+        ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`
       : reqStatus === 'PENDING'
         ? `<button class="btn" style="height:40px;font-size:11px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
       : reqStatus === 'ACCEPTED'
         ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
       : reqStatus === 'DECLINED'
-        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request again</button>`
+        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'} again</button>`
       : currentUserId
-        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
-        : `<a href="/login" class="btn btn--ghost" style="height:40px;font-size:11px;">Sign in to request</a>`;
+        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'}</button>`
+        : `<a href="/login" class="btn btn--ghost" style="height:40px;font-size:11px;">Sign in to join</a>`;
     const dotColor = listing.reserved ? 'var(--text-3)' : reqStatus === 'PENDING' ? '#ff9944' : reqStatus === 'DECLINED' ? 'rgba(255,80,80,0.7)' : 'var(--accent)';
-    const dotLabel = listing.reserved ? 'Booked' : reqStatus === 'PENDING' ? 'Pending' : reqStatus === 'ACCEPTED' ? 'Accepted' : reqStatus === 'DECLINED' ? 'Declined' : 'Available';
+    const dotLabel = listing.reserved ? 'Joined' : reqStatus === 'PENDING' ? 'Pending' : reqStatus === 'ACCEPTED' ? 'Accepted' : reqStatus === 'DECLINED' ? 'Declined' : 'Available';
     const dot = `<div style="display:flex;align-items:center;gap:6px;margin-right:auto;">
       <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};${!listing.reserved && !reqStatus ? 'box-shadow:0 0 6px var(--accent);' : ''}"></div>
       <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};font-weight:600;">${dotLabel}</div>
@@ -558,7 +558,7 @@
           if (label) { label.textContent = 'Pending'; label.classList.remove('listing-card__status--available'); }
         }
       })
-      .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = 'Request'; });
+      .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = btn.dataset.originalLabel || 'Join'; });
   }
 
   /* ── Cancel modal ── */
@@ -599,7 +599,7 @@
     const meetTime = new Date(next.tourListing.meetingDate);
     const hostName = next.tourListing.host
       ? next.tourListing.host.firstName + ' ' + next.tourListing.host.lastName
-      : 'your host';
+      : 'your Mate';
 
     document.getElementById('countdown-label').textContent =
       `${next.tourListing.city} · ${hostName} in`;
@@ -639,13 +639,13 @@
         localStorage.removeItem('activeTour');
         document.getElementById('tour-takeover').classList.remove('tour-takeover--visible');
         sessionStorage.setItem('openTab', 'meetups');
-        showToast('Tour ended! Rate your host in My Tours.', 'success');
+        showToast('Day ended! Rate your Mate in My Days.', 'success');
         setTimeout(() => window.location.reload(), 1200);
       })
       .catch(err => {
         btn.disabled = false;
-        btn.textContent = 'End Tour';
-        showToast(err.message || 'Could not end tour — try again.', 'error');
+        btn.textContent = 'End Day';
+        showToast(err.message || 'Could not end day — try again.', 'error');
       });
   }
 
@@ -664,10 +664,10 @@
           localStorage.setItem('activeTour', JSON.stringify(active));
           _activeTourResId = resId;
           showTakeover(active);
-          showToast('Both checked in — tour is live!', 'success');
+          showToast('Both checked in — day is live!', 'success');
         } else {
-          btn.textContent = 'Waiting for host…';
-          showToast('Checked in! Waiting for your host.', 'success');
+          btn.textContent = 'Waiting for your Mate…';
+          showToast('Checked in! Waiting for your Mate.', 'success');
         }
       })
       .catch(err => {
@@ -804,7 +804,7 @@
       const myReq = _myRequests[listing.id];
       const reqStatus = myReq?.status;
 
-      const statusLabel = reserved ? 'Booked'
+      const statusLabel = reserved ? 'Joined'
         : reqStatus === 'PENDING'   ? 'Pending'
         : reqStatus === 'ACCEPTED'  ? 'Accepted'
         : reqStatus === 'DECLINED'  ? 'Declined'
@@ -819,16 +819,16 @@
 
       const reserveBtn = isOwnListing ? ''
         : reserved
-          ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Booked</button>`
+          ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`
         : reqStatus === 'PENDING'
           ? `<button class="btn" style="height:36px;font-size:10px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
         : reqStatus === 'ACCEPTED'
           ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
         : reqStatus === 'DECLINED'
-          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request again</button>`
+          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'} again</button>`
         : currentUserId
-          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Request</button>`
-          : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to request</a>`;
+          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'}</button>`
+          : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to join</a>`;
 
       const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
       const hostHandle = listing.host ? listing.host.username : '?';
@@ -897,17 +897,17 @@
           <div class="meet-card__info">
             <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${hostName}</span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
-            <div class="meet-card__booked">Booked ${fmtDate(res.dateOfReservation)}</div>
+            <div class="meet-card__booked">Joined ${fmtDate(res.dateOfReservation)}</div>
           </div>
           ${actionEl}
         </div>`;
     };
 
-    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming meetups.</div>';
-    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past meetups yet.</div>';
+    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming days.</div>';
+    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past days yet.</div>';
   }
 
-  /* ── Sub-tab switcher for My Tours ── */
+  /* ── Sub-tab switcher for My Days ── */
   function switchMeetupTab(el, panel) {
     el.closest('.tab-bar').querySelectorAll('.tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
     el.classList.add('tab-bar__item--active');
@@ -952,10 +952,10 @@
 
     upcomingEl.innerHTML = upcoming.length
       ? upcoming.map(r => mkHostCard(r, false)).join('')
-      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming guests.</div>';
+      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming Mates.</div>';
     pastEl.innerHTML = past.length
       ? past.map(r => mkHostCard(r, true)).join('')
-      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past tours hosted yet.</div>';
+      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past hosted days yet.</div>';
   }
 
   /* ── Render My Listings (host's own listings with delete) ── */
@@ -979,7 +979,7 @@
       const isPast = new Date(listing.meetingDate) < new Date();
       const dotColor = listing.reserved ? 'var(--text-3)' : isPast ? 'var(--text-3)' : 'var(--accent)';
       const dotGlow  = !listing.reserved && !isPast ? 'box-shadow:0 0 5px var(--accent);' : '';
-      const statusLabel = listing.reserved ? 'Booked' : isPast ? 'Past' : 'Available';
+      const statusLabel = listing.reserved ? 'Joined' : isPast ? 'Past' : 'Available';
       return `
         <div class="listing-card" id="my-listing-${listing.id}" style="opacity:${isPast ? '0.5' : '1'};">
           <div class="listing-card__head">
