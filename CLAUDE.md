@@ -77,6 +77,22 @@
 
 ---
 
+## Current state (as of 2026-04-25)
+- **UI copy rename** — "My Tours"→"My Days", sub-tabs Joined/Hosted/Open Days, "Rate your Mate", "Join Requests" everywhere; all templates updated
+- **Settings — Personality section** — "My Stat Sheet" (disabled, Soon pill), "Retake quiz" → `/onboarding`, "Why we ask this" expandable panel, "Delete my personality data" danger modal (shows toast, no backend yet)
+- **Settings — Danger zone** — "Delete account" added; confirmation modal calls `UserAPI.delete(userId)`, clears `localStorage`, redirects to `/login`
+- **Landing page full redesign** — split hero with animated word cycling (curious/calm/adventurous/thoughtful/bold), 3-card stack mockup (skeleton/listing/"Ana K. 94%"), city marquee strip, stats bar, How It Works with SVG icons, AI Match section with animated radar pentagon (two overlapping polygons teal=You/orange=Ana), Why/Features/CTA/Footer all updated to Days+Mates copy
+- **Landing horizontal scroll fixed** — `overflow-x:hidden` added to both `html` and `body`; card stack gets `scale(0.88)` at 700px and `scale(0.75)` at 400px breakpoints
+- **main.css polish** — shadow tokens (`--shadow-sm/md/lg/glow`), `::selection` teal highlight, `:focus-visible` ring, `btn--danger` globalised (was inline in tours.html, broken in settings.html), `btn--sm`/`btn--lg` variants, glow on `btn--primary:hover`, card shadow lift on hover, `divider` utility, `will-change` on skeleton shimmer
+- **`btn--danger` inline removed from tours.html** — now uses global definition from main.css
+- **local-test branch** — is LOCAL ONLY, never push to remote
+
+## Pending tasks (as of 2026-04-25)
+- **Account → Memories tab** — new tab in account.html, grid of Memory Cards + fullscreen modal (no backend yet, skeleton UI)
+- **`/onboarding` quiz page** — new Thymeleaf template + view controller route, 10 BFI-10 questions one per screen, progress bar, opt-out, "Analyzing your vibe…" animation, result card; register should redirect here after signup
+- **Explore page redesign** — natural language search, POST /api/match wiring, MatchCard with `whyMatch`, "Personalized ON/OFF" chip
+- **Post-deploy migration modal** — one-time prompt for existing users to take the quiz (depends on /onboarding existing)
+
 ## Current state (as of 2026-04-24)
 - **Landing page fix** — removed `"/"` from `AuthViewController`; was conflicting with `LandingViewController`; landing page now serves at `/` and JS redirects to `/map` if already logged in
 - **Map button on booked cards** — removed `pointer-events: none` from `.listing-card--reserved`; reserve button is already `disabled` via HTML so blocking all clicks was too broad
