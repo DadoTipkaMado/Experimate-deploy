@@ -50,10 +50,10 @@
       --border: rgba(0,0,0,0.08); --border-2: rgba(0,0,0,0.13);
       --text: #111218; --text-2: rgba(17,18,24,0.60); --text-3: rgba(17,18,24,0.34);
     }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
     body {
       background-color: var(--bg); color: var(--text);
-      font-family: var(--font-sans); overflow-x: hidden;
+      font-family: var(--font-sans); overflow-x: hidden; max-width: 100%;
       animation: page-in 0.45s ease both;
     }
     @keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
@@ -193,8 +193,8 @@
     .hero-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; }
 
     /* Card stack */
-    .hero-visual { display: flex; justify-content: center; align-items: center; }
-    .card-stack { position: relative; width: 300px; height: 420px; }
+    .hero-visual { display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .card-stack { position: relative; width: 300px; height: 420px; flex-shrink: 0; }
     .hcard {
       position: absolute; background: var(--surface);
       border: 1px solid var(--border-2); border-radius: var(--radius);
@@ -372,6 +372,10 @@
       .footer-tagline { max-width: 100%; }
       .footer-links { grid-template-columns: repeat(2,1fr); gap: 28px 20px; }
       .stat { flex: 1 1 45%; }
+      .card-stack { transform: scale(0.88); transform-origin: center top; }
+    }
+    @media (max-width: 400px) {
+      .card-stack { transform: scale(0.75); transform-origin: center top; }
     }
     @media (max-width: 380px) { .footer-links { grid-template-columns: 1fr; } }
 
