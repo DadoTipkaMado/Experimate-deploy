@@ -242,6 +242,24 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </span>
       </a>
+      <div class="settings-link settings-link--danger" style="cursor:pointer;" onclick="openDeleteAccountModal()">
+        <span class="settings-link__title">Delete account</span>
+        <span class="settings-link__arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- DELETE ACCOUNT MODAL -->
+    <div id="delete-account-modal" class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-title">Delete your account?</div>
+        <div class="modal-sub">This permanently deletes your profile, all your open days, bookings, ratings, and personality data. There is no way to recover your account after this.</div>
+        <div class="modal-actions">
+          <button onclick="closeDeleteAccountModal()" class="btn btn--ghost">Keep account</button>
+          <button onclick="confirmDeleteAccount()" class="btn btn--danger">Delete account</button>
+        </div>
+      </div>
     </div>
 
     <div class="version-badge">ExperiMate · TVZ Semifinals 2026</div>
@@ -298,6 +316,28 @@
   }
   document.getElementById('delete-personality-modal').addEventListener('click', function(e) {
     if (e.target === this) closeDeleteModal();
+  });
+
+  // Delete account modal
+  function openDeleteAccountModal() {
+    document.getElementById('delete-account-modal').classList.add('modal-backdrop--visible');
+  }
+  function closeDeleteAccountModal() {
+    document.getElementById('delete-account-modal').classList.remove('modal-backdrop--visible');
+  }
+  async function confirmDeleteAccount() {
+    const userId = localStorage.getItem('userId');
+    if (!userId) { closeDeleteAccountModal(); return; }
+    try {
+      await UserAPI.delete(userId);
+    } catch(e) { /* best effort */ }
+    closeDeleteAccountModal();
+    sessionStorage.setItem('explicit_logout', '1');
+    localStorage.clear();
+    window.location.href = '/login';
+  }
+  document.getElementById('delete-account-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteAccountModal();
   });
 
   // Sign out
