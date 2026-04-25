@@ -13,15 +13,9 @@
     if (localStorage.getItem('jwt')) {
       window.location.replace('/map');
     } else {
-      // Try refresh cookie — if valid, get a new JWT and go straight to the app
       fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
         .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data?.token) {
-            localStorage.setItem('jwt', data.token);
-            window.location.replace('/map');
-          }
-        })
+        .then(data => { if (data?.token) { localStorage.setItem('jwt', data.token); window.location.replace('/map'); } })
         .catch(() => {});
     }
   </script>
@@ -33,148 +27,110 @@
       --accent-dim: rgba(0,201,167,0.09);
       --accent-border: rgba(0,201,167,0.22);
       --warm: #ff6b35;
+      --warm-dim: rgba(255,107,53,0.09);
+      --warm-border: rgba(255,107,53,0.22);
       --bg: #0d0e16;
       --surface: #12141f;
       --surface-2: #191b27;
-      --border: rgba(239,239,239,0.08);
-      --border-2: rgba(239,239,239,0.13);
+      --border: rgba(239,239,239,0.07);
+      --border-2: rgba(239,239,239,0.12);
       --text: #f0f0f2;
       --text-2: rgba(240,240,242,0.62);
-      --text-3: rgba(240,240,242,0.38);
+      --text-3: rgba(240,240,242,0.36);
       --font-display: 'Syne', 'Georgia', serif;
       --font-mono: 'DM Mono', 'Courier New', monospace;
-      --font-sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-sans: 'Syne', -apple-system, sans-serif;
       --radius: 14px;
       --radius-sm: 8px;
       --radius-pill: 999px;
+      --t: 0.2s;
     }
     html.light-mode {
-      --bg: #f5f6fa;
-      --surface: #ffffff;
-      --surface-2: #eef0f5;
-      --border: rgba(0,0,0,0.09);
-      --border-2: rgba(0,0,0,0.14);
-      --text: #111218;
-      --text-2: rgba(17,18,24,0.60);
-      --text-3: rgba(17,18,24,0.36);
+      --bg: #f5f6fa; --surface: #ffffff; --surface-2: #eef0f5;
+      --border: rgba(0,0,0,0.08); --border-2: rgba(0,0,0,0.13);
+      --text: #111218; --text-2: rgba(17,18,24,0.60); --text-3: rgba(17,18,24,0.34);
     }
     html { scroll-behavior: smooth; }
     body {
-      background-color: var(--bg);
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
-      background-size: 250px 250px;
-      color: var(--text);
-      font-family: var(--font-sans);
-      overflow-x: hidden;
+      background-color: var(--bg); color: var(--text);
+      font-family: var(--font-sans); overflow-x: hidden;
+      animation: page-in 0.45s ease both;
     }
-
-    /* ───── UTILITY ───── */
-    .accent { color: var(--accent); }
-    .warm { color: var(--warm); }
-    .mono { font-family: var(--font-mono); }
-
-    /* ───── AMBIENT ORBS ───── */
-    .orb {
-      position: fixed; border-radius: 50%; filter: blur(110px);
-      pointer-events: none; z-index: 0;
-      animation: orb-drift linear infinite;
+    @keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.030'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
     }
-    .orb-1 { width: 780px; height: 780px; background: var(--accent); opacity: 0.055; top: -280px; left: -200px; animation-duration: 25s; }
-    .orb-2 { width: 520px; height: 520px; background: var(--warm); opacity: 0.045; bottom: -80px; right: -140px; animation-duration: 32s; animation-delay: -12s; }
-    .orb-3 { width: 380px; height: 380px; background: var(--accent); opacity: 0.032; top: 55vh; left: 38vw; animation-duration: 40s; animation-delay: -20s; }
-    .orb-4 { width: 300px; height: 300px; background: #7c3aed; opacity: 0.028; top: 30vh; right: 5vw; animation-duration: 35s; animation-delay: -7s; }
+    section { position: relative; z-index: 1; }
+
+    /* ── ORBS ── */
+    .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; animation: orb-drift linear infinite; }
+    .orb-1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.05; top: -200px; left: -150px; animation-duration: 28s; }
+    .orb-2 { width: 500px; height: 500px; background: var(--warm); opacity: 0.04; bottom: -100px; right: -120px; animation-duration: 35s; animation-delay: -14s; }
+    .orb-3 { width: 350px; height: 350px; background: var(--accent); opacity: 0.028; top: 60vh; left: 40vw; animation-duration: 42s; animation-delay: -22s; }
     @keyframes orb-drift {
       0%   { transform: translate(0,0) scale(1); }
-      33%  { transform: translate(18px,-22px) scale(1.04); }
-      66%  { transform: translate(-12px,14px) scale(0.97); }
+      33%  { transform: translate(20px,-25px) scale(1.05); }
+      66%  { transform: translate(-14px,18px) scale(0.96); }
       100% { transform: translate(0,0) scale(1); }
     }
 
-    /* ───── NAV ───── */
+    /* ── NAV ── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 clamp(20px, 5vw, 60px); height: 60px;
       border-bottom: 1px solid var(--border);
-      background: rgba(13,14,22,0.82);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      background: rgba(13,14,22,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     }
-    html.light-mode nav {
-      background: rgba(245,246,250,0.88);
-    }
-    .nav-brand {
-      font-family: var(--font-display); font-weight: 900; font-size: 18px;
-      color: var(--text); text-decoration: none; letter-spacing: -0.02em;
-      flex-shrink: 0;
-    }
+    html.light-mode nav { background: rgba(245,246,250,0.90); }
+    .nav-brand { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
     .nav-brand span { color: var(--accent); }
     .nav-right { display: flex; align-items: center; gap: clamp(12px,3vw,32px); }
     .nav-links { display: flex; align-items: center; gap: clamp(12px,2vw,24px); }
-    .nav-link {
-      font-size: 12px; color: var(--text-2); text-decoration: none;
-      letter-spacing: 0.04em; transition: color 0.2s; white-space: nowrap;
-    }
+    .nav-link { font-size: 12px; color: var(--text-2); text-decoration: none; letter-spacing: 0.04em; transition: color var(--t); }
     .nav-link:hover { color: var(--text); }
     .nav-actions { display: flex; align-items: center; gap: 8px; }
     .btn-nav-ghost {
-      padding: 0 16px; height: 36px; border: 1px solid var(--border-2);
-      border-radius: var(--radius-pill); background: transparent;
-      color: var(--text-2); font-size: 12px; letter-spacing: 0.03em;
+      padding: 0 16px; height: 36px; border: 1px solid var(--border-2); border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-2); font-size: 12px; letter-spacing: 0.03em;
       text-decoration: none; display: inline-flex; align-items: center;
-      transition: border-color 0.2s, color 0.2s; white-space: nowrap;
+      transition: border-color var(--t), color var(--t);
     }
     .btn-nav-ghost:hover { border-color: rgba(239,239,239,0.22); color: var(--text); }
     .btn-nav-primary {
-      padding: 0 16px; height: 36px; border-radius: var(--radius-pill);
+      padding: 0 18px; height: 36px; border-radius: var(--radius-pill);
       background: var(--accent); border: none; color: #000;
-      font-size: 12px; font-weight: 700; letter-spacing: 0.03em;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
       text-decoration: none; display: inline-flex; align-items: center;
-      transition: opacity 0.2s, transform 0.15s; white-space: nowrap;
+      transition: opacity var(--t), transform 0.15s;
     }
-    .btn-nav-primary:hover { opacity: 0.88; transform: scale(1.02); }
-
-    /* ── Hamburger ── */
-    .hamburger {
-      display: none; background: none; border: none; cursor: pointer;
-      padding: 8px; color: var(--text); border-radius: 8px;
-      transition: background 0.15s;
-    }
+    .btn-nav-primary:hover { opacity: 0.85; transform: scale(1.02); }
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: var(--text); border-radius: 8px; transition: background 0.15s; }
     .hamburger:hover { background: rgba(239,239,239,0.08); }
-
-    /* ── Mobile menu ── */
     .mobile-menu {
       display: none; position: fixed; top: 60px; left: 0; right: 0; z-index: 99;
-      background: rgba(11,12,20,0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      background: rgba(11,12,20,0.98); backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
       flex-direction: column; padding: 8px clamp(20px,5vw,40px) 20px;
     }
     .mobile-menu.open { display: flex; animation: menuIn 0.18s ease both; }
-    @keyframes menuIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .mobile-menu__link {
-      display: block; padding: 14px 0; font-size: 15px;
-      color: var(--text-2); text-decoration: none;
-      border-bottom: 1px solid var(--border); transition: color 0.2s;
-    }
+    @keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .mobile-menu__link { display: block; padding: 14px 0; font-size: 15px; color: var(--text-2); text-decoration: none; border-bottom: 1px solid var(--border); transition: color 0.2s; }
     .mobile-menu__link:hover { color: var(--text); }
     .mobile-menu__link:last-of-type { border-bottom: none; }
-    .mobile-menu__ctas {
-      display: flex; gap: 10px; margin-top: 16px;
-    }
+    .mobile-menu__ctas { display: flex; gap: 10px; margin-top: 16px; }
     .mobile-menu__ctas a { flex: 1; justify-content: center; }
 
-    /* ───── SECTIONS ───── */
-    section { position: relative; z-index: 1; }
-
-    /* ───── HERO ───── */
+    /* ── HERO ── */
     .hero {
       min-height: 100dvh;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center;
-      padding: 80px clamp(20px, 6vw, 80px) 60px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center; gap: clamp(40px, 6vw, 80px);
+      padding: 100px clamp(24px, 6vw, 80px) 80px;
     }
+    .hero-content { display: flex; flex-direction: column; align-items: flex-start; }
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
       background: var(--accent-dim); border: 1px solid var(--accent-border);
@@ -182,367 +138,249 @@
       font-family: var(--font-mono); font-size: 10px; color: var(--accent);
       letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 28px;
     }
-    .hero-eyebrow__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .hero-eyebrow__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.25; } }
 
     .hero-title {
-      font-family: var(--font-display);
-      font-size: clamp(42px, 9vw, 86px);
-      font-weight: 900;
-      line-height: 1.0;
-      letter-spacing: -0.03em;
-      color: var(--text);
-      max-width: 800px;
-      margin-bottom: 22px;
+      font-family: var(--font-display); font-weight: 900;
+      font-size: clamp(50px, 7.5vw, 96px);
+      line-height: 1.0; letter-spacing: -0.03em;
+      color: var(--text); margin-bottom: 24px;
     }
-    .hero-title .line-accent {
-      color: transparent;
-      background: linear-gradient(90deg, var(--accent) 0%, rgba(0,201,167,0.6) 100%);
-      -webkit-background-clip: text; background-clip: text;
+
+    /* Word cycle */
+    .word-cycle-wrap { display: inline-block; position: relative; }
+    .word-placeholder { visibility: hidden; display: inline-block; white-space: nowrap; color: var(--accent); }
+    .word {
+      position: absolute; left: 0; bottom: 0; white-space: nowrap;
+      color: var(--accent); opacity: 0;
+      animation: word-in 15s ease-in-out infinite;
+    }
+    .word:nth-child(1) { animation-delay: 0s; }
+    .word:nth-child(2) { animation-delay: 3s; }
+    .word:nth-child(3) { animation-delay: 6s; color: var(--warm); }
+    .word:nth-child(4) { animation-delay: 9s; }
+    .word:nth-child(5) { animation-delay: 12s; color: var(--warm); }
+    @keyframes word-in {
+      0%   { opacity: 0; transform: translateY(10px); }
+      6%   { opacity: 1; transform: translateY(0); }
+      18%  { opacity: 1; transform: translateY(0); }
+      24%  { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 0; }
     }
 
     .hero-sub {
-      font-size: clamp(14px, 2vw, 17px);
-      color: var(--text-2);
-      line-height: 1.7;
-      max-width: 500px;
-      margin-bottom: 40px;
+      font-size: clamp(14px, 1.6vw, 16px); color: var(--text-2);
+      line-height: 1.75; max-width: 460px; margin-bottom: 36px;
     }
-
-    .hero-actions {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
-      margin-bottom: 60px;
-    }
+    .hero-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
     .btn-hero-primary {
       padding: 0 32px; height: 52px; border-radius: var(--radius-pill);
       background: var(--accent); border: none; color: #000;
-      font-size: 14px; font-weight: 700; letter-spacing: 0.03em;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
       text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
-      transition: opacity 0.2s, transform 0.15s;
+      transition: opacity var(--t), transform 0.15s;
     }
-    .btn-hero-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-hero-primary:hover { opacity: 0.85; transform: translateY(-2px); }
     .btn-hero-ghost {
       padding: 0 28px; height: 52px; border-radius: var(--radius-pill);
       border: 1px solid var(--border-2); background: transparent;
-      color: var(--text-2); font-size: 14px; letter-spacing: 0.03em;
+      color: var(--text-2); font-size: 13px; letter-spacing: 0.04em;
       text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
-      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+      transition: border-color var(--t), color var(--t), transform 0.15s;
     }
-    .btn-hero-ghost:hover { border-color: rgba(239,239,239,0.25); color: var(--text); transform: translateY(-1px); }
+    .btn-hero-ghost:hover { border-color: rgba(239,239,239,0.25); color: var(--text); transform: translateY(-2px); }
+    .hero-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; }
 
-    /* ── Map mockup ── */
-    .hero-visual {
-      width: 100%; max-width: 680px;
-      border: 1px solid var(--border-2); border-radius: 20px;
-      overflow: hidden; position: relative;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+    /* Card stack */
+    .hero-visual { display: flex; justify-content: center; align-items: center; }
+    .card-stack { position: relative; width: 300px; height: 420px; }
+    .hcard {
+      position: absolute; background: var(--surface);
+      border: 1px solid var(--border-2); border-radius: var(--radius);
+      padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
-    .map-mockup {
-      background: #141a1a;
-      height: clamp(200px, 40vw, 320px);
-      position: relative; overflow: hidden;
-    }
-    .map-grid {
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(rgba(0,201,167,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,201,167,0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
-    .map-road { position: absolute; background: rgba(239,239,239,0.06); border-radius: 2px; }
-    .map-road-h1 { width: 100%; height: 3px; top: 38%; left: 0; }
-    .map-road-h2 { width: 100%; height: 2px; top: 65%; left: 0; opacity: 0.6; }
-    .map-road-v1 { width: 3px; height: 100%; top: 0; left: 28%; }
-    .map-road-v2 { width: 2px; height: 100%; top: 0; left: 62%; opacity: 0.6; }
-    .map-road-v3 { width: 2px; height: 100%; top: 0; left: 80%; opacity: 0.4; }
+    .hcard--back  { width: 210px; left: 40px; top: 10px; opacity: 0.32; z-index: 0; animation: card-float-b 5s ease-in-out infinite; }
+    .hcard--mid   { width: 250px; left: 18px; top: 72px; opacity: 0.58; z-index: 1; animation: card-float-m 4.5s ease-in-out infinite 0.8s; }
+    .hcard--front { width: 284px; left: 0; top: 128px; z-index: 2; box-shadow: 0 24px 64px rgba(0,0,0,0.55), 0 0 0 1px var(--border-2); animation: card-float-f 4s ease-in-out infinite 0.3s; }
+    @keyframes card-float-b { 0%,100%{transform:rotate(5deg) translateY(0)} 50%{transform:rotate(5deg) translateY(-12px)} }
+    @keyframes card-float-m { 0%,100%{transform:rotate(-2.5deg) translateY(0)} 50%{transform:rotate(-2.5deg) translateY(-8px)} }
+    @keyframes card-float-f { 0%,100%{transform:rotate(1deg) translateY(0)} 50%{transform:rotate(1deg) translateY(-6px)} }
 
-    .map-pin {
-      position: absolute;
-      display: flex; flex-direction: column; align-items: center;
-      animation: pin-float 3s ease-in-out infinite;
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      overflow: hidden; background: var(--surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 13px 0; position: relative; z-index: 1;
     }
-    .map-pin__bubble {
-      background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 0 4px rgba(0,201,167,0.2), 0 4px 16px rgba(0,201,167,0.35);
-    }
-    .map-pin__bubble--lg { width: 36px; height: 36px; }
-    .map-pin__bubble--sm { width: 26px; height: 26px; }
-    .map-pin__bubble img { border-radius: 50%; object-fit: cover; }
-    .map-pin__tail { width: 2px; height: 8px; background: var(--accent); opacity: 0.6; }
-    .map-pin__dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0,201,167,0.3); }
+    .marquee-track { display: flex; align-items: center; width: max-content; animation: marquee 30s linear infinite; }
+    .marquee-track:hover { animation-play-state: paused; }
+    .marquee-city { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 20px; white-space: nowrap; }
+    .marquee-sep { color: var(--accent); font-size: 14px; opacity: 0.55; }
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
-    @keyframes pin-float {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-5px); }
-    }
-    .map-pin:nth-child(2) { animation-delay: -1s; }
-    .map-pin:nth-child(3) { animation-delay: -2s; }
-
-    /* Pin popup */
-    .map-popup {
-      position: absolute; top: 8%; left: 50%; transform: translateX(-50%);
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm); padding: 10px 14px;
-      display: flex; flex-direction: column; gap: 4px; min-width: 180px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    }
-    .map-popup__city { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text); }
-    .map-popup__meta { font-size: 10px; color: var(--text-2); }
-    .map-popup__btn {
-      margin-top: 2px; padding: 5px 0; background: var(--accent); border-radius: 6px;
-      font-size: 10px; font-weight: 700; color: #000; text-align: center; letter-spacing: 0.04em;
-    }
-
-    /* ───── STATS BAR ───── */
+    /* ── STATS ── */
     .stats-bar {
-      display: flex; justify-content: center; gap: clamp(32px, 6vw, 80px);
-      flex-wrap: wrap;
-      padding: 48px clamp(20px, 5vw, 60px);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: center;
+      background: var(--bg); border-bottom: 1px solid var(--border); position: relative; z-index: 1;
     }
-    .stat { text-align: center; }
-    .stat__num {
-      font-family: var(--font-display); font-weight: 900;
-      font-size: clamp(28px, 5vw, 40px); color: var(--accent);
-      letter-spacing: -0.02em; line-height: 1;
-    }
-    .stat__label {
-      font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
-      letter-spacing: 0.12em; text-transform: uppercase; margin-top: 6px;
-    }
+    .stat { flex: 1; text-align: center; padding: clamp(28px,4vw,48px) 20px; border-right: 1px solid var(--border); }
+    .stat:last-child { border-right: none; }
+    .stat__num { font-family: var(--font-display); font-weight: 900; font-size: clamp(24px,3.5vw,36px); color: var(--accent); letter-spacing: -0.02em; line-height: 1; }
+    .stat__label { font-family: var(--font-mono); font-size: 9px; color: var(--text-3); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 6px; }
 
-    /* ───── HOW IT WORKS ───── */
-    .how { padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px); }
-    .section-label {
-      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
-      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px;
-    }
-    .section-title {
-      font-family: var(--font-display); font-weight: 900;
-      font-size: clamp(28px, 4.5vw, 44px);
-      letter-spacing: -0.02em; line-height: 1.1; color: var(--text);
-      margin-bottom: 48px; max-width: 480px;
-    }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
+    /* ── HOW IT WORKS ── */
+    .how { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
+    .section-eyebrow { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px; }
+    .section-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.025em; line-height: 1.1; color: var(--text); margin-bottom: 52px; max-width: 520px; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
     .step {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 28px 24px;
-      display: flex; flex-direction: column; gap: 14px;
-      transition: border-color 0.2s;
-    }
-    .step:hover { border-color: var(--border-2); }
-    .step__num {
-      font-family: var(--font-mono); font-size: 10px; color: var(--text-3);
-      letter-spacing: 0.12em;
-    }
-    .step__icon {
-      font-size: 28px; line-height: 1;
-    }
-    .step__title {
-      font-family: var(--font-display); font-weight: 700;
-      font-size: 16px; color: var(--text); letter-spacing: -0.01em;
-    }
-    .step__desc {
-      font-size: 12px; color: var(--text-2); line-height: 1.7;
-    }
-
-    /* ───── WHY ───── */
-    .why { padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px); }
-    .why-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .why-card {
-      border-radius: var(--radius); padding: 28px 24px;
+      background: var(--surface); padding: clamp(24px,3vw,36px) clamp(20px,2.5vw,28px);
       display: flex; flex-direction: column; gap: 16px;
+      transition: background var(--t); position: relative; overflow: hidden;
     }
-    .why-card--teal {
-      background: linear-gradient(135deg, rgba(0,201,167,0.10) 0%, rgba(0,201,167,0.04) 100%);
-      border: 1px solid rgba(0,201,167,0.18);
+    .step:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .step:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+    .step:hover { background: var(--surface-2); }
+    .step::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0; transition: opacity var(--t); }
+    .step:hover::after { opacity: 1; }
+    .step__num { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.12em; }
+    .step__icon-wrap { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
+    .step__title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
+    .step__desc { font-size: 12px; color: var(--text-2); line-height: 1.75; }
+
+    /* ── AI MATCH ── */
+    .ai-section {
+      padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px);
+      background: var(--surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
     }
-    .why-card--warm {
-      background: var(--surface); border: 1px solid var(--border);
+    .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 80px); align-items: center; }
+    .radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .radar-svg { width: 100%; max-width: 320px; height: auto; filter: drop-shadow(0 0 40px rgba(0,201,167,0.10)); }
+    @keyframes radar-breathe-you {
+      0%,100% { transform: scale(0.97); opacity: 0.9; }
+      50%      { transform: scale(1.0); opacity: 1; }
     }
-    .why-card__label {
-      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em;
-      text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill);
-      display: inline-flex; align-items: center; gap: 6px; width: fit-content;
+    @keyframes radar-breathe-ana {
+      0%,100% { transform: scale(0.98); opacity: 0.85; }
+      50%      { transform: scale(1.01); opacity: 0.95; }
     }
+    .poly-you { transform-origin: 100px 100px; animation: radar-breathe-you 3s ease-in-out infinite; }
+    .poly-ana { transform-origin: 100px 100px; animation: radar-breathe-ana 3.5s ease-in-out infinite 0.5s; }
+    .radar-legend { display: flex; gap: 20px; font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; }
+    .radar-legend__item { display: flex; align-items: center; gap: 7px; }
+    .radar-legend__dot { width: 10px; height: 4px; border-radius: 2px; flex-shrink: 0; }
+    .ai-content { display: flex; flex-direction: column; gap: 20px; }
+    .ai-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      border-radius: var(--radius-pill); padding: 5px 14px;
+      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
+      letter-spacing: 0.1em; text-transform: uppercase; width: fit-content;
+    }
+    .ai-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(26px, 3.5vw, 40px); letter-spacing: -0.025em; line-height: 1.1; color: var(--text); }
+    .ai-sub { font-size: 13px; color: var(--text-2); line-height: 1.75; max-width: 400px; }
+    .ai-bullets { display: flex; flex-direction: column; gap: 12px; }
+    .ai-bullet { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+    .ai-bullet__icon { width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); border-radius: 50%; color: var(--accent); }
+
+    /* ── WHY ── */
+    .why { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .why-card { border-radius: var(--radius); padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .why-card--teal { background: linear-gradient(135deg, rgba(0,201,167,0.10) 0%, rgba(0,201,167,0.04) 100%); border: 1px solid rgba(0,201,167,0.18); }
+    .why-card--warm { background: var(--surface); border: 1px solid var(--border); }
+    .why-card__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: 6px; width: fit-content; }
     .why-card__label--good { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
     .why-card__label--bad  { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2); color: var(--warm); }
-    .why-card__items { display: flex; flex-direction: column; gap: 10px; }
-    .why-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      font-size: 13px; color: var(--text-2); line-height: 1.5;
-    }
-    .why-item__icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+    .why-card__items { display: flex; flex-direction: column; gap: 11px; }
+    .why-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-2); line-height: 1.5; }
+    .why-item__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .why-item__dot--good { background: var(--accent); }
+    .why-item__dot--bad  { background: var(--warm); opacity: 0.6; }
 
-    /* ───── FEATURES ───── */
-    .features { padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px); }
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-    }
+    /* ── FEATURES ── */
+    .features { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); background: var(--surface); border-top: 1px solid var(--border); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
     .feat {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 22px 20px;
-      display: flex; flex-direction: column; gap: 10px;
-      transition: border-color 0.2s;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 20px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: border-color var(--t), transform 0.2s;
     }
-    .feat:hover { border-color: var(--border-2); }
-    .feat__icon {
-      width: 40px; height: 40px; border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      background: var(--accent-dim); border: 1px solid var(--accent-border);
-    }
+    .feat:hover { border-color: var(--accent-border); transform: translateY(-3px); }
+    .feat__icon { width: 42px; height: 42px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-border); }
+    .feat--memory .feat__icon { background: var(--warm-dim); border-color: var(--warm-border); color: var(--warm); }
+    .feat__badge { display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; width: fit-content; background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
     .feat__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
-    .feat__desc { font-size: 11px; color: var(--text-2); line-height: 1.65; }
+    .feat__desc { font-size: 11px; color: var(--text-2); line-height: 1.7; }
 
-    /* ───── FINAL CTA ───── */
-    .cta-section {
-      padding: clamp(60px, 8vw, 100px) clamp(20px, 5vw, 60px);
-    }
+    /* ── CTA ── */
+    .cta-section { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
     .cta-card {
-      max-width: 680px; margin: 0 auto;
-      background: linear-gradient(135deg, rgba(0,201,167,0.08) 0%, rgba(0,201,167,0.03) 100%);
-      border: 1px solid rgba(0,201,167,0.2);
-      border-radius: 20px; padding: clamp(40px, 6vw, 60px);
-      text-align: center;
-      position: relative; overflow: hidden;
+      max-width: 720px; margin: 0 auto;
+      background: linear-gradient(135deg, rgba(0,201,167,0.08) 0%, rgba(0,201,167,0.03) 60%, rgba(255,107,53,0.04) 100%);
+      border: 1px solid rgba(0,201,167,0.2); border-radius: 22px;
+      padding: clamp(44px, 6vw, 64px); text-align: center; position: relative; overflow: hidden;
     }
-    .cta-card::before {
-      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
-      width: 300px; height: 300px;
-      background: radial-gradient(ellipse, rgba(0,201,167,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .cta-card__eyebrow {
-      font-family: var(--font-mono); font-size: 10px; color: var(--accent);
-      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 16px;
-    }
-    .cta-card__title {
-      font-family: var(--font-display); font-weight: 900;
-      font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em; color: var(--text);
-      margin-bottom: 14px; line-height: 1.1; position: relative; z-index: 1;
-    }
-    .cta-card__sub {
-      font-size: 13px; color: var(--text-2); line-height: 1.7;
-      margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto;
-      position: relative; z-index: 1;
-    }
-    .cta-card__actions {
-      display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap;
-      position: relative; z-index: 1;
-    }
-    .btn-cta {
-      padding: 0 36px; height: 52px; border-radius: var(--radius-pill);
-      background: var(--accent); border: none; color: #000;
-      font-size: 14px; font-weight: 700; letter-spacing: 0.03em;
-      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
-      transition: opacity 0.2s, transform 0.15s;
-    }
-    .btn-cta:hover { opacity: 0.88; transform: translateY(-1px); }
-    .btn-cta-ghost {
-      padding: 0 28px; height: 52px; border-radius: var(--radius-pill);
-      border: 1px solid rgba(0,201,167,0.3); background: transparent;
-      color: var(--accent); font-size: 14px; letter-spacing: 0.03em;
-      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
-      transition: border-color 0.2s, transform 0.15s;
-    }
-    .btn-cta-ghost:hover { border-color: rgba(0,201,167,0.55); transform: translateY(-1px); }
+    .cta-card::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; background: radial-gradient(ellipse, rgba(0,201,167,0.10) 0%, transparent 70%); pointer-events: none; }
+    .cta-eyebrow { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px; }
+    .cta-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.025em; color: var(--text); margin-bottom: 14px; line-height: 1.05; position: relative; z-index: 1; }
+    .cta-sub { font-size: 14px; color: var(--text-2); line-height: 1.75; margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
+    .cta-actions { display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+    .btn-cta { padding: 0 36px; height: 52px; border-radius: var(--radius-pill); background: var(--accent); border: none; color: #000; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity var(--t), transform 0.15s; }
+    .btn-cta:hover { opacity: 0.85; transform: translateY(-2px); }
+    .btn-cta-ghost { padding: 0 28px; height: 52px; border-radius: var(--radius-pill); border: 1px solid rgba(0,201,167,0.3); background: transparent; color: var(--accent); font-size: 13px; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: border-color var(--t), transform 0.15s; }
+    .btn-cta-ghost:hover { border-color: rgba(0,201,167,0.55); transform: translateY(-2px); }
+    .cta-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; margin-top: 20px; position: relative; z-index: 1; }
 
-    /* ───── SECTION ALTERNATING BG ───── */
-    .stats-bar { background: var(--surface); }
-    .why { background: var(--surface); }
-
-    /* ───── FOOTER ───── */
-    footer {
-      background: #08090f;
-      padding: 0;
-      border-top: 1px solid var(--border);
-    }
-    .footer-inner {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 60px;
-      padding: clamp(48px, 6vw, 72px) clamp(24px, 5vw, 60px) clamp(40px, 5vw, 56px);
-      border-bottom: 1px solid var(--border);
-    }
+    /* ── FOOTER ── */
+    footer { background: #08090f; padding: 0; border-top: 1px solid var(--border); }
+    .footer-inner { display: grid; grid-template-columns: 1fr 2fr; gap: 60px; padding: clamp(48px,6vw,72px) clamp(24px,5vw,60px) clamp(40px,5vw,56px); border-bottom: 1px solid var(--border); }
     .footer-brand-block { display: flex; flex-direction: column; gap: 12px; }
-    .footer-brand {
-      font-family: var(--font-display); font-weight: 900; font-size: 20px;
-      color: var(--text); text-decoration: none; letter-spacing: -0.02em;
-    }
+    .footer-brand { font-family: var(--font-display); font-weight: 900; font-size: 20px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
     .footer-brand span { color: var(--accent); }
-    .footer-tagline {
-      font-size: 12px; color: var(--text-2); line-height: 1.75;
-      max-width: 220px;
-    }
-    .footer-credit {
-      display: inline-flex; align-items: center; gap: 7px; margin-top: 6px;
-      font-family: var(--font-mono); font-size: 9px; color: var(--text-3);
-      letter-spacing: 0.1em; text-transform: uppercase;
-    }
-    .footer-credit svg { opacity: 0.6; }
-    .footer-links {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px 24px;
-    }
+    .footer-tagline { font-size: 12px; color: var(--text-2); line-height: 1.75; max-width: 220px; }
+    .footer-credit { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; font-family: var(--font-mono); font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; }
+    .footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px 24px; }
     .footer-links__group { display: flex; flex-direction: column; gap: 10px; }
-    .footer-links__label {
-      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--text-3); margin-bottom: 4px;
-    }
-    .footer-links__group a {
-      font-size: 13px; color: var(--text-2); text-decoration: none;
-      line-height: 1.4; transition: color 0.2s;
-    }
+    .footer-links__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+    .footer-links__group a { font-size: 13px; color: var(--text-2); text-decoration: none; line-height: 1.4; transition: color var(--t); }
     .footer-links__group a:hover { color: var(--accent); }
-    .footer-bottom {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 8px;
-      padding: 18px clamp(24px, 5vw, 60px);
-    }
-    .footer-copy {
-      font-family: var(--font-mono); font-size: 10px;
-      color: var(--text-3); letter-spacing: 0.06em;
-    }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 18px clamp(24px,5vw,60px); }
+    .footer-copy { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; }
 
-    /* ───── RESPONSIVE ───── */
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; text-align: center; padding-top: 100px; }
+      .hero-content { align-items: center; }
+      .hero-sub { max-width: 100%; }
+      .hero-visual { margin-top: 40px; }
+      .ai-grid { grid-template-columns: 1fr; }
+      .ai-content { align-items: center; text-align: center; }
+      .ai-sub, .ai-bullets { max-width: 100%; }
+      .ai-bullets { align-items: flex-start; }
+    }
     @media (max-width: 700px) {
-      /* Nav → hamburger */
-      .nav-links { display: none; }
-      .nav-actions { display: none; }
+      .nav-links, .nav-actions { display: none; }
       .hamburger { display: flex; align-items: center; justify-content: center; }
-
-      /* Footer → stacked */
-      .footer-inner {
-        grid-template-columns: 1fr;
-        gap: 36px;
-      }
+      .steps { grid-template-columns: 1fr; gap: 2px; }
+      .step:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+      .step:last-child  { border-radius: 0 0 var(--radius) var(--radius); }
+      .footer-inner { grid-template-columns: 1fr; gap: 36px; }
       .footer-tagline { max-width: 100%; }
-      .footer-links {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 28px 20px;
-      }
+      .footer-links { grid-template-columns: repeat(2,1fr); gap: 28px 20px; }
+      .stat { flex: 1 1 45%; }
     }
+    @media (max-width: 380px) { .footer-links { grid-template-columns: 1fr; } }
 
-    @media (max-width: 380px) {
-      .footer-links { grid-template-columns: 1fr; }
-    }
-
-    /* ───── SCROLL FADE-IN ───── */
-    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
-    .fade-in.visible { opacity: 1; transform: translateY(0); }
+    /* ── SCROLL REVEALS ── */
+    .fade-up { opacity: 0; transform: translateY(22px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up-d1 { transition-delay: 0.1s; }
+    .fade-up-d2 { transition-delay: 0.2s; }
+    .fade-up-d3 { transition-delay: 0.3s; }
   </style>
 </head>
 <body>
@@ -550,7 +388,6 @@
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
-  <div class="orb orb-4"></div>
 
   <!-- NAV -->
   <nav id="main-nav">
@@ -558,6 +395,7 @@
     <div class="nav-right">
       <div class="nav-links">
         <a href="#how" class="nav-link">How it works</a>
+        <a href="#match" class="nav-link">AI Match</a>
         <a href="#features" class="nav-link">Features</a>
       </div>
       <div class="nav-actions">
@@ -566,18 +404,16 @@
         <a href="/register" class="btn-nav-primary">Get started</a>
       </div>
       <button class="hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">
-        <svg id="hamburger-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
     </div>
   </nav>
 
-  <!-- MOBILE MENU -->
   <div class="mobile-menu" id="mobile-menu" role="navigation">
     <a href="#how" class="mobile-menu__link" onclick="closeMobileMenu()">How it works</a>
+    <a href="#match" class="mobile-menu__link" onclick="closeMobileMenu()">AI Match</a>
     <a href="#features" class="mobile-menu__link" onclick="closeMobileMenu()">Features</a>
     <div class="mobile-menu__ctas">
       <a href="/login" class="btn-nav-ghost">Sign in</a>
@@ -587,132 +423,266 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-eyebrow">
-      <div class="hero-eyebrow__dot"></div>
-      Now available
-    </div>
-    <h1 class="hero-title">
-      Meet a local.<br>
-      <span class="line-accent">Not a tourist.</span>
-    </h1>
-    <p class="hero-sub">
-      ExperiMate connects travelers with real locals for authentic city experiences.
-      No scripted tours. No agency markup. Just people showing what they love.
-    </p>
-    <div class="hero-actions">
-      <a href="/map" class="btn-hero-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-        Explore the map
-      </a>
-      <a href="/register" class="btn-hero-ghost">
-        Create account
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-      </a>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <div class="hero-eyebrow__dot"></div>
+        Now available
+      </div>
+      <h1 class="hero-title">
+        Find your<br>
+        <span class="word-cycle-wrap" aria-label="personality-matched local">
+          <span class="word">curious</span>
+          <span class="word">calm</span>
+          <span class="word">adventurous</span>
+          <span class="word">thoughtful</span>
+          <span class="word">bold</span>
+          <span class="word-placeholder">adventurous</span>
+        </span><br>
+        Mate.
+      </h1>
+      <p class="hero-sub">
+        ExperiMate matches you with locals whose personality clicks with yours.
+        Spend a day in their world — their city, their pace, their way.
+      </p>
+      <div class="hero-actions">
+        <a href="/register" class="btn-hero-primary">
+          Get started — free
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a href="/map" class="btn-hero-ghost">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          See the map
+        </a>
+      </div>
+      <div class="hero-note">✦ 70-second personality quiz at signup</div>
     </div>
 
-    <!-- Map visual mockup -->
-    <div class="hero-visual fade-in">
-      <div class="map-mockup">
-        <div class="map-grid"></div>
-        <div class="map-road map-road-h1"></div>
-        <div class="map-road map-road-h2"></div>
-        <div class="map-road map-road-v1"></div>
-        <div class="map-road map-road-v2"></div>
-        <div class="map-road map-road-v3"></div>
-        <!-- Pins -->
-        <div class="map-pin" style="left:27%;top:30%;animation-delay:0s;">
-          <div class="map-pin__bubble map-pin__bubble--lg" style="background:var(--accent);">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    <!-- Animated card stack -->
+    <div class="hero-visual">
+      <div class="card-stack">
+        <!-- Back -->
+        <div class="hcard hcard--back">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;">Nearby Mates</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="height:7px;background:var(--border-2);border-radius:4px;width:75%;"></div>
+            <div style="height:7px;background:var(--border-2);border-radius:4px;width:52%;"></div>
+            <div style="height:7px;background:var(--border-2);border-radius:4px;width:65%;"></div>
           </div>
-          <div class="map-pin__tail"></div>
-          <div class="map-pin__dot"></div>
         </div>
-        <div class="map-pin" style="left:58%;top:55%;animation-delay:-1.2s;">
-          <div class="map-pin__bubble map-pin__bubble--sm">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <!-- Mid -->
+        <div class="hcard hcard--mid">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Day with Ana</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px;">Zagreb Old Town</div>
+          <div style="font-size:10px;color:var(--text-3);">Saturday · 14:00 · Available</div>
+          <div style="margin-top:12px;height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:1px;"></div>
+        </div>
+        <!-- Front -->
+        <div class="hcard hcard--front">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(0,201,167,0.15),rgba(0,201,167,0.05));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:14px;color:var(--accent);border:1.5px solid var(--accent-border);flex-shrink:0;">AK</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);">Ana K.</div>
+              <div style="font-size:10px;color:var(--text-3);">Zagreb, Croatia · ★ 4.9</div>
+            </div>
+            <div style="background:var(--accent);color:#000;font-family:var(--font-mono);font-weight:700;font-size:10px;padding:4px 9px;border-radius:20px;flex-shrink:0;letter-spacing:0.04em;">94%</div>
           </div>
-          <div class="map-pin__tail"></div>
-          <div class="map-pin__dot"></div>
-        </div>
-        <div class="map-pin" style="left:75%;top:25%;animation-delay:-2s;">
-          <div class="map-pin__bubble map-pin__bubble--sm">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#000" stroke="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          <div style="font-size:11px;color:var(--text-2);line-height:1.7;margin-bottom:14px;border-left:2px solid var(--accent-border);padding-left:10px;font-style:italic;">"The kind of afternoon you only get once in a city."</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+            <span style="font-size:9px;font-family:var(--font-mono);padding:3px 9px;border-radius:20px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);letter-spacing:0.06em;">Curious</span>
+            <span style="font-size:9px;font-family:var(--font-mono);padding:3px 9px;border-radius:20px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);letter-spacing:0.06em;">Calm</span>
+            <span style="font-size:9px;font-family:var(--font-mono);padding:3px 9px;border-radius:20px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);letter-spacing:0.06em;">Creative</span>
           </div>
-          <div class="map-pin__tail"></div>
-          <div class="map-pin__dot"></div>
-        </div>
-        <!-- Popup -->
-        <div class="map-popup">
-          <div class="map-popup__city">Zagreb Old Town</div>
-          <div class="map-popup__meta">Ana K. · Sat 14:00 · Available</div>
-          <div class="map-popup__btn">See listing →</div>
+          <div style="width:100%;padding:10px 0;background:var(--accent);border-radius:8px;font-family:var(--font-display);font-weight:700;font-size:12px;color:#000;text-align:center;letter-spacing:0.02em;">Spend a day with Ana →</div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span class="marquee-city">Zagreb</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Barcelona</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Tokyo</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">São Paulo</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Amsterdam</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Kyoto</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Lisbon</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Berlin</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Buenos Aires</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Seoul</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Zagreb</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Barcelona</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Tokyo</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">São Paulo</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Amsterdam</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Kyoto</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Lisbon</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Berlin</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Buenos Aires</span><span class="marquee-sep">·</span>
+      <span class="marquee-city">Seoul</span><span class="marquee-sep">·</span>
+    </div>
+  </div>
+
   <!-- STATS -->
-  <section class="stats-bar fade-in">
-    <div class="stat">
+  <section class="stats-bar">
+    <div class="stat fade-up">
+      <div class="stat__num">70 sec</div>
+      <div class="stat__label">Quiz to match</div>
+    </div>
+    <div class="stat fade-up fade-up-d1">
       <div class="stat__num">Real</div>
-      <div class="stat__label">Local guides</div>
+      <div class="stat__label">Locals only</div>
     </div>
-    <div class="stat">
+    <div class="stat fade-up fade-up-d2">
       <div class="stat__num">Free</div>
-      <div class="stat__label">To sign up</div>
+      <div class="stat__label">To join</div>
     </div>
-    <div class="stat">
-      <div class="stat__num">Map-first</div>
-      <div class="stat__label">Discovery</div>
-    </div>
-    <div class="stat">
-      <div class="stat__num">Verified</div>
-      <div class="stat__label">Ratings</div>
+    <div class="stat fade-up fade-up-d3">
+      <div class="stat__num">AI</div>
+      <div class="stat__label">Matched</div>
     </div>
   </section>
 
   <!-- HOW IT WORKS -->
   <span id="how" style="position:relative;top:-70px;display:block;visibility:hidden;"></span>
   <section class="how">
-    <div class="section-label fade-in">How it works</div>
-    <h2 class="section-title fade-in">Three steps to a<br>real experience</h2>
+    <div class="section-eyebrow fade-up">How it works</div>
+    <h2 class="section-title fade-up">Three steps to a<br>real connection</h2>
     <div class="steps">
-      <div class="step fade-in">
+      <div class="step fade-up">
         <div class="step__num">01</div>
-        <div class="step__icon">📍</div>
-        <div class="step__title">Post your spot</div>
-        <div class="step__desc">Create a listing for a tour of your city — a hidden bar, a rooftop, a hike only locals know. Pick a date and time.</div>
+        <div class="step__icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <rect x="8" y="2" width="8" height="4" rx="1"/>
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+        </div>
+        <div class="step__title">Take the quiz</div>
+        <div class="step__desc">A 70-second BFI personality quiz builds your profile across 5 dimensions. This shapes who you get matched with — and why.</div>
       </div>
-      <div class="step fade-in">
+      <div class="step fade-up fade-up-d1">
         <div class="step__num">02</div>
-        <div class="step__icon">🗺</div>
-        <div class="step__title">Get discovered</div>
-        <div class="step__desc">Travelers browse an interactive map and discover your listing. They request to join — you approve or decline.</div>
+        <div class="step__icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="step__title">Get matched by vibe</div>
+        <div class="step__desc">AI finds locals whose personality profile overlaps yours. Each result shows exactly why you'd click — not just where they live.</div>
       </div>
-      <div class="step fade-in">
+      <div class="step fade-up fade-up-d2">
         <div class="step__num">03</div>
-        <div class="step__icon">✨</div>
-        <div class="step__title">Meet up</div>
-        <div class="step__desc">Both check in on the day. The app confirms you're both there. After the tour, leave a review and build your reputation.</div>
+        <div class="step__icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
+        </div>
+        <div class="step__title">Spend a day</div>
+        <div class="step__desc">Both check in on the day. Explore the city together. Afterwards, a Memory Card is generated — a permanent record of your day.</div>
       </div>
     </div>
   </section>
 
-  <!-- WHY EXPERIMATE -->
+  <!-- AI MATCH -->
+  <span id="match" style="position:relative;top:-70px;display:block;visibility:hidden;"></span>
+  <section class="ai-section">
+    <div class="ai-grid">
+      <div class="radar-wrap fade-up">
+        <svg class="radar-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Axis lines -->
+          <line x1="100" y1="100" x2="100" y2="30"        stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line x1="100" y1="100" x2="166.6" y2="78.4"    stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line x1="100" y1="100" x2="141.1" y2="156.6"   stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line x1="100" y1="100" x2="58.9"  y2="156.6"   stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line x1="100" y1="100" x2="33.4"  y2="78.4"    stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <!-- Grid rings -->
+          <polygon points="100,82.5 116.65,89.2 110.3,111.15 89.7,111.15 83.35,89.2" fill="none" stroke="rgba(239,239,239,0.05)" stroke-width="1"/>
+          <polygon points="100,65 133.3,89.2 120.6,128.3 79.4,128.3 66.7,89.2"        fill="none" stroke="rgba(239,239,239,0.07)" stroke-width="1"/>
+          <polygon points="100,30 166.6,78.4 141.1,156.6 58.9,156.6 33.4,78.4"        fill="none" stroke="rgba(239,239,239,0.10)" stroke-width="1"/>
+          <!-- You polygon (teal) -->
+          <polygon class="poly-you"
+            points="100,40.5 146.6,84.9 120.6,128.3 73.3,136.8 70.1,90.3"
+            fill="rgba(0,201,167,0.22)" stroke="rgba(0,201,167,0.75)" stroke-width="1.5" stroke-linejoin="round"/>
+          <!-- Ana polygon (warm) -->
+          <polygon class="poly-ana"
+            points="100,47.5 154.6,82.3 124.7,133.9 77.4,131.1 53.4,84.9"
+            fill="rgba(255,107,53,0.15)" stroke="rgba(255,107,53,0.65)" stroke-width="1.5" stroke-linejoin="round"/>
+          <!-- Vertex dots -->
+          <circle cx="100"   cy="30"    r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle cx="166.6" cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle cx="141.1" cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle cx="58.9"  cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle cx="33.4"  cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle cx="100"   cy="100"   r="3"   fill="rgba(0,201,167,0.5)"/>
+          <!-- Labels -->
+          <text x="100"  y="17"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">CURIOSITY</text>
+          <text x="176"  y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">WARMTH</text>
+          <text x="148"  y="169"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">ENERGY</text>
+          <text x="44"   y="169"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">FOCUS</text>
+          <text x="6"    y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="6.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.04em">SENSITIVITY</text>
+        </svg>
+        <div class="radar-legend">
+          <div class="radar-legend__item">
+            <div class="radar-legend__dot" style="background:rgba(0,201,167,0.8);"></div>
+            <span>You</span>
+          </div>
+          <div class="radar-legend__item">
+            <div class="radar-legend__dot" style="background:rgba(255,107,53,0.8);"></div>
+            <span>Ana</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-content fade-up fade-up-d1">
+        <div class="ai-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          AI Matching
+        </div>
+        <h2 class="ai-title">Matched by personality,<br>not just proximity</h2>
+        <p class="ai-sub">Most apps find you the nearest person. ExperiMate finds the right person — someone whose curiosity, warmth, and energy genuinely overlap with yours.</p>
+        <div class="ai-bullets">
+          <div class="ai-bullet">
+            <div class="ai-bullet__icon">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span>70-second BFI quiz maps your personality across 5 dimensions</span>
+          </div>
+          <div class="ai-bullet">
+            <div class="ai-bullet__icon">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span>Weighted cosine similarity + Claude AI reranks and explains each match</span>
+          </div>
+          <div class="ai-bullet">
+            <div class="ai-bullet__icon">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span>See exactly why you'd click — a one-line reason per result</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
   <section class="why">
-    <div class="section-label fade-in">Why ExperiMate</div>
-    <h2 class="section-title fade-in">Experiences, not<br>tourist packages</h2>
-    <div class="why-grid fade-in">
+    <div class="section-eyebrow fade-up">Why ExperiMate</div>
+    <h2 class="section-title fade-up">Real days,<br>not tourist packages</h2>
+    <div class="why-grid fade-up">
       <div class="why-card why-card--teal">
         <div class="why-card__label why-card__label--good">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
           ExperiMate
         </div>
         <div class="why-card__items">
-          <div class="why-item"><div class="why-item__icon">🗺</div><div>Interactive map — see who's hosting near you right now</div></div>
-          <div class="why-item"><div class="why-item__icon">🤝</div><div>Real locals with verified ratings and public reviews</div></div>
-          <div class="why-item"><div class="why-item__icon">💬</div><div>Request-based booking — hosts stay in control</div></div>
-          <div class="why-item"><div class="why-item__icon">✦</div><div>No agency, no script, no markup — just people</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--good"></div><div>AI-matched to someone whose personality fits yours</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--good"></div><div>Interactive map — see who's hosting near you right now</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--good"></div><div>Real locals with verified ratings and public reviews</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--good"></div><div>No agency, no script, no markup — just people</div></div>
         </div>
       </div>
       <div class="why-card why-card--warm">
@@ -721,10 +691,10 @@
           Tour agencies
         </div>
         <div class="why-card__items">
-          <div class="why-item"><div class="why-item__icon">🎭</div><div>Scripted routes you can find on any travel blog</div></div>
-          <div class="why-item"><div class="why-item__icon">💸</div><div>Commission-heavy pricing, not going to the guide</div></div>
-          <div class="why-item"><div class="why-item__icon">⏱</div><div>Rushed groups of 20 strangers on a fixed schedule</div></div>
-          <div class="why-item"><div class="why-item__icon">🤖</div><div>No real connection, just a transaction</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--bad"></div><div>Scripted routes you can find on any travel blog</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--bad"></div><div>Commission-heavy pricing not going to the guide</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--bad"></div><div>Rushed groups of 20 strangers on a fixed schedule</div></div>
+          <div class="why-item"><div class="why-item__dot why-item__dot--bad"></div><div>No real connection, no memory worth keeping</div></div>
         </div>
       </div>
     </div>
@@ -733,57 +703,70 @@
   <!-- FEATURES -->
   <span id="features" style="position:relative;top:-70px;display:block;visibility:hidden;"></span>
   <section class="features">
-    <div class="section-label fade-in">Built for both sides</div>
-    <h2 class="section-title fade-in">Whether you're hosting<br>or exploring</h2>
+    <div class="section-eyebrow fade-up">Built for both sides</div>
+    <h2 class="section-title fade-up">Whether you're hosting<br>or exploring</h2>
     <div class="features-grid">
-      <div class="feat fade-in">
-        <div class="feat__icon">🗺</div>
-        <div class="feat__title">Live map</div>
-        <div class="feat__desc">See every active listing pinned on a real map. Tap a pin to see who's hosting and when.</div>
+      <div class="feat fade-up">
+        <div class="feat__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="feat__badge">New</div>
+        <div class="feat__title">AI Personality Match</div>
+        <div class="feat__desc">Big Five quiz, weighted cosine similarity, Claude AI reranking. Matches by vibe, not just geography.</div>
       </div>
-      <div class="feat fade-in">
-        <div class="feat__icon">🔒</div>
-        <div class="feat__title">Request-based</div>
-        <div class="feat__desc">Guests request, hosts approve. No random strangers showing up — you stay in control.</div>
+      <div class="feat fade-up fade-up-d1">
+        <div class="feat__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="feat__title">Live Map</div>
+        <div class="feat__desc">Every active day pinned on a real interactive map. Tap a pin to see who's hosting, when, and why they'd suit you.</div>
       </div>
-      <div class="feat fade-in">
-        <div class="feat__icon">⭐</div>
-        <div class="feat__title">Verified ratings</div>
-        <div class="feat__desc">After each tour both sides leave a review. Reputation is built over time, not bought.</div>
+      <div class="feat fade-up fade-up-d2">
+        <div class="feat__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="feat__title">Request-based Days</div>
+        <div class="feat__desc">Mates request to join, hosts approve or decline. You stay in full control of every day you open up.</div>
       </div>
-      <div class="feat fade-in">
-        <div class="feat__icon">📱</div>
-        <div class="feat__title">Check-in flow</div>
-        <div class="feat__desc">Both parties confirm they're there. The app tracks it and triggers the review when the tour ends.</div>
+      <div class="feat feat--memory fade-up">
+        <div class="feat__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="feat__badge">New</div>
+        <div class="feat__title">Memory Cards</div>
+        <div class="feat__desc">After each day, Claude generates a personal Memory Card — a title, summary, and highlight saved to your account.</div>
       </div>
-      <div class="feat fade-in">
-        <div class="feat__icon">👤</div>
-        <div class="feat__title">Real profiles</div>
-        <div class="feat__desc">Photos, bios, ratings, and past tours — everything you need to trust before you meet.</div>
+      <div class="feat fade-up fade-up-d1">
+        <div class="feat__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="feat__title">Verified Ratings</div>
+        <div class="feat__desc">After each day both Mates review. Reputation is built from real experiences — public, honest, unedited.</div>
       </div>
-      <div class="feat fade-in">
-        <div class="feat__icon">🌍</div>
-        <div class="feat__title">Any city</div>
-        <div class="feat__desc">Not limited to tourist hotspots. If someone wants to host in their hometown, they can.</div>
+      <div class="feat fade-up fade-up-d2">
+        <div class="feat__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="feat__title">Real Profiles</div>
+        <div class="feat__desc">Photos, bios, personality stats, ratings, and past days — everything you need to trust before you meet.</div>
       </div>
     </div>
   </section>
 
   <!-- FINAL CTA -->
   <section class="cta-section">
-    <div class="cta-card fade-in">
-      <div class="cta-card__eyebrow">Ready to start?</div>
-      <h2 class="cta-card__title">Show them what<br>your city really is</h2>
-      <p class="cta-card__sub">Create a free account, post your first listing, and start connecting with people who want a real experience.</p>
-      <div class="cta-card__actions">
+    <div class="cta-card fade-up">
+      <div class="cta-eyebrow">Ready to find your Mate?</div>
+      <h2 class="cta-title">Show them what<br>your city really is</h2>
+      <p class="cta-sub">Take a 70-second quiz, get matched to someone whose personality fits yours, and open up a day in your city.</p>
+      <div class="cta-actions">
         <a href="/register" class="btn-cta">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Create account
+          Create account — free
         </a>
-        <a href="/map" class="btn-cta-ghost">
-          Explore first →
-        </a>
+        <a href="/map" class="btn-cta-ghost">Explore the map →</a>
       </div>
+      <div class="cta-note">✦ 70-second personality quiz · No credit card · Free forever</div>
     </div>
   </section>
 
@@ -792,7 +775,7 @@
     <div class="footer-inner">
       <div class="footer-brand-block">
         <a href="#" class="footer-brand">Experi<span>Mate</span></a>
-        <p class="footer-tagline">Connecting travelers with real locals for authentic city experiences. No scripts, no agencies — just people.</p>
+        <p class="footer-tagline">Personality-matched local experiences. No scripts, no agencies — just people who click.</p>
         <span class="footer-credit">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           Built for TVZ · Semifinals 2026
@@ -802,9 +785,9 @@
         <div class="footer-links__group">
           <div class="footer-links__label">App</div>
           <a href="/map">Interactive map</a>
-          <a href="/explore">Find locals</a>
+          <a href="/explore">Find Mates</a>
           <a href="/community">Community</a>
-          <a href="/listings/new">Post a tour</a>
+          <a href="/listings/new">Open a day</a>
         </div>
         <div class="footer-links__group">
           <div class="footer-links__label">Account</div>
@@ -814,6 +797,7 @@
         <div class="footer-links__group">
           <div class="footer-links__label">Learn</div>
           <a href="#how">How it works</a>
+          <a href="#match">AI matching</a>
           <a href="#features">Features</a>
         </div>
       </div>
@@ -825,48 +809,44 @@
   </footer>
 
   <script>
-    // Scroll fade-in
+    // Scroll reveals
     const observer = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-    // Hamburger menu
-    const HAMBURGER_OPEN   = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-    const HAMBURGER_CLOSED = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
-
+    // Hamburger
+    const H_OPEN   = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    const H_CLOSED = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
     function closeMobileMenu() {
       const menu = document.getElementById('mobile-menu');
       const btn  = document.getElementById('hamburger-btn');
       menu.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-      btn.innerHTML = HAMBURGER_CLOSED;
+      btn.setAttribute('aria-expanded','false');
+      btn.innerHTML = H_CLOSED;
     }
-
     document.getElementById('hamburger-btn').addEventListener('click', e => {
       e.stopPropagation();
       const menu = document.getElementById('mobile-menu');
       const btn  = e.currentTarget;
       const isOpen = menu.classList.toggle('open');
       btn.setAttribute('aria-expanded', isOpen);
-      btn.innerHTML = isOpen ? HAMBURGER_OPEN : HAMBURGER_CLOSED;
+      btn.innerHTML = isOpen ? H_OPEN : H_CLOSED;
     });
-
     document.addEventListener('click', e => {
       const menu = document.getElementById('mobile-menu');
       if (!menu.classList.contains('open')) return;
       if (!menu.contains(e.target)) closeMobileMenu();
     });
-
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileMenu(); });
 
-    // Theme toggle (landing page — operates on <html> not <body>)
-    const MOON_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-    const SUN_SVG  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+    // Theme toggle
+    const MOON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    const SUN  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
     (function() {
       const btn = document.getElementById('landing-theme-btn');
       if (!btn) return;
-      const update = () => btn.innerHTML = document.documentElement.classList.contains('light-mode') ? MOON_SVG : SUN_SVG;
+      const update = () => btn.innerHTML = document.documentElement.classList.contains('light-mode') ? MOON : SUN;
       update();
       btn.addEventListener('click', () => {
         const isLight = document.documentElement.classList.toggle('light-mode');
