@@ -76,8 +76,23 @@
     if (!userId) return;
     const token = localStorage.getItem('jwt');
     if (!token) return;
-    fetch('/api/user/' + userId, { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(r => r.ok ? r.json() : null)
+    function _doUserFetch(tok) {
+      return fetch('/api/user/' + userId, { headers: { 'Authorization': 'Bearer ' + tok } })
+        .then(r => {
+          if (r.status === 401) {
+            return fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+              .then(rr => rr.ok ? rr.json() : null)
+              .then(data => {
+                if (!data?.token) return null;
+                localStorage.setItem('jwt', data.token);
+                return fetch('/api/user/' + userId, { headers: { 'Authorization': 'Bearer ' + data.token } })
+                  .then(r2 => r2.ok ? r2.json() : null);
+              });
+          }
+          return r.ok ? r.json() : null;
+        });
+    }
+    _doUserFetch(token)
       .then(u => {
         if (!u) return;
         const i = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || u.username?.[0]?.toUpperCase() || '?';

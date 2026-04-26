@@ -265,7 +265,16 @@
       if (userId && Auth.getToken()) {
         try {
           const result = await UserAPI.getById(userId);
-          if (result) { window.location.href = '/map'; return; }
+          if (result) {
+            const initials = ((result.firstName?.[0] ?? '') + (result.lastName?.[0] ?? '')).toUpperCase() || result.username?.[0]?.toUpperCase() || '?';
+            const hue = (result.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+            localStorage.setItem('user_initials', initials);
+            localStorage.setItem('user_hue', String(hue));
+            if (result.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(result.profilePhotoUrl));
+            else localStorage.removeItem('photo_' + userId);
+            window.location.href = '/map';
+            return;
+          }
         } catch { /* fall through to refresh */ }
       }
       // No valid JWT — try refresh cookie
