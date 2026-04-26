@@ -383,13 +383,18 @@
     @media (max-width: 700px) {
       .nav-links, .nav-actions { display: none; }
       .hamburger { display: flex; align-items: center; justify-content: center; }
+      .hero { padding: 88px 20px 60px; overflow: hidden; }
+      .hero-title { font-size: clamp(32px, 10vw, 44px); }
+      .hero-actions { justify-content: center; width: 100%; }
+      .btn-hero-primary, .btn-hero-ghost { flex: 1; justify-content: center; max-width: 200px; }
+      .stats-bar { flex-wrap: wrap; }
+      .stat { flex: 1 1 45%; padding: 20px 12px; }
       .steps { grid-template-columns: 1fr; gap: 2px; }
       .step:first-child { border-radius: var(--radius) var(--radius) 0 0; }
       .step:last-child  { border-radius: 0 0 var(--radius) var(--radius); }
       .footer-inner { grid-template-columns: 1fr; gap: 36px; }
       .footer-tagline { max-width: 100%; }
       .footer-links { grid-template-columns: repeat(2,1fr); gap: 28px 20px; }
-      .stat { flex: 1 1 45%; }
       .card-stack { transform: scale(0.88); transform-origin: center top; }
     }
     @media (max-width: 400px) {
@@ -421,10 +426,10 @@
         <a href="#features" class="nav-link">Features</a>
       </div>
       <div class="nav-actions">
-        <button id="landing-theme-btn" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text-2);display:flex;align-items:center;transition:color 0.2s;"></button>
         <a href="/login" class="btn-nav-ghost">Sign in</a>
         <a href="/register" class="btn-nav-primary">Get started</a>
       </div>
+      <button id="landing-theme-btn" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text-2);display:flex;align-items:center;transition:color 0.2s;"></button>
       <button class="hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
