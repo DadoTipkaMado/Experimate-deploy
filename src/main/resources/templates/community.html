@@ -15,16 +15,24 @@
     .city-section { margin-bottom: 8px; }
     .city-section__label {
       display: flex; align-items: center; gap: 10px;
-      padding: 18px 18px 10px;
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--text-3);
+      padding: 20px 18px 10px;
     }
-    .city-section__label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .city-section__pin {
+      width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center; color: var(--accent);
+    }
+    .city-section__name {
+      font-family: var(--font-display); font-weight: 700; font-size: 15px;
+      color: var(--text); letter-spacing: -0.01em; flex: 1;
+    }
     .city-section__count {
       background: var(--accent-dim); border: 1px solid var(--accent-border);
       border-radius: var(--radius-pill); padding: 2px 9px;
       font-size: 9px; color: var(--accent); letter-spacing: 0.08em;
+      font-family: var(--font-mono);
     }
+    .comm-empty__icon { font-size: 36px; opacity: 0.18; }
 
     .comm-card {
       margin: 0 18px 10px;
@@ -116,7 +124,7 @@
       if (!upcoming.length) {
         feed.innerHTML = `
           <div class="comm-empty">
-            <div class="comm-empty__icon">🗺️</div>
+            <div style="width:52px;height:52px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-3);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
             <div class="comm-empty__title">No upcoming tours yet</div>
             <div class="comm-empty__sub">Be the first to post a tour and show locals what your city has to offer.</div>
             <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 20px;font-size:11px;">Create a listing</a>
@@ -171,8 +179,9 @@
         return `
           <div class="city-section">
             <div class="city-section__label">
-              ${city}
-              <span class="city-section__count">${cityListings.length}</span>
+              <div class="city-section__pin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+              <span class="city-section__name">${city}</span>
+              <span class="city-section__count">${cityListings.length} tour${cityListings.length !== 1 ? 's' : ''}</span>
             </div>
             ${cards}
           </div>`;

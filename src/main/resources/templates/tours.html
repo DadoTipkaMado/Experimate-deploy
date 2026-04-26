@@ -49,7 +49,11 @@
       transition: border-color var(--t-base), transform var(--t-base);
     }
     .listing-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
-    .listing-card--reserved { opacity: 0.5; }
+    .listing-card--reserved  { opacity: 0.5; }
+    .listing-card--available { box-shadow: inset 3px 0 0 var(--accent); }
+    .listing-card--pending   { box-shadow: inset 3px 0 0 #ff9944; }
+    .listing-card--declined  { box-shadow: inset 3px 0 0 rgba(255,80,80,0.45); }
+    .empty-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
     .listing-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
     .listing-card__city { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
     .listing-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0; padding-top: 3px; }
@@ -762,7 +766,7 @@
     if (_baseListings.length === 0) {
       document.getElementById('listings-list').innerHTML = `
         <div class="listings-empty">
-          <div style="font-size:44px;line-height:1;margin-bottom:4px;">🗺️</div>
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
           <div class="listings-empty__title">No tours yet</div>
           <div class="listings-empty__sub">Be the first to host a local experience.</div>
           <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
@@ -786,7 +790,7 @@
     if (!listings.length) {
       list.innerHTML = `
         <div class="listings-empty">
-          <div class="listings-empty__icon">🔍</div>
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
           <div class="listings-empty__title">No matches</div>
           <div class="listings-empty__sub">Try changing the city or filter.</div>
         </div>`;
@@ -829,8 +833,12 @@
 
       const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
       const hostHandle = listing.host ? listing.host.username : '?';
+      const _cardStatusClass = reserved ? ' listing-card--reserved'
+        : reqStatus === 'PENDING'  ? ' listing-card--pending'
+        : reqStatus === 'DECLINED' ? ' listing-card--declined'
+        : ' listing-card--available';
       return `
-        <div class="listing-card anim-fade-up${reserved ? ' listing-card--reserved' : ''}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.04}s;cursor:pointer;" onclick="openListingModal(${listing.id})">
+        <div class="listing-card anim-fade-up${_cardStatusClass}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.04}s;cursor:pointer;" onclick="openListingModal(${listing.id})">
           <div class="listing-card__head">
             <div style="flex:1;min-width:0;">
               <div class="listing-card__city">${listing.city}</div>
@@ -862,7 +870,7 @@
     const pastEl     = document.getElementById('meetups-past');
 
     if (!Auth.getToken()) {
-      upcomingEl.innerHTML = `<div class="meet-empty"><div class="meet-empty__icon">🔒</div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
+      upcomingEl.innerHTML = `<div class="meet-empty"><div class="empty-icon" style="margin-bottom:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
       pastEl.innerHTML = '';
       return;
     }
@@ -966,7 +974,7 @@
     if (!mine.length) {
       el.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:10px;text-align:center;">
-          <div style="font-size:32px;opacity:0.2;">🗺️</div>
+          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
           <div style="font-size:12px;color:var(--text-3);">You have no listings yet.</div>
           <a href="/listings/new" class="btn btn--primary" style="margin-top:4px;height:38px;padding:0 20px;font-size:11px;">+ Create one</a>
         </div>`;
