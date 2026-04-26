@@ -77,6 +77,16 @@
 
 ---
 
+## Current state (as of 2026-04-26, session 2)
+- **Light mode — app pages** — replaced all hardcoded `rgba(239,239,239,x)` text colors with `var(--text-2)` in tours.html, account.html, profile.html, community.html, ratings.html; `.tour-takeover` bg → `var(--bg)`
+- **Light mode — accent contrast** — `--accent` overridden to `#007a65`, `--warm` to `#c94a00` in `body.light-mode` (was `#00c9a7`/`#ff6b35`, ~2.5:1 on white); all dependent tokens updated
+- **Light mode — landing page** — same accent/warm override in `html.light-mode`; nav hover states fixed; mobile menu + footer hardcoded dark bgs fixed; radar chart SVG gets dark-rgba overrides via `.radar-axis/.radar-ring/.radar-dot/.radar-label` classes
+- **Landing mobile layout** — hero title `clamp(22px, 7.5vw, 44px)`; theme toggle moved out of `.nav-actions`; stats bar `flex-wrap`; buttons stack vertically; word cycle: desktop `word-in` (left:0), mobile `word-in-c` (left:50% + translateX(-50%)); fade-out tightened to 19% to eliminate overlap
+
+## Current state (as of 2026-04-26)
+- **David's 5-commit push** — `ReservationResponse.status` now live (filter `r.status !== 'CANCELLED' && r.status !== 'EXPIRED'` already in place, no frontend change needed); `GET /api/user/by-username/{username}` live (already wired, TODO comment removed from api.js); `DELETE /api/user/{id}` with caller check live (settings delete account already calls it); `GET /api/tour-listing` now filters out requester's own listings server-side (frontend unaffected, uses `getMine()` separately); caller-ID checks added to accept/decline/delete booking requests (backend only)
+- **Still pending David** — `TourListingDetails` missing `id` field (Issue #44 dedup still broken); `RatingResponse` missing `raterUsername`/`ratedUsername` (Issue C/E, ratings on profile blocked); `POST /api/auth/logout`
+
 ## Current state (as of 2026-04-25)
 - **UI copy rename** — "My Tours"→"My Days", sub-tabs Joined/Hosted/Open Days, "Rate your Mate", "Join Requests" everywhere; all templates updated
 - **Settings — Personality section** — "My Stat Sheet" (disabled, Soon pill), "Retake quiz" → `/onboarding`, "Why we ask this" expandable panel, "Delete my personality data" danger modal (shows toast, no backend yet)
