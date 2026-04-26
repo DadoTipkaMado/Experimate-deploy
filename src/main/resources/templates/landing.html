@@ -170,7 +170,7 @@
     .word-cycle-wrap { display: inline-block; position: relative; }
     .word-placeholder { visibility: hidden; display: inline-block; white-space: nowrap; color: var(--accent); }
     .word {
-      position: absolute; left: 0; bottom: 0; white-space: nowrap;
+      position: absolute; left: 50%; bottom: 0; white-space: nowrap;
       color: var(--accent); opacity: 0;
       animation: word-in 15s ease-in-out infinite;
     }
@@ -180,11 +180,11 @@
     .word:nth-child(4) { animation-delay: 9s; }
     .word:nth-child(5) { animation-delay: 12s; color: var(--warm); }
     @keyframes word-in {
-      0%   { opacity: 0; transform: translateY(10px); }
-      6%   { opacity: 1; transform: translateY(0); }
-      17%  { opacity: 1; transform: translateY(0); }
-      19%  { opacity: 0; transform: translateY(-8px); }
-      100% { opacity: 0; }
+      0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      6%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      17%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+      19%  { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(0); }
     }
 
     .hero-sub {
