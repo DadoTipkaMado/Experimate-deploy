@@ -54,7 +54,7 @@
     .listing-card__city { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
     .listing-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0; padding-top: 3px; }
     .listing-card__host { font-size: 10px; color: var(--accent); letter-spacing: 0.06em; }
-    .listing-card__desc { font-size: 11px; color: rgba(239,239,239,0.55); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .listing-card__desc { font-size: 11px; color: var(--text-2); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .listing-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
     .listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
     .listing-card__status--available { color: var(--accent); }
@@ -157,7 +157,7 @@
     /* ── ACTIVE TOUR TAKEOVER ── */
     .tour-takeover {
       display: none; position: fixed; inset: 0; z-index: 600;
-      background: #0a0a0a;
+      background: var(--bg);
       flex-direction: column; align-items: center; justify-content: center;
       gap: 18px; padding: 40px 32px; text-align: center;
     }
@@ -182,7 +182,7 @@
     .lm-date-main { font-size: 13px; color: var(--text-2); font-weight: 600; }
     .lm-date-time { font-size: 11px; color: var(--text-3); }
     .lm-divider { height: 1px; background: var(--border-2); margin: 2px 0; }
-    .listing-modal__desc { font-size: 13px; color: rgba(239,239,239,0.7); line-height: 1.8; max-height: 35vh; overflow-y: auto; }
+    .listing-modal__desc { font-size: 13px; color: var(--text-2); line-height: 1.8; max-height: 35vh; overflow-y: auto; }
     .lm-host-btn { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; text-decoration: none; transition: border-color var(--t-fast), background var(--t-fast); width: 100%; box-sizing: border-box; }
     .lm-host-btn:hover { border-color: var(--accent-border); background: var(--accent-dim); }
     .lm-host-avatar { width: 36px; height: 36px; border-radius: 50%; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }

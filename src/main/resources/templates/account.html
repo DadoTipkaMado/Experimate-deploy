@@ -18,7 +18,7 @@
     .account-hero__rating { padding: 5px 14px; border-radius: var(--radius-pill); background: var(--accent-dim); border: 1px solid var(--accent-border); font-size: 12px; color: var(--accent); letter-spacing: 0.06em; position: relative; z-index: 1; }
     .acc-section { padding: 18px 18px 4px; border-bottom: 1px solid var(--border); }
     .acc-section:last-of-type { border-bottom: none; }
-    .bio-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-size: 11px; line-height: 1.75; color: rgba(239,239,239,0.65); margin-bottom: 14px; }
+    .bio-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-size: 11px; line-height: 1.75; color: var(--text-2); margin-bottom: 14px; }
     .logout-btn { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border); color: var(--text-3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 18px; transition: border-color var(--t-base), color var(--t-base); }
     .logout-btn:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
     .new-listing-link { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border-2); color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background var(--t-base), border-color var(--t-base), color var(--t-base); }
@@ -161,7 +161,7 @@
 
       const bioEl = document.getElementById('account-bio');
       bioEl.textContent = user.bio || 'No bio set.';
-      bioEl.style.color = user.bio ? 'rgba(239,239,239,0.65)' : 'var(--text-3)';
+      bioEl.style.color = user.bio ? 'var(--text-2)' : 'var(--text-3)';
 
       // Cache initials for topbar
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
