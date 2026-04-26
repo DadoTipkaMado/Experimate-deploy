@@ -82,10 +82,23 @@ body.light-mode {
   --text:           #111218;
   --text-2:         #555a70;
   --text-3:         #8b90a6;
-  --accent-dim:     rgba(0, 201, 167, 0.12);
-  --accent-border:  rgba(0, 201, 167, 0.45);
-  --warm-dim:       rgba(255, 107, 53, 0.10);
-  --warm-border:    rgba(255, 107, 53, 0.3);
+
+  /* Darker accent for contrast on white — #00c9a7 is only ~2.5:1 on white */
+  --accent:         #007a65;
+  --accent-dim:     rgba(0, 122, 101, 0.10);
+  --accent-border:  rgba(0, 122, 101, 0.40);
+  --accent-glow:    rgba(0, 122, 101, 1);
+
+  /* Darker warm for same reason */
+  --warm:           #c94a00;
+  --warm-dim:       rgba(201, 74, 0, 0.10);
+  --warm-border:    rgba(201, 74, 0, 0.30);
+
+  --shadow-sm:      0 1px 4px rgba(0,0,0,0.10);
+  --shadow-md:      0 4px 16px rgba(0,0,0,0.12);
+  --shadow-lg:      0 8px 32px rgba(0,0,0,0.15);
+  --shadow-glow:    0 0 0 3px rgba(0,122,101,0.14);
+  --shadow-glow-warm: 0 0 0 3px rgba(201,74,0,0.12);
 }
 
 body.light-mode .btn--ghost {
