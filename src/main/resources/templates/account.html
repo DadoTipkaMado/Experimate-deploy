@@ -19,6 +19,16 @@
     .acc-section { padding: 18px 18px 4px; border-bottom: 1px solid var(--border); }
     .acc-section:last-of-type { border-bottom: none; }
     .bio-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; font-size: 11px; line-height: 1.75; color: var(--text-2); margin-bottom: 14px; }
+    .acc-stats { display: flex; gap: 0; margin-top: 8px; width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    .acc-stat { flex: 1; text-align: center; padding: 12px 8px; border-right: 1px solid var(--border); }
+    .acc-stat:last-child { border-right: none; }
+    .acc-stat__num { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); line-height: 1; }
+    .acc-stat__num--accent { color: var(--accent); }
+    .acc-stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+    .acc-link-card { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; transition: border-color var(--t-fast); }
+    .acc-link-card:hover { border-color: var(--border-2); }
+    .acc-link-card__left { display: flex; align-items: center; gap: 12px; }
+    .acc-link-card__icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); flex-shrink: 0; }
     .logout-btn { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border); color: var(--text-3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 18px; transition: border-color var(--t-base), color var(--t-base); }
     .logout-btn:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
     .new-listing-link { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border-2); color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background var(--t-base), border-color var(--t-base), color var(--t-base); }
@@ -56,14 +66,14 @@
       <div id="account-name" style="display:none;font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-0.01em;"></div>
       <div id="account-handle" style="display:none;font-size:11px;color:var(--text-2);letter-spacing:0.08em;margin-top:-4px;"></div>
       <div class="account-hero__rating" id="account-rating-badge" style="display:none;">★ <span id="account-rating">0.0</span></div>
-      <div id="account-stats" style="display:none;gap:24px;margin-top:4px;">
-        <div style="text-align:center;">
-          <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);" id="stat-total">0</div>
-          <div style="font-size:9px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Days</div>
+      <div id="account-stats" class="acc-stats" style="display:none;">
+        <div class="acc-stat">
+          <div class="acc-stat__num" id="stat-total">0</div>
+          <div class="acc-stat__label">Days</div>
         </div>
-        <div style="text-align:center;">
-          <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--accent);" id="stat-active">0</div>
-          <div style="font-size:9px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;">Active</div>
+        <div class="acc-stat">
+          <div class="acc-stat__num acc-stat__num--accent" id="stat-active">0</div>
+          <div class="acc-stat__label">Active</div>
         </div>
       </div>
     </div>
@@ -101,25 +111,35 @@
     </div>
 
     <div class="acc-section">
-      <a href="/requests" id="requests-link" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color var(--t-fast);">
-        <div>
-          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Join Requests</div>
-          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View and manage incoming day requests</div>
+      <a href="/requests" id="requests-link" class="acc-link-card">
+        <div class="acc-link-card__left">
+          <div class="acc-link-card__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          </div>
+          <div>
+            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Join Requests</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View and manage incoming day requests</div>
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
-          <span style="color:var(--text-3);font-size:16px;">›</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </a>
     </div>
 
     <div class="acc-section">
-      <a href="/ratings" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color var(--t-fast);">
-        <div>
-          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Ratings</div>
-          <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View ratings and reviews</div>
+      <a href="/ratings" class="acc-link-card">
+        <div class="acc-link-card__left">
+          <div class="acc-link-card__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div>
+            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Ratings</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View ratings and reviews</div>
+          </div>
         </div>
-        <span style="color:var(--text-3);font-size:16px;">›</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </a>
     </div>
 
@@ -174,7 +194,7 @@
       const activeCount = myListings.filter(l => !l.reserved).length;
       document.getElementById('stat-total').textContent  = myListings.length;
       document.getElementById('stat-active').textContent = activeCount;
-      document.getElementById('account-stats').style.display = 'flex';
+      document.getElementById('account-stats').style.display = '';
 
       const avatarEl = document.getElementById('account-avatar');
       const resolvedPhoto = UserAPI.photoUrl(user.profilePhotoUrl);
