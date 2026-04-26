@@ -170,7 +170,7 @@
     .word-cycle-wrap { display: inline-block; position: relative; }
     .word-placeholder { visibility: hidden; display: inline-block; white-space: nowrap; color: var(--accent); }
     .word {
-      position: absolute; left: 50%; bottom: 0; white-space: nowrap;
+      position: absolute; left: 0; bottom: 0; white-space: nowrap;
       color: var(--accent); opacity: 0;
       animation: word-in 15s ease-in-out infinite;
     }
@@ -179,7 +179,16 @@
     .word:nth-child(3) { animation-delay: 6s; color: var(--warm); }
     .word:nth-child(4) { animation-delay: 9s; }
     .word:nth-child(5) { animation-delay: 12s; color: var(--warm); }
+    /* Desktop: left-aligned words */
     @keyframes word-in {
+      0%   { opacity: 0; transform: translateY(10px); }
+      6%   { opacity: 1; transform: translateY(0); }
+      17%  { opacity: 1; transform: translateY(0); }
+      19%  { opacity: 0; transform: translateY(-8px); }
+      100% { opacity: 0; transform: translateY(0); }
+    }
+    /* Mobile: centered words (used via animation-name override below) */
+    @keyframes word-in-c {
       0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
       6%   { opacity: 1; transform: translateX(-50%) translateY(0); }
       17%  { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -379,6 +388,8 @@
       .ai-content { align-items: center; text-align: center; }
       .ai-sub, .ai-bullets { max-width: 100%; }
       .ai-bullets { align-items: flex-start; }
+      /* Switch to centered word animation on mobile */
+      .word { left: 50%; animation-name: word-in-c; }
     }
     @media (max-width: 700px) {
       .nav-links, .nav-actions { display: none; }
