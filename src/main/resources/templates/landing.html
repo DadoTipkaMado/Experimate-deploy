@@ -99,6 +99,10 @@
     html.light-mode .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
     html.light-mode .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
     html.light-mode .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
+    html.light-mode .radar-axis { stroke: rgba(0,0,0,0.12); }
+    html.light-mode .radar-ring  { stroke: rgba(0,0,0,0.10); }
+    html.light-mode .radar-dot   { fill:   rgba(0,0,0,0.28); }
+    html.light-mode .radar-label { fill:   rgba(17,18,24,0.45); }
     .nav-brand { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
     .nav-brand span { color: var(--accent); }
     .nav-right { display: flex; align-items: center; gap: clamp(12px,3vw,32px); }
@@ -612,15 +616,15 @@
       <div class="radar-wrap fade-up">
         <svg class="radar-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
           <!-- Axis lines -->
-          <line x1="100" y1="100" x2="100" y2="30"        stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
-          <line x1="100" y1="100" x2="166.6" y2="78.4"    stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
-          <line x1="100" y1="100" x2="141.1" y2="156.6"   stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
-          <line x1="100" y1="100" x2="58.9"  y2="156.6"   stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
-          <line x1="100" y1="100" x2="33.4"  y2="78.4"    stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line class="radar-axis" x1="100" y1="100" x2="100" y2="30"        stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line class="radar-axis" x1="100" y1="100" x2="166.6" y2="78.4"    stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line class="radar-axis" x1="100" y1="100" x2="141.1" y2="156.6"   stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line class="radar-axis" x1="100" y1="100" x2="58.9"  y2="156.6"   stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+          <line class="radar-axis" x1="100" y1="100" x2="33.4"  y2="78.4"    stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
           <!-- Grid rings -->
-          <polygon points="100,82.5 116.65,89.2 110.3,111.15 89.7,111.15 83.35,89.2" fill="none" stroke="rgba(239,239,239,0.05)" stroke-width="1"/>
-          <polygon points="100,65 133.3,89.2 120.6,128.3 79.4,128.3 66.7,89.2"        fill="none" stroke="rgba(239,239,239,0.07)" stroke-width="1"/>
-          <polygon points="100,30 166.6,78.4 141.1,156.6 58.9,156.6 33.4,78.4"        fill="none" stroke="rgba(239,239,239,0.10)" stroke-width="1"/>
+          <polygon class="radar-ring" points="100,82.5 116.65,89.2 110.3,111.15 89.7,111.15 83.35,89.2" fill="none" stroke="rgba(239,239,239,0.05)" stroke-width="1"/>
+          <polygon class="radar-ring" points="100,65 133.3,89.2 120.6,128.3 79.4,128.3 66.7,89.2"        fill="none" stroke="rgba(239,239,239,0.07)" stroke-width="1"/>
+          <polygon class="radar-ring" points="100,30 166.6,78.4 141.1,156.6 58.9,156.6 33.4,78.4"        fill="none" stroke="rgba(239,239,239,0.10)" stroke-width="1"/>
           <!-- You polygon (teal) -->
           <polygon class="poly-you"
             points="100,40.5 146.6,84.9 120.6,128.3 73.3,136.8 70.1,90.3"
@@ -630,18 +634,18 @@
             points="100,47.5 154.6,82.3 124.7,133.9 77.4,131.1 53.4,84.9"
             fill="rgba(255,107,53,0.15)" stroke="rgba(255,107,53,0.65)" stroke-width="1.5" stroke-linejoin="round"/>
           <!-- Vertex dots -->
-          <circle cx="100"   cy="30"    r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="166.6" cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="141.1" cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="58.9"  cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="33.4"  cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="100"   cy="100"   r="3"   fill="rgba(0,201,167,0.5)"/>
+          <circle class="radar-dot" cx="100"   cy="30"    r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle class="radar-dot" cx="166.6" cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle class="radar-dot" cx="141.1" cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle class="radar-dot" cx="58.9"  cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle class="radar-dot" cx="33.4"  cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
+          <circle cx="100" cy="100" r="3" fill="rgba(0,201,167,0.5)"/>
           <!-- Labels -->
-          <text x="100"  y="17"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">CURIOSITY</text>
-          <text x="176"  y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">WARMTH</text>
-          <text x="148"  y="169"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">ENERGY</text>
-          <text x="44"   y="169"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">FOCUS</text>
-          <text x="6"    y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="6.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.04em">SENSITIVITY</text>
+          <text class="radar-label" x="100"  y="17"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">CURIOSITY</text>
+          <text class="radar-label" x="176"  y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">WARMTH</text>
+          <text class="radar-label" x="148"  y="169"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">ENERGY</text>
+          <text class="radar-label" x="44"   y="169"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">FOCUS</text>
+          <text class="radar-label" x="6"    y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="6.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.04em">SENSITIVITY</text>
         </svg>
         <div class="radar-legend">
           <div class="radar-legend__item">
