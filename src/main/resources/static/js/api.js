@@ -114,7 +114,6 @@ const AuthAPI = {
 const UserAPI = {
   getAll: ()               => apiFetch('/api/user'),
   getById: (id)            => apiFetch(`/api/user/${id}`),
-  // TODO: swap profile.html to use this once David adds GET /api/user/by-username/{username} (Issue #1)
   getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
   search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
   uploadPhoto: (id, blob)  => { const f = new FormData(); f.append('file', blob, 'photo.jpg'); return apiFetch(`/api/user/${id}/profile-photo`, { method: 'POST', body: f }); },
