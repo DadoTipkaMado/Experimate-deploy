@@ -77,6 +77,20 @@
 
 ---
 
+## Current state (as of 2026-04-27)
+- **Onboarding quiz** — `/onboarding` live: 10 BFI-10 questions one per screen, slide transitions, 5-point scale with auto-advance, "Analyzing your vibe…" radar animation, result card with pentagon radar + trait pills + descriptor. Scores in `localStorage.personality_scores`. Route in `AccountViewController`. Register → `/onboarding` redirect done. Settings "Retake quiz" already linked.
+- **Personality nudge** — bottom banner in `main.js` for logged-in users without `personality_done`. Dismisses permanently via `personality_skipped` flag. Skips on `/onboarding` itself.
+- **Memories tab** — Overview / Memories tab bar on account.html. Loads COMPLETED/CLOSED reservations as 2-col card grid. Tap → bottom-sheet modal. Empty state + skeleton.
+- **Explore redesign** — MatchCard UI: "Personalized" chip activates match % badge + `whyMatch` text + trait pills on each card. Match % is locally computed (seeded cosine similarity, placeholder until David adds real personality scores to UserResponse). Natural language search placeholder with AI badge. Clicking Personalized without quiz → redirects to `/onboarding`.
+- **Topbar avatar fixed** — login.html fast-redirect path now saves `user_initials`/`user_hue`/`photo_` before redirecting; topbar fetch handles 401 with refresh retry.
+- **David's pending items sent** — issues filed for `TourListingDetails.id` and `RatingResponse` user fields. `POST /api/personality` issue also needs filing.
+
+## What's still pending (as of 2026-04-27)
+- **David**: `TourListingDetails.id`, `RatingResponse raterUsername/ratedUsername`, `POST /api/personality`
+- **Explore**: real `POST /api/match` from David → swap seeded match% for real scores
+- **Onboarding backend**: `POST /api/personality` to persist quiz results server-side
+- **`POST /api/auth/logout`**: server-side token invalidation (workaround in place)
+
 ## Current state (as of 2026-04-26, session 2)
 - **Light mode — app pages** — replaced all hardcoded `rgba(239,239,239,x)` text colors with `var(--text-2)` in tours.html, account.html, profile.html, community.html, ratings.html; `.tour-takeover` bg → `var(--bg)`
 - **Light mode — accent contrast** — `--accent` overridden to `#007a65`, `--warm` to `#c94a00` in `body.light-mode` (was `#00c9a7`/`#ff6b35`, ~2.5:1 on white); all dependent tokens updated
