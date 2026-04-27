@@ -360,10 +360,17 @@
   function closeDeleteModal() {
     document.getElementById('delete-personality-modal').classList.remove('modal-backdrop--visible');
   }
-  function confirmDeletePersonality() {
+  async function confirmDeletePersonality() {
     closeDeleteModal();
-    if (typeof showToast === 'function') {
-      showToast('Coming soon — contact support to delete your data.', 'default');
+    try {
+      await OnboardingAPI.deleteData();
+      localStorage.removeItem('personality_scores');
+      localStorage.removeItem('personality_traits');
+      localStorage.removeItem('personality_done');
+      localStorage.removeItem('personality_skipped');
+      showToast('Personality data deleted.', 'success');
+    } catch (e) {
+      showToast(e.message || 'Could not delete data — try again.', 'error');
     }
   }
   document.getElementById('delete-personality-modal').addEventListener('click', function(e) {
@@ -395,14 +402,7 @@
   // Sign out
   document.getElementById('logout-btn').addEventListener('click', e => {
     e.preventDefault();
-    if (typeof Auth !== 'undefined') {
-      Auth.logout();
-    } else {
-      sessionStorage.setItem('explicit_logout', '1');
-      localStorage.removeItem('jwt');
-      localStorage.removeItem('userId');
-      window.location.href = '/login';
-    }
+    Auth.logout();
   });
 </script>
 </body>

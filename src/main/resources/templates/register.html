@@ -149,7 +149,7 @@
 
       <div class="auth-field">
         <label for="dateOfBirth">Date of birth</label>
-        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required data-date-format="date" inputmode="numeric">
+        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required inputmode="numeric">
         <span class="auth-field__hint">Format: DD/MM/YYYY · Must be 18 or older</span>
         <span class="field-error" id="err-dob"></span>
       </div>
@@ -239,7 +239,6 @@
       if (/[^A-Za-z0-9]/.test(val)) score++;
       const levels = ['weak','fair','good','strong'];
       const labels = ['Weak','Fair','Good','Strong'];
-      const cls = 'pw-strength__bar--' + levels[score - 1] || '';
       for (let i = 0; i < score; i++) bars[i].classList.add('pw-strength__bar--' + levels[score - 1]);
       label.textContent = score > 0 ? labels[score - 1] : '';
       label.style.color = ['#ff4444','#ff9944','#44bb44','#00c9a7'][score - 1] || '#555';

@@ -332,21 +332,20 @@
 
 </div>
 
+<script src="/js/api.js"></script>
 <script>
-  // ── BFI-10 questions ──────────────────────────────────────────────
-  // Each item: { text, dimension, reverse }
-  // Dimensions: O=Openness, C=Conscientiousness, E=Extraversion, A=Agreeableness, N=Neuroticism
+  // ── BFI-10 question texts (scoring is server-side) ────────────────
   const QUESTIONS = [
-    { text: 'Extraverted, enthusiastic.',        dim: 'E', reverse: false },
-    { text: 'Critical, quarrelsome.',            dim: 'A', reverse: true  },
-    { text: 'Dependable, self-disciplined.',     dim: 'C', reverse: false },
-    { text: 'Anxious, easily upset.',            dim: 'N', reverse: false },
-    { text: 'Open to new experiences, complex.', dim: 'O', reverse: false },
-    { text: 'Reserved, quiet.',                  dim: 'E', reverse: true  },
-    { text: 'Sympathetic, warm.',                dim: 'A', reverse: false },
-    { text: 'Disorganized, careless.',           dim: 'C', reverse: true  },
-    { text: 'Calm, emotionally stable.',         dim: 'N', reverse: true  },
-    { text: 'Conventional, uncreative.',         dim: 'O', reverse: true  },
+    'Extraverted, enthusiastic.',
+    'Critical, quarrelsome.',
+    'Dependable, self-disciplined.',
+    'Anxious, easily upset.',
+    'Open to new experiences, complex.',
+    'Reserved, quiet.',
+    'Sympathetic, warm.',
+    'Disorganized, careless.',
+    'Calm, emotionally stable.',
+    'Conventional, uncreative.',
   ];
 
   const SCALE = [
@@ -357,14 +356,20 @@
     { val: 5, label: 'Strongly agree'    },
   ];
 
-  // Trait descriptors per dimension based on score (1-5)
-  const TRAITS = {
-    O: { hi: ['Curious',      'Creative',    'Open-minded'],  lo: ['Grounded',    'Practical',   'Focused']  },
-    C: { hi: ['Organised',    'Reliable',    'Thorough'],     lo: ['Spontaneous', 'Flexible',    'Easy-going']},
-    E: { hi: ['Enthusiastic', 'Social',      'Energetic'],    lo: ['Calm',        'Reflective',  'Thoughtful']},
-    A: { hi: ['Warm',         'Empathetic',  'Collaborative'],lo: ['Direct',      'Independent', 'Honest']   },
-    N: { hi: ['Sensitive',    'Expressive',  'Emotional'],    lo: ['Stable',      'Resilient',   'Steady']   },
+  // Trait descriptors — keyed by Big5 field name, threshold ±0.25 on [-1,+1] scale
+  const TRAITS_MAP = {
+    openness:          { hi: ['Curious',      'Creative',    'Open-minded'],  lo: ['Grounded',    'Practical',   'Focused']    },
+    conscientiousness: { hi: ['Organised',    'Reliable',    'Thorough'],     lo: ['Spontaneous', 'Flexible',    'Easy-going'] },
+    extraversion:      { hi: ['Enthusiastic', 'Social',      'Energetic'],    lo: ['Calm',        'Reflective',  'Thoughtful'] },
+    agreeableness:     { hi: ['Warm',         'Empathetic',  'Collaborative'],lo: ['Direct',      'Independent', 'Honest']     },
+    neuroticism:       { hi: ['Sensitive',    'Expressive',  'Emotional'],    lo: ['Stable',      'Resilient',   'Steady']     },
   };
+
+  // Vertex order matches radar SVG: top=O, right=E, bottom-right=A, bottom-left=C, left=N
+  const VERTICES = [
+    [100, 30], [166.6, 78.4], [141.1, 156.6], [58.9, 156.6], [33.4, 78.4],
+  ];
+  const DIM_KEYS = ['openness', 'extraversion', 'agreeableness', 'conscientiousness', 'neuroticism'];
 
   let current = 0;
   let answers = new Array(10).fill(null);
@@ -372,11 +377,10 @@
   // ── Render question ───────────────────────────────────────────────
   function renderQuestion(idx, direction) {
     const stage   = document.getElementById('stage');
-    const q       = QUESTIONS[idx];
+    const text    = QUESTIONS[idx];
     const entered = direction === 'next' ? 'q-card--enter-right' : 'q-card--enter-left';
     const exited  = direction === 'next' ? 'q-card--exit-left'  : 'q-card--exit-right';
 
-    // Exit existing card
     const existing = stage.querySelector('.q-card--active');
     if (existing) {
       existing.classList.remove('q-card--active');
@@ -384,12 +388,11 @@
       setTimeout(() => existing.remove(), 400);
     }
 
-    // Build new card
     const card = document.createElement('div');
     card.className = `q-card ${entered}`;
     card.innerHTML = `
       <div class="q-prefix">I see myself as someone who is…</div>
-      <div class="q-text">${highlight(q.text)}</div>
+      <div class="q-text">${highlight(text)}</div>
       <div class="scale">
         ${SCALE.map(s => `
           <button class="scale-btn" data-val="${s.val}" onclick="selectAnswer(${idx}, ${s.val}, this)">
@@ -400,13 +403,11 @@
       </div>`;
     stage.appendChild(card);
 
-    // Re-apply previous answer if navigating back
     if (answers[idx] !== null) {
       const btn = card.querySelector(`[data-val="${answers[idx]}"]`);
       if (btn) btn.classList.add('scale-btn--selected');
     }
 
-    // Trigger transition
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         card.classList.remove(entered);
@@ -419,8 +420,7 @@
   }
 
   function highlight(text) {
-    // Italicise the core adjective (first word before comma or period)
-    return text.replace(/^([^,\.]+)/, '<em>$1</em>');
+    return text.replace(/^([^,.]+)/, '<em>$1</em>');
   }
 
   function updateProgress(idx) {
@@ -432,13 +432,8 @@
   function updateNextBtn(idx) {
     const btn = document.getElementById('btn-next');
     const ready = answers[idx] !== null;
-    btn.classList.toggle('btn-next--ready', ready);
-    btn.textContent = idx === QUESTIONS.length - 1 ? 'See my results' : 'Continue';
-    if (idx === QUESTIONS.length - 1) {
-      btn.innerHTML = 'See my results <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    } else {
-      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    }
+    const arrowSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+    btn.innerHTML = (idx === QUESTIONS.length - 1 ? 'See my results ' : 'Continue ') + arrowSvg;
     btn.classList.toggle('btn-next--ready', ready);
   }
 
@@ -448,7 +443,6 @@
     btn.closest('.scale').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('scale-btn--selected'));
     btn.classList.add('scale-btn--selected');
     updateNextBtn(idx);
-    // Auto-advance on mobile after brief delay
     if (current < QUESTIONS.length - 1) {
       setTimeout(() => nextQuestion(), 280);
     }
@@ -464,50 +458,40 @@
     renderQuestion(current, 'next');
   }
 
-  // ── Scoring & results ─────────────────────────────────────────────
-  function calcScores() {
-    const raw = { O: [], C: [], E: [], A: [], N: [] };
-    QUESTIONS.forEach((q, i) => {
-      const val = answers[i] ?? 3;
-      raw[q.dim].push(q.reverse ? (6 - val) : val);
-    });
-    const scores = {};
-    Object.keys(raw).forEach(d => {
-      scores[d] = raw[d].reduce((a, b) => a + b, 0) / raw[d].length;
-    });
-    return scores;
-  }
-
-  function showAnalyzing() {
+  // ── Analyzing + API submit ────────────────────────────────────────
+  async function showAnalyzing() {
     document.getElementById('progress-wrap').style.opacity = '0';
     document.getElementById('next-wrap').style.opacity = '0';
-    const el = document.getElementById('analyzing');
-    el.classList.add('analyzing--visible');
+    document.getElementById('analyzing').classList.add('analyzing--visible');
 
-    // Animate the radar polygon to user's shape
-    const scores = calcScores();
-    const poly = document.getElementById('analyzing-poly');
-    setTimeout(() => {
-      poly.setAttribute('points', buildPolyPoints(scores));
-    }, 900);
+    const startTime = Date.now();
+    let response;
+    try {
+      response = await OnboardingAPI.submit(answers);
+    } catch (err) {
+      document.getElementById('analyzing').classList.remove('analyzing--visible');
+      document.getElementById('progress-wrap').style.opacity = '';
+      document.getElementById('next-wrap').style.opacity = '';
+      alert(err.message || 'Could not save results — please try again.');
+      return;
+    }
 
-    setTimeout(() => showResult(scores), 2600);
+    // Animate radar polygon once we have the real vector
+    document.getElementById('analyzing-poly').setAttribute('points', buildPolyPoints(response.vector));
+
+    // Ensure minimum 2600ms of analyzing animation
+    const elapsed = Date.now() - startTime;
+    if (elapsed < 2600) await new Promise(r => setTimeout(r, 2600 - elapsed));
+
+    showResult(response.vector);
   }
 
-  // Pentagon vertex positions (same as landing radar)
-  const VERTICES = [
-    [100, 30],    // top (O)
-    [166.6, 78.4],// right (E)
-    [141.1, 156.6],// bottom-right (A)
-    [58.9, 156.6], // bottom-left (C)
-    [33.4, 78.4],  // left (N)
-  ];
-  const DIM_ORDER = ['O', 'E', 'A', 'C', 'N'];
-
-  function buildPolyPoints(scores) {
+  // ── Radar polygon builder ─────────────────────────────────────────
+  // vector values are in [-1, +1]; normalise to [0, 1] for radius scaling
+  function buildPolyPoints(vector) {
     const cx = 100, cy = 100;
-    return DIM_ORDER.map((d, i) => {
-      const t = (scores[d] - 1) / 4; // 0..1
+    return DIM_KEYS.map((key, i) => {
+      const t = ((vector[key] ?? 0) + 1) / 2;
       const [vx, vy] = VERTICES[i];
       const x = cx + (vx - cx) * (0.15 + t * 0.85);
       const y = cy + (vy - cy) * (0.15 + t * 0.85);
@@ -515,53 +499,52 @@
     }).join(' ');
   }
 
-  function showResult(scores) {
+  // ── Show result ───────────────────────────────────────────────────
+  function showResult(vector) {
     document.getElementById('analyzing').classList.remove('analyzing--visible');
     document.getElementById('analyzing').style.display = 'none';
 
-    // Build trait descriptors
+    const pillColors = { accent: 'trait-pill--accent', warm: 'trait-pill--warm', muted: 'trait-pill--muted' };
     const pills = [];
-    DIM_ORDER.forEach(d => {
-      const s = scores[d];
-      const bucket = s >= 3.5 ? 'hi' : s <= 2.5 ? 'lo' : null;
-      if (bucket) pills.push({ label: TRAITS[d][bucket][0], type: d === 'E' || d === 'O' ? 'accent' : d === 'A' ? 'warm' : 'muted' });
+    Object.keys(TRAITS_MAP).forEach(key => {
+      const s = vector[key] ?? 0;
+      const bucket = s >= 0.25 ? 'hi' : s <= -0.25 ? 'lo' : null;
+      if (bucket) {
+        const type = key === 'extraversion' || key === 'openness' ? 'accent' : key === 'agreeableness' ? 'warm' : 'muted';
+        pills.push({ label: TRAITS_MAP[key][bucket][0], type });
+      }
     });
 
-    // Title — lead with extraversion + openness descriptor
-    const e = scores['E'] >= 3.5 ? 'Enthusiastic' : 'Thoughtful';
-    const o = scores['O'] >= 3.5 ? 'Explorer'     : 'Steady Mate';
+    const e = vector.extraversion >= 0.25 ? 'Enthusiastic' : 'Thoughtful';
+    const o = vector.openness     >= 0.25 ? 'Explorer'     : 'Steady Mate';
     document.getElementById('result-title').textContent = `You're a${/^[aeiou]/i.test(e) ? 'n' : ''} ${e} ${o}`;
 
-    // Pills
-    const pillColors = { accent: 'trait-pill--accent', warm: 'trait-pill--warm', muted: 'trait-pill--muted' };
     document.getElementById('result-traits').innerHTML = pills
       .map((p, i) => `<span class="trait-pill ${pillColors[p.type]}" style="animation-delay:${i*0.07}s">${p.label}</span>`)
       .join('');
 
-    // Description
-    const eDesc = scores['E'] >= 3.5 ? 'bring energy to every room' : 'prefer meaningful one-on-one moments';
-    const oDesc = scores['O'] >= 3.5 ? 'love discovering things off the beaten path' : 'enjoy the comfort of familiar experiences';
+    const eDesc = vector.extraversion >= 0.25 ? 'bring energy to every room' : 'prefer meaningful one-on-one moments';
+    const oDesc = vector.openness     >= 0.25 ? 'love discovering things off the beaten path' : 'enjoy the comfort of familiar experiences';
     document.getElementById('result-desc').textContent =
       `You tend to ${eDesc} and ${oDesc}. ExperiMate will match you with locals whose vibe genuinely overlaps with yours.`;
 
-    // Radar polygon
-    document.getElementById('result-poly').setAttribute('points', buildPolyPoints(scores));
+    document.getElementById('result-poly').setAttribute('points', buildPolyPoints(vector));
 
-    // Save to localStorage
-    localStorage.setItem('personality_scores', JSON.stringify(scores));
+    localStorage.setItem('personality_scores', JSON.stringify(vector));
     localStorage.setItem('personality_traits', JSON.stringify(pills.map(p => p.label)));
     localStorage.setItem('personality_done', '1');
 
-    const result = document.getElementById('result');
-    result.classList.add('result--visible');
+    document.getElementById('result').classList.add('result--visible');
   }
 
   function finishOnboarding() {
-    window.location.href = '/map';
+    window.location.href = '/explore';
   }
 
   function skipQuiz() {
-    window.location.href = localStorage.getItem('jwt') ? '/map' : '/login';
+    const dest = localStorage.getItem('jwt') ? '/map' : '/login';
+    if (!localStorage.getItem('jwt')) { window.location.href = dest; return; }
+    OnboardingAPI.cancel().catch(() => {}).finally(() => { window.location.href = dest; });
   }
 
   // ── Init ──────────────────────────────────────────────────────────

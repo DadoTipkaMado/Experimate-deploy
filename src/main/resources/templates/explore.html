@@ -163,23 +163,31 @@
   let _listingCountMap = {}; // username → active listing count
 
   // ── Personality match helpers ─────────────────────────────────────
+  // personality_scores stores Big5VectorDto: { openness, conscientiousness, extraversion, agreeableness, neuroticism }
+  // Values are in [-1.0, +1.0] (server-normalised).
+  const _BIG5_KEYS  = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
+  const _BIG5_SEEDS = [7, 13, 3, 17, 11];
+
   function _getMyScores() {
     try { return JSON.parse(localStorage.getItem('personality_scores') || 'null'); } catch { return null; }
   }
-  function _seedScore(username, dim) {
-    const seeds = { O: 7, C: 13, E: 3, A: 17, N: 11 };
+
+  function _seedVec(username) {
     const h = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return 1 + ((h * seeds[dim]) % 40) / 10;
+    return _BIG5_SEEDS.map(seed => ((h * seed) % 100) / 100 * 2 - 1);
   }
+
   function matchPct(username) {
     const my = _getMyScores();
     if (!my) return null;
-    const dims = ['O','C','E','A','N'];
-    const dot  = dims.reduce((s,d) => s + my[d] * _seedScore(username, d), 0);
-    const magA = Math.sqrt(dims.reduce((s,d) => s + my[d]**2, 0));
-    const magB = Math.sqrt(dims.reduce((s,d) => s + _seedScore(username, dims[0])**2 + _seedScore(username, 'C')**2 + _seedScore(username, 'E')**2 + _seedScore(username, 'A')**2 + _seedScore(username, 'N')**2, 0) / 5);
-    const sim  = dot / (magA * Math.sqrt(dims.reduce((s,d) => s + _seedScore(username,d)**2, 0)));
-    return Math.min(99, Math.round(sim * 28 + 70));
+    const myVec    = _BIG5_KEYS.map(k => my[k] ?? 0);
+    const theirVec = _seedVec(username);
+    const dot  = myVec.reduce((s, v, i) => s + v * theirVec[i], 0);
+    const magA = Math.sqrt(myVec.reduce((s, v) => s + v * v, 0));
+    const magB = Math.sqrt(theirVec.reduce((s, v) => s + v * v, 0));
+    if (!magA || !magB) return null;
+    const sim = dot / (magA * magB);
+    return Math.min(99, Math.max(50, Math.round(sim * 25 + 75)));
   }
   function whyMatch(username) {
     const traits = ['curious','calm','adventurous','thoughtful','warm','creative','organised','spontaneous','bold','empathetic'];
@@ -249,7 +257,6 @@
         </div>`;
       return;
     }
-    const now = new Date();
     feed.innerHTML = users.map(user => {
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
