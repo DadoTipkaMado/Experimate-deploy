@@ -41,4 +41,9 @@ public class AccountViewController {
         model.addAttribute("currentPage", "account");
         return "settings";
     }
+
+    @GetMapping("/onboarding")
+    public String onboarding() {
+        return "onboarding";
+    }
 }
