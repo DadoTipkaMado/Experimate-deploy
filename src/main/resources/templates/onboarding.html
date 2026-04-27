@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Your Vibe — ExperiMate</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:   #00c9a7;
+      --warm:     #ff6b35;
+      --bg:       #0a0a0a;
+      --surface:  #141414;
+      --border:   #222;
+      --text:     #efefef;
+      --text-2:   #9a9a9a;
+      --text-3:   #505050;
+      --font-d:   'Syne', sans-serif;
+      --font-m:   'DM Mono', monospace;
+      --t:        0.22s ease;
+    }
+
+    html, body {
+      height: 100%; background: var(--bg); color: var(--text);
+      font-family: var(--font-m); overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Shell ── */
+    .shell {
+      height: 100dvh; display: flex; flex-direction: column;
+      max-width: 480px; margin: 0 auto; position: relative; overflow: hidden;
+    }
+
+    /* ── Ambient orbs ── */
+    .orb {
+      position: fixed; border-radius: 50%; filter: blur(100px);
+      pointer-events: none; z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; background: var(--accent); opacity: 0.04; top: -160px; left: -120px; }
+    .orb-2 { width: 380px; height: 380px; background: var(--warm);   opacity: 0.04; bottom: -80px; right: -100px; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      position: relative; z-index: 10; padding: 20px 24px 0; flex-shrink: 0;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .progress-bar {
+      flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--accent); border-radius: 2px;
+      transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .progress-label {
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.1em;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .skip-btn {
+      background: none; border: none; cursor: pointer; font-family: var(--font-m);
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.06em;
+      padding: 4px; transition: color var(--t);
+    }
+    .skip-btn:hover { color: var(--text-2); }
+
+    /* ── Question stage ── */
+    .stage {
+      flex: 1; position: relative; overflow: hidden; z-index: 1;
+    }
+
+    .q-card {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 32px 28px 24px;
+      transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1),
+                  opacity  0.28s ease;
+    }
+    .q-card--enter-right  { transform: translateX(100%); opacity: 0; }
+    .q-card--enter-left   { transform: translateX(-100%); opacity: 0; }
+    .q-card--active       { transform: translateX(0); opacity: 1; }
+    .q-card--exit-left    { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+    .q-card--exit-right   { transform: translateX(100%); opacity: 0; pointer-events: none; }
+
+    .q-prefix {
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .q-text {
+      font-family: var(--font-d); font-weight: 800;
+      font-size: clamp(22px, 6vw, 30px);
+      line-height: 1.15; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 40px;
+    }
+    .q-text em { font-style: normal; color: var(--accent); }
+
+    /* ── Scale buttons ── */
+    .scale {
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .scale-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 16px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      cursor: pointer; transition: border-color var(--t), background var(--t), transform 0.14s;
+      text-align: left; width: 100%;
+    }
+    .scale-btn:active { transform: scale(0.98); }
+    .scale-btn:hover  { border-color: #333; background: #1a1a1a; }
+    .scale-btn--selected {
+      border-color: var(--accent); background: rgba(0,201,167,0.08);
+    }
+    .scale-btn__dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color var(--t), background var(--t);
+    }
+    .scale-btn--selected .scale-btn__dot {
+      border-color: var(--accent); background: var(--accent);
+    }
+    .scale-btn__dot::after {
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: #000; opacity: 0;
+      transition: opacity 0.12s;
+    }
+    .scale-btn--selected .scale-btn__dot::after { opacity: 1; }
+    .scale-btn__label {
+      font-family: var(--font-m); font-size: 12px; color: var(--text-2);
+      transition: color var(--t);
+    }
+    .scale-btn--selected .scale-btn__label { color: var(--text); }
+    .scale-btn__num {
+      margin-left: auto; font-size: 10px; color: var(--text-3);
+      letter-spacing: 0.06em; flex-shrink: 0;
+    }
+
+    /* ── Next button ── */
+    .next-wrap {
+      position: relative; z-index: 10; padding: 16px 28px 32px; flex-shrink: 0;
+    }
+    .btn-next {
+      width: 100%; height: 50px; border-radius: 25px;
+      background: var(--accent); border: none; color: #000;
+      font-family: var(--font-d); font-weight: 800; font-size: 13px;
+      letter-spacing: 0.06em; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity var(--t), transform 0.14s;
+      opacity: 0; pointer-events: none;
+    }
+    .btn-next--ready { opacity: 1; pointer-events: all; }
+    .btn-next:hover  { opacity: 0.88; transform: translateY(-1px); }
+    .btn-next:active { transform: scale(0.98); }
+
+    /* ── Analyzing screen ── */
+    .analyzing {
+      display: none; position: absolute; inset: 0; z-index: 20;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 24px; padding: 40px 32px; background: var(--bg); text-align: center;
+    }
+    .analyzing--visible { display: flex; animation: fadeIn 0.5s ease both; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .analyzing__radar {
+      width: 180px; height: 180px;
+      filter: drop-shadow(0 0 30px rgba(0,201,167,0.20));
+    }
+    .radar-ring { stroke-dasharray: 200; stroke-dashoffset: 200; animation: drawRing 1.2s ease forwards; }
+    .radar-ring:nth-child(1) { animation-delay: 0.1s; }
+    .radar-ring:nth-child(2) { animation-delay: 0.3s; }
+    .radar-ring:nth-child(3) { animation-delay: 0.5s; }
+    .radar-poly { stroke-dasharray: 600; stroke-dashoffset: 600; opacity: 0; animation: drawPoly 1.0s ease forwards; animation-delay: 0.8s; }
+    @keyframes drawRing { to { stroke-dashoffset: 0; } }
+    @keyframes drawPoly { to { stroke-dashoffset: 0; opacity: 1; } }
+
+    .analyzing__title {
+      font-family: var(--font-d); font-weight: 800; font-size: 22px;
+      color: var(--text); letter-spacing: -0.02em;
+    }
+    .analyzing__dots::after {
+      content: ''; animation: dots 1.6s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%  { content: ''; }   25% { content: '.'; }
+      50% { content: '..'; } 75% { content: '...'; }
+    }
+    .analyzing__sub {
+      font-size: 11px; color: var(--text-3); letter-spacing: 0.06em; line-height: 1.6;
+    }
+
+    /* ── Result screen ── */
+    .result {
+      display: none; position: absolute; inset: 0; z-index: 20;
+      flex-direction: column; align-items: center; overflow-y: auto;
+      padding: 40px 28px 40px; background: var(--bg); text-align: center;
+    }
+    .result--visible { display: flex; animation: slideUp 0.55s cubic-bezier(0.32,0.72,0,1) both; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    .result__eyebrow {
+      font-size: 9px; color: var(--accent); letter-spacing: 0.18em;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    .result__title {
+      font-family: var(--font-d); font-weight: 900;
+      font-size: clamp(28px, 8vw, 40px);
+      letter-spacing: -0.03em; line-height: 1.05;
+      color: var(--text); margin-bottom: 24px;
+    }
+    .result__radar {
+      width: 200px; height: 200px; margin-bottom: 24px;
+      filter: drop-shadow(0 0 24px rgba(0,201,167,0.15));
+    }
+    .result__traits {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      margin-bottom: 32px;
+    }
+    .trait-pill {
+      padding: 6px 14px; border-radius: 20px; font-size: 11px;
+      letter-spacing: 0.06em; font-family: var(--font-m);
+      animation: popIn 0.3s cubic-bezier(0.32,0.72,0,1) both;
+    }
+    .trait-pill--accent { background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.3); color: var(--accent); }
+    .trait-pill--warm   { background: rgba(255,107,53,0.10); border: 1px solid rgba(255,107,53,0.25); color: var(--warm); }
+    .trait-pill--muted  { background: var(--surface); border: 1px solid var(--border); color: var(--text-2); }
+    @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .result__desc {
+      font-size: 12px; color: var(--text-2); line-height: 1.85;
+      max-width: 300px; margin-bottom: 36px;
+    }
+    .btn-continue {
+      width: 100%; max-width: 320px; height: 52px; border-radius: 26px;
+      background: var(--accent); border: none; color: #000;
+      font-family: var(--font-d); font-weight: 800; font-size: 14px;
+      letter-spacing: 0.05em; cursor: pointer;
+      transition: opacity var(--t), transform 0.14s;
+      margin-bottom: 16px;
+    }
+    .btn-continue:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-skip-result {
+      background: none; border: none; font-family: var(--font-m); font-size: 11px;
+      color: var(--text-3); cursor: pointer; letter-spacing: 0.04em; transition: color var(--t);
+    }
+    .btn-skip-result:hover { color: var(--text-2); }
+
+    .result__note {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.06em;
+      line-height: 1.6; max-width: 260px; margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="shell" id="shell">
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:10%"></div>
+    </div>
+    <span class="progress-label" id="progress-label">1 / 10</span>
+    <button class="skip-btn" onclick="skipQuiz()">Skip</button>
+  </div>
+
+  <!-- Question stage -->
+  <div class="stage" id="stage"></div>
+
+  <!-- Next button -->
+  <div class="next-wrap" id="next-wrap">
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">
+      Continue
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+
+  <!-- Analyzing overlay -->
+  <div class="analyzing" id="analyzing">
+    <svg class="analyzing__radar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <polygon class="radar-ring" points="100,82.5 116.65,89.2 110.3,111.15 89.7,111.15 83.35,89.2" fill="none" stroke="rgba(0,201,167,0.18)" stroke-width="1"/>
+      <polygon class="radar-ring" points="100,65 133.3,89.2 120.6,128.3 79.4,128.3 66.7,89.2"        fill="none" stroke="rgba(0,201,167,0.25)" stroke-width="1"/>
+      <polygon class="radar-ring" points="100,30 166.6,78.4 141.1,156.6 58.9,156.6 33.4,78.4"        fill="none" stroke="rgba(0,201,167,0.32)" stroke-width="1"/>
+      <polygon class="radar-poly" id="analyzing-poly"
+        points="100,50 148,84 128,140 72,140 52,84"
+        fill="rgba(0,201,167,0.15)" stroke="rgba(0,201,167,0.8)" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="analyzing__title">Analyzing your vibe<span class="analyzing__dots"></span></div>
+      <div class="analyzing__sub" style="margin-top:8px;">Building your personality profile</div>
+    </div>
+  </div>
+
+  <!-- Result overlay -->
+  <div class="result" id="result">
+    <div class="result__eyebrow">Your personality profile</div>
+    <div class="result__title" id="result-title">You're a —</div>
+    <svg class="result__radar" id="result-radar" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- grid rings -->
+      <line x1="100" y1="100" x2="100" y2="30"      stroke="rgba(239,239,239,0.06)" stroke-width="1"/>
+      <line x1="100" y1="100" x2="166.6" y2="78.4"  stroke="rgba(239,239,239,0.06)" stroke-width="1"/>
+      <line x1="100" y1="100" x2="141.1" y2="156.6" stroke="rgba(239,239,239,0.06)" stroke-width="1"/>
+      <line x1="100" y1="100" x2="58.9"  y2="156.6" stroke="rgba(239,239,239,0.06)" stroke-width="1"/>
+      <line x1="100" y1="100" x2="33.4"  y2="78.4"  stroke="rgba(239,239,239,0.06)" stroke-width="1"/>
+      <polygon points="100,82.5 116.65,89.2 110.3,111.15 89.7,111.15 83.35,89.2" fill="none" stroke="rgba(239,239,239,0.08)" stroke-width="1"/>
+      <polygon points="100,65 133.3,89.2 120.6,128.3 79.4,128.3 66.7,89.2"       fill="none" stroke="rgba(239,239,239,0.10)" stroke-width="1"/>
+      <polygon points="100,30 166.6,78.4 141.1,156.6 58.9,156.6 33.4,78.4"       fill="none" stroke="rgba(239,239,239,0.13)" stroke-width="1"/>
+      <!-- labels -->
+      <text x="100" y="17"  text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="rgba(239,239,239,0.3)" letter-spacing="0.06em">OPEN</text>
+      <text x="176" y="76"  text-anchor="start"  font-family="'DM Mono',monospace" font-size="7" fill="rgba(239,239,239,0.3)" letter-spacing="0.06em">EXTRA</text>
+      <text x="148" y="169" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="rgba(239,239,239,0.3)" letter-spacing="0.06em">AGREE</text>
+      <text x="44"  y="169" text-anchor="middle" font-family="'DM Mono',monospace" font-size="7" fill="rgba(239,239,239,0.3)" letter-spacing="0.06em">CONSC</text>
+      <text x="6"   y="76"  text-anchor="start"  font-family="'DM Mono',monospace" font-size="6.5" fill="rgba(239,239,239,0.3)" letter-spacing="0.04em">NEURO</text>
+      <!-- result polygon (filled by JS) -->
+      <polygon id="result-poly" points="100,100 100,100 100,100 100,100 100,100"
+        fill="rgba(0,201,167,0.15)" stroke="rgba(0,201,167,0.75)" stroke-width="1.5" stroke-linejoin="round"/>
+      <circle cx="100" cy="100" r="3" fill="rgba(0,201,167,0.5)"/>
+    </svg>
+    <div class="result__traits" id="result-traits"></div>
+    <p class="result__desc" id="result-desc"></p>
+    <button class="btn-continue" onclick="finishOnboarding()">Find my Mates →</button>
+    <button class="btn-skip-result" onclick="skipQuiz()">Skip for now</button>
+    <p class="result__note">Your personality data is private and used only to rank who you see in Explore. You can delete it any time in Settings.</p>
+  </div>
+
+</div>
+
+<script>
+  // ── BFI-10 questions ──────────────────────────────────────────────
+  // Each item: { text, dimension, reverse }
+  // Dimensions: O=Openness, C=Conscientiousness, E=Extraversion, A=Agreeableness, N=Neuroticism
+  const QUESTIONS = [
+    { text: 'Extraverted, enthusiastic.',        dim: 'E', reverse: false },
+    { text: 'Critical, quarrelsome.',            dim: 'A', reverse: true  },
+    { text: 'Dependable, self-disciplined.',     dim: 'C', reverse: false },
+    { text: 'Anxious, easily upset.',            dim: 'N', reverse: false },
+    { text: 'Open to new experiences, complex.', dim: 'O', reverse: false },
+    { text: 'Reserved, quiet.',                  dim: 'E', reverse: true  },
+    { text: 'Sympathetic, warm.',                dim: 'A', reverse: false },
+    { text: 'Disorganized, careless.',           dim: 'C', reverse: true  },
+    { text: 'Calm, emotionally stable.',         dim: 'N', reverse: true  },
+    { text: 'Conventional, uncreative.',         dim: 'O', reverse: true  },
+  ];
+
+  const SCALE = [
+    { val: 1, label: 'Strongly disagree' },
+    { val: 2, label: 'Somewhat disagree' },
+    { val: 3, label: 'Neutral'           },
+    { val: 4, label: 'Somewhat agree'    },
+    { val: 5, label: 'Strongly agree'    },
+  ];
+
+  // Trait descriptors per dimension based on score (1-5)
+  const TRAITS = {
+    O: { hi: ['Curious',      'Creative',    'Open-minded'],  lo: ['Grounded',    'Practical',   'Focused']  },
+    C: { hi: ['Organised',    'Reliable',    'Thorough'],     lo: ['Spontaneous', 'Flexible',    'Easy-going']},
+    E: { hi: ['Enthusiastic', 'Social',      'Energetic'],    lo: ['Calm',        'Reflective',  'Thoughtful']},
+    A: { hi: ['Warm',         'Empathetic',  'Collaborative'],lo: ['Direct',      'Independent', 'Honest']   },
+    N: { hi: ['Sensitive',    'Expressive',  'Emotional'],    lo: ['Stable',      'Resilient',   'Steady']   },
+  };
+
+  let current = 0;
+  let answers = new Array(10).fill(null);
+
+  // ── Render question ───────────────────────────────────────────────
+  function renderQuestion(idx, direction) {
+    const stage   = document.getElementById('stage');
+    const q       = QUESTIONS[idx];
+    const entered = direction === 'next' ? 'q-card--enter-right' : 'q-card--enter-left';
+    const exited  = direction === 'next' ? 'q-card--exit-left'  : 'q-card--exit-right';
+
+    // Exit existing card
+    const existing = stage.querySelector('.q-card--active');
+    if (existing) {
+      existing.classList.remove('q-card--active');
+      existing.classList.add(exited);
+      setTimeout(() => existing.remove(), 400);
+    }
+
+    // Build new card
+    const card = document.createElement('div');
+    card.className = `q-card ${entered}`;
+    card.innerHTML = `
+      <div class="q-prefix">I see myself as someone who is…</div>
+      <div class="q-text">${highlight(q.text)}</div>
+      <div class="scale">
+        ${SCALE.map(s => `
+          <button class="scale-btn" data-val="${s.val}" onclick="selectAnswer(${idx}, ${s.val}, this)">
+            <div class="scale-btn__dot"></div>
+            <span class="scale-btn__label">${s.label}</span>
+            <span class="scale-btn__num">${s.val}</span>
+          </button>`).join('')}
+      </div>`;
+    stage.appendChild(card);
+
+    // Re-apply previous answer if navigating back
+    if (answers[idx] !== null) {
+      const btn = card.querySelector(`[data-val="${answers[idx]}"]`);
+      if (btn) btn.classList.add('scale-btn--selected');
+    }
+
+    // Trigger transition
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        card.classList.remove(entered);
+        card.classList.add('q-card--active');
+      });
+    });
+
+    updateProgress(idx);
+    updateNextBtn(idx);
+  }
+
+  function highlight(text) {
+    // Italicise the core adjective (first word before comma or period)
+    return text.replace(/^([^,\.]+)/, '<em>$1</em>');
+  }
+
+  function updateProgress(idx) {
+    const pct = ((idx + 1) / QUESTIONS.length) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `${idx + 1} / ${QUESTIONS.length}`;
+  }
+
+  function updateNextBtn(idx) {
+    const btn = document.getElementById('btn-next');
+    const ready = answers[idx] !== null;
+    btn.classList.toggle('btn-next--ready', ready);
+    btn.textContent = idx === QUESTIONS.length - 1 ? 'See my results' : 'Continue';
+    if (idx === QUESTIONS.length - 1) {
+      btn.innerHTML = 'See my results <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+    } else {
+      btn.innerHTML = 'Continue <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+    }
+    btn.classList.toggle('btn-next--ready', ready);
+  }
+
+  // ── Interactions ──────────────────────────────────────────────────
+  function selectAnswer(idx, val, btn) {
+    answers[idx] = val;
+    btn.closest('.scale').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('scale-btn--selected'));
+    btn.classList.add('scale-btn--selected');
+    updateNextBtn(idx);
+    // Auto-advance on mobile after brief delay
+    if (current < QUESTIONS.length - 1) {
+      setTimeout(() => nextQuestion(), 280);
+    }
+  }
+
+  function nextQuestion() {
+    if (answers[current] === null) return;
+    if (current === QUESTIONS.length - 1) {
+      showAnalyzing();
+      return;
+    }
+    current++;
+    renderQuestion(current, 'next');
+  }
+
+  // ── Scoring & results ─────────────────────────────────────────────
+  function calcScores() {
+    const raw = { O: [], C: [], E: [], A: [], N: [] };
+    QUESTIONS.forEach((q, i) => {
+      const val = answers[i] ?? 3;
+      raw[q.dim].push(q.reverse ? (6 - val) : val);
+    });
+    const scores = {};
+    Object.keys(raw).forEach(d => {
+      scores[d] = raw[d].reduce((a, b) => a + b, 0) / raw[d].length;
+    });
+    return scores;
+  }
+
+  function showAnalyzing() {
+    document.getElementById('progress-wrap').style.opacity = '0';
+    document.getElementById('next-wrap').style.opacity = '0';
+    const el = document.getElementById('analyzing');
+    el.classList.add('analyzing--visible');
+
+    // Animate the radar polygon to user's shape
+    const scores = calcScores();
+    const poly = document.getElementById('analyzing-poly');
+    setTimeout(() => {
+      poly.setAttribute('points', buildPolyPoints(scores));
+    }, 900);
+
+    setTimeout(() => showResult(scores), 2600);
+  }
+
+  // Pentagon vertex positions (same as landing radar)
+  const VERTICES = [
+    [100, 30],    // top (O)
+    [166.6, 78.4],// right (E)
+    [141.1, 156.6],// bottom-right (A)
+    [58.9, 156.6], // bottom-left (C)
+    [33.4, 78.4],  // left (N)
+  ];
+  const DIM_ORDER = ['O', 'E', 'A', 'C', 'N'];
+
+  function buildPolyPoints(scores) {
+    const cx = 100, cy = 100;
+    return DIM_ORDER.map((d, i) => {
+      const t = (scores[d] - 1) / 4; // 0..1
+      const [vx, vy] = VERTICES[i];
+      const x = cx + (vx - cx) * (0.15 + t * 0.85);
+      const y = cy + (vy - cy) * (0.15 + t * 0.85);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+  }
+
+  function showResult(scores) {
+    document.getElementById('analyzing').classList.remove('analyzing--visible');
+    document.getElementById('analyzing').style.display = 'none';
+
+    // Build trait descriptors
+    const pills = [];
+    DIM_ORDER.forEach(d => {
+      const s = scores[d];
+      const bucket = s >= 3.5 ? 'hi' : s <= 2.5 ? 'lo' : null;
+      if (bucket) pills.push({ label: TRAITS[d][bucket][0], type: d === 'E' || d === 'O' ? 'accent' : d === 'A' ? 'warm' : 'muted' });
+    });
+
+    // Title — lead with extraversion + openness descriptor
+    const e = scores['E'] >= 3.5 ? 'Enthusiastic' : 'Thoughtful';
+    const o = scores['O'] >= 3.5 ? 'Explorer'     : 'Steady Mate';
+    document.getElementById('result-title').textContent = `You're a${/^[aeiou]/i.test(e) ? 'n' : ''} ${e} ${o}`;
+
+    // Pills
+    const pillColors = { accent: 'trait-pill--accent', warm: 'trait-pill--warm', muted: 'trait-pill--muted' };
+    document.getElementById('result-traits').innerHTML = pills
+      .map((p, i) => `<span class="trait-pill ${pillColors[p.type]}" style="animation-delay:${i*0.07}s">${p.label}</span>`)
+      .join('');
+
+    // Description
+    const eDesc = scores['E'] >= 3.5 ? 'bring energy to every room' : 'prefer meaningful one-on-one moments';
+    const oDesc = scores['O'] >= 3.5 ? 'love discovering things off the beaten path' : 'enjoy the comfort of familiar experiences';
+    document.getElementById('result-desc').textContent =
+      `You tend to ${eDesc} and ${oDesc}. ExperiMate will match you with locals whose vibe genuinely overlaps with yours.`;
+
+    // Radar polygon
+    document.getElementById('result-poly').setAttribute('points', buildPolyPoints(scores));
+
+    // Save to localStorage
+    localStorage.setItem('personality_scores', JSON.stringify(scores));
+    localStorage.setItem('personality_traits', JSON.stringify(pills.map(p => p.label)));
+    localStorage.setItem('personality_done', '1');
+
+    const result = document.getElementById('result');
+    result.classList.add('result--visible');
+  }
+
+  function finishOnboarding() {
+    window.location.href = '/map';
+  }
+
+  function skipQuiz() {
+    window.location.href = localStorage.getItem('jwt') ? '/map' : '/login';
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  renderQuestion(0, 'next');
+</script>
+</body>
+</html>
