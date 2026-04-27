@@ -161,13 +161,22 @@ const BookingRequestAPI = {
 };
 
 /* ───────────────────────────────────────────────
-   SAVED LOCALS  /api/saved
-   TODO: swap explore.html localStorage logic to use this once David adds the endpoints (Issue #4)
+   SAVED LOCALS  /api/saved  (post-MVP, endpoints pending)
 ─────────────────────────────────────────────── */
 const SavedAPI = {
   getAll: ()                   => apiFetch('/api/saved'),
   save:   (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'POST' }),
   unsave: (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   ONBOARDING  /api/onboarding
+─────────────────────────────────────────────── */
+const OnboardingAPI = {
+  getStatus:  ()        => apiFetch('/api/onboarding/status'),
+  submit:     (answers) => apiFetch('/api/onboarding/answers', { method: 'POST', body: JSON.stringify({ answers }) }),
+  cancel:     ()        => apiFetch('/api/onboarding/cancel',  { method: 'POST' }),
+  deleteData: ()        => apiFetch('/api/onboarding/data',    { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────

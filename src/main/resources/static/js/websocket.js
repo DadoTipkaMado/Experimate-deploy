@@ -9,8 +9,6 @@
 const WS_URL = '/ws/map';
 
 let _ws = null;
-let _reconnectTimer = null;
-let _reconnectDelay = 3000;
 
 function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -19,22 +17,12 @@ function connectWebSocket() {
   try {
     _ws = new WebSocket(fullUrl);
   } catch (e) {
-    scheduleReconnect();
     return;
   }
 
-  _ws.onopen    = () => { _reconnectDelay = 3000; };
   _ws.onmessage = (event) => { handleMessage(event.data); };
   _ws.onerror   = () => {};
   _ws.onclose   = () => { /* endpoint not yet implemented — don't retry */ };
-}
-
-function scheduleReconnect() {
-  clearTimeout(_reconnectTimer);
-  _reconnectTimer = setTimeout(() => {
-    _reconnectDelay = Math.min(_reconnectDelay * 2, 30000);
-    connectWebSocket();
-  }, _reconnectDelay);
 }
 
 function handleMessage(raw) {

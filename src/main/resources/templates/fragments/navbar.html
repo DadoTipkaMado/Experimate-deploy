@@ -107,8 +107,8 @@
   (function() {
     const path = window.location.pathname;
     document.querySelectorAll('.navbar__item').forEach(item => {
-      const href = item.getAttribute('href') || item.getAttribute('th:href') || '';
-      const segment = href.replace('@{', '').replace('}', '').split('/')[1] || '';
+      const href = item.getAttribute('href') || '';
+      const segment = href.split('/')[1] || '';
       if (segment && path.includes('/' + segment)) {
         item.classList.add('navbar__item--active');
       }

@@ -96,21 +96,18 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
   function renderMeet(reservations) {
-    const userId = Auth.getUserId();
     const upcomingEl = document.getElementById('tab-upcoming');
     const pastEl     = document.getElementById('tab-past');
 
-    if (!userId) {
+    if (!Auth.getToken()) {
       upcomingEl.innerHTML = `<div class="meet-empty"><div class="meet-empty__icon">🔒</div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost meet-empty__cta">Sign in →</a></div>`;
       pastEl.innerHTML = '';
       return;
     }
 
     const now  = new Date();
-    const mine = reservations.filter(r => r.guest && r.guest.id === userId);
+    const mine = reservations.filter(r => r.guest?.username === Auth.getUsername());
     const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
     const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
 
@@ -120,13 +117,13 @@
         <div class="meet-card anim-fade-up">
           <div class="meet-card__date">
             <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${MONTHS[d.getMonth()]}</div>
+            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
           </div>
           <div class="meet-card__info">
             <div class="meet-card__who">👤 ${res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?'}</div>
             <div class="meet-card__where">${res.tourListing.city}</div>
           </div>
-          <div class="badge badge--${isPast ? 'past' : 'confirmed'}">${isPast ? 'past' : 'confirmed'}</div>
+          <div class="badge badge--${isPast ? 'past' : 'confirmed'}">${isPast ? 'Past' : 'Confirmed'}</div>
         </div>`;
     };
 

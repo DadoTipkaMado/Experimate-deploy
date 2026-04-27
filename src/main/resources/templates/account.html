@@ -258,7 +258,6 @@
       bioEl.textContent = user.bio || 'No bio set.';
       bioEl.style.color = user.bio ? 'var(--text-2)' : 'var(--text-3)';
 
-      // Cache initials for topbar
       const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       localStorage.setItem('user_initials', initials);
@@ -272,16 +271,13 @@
       document.getElementById('account-stats').style.display = '';
 
       const avatarEl = document.getElementById('account-avatar');
-      const resolvedPhoto = UserAPI.photoUrl(user.profilePhotoUrl);
-      const photoUrl = resolvedPhoto;
-      if (resolvedPhoto) localStorage.setItem('photo_' + userId, resolvedPhoto);
+      const photoUrl = UserAPI.photoUrl(user.profilePhotoUrl);
+      if (photoUrl) localStorage.setItem('photo_' + userId, photoUrl);
       else localStorage.removeItem('photo_' + userId);
       if (typeof renderTopbarAvatar === 'function') renderTopbarAvatar();
       if (photoUrl) {
         avatarEl.innerHTML = `<img src="${photoUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
       } else {
-        const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
-        const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
         avatarEl.style.background = `hsl(${hue},35%,22%)`;
         avatarEl.style.border = `2px solid hsl(${hue},40%,35%)`;
         avatarEl.innerHTML = `<span style="font-family:var(--font-display);font-weight:800;font-size:28px;color:hsl(${hue},60%,72%);">${initials}</span>`;
