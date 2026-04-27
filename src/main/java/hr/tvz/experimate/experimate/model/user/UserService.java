@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.model.user;
 
+import hr.tvz.experimate.experimate.model.onboarding.QuizResult;
+import hr.tvz.experimate.experimate.model.onboarding.QuizResultRepo;
 import hr.tvz.experimate.experimate.model.shared.FileStorageService;
 import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
@@ -32,20 +34,24 @@ public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepo userRepo;
+    private final QuizResultRepo quizResultRepo;
     private final ApplicationEventPublisher publisher;
     private final BCryptPasswordEncoder encoder;
     private final FileStorageService fileStorageService;
 
     public UserService(UserRepo userRepo,
+                       QuizResultRepo quizResultRepo,
                        ApplicationEventPublisher publisher,
                        BCryptPasswordEncoder encoder,
                        FileStorageService fileStorageService) {
         this.userRepo = userRepo;
+        this.quizResultRepo = quizResultRepo;
         this.publisher = publisher;
         this.encoder = encoder;
         this.fileStorageService = fileStorageService;
     }
 
+    @Transactional
     public UserResponse createUser(CreateUserDto createUserDto) {
         User user = new User.UserBuilder(
                 createUserDto.firstName(),
@@ -63,6 +69,7 @@ public class UserService {
                 .build();
 
         userRepo.save(user);
+        quizResultRepo.save(new QuizResult(user));
         log.info("User created with id {}", user.getId());
 
         return createUserResponse(user);
