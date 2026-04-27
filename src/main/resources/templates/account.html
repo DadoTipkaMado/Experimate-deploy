@@ -47,6 +47,56 @@
     .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
     .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
     .req-empty { font-size: 12px; color: var(--text-3); padding: 8px 0 12px; }
+
+    /* ── Account tabs ── */
+    .acc-tab-bar { display: flex; border-bottom: 1px solid var(--border); padding: 0 18px; gap: 0; flex-shrink: 0; }
+    .acc-tab { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3); padding: 11px 16px; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color var(--t-base), border-color var(--t-base); user-select: none; }
+    .acc-tab:hover { color: var(--text-2); }
+    .acc-tab--active { color: var(--accent); border-bottom-color: var(--accent); }
+    .acc-tab-panel { display: none; }
+    .acc-tab-panel--active { display: block; }
+
+    /* ── Memory grid ── */
+    .memory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px 18px 32px; }
+    .memory-card {
+      border-radius: var(--radius); overflow: hidden; cursor: pointer;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: border-color var(--t-base), transform var(--t-base);
+    }
+    .memory-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+    .memory-card__photo { aspect-ratio: 1; background: var(--surface-2); position: relative; overflow: hidden; }
+    .memory-card__photo img { width: 100%; height: 100%; object-fit: cover; }
+    .memory-card__body { padding: 10px; }
+    .memory-card__city { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .memory-card__date { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; margin-top: 2px; }
+
+    /* ── Memory modal ── */
+    .memory-modal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      align-items: flex-end; justify-content: center;
+    }
+    .memory-modal--visible { display: flex; }
+    .memory-modal__sheet {
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border-2); border-bottom: none;
+      width: 100%; max-width: 480px; max-height: 85dvh;
+      overflow-y: auto; padding: 20px 20px 40px;
+      animation: slideUp 0.32s cubic-bezier(0.32,0.72,0,1) both;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .memory-modal__handle { width: 36px; height: 3px; background: var(--border-3); border-radius: 2px; margin: 0 auto 18px; }
+    .memory-modal__photo { width: 100%; aspect-ratio: 4/3; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden; margin-bottom: 16px; }
+    .memory-modal__photo img { width: 100%; height: 100%; object-fit: cover; }
+    .memory-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 24px; gap: 12px; text-align: center;
+    }
+    .memory-empty__icon { width: 52px; height: 52px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
   </style>
 </head>
 <body>
@@ -77,6 +127,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Tab bar -->
+    <div class="acc-tab-bar">
+      <div class="acc-tab acc-tab--active" onclick="switchAccTab('overview', this)">Overview</div>
+      <div class="acc-tab" onclick="switchAccTab('memories', this)">Memories</div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div id="acc-tab-overview" class="acc-tab-panel acc-tab-panel--active">
 
     <!-- Profile completeness nudge — shown by JS when fields are missing -->
     <div class="acc-section" id="profile-nudge" style="display:none;padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:var(--radius-sm);font-size:10px;color:var(--warm);line-height:1.6;letter-spacing:0.03em;margin-top:10px;"></div>
@@ -149,7 +208,23 @@
       <button onclick="Auth.logout()" class="logout-btn" style="margin-top: 10px;">Log out</button>
     </div>
 
+    </div><!-- /acc-tab-overview -->
+
+    <!-- MEMORIES TAB -->
+    <div id="acc-tab-memories" class="acc-tab-panel">
+      <div id="memory-grid-wrap"></div>
+    </div>
+
   </main>
+
+  <!-- Memory detail modal -->
+  <div class="memory-modal" id="memory-modal" onclick="closeMemoryModal(event)">
+    <div class="memory-modal__sheet" id="memory-modal-sheet">
+      <div class="memory-modal__handle"></div>
+      <div class="memory-modal__photo" id="memory-modal-photo"></div>
+      <div id="memory-modal-body"></div>
+    </div>
+  </div>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
@@ -283,6 +358,96 @@ loadAccount();
       UserAPI.update(userId, { availableToMeet: isAvail }).catch(() => {});
       showToast(isAvail ? 'You\'re available to meet!' : 'Availability turned off', 'success');
     };
+  }
+
+  // ── Tab switching ─────────────────────────────
+  function switchAccTab(name, el) {
+    document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('acc-tab--active'));
+    document.querySelectorAll('.acc-tab-panel').forEach(p => p.classList.remove('acc-tab-panel--active'));
+    el.classList.add('acc-tab--active');
+    document.getElementById('acc-tab-' + name).classList.add('acc-tab-panel--active');
+    if (name === 'memories') renderMemories();
+  }
+
+  // ── Memories tab ──────────────────────────────
+  let _memoriesRendered = false;
+  function renderMemories() {
+    if (_memoriesRendered) return;
+    _memoriesRendered = true;
+    const wrap = document.getElementById('memory-grid-wrap');
+    const username = Auth.getUsername();
+    if (!username) { wrap.innerHTML = '<div class="memory-empty"><div class="memory-empty__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div></div>'; return; }
+
+    // Show skeleton while loading
+    wrap.innerHTML = `<div class="memory-grid">${Array(4).fill(`
+      <div class="memory-card">
+        <div class="memory-card__photo skeleton"></div>
+        <div class="memory-card__body">
+          <div class="skeleton skeleton-line" style="width:70%;height:12px;"></div>
+          <div class="skeleton skeleton-line skeleton-line--sm" style="width:45%;margin-top:5px;"></div>
+        </div>
+      </div>`).join('')}</div>`;
+
+    ReservationAPI.getMine().then(({ asGuest }) => {
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const past = (asGuest || [])
+        .filter(r => r.status === 'COMPLETED' || r.status === 'CLOSED')
+        .sort((a, b) => new Date(b.tourListing?.meetingDate) - new Date(a.tourListing?.meetingDate));
+
+      if (!past.length) {
+        wrap.innerHTML = `
+          <div class="memory-empty">
+            <div class="memory-empty__icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <div style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text-2);">No memories yet</div>
+            <div style="font-size:11px;color:var(--text-3);line-height:1.6;max-width:220px;text-align:center;">Complete your first tour and your memories will appear here.</div>
+            <a href="/tours" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 20px;font-size:11px;">Find a day →</a>
+          </div>`;
+        return;
+      }
+
+      wrap.innerHTML = `<div class="memory-grid">${past.map((r, i) => {
+        const d = new Date(r.tourListing?.meetingDate);
+        const dateStr = `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+        const city = r.tourListing?.city ?? 'Unknown';
+        const host = r.tourListing?.host;
+        const hostName = host ? host.firstName + ' ' + host.lastName : '?';
+        const hue = (host?.username ?? city).split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 360;
+        return `
+          <div class="memory-card anim-fade-up" style="animation-delay:${i*0.05}s" onclick="openMemory(${JSON.stringify({city, dateStr, hostName, hue}).replace(/"/g,'&quot;')})">
+            <div class="memory-card__photo" style="background:linear-gradient(135deg,hsl(${hue},28%,14%) 0%,hsl(${hue},18%,22%) 100%);display:flex;align-items:center;justify-content:center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="hsl(${hue},50%,55%)" stroke-width="1.2" stroke-linecap="round" opacity="0.6"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div class="memory-card__body">
+              <div class="memory-card__city">${city}</div>
+              <div class="memory-card__date">${dateStr}</div>
+            </div>
+          </div>`;
+      }).join('')}</div>`;
+    }).catch(() => {
+      wrap.innerHTML = '<div style="padding:20px 18px;font-size:11px;color:var(--text-3);">Could not load memories.</div>';
+    });
+  }
+
+  function openMemory(data) {
+    const modal = document.getElementById('memory-modal');
+    const hue = data.hue || 0;
+    document.getElementById('memory-modal-photo').style.cssText =
+      `background:linear-gradient(135deg,hsl(${hue},28%,14%) 0%,hsl(${hue},18%,22%) 100%);display:flex;align-items:center;justify-content:center;`;
+    document.getElementById('memory-modal-photo').innerHTML =
+      `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="hsl(${hue},50%,55%)" stroke-width="1" stroke-linecap="round" opacity="0.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+    document.getElementById('memory-modal-body').innerHTML = `
+      <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);letter-spacing:-0.01em;margin-bottom:4px;">${data.city}</div>
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;">${data.dateStr}</div>
+      <div style="font-size:12px;color:var(--text-2);">with <span style="color:var(--text);font-weight:600;">${data.hostName}</span></div>`;
+    modal.classList.add('memory-modal--visible');
+  }
+
+  function closeMemoryModal(e) {
+    if (e.target === document.getElementById('memory-modal')) {
+      document.getElementById('memory-modal').classList.remove('memory-modal--visible');
+    }
   }
 </script>
 </body>

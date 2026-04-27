@@ -279,3 +279,63 @@ function userAvatar(username, size, userObj) {
   }
   return `<div style="${base}background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</div>`;
 }
+
+/* ───────────────────────────────────────────────
+   PERSONALITY NUDGE
+   Shows a one-time bottom nudge to logged-in users
+   who haven't completed the onboarding quiz yet.
+   Skipping sets a flag so it never shows again.
+─────────────────────────────────────────────── */
+(function initPersonalityNudge() {
+  // Only on app pages (topbar exists), only if logged in, only if quiz not done
+  if (!document.getElementById('topbar-avatar')) return;
+  if (!localStorage.getItem('jwt')) return;
+  if (localStorage.getItem('personality_done')) return;
+  if (localStorage.getItem('personality_skipped')) return;
+  // Don't show on the onboarding page itself
+  if (window.location.pathname === '/onboarding') return;
+
+  const nudge = document.createElement('div');
+  nudge.id = 'personality-nudge';
+  nudge.style.cssText = `
+    position:fixed; bottom:calc(var(--navbar-h,64px) + 10px); left:50%;
+    transform:translateX(-50%) translateY(20px);
+    width:calc(100% - 32px); max-width:440px;
+    background:var(--surface); border:1px solid var(--accent-border);
+    border-radius:16px; padding:14px 16px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px var(--accent-border);
+    z-index:800; opacity:0;
+    transition:opacity 0.3s ease, transform 0.3s cubic-bezier(0.32,0.72,0,1);
+    font-family:var(--font-mono,monospace);
+  `;
+  nudge.innerHTML = `
+    <div style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:2px;">Discover your Mates</div>
+      <div style="font-size:10px;color:var(--text-3);letter-spacing:0.03em;">Take a 70-second quiz to unlock AI matching</div>
+    </div>
+    <a href="/onboarding" style="flex-shrink:0;background:var(--accent);color:#000;border:none;border-radius:20px;padding:7px 14px;font-family:var(--font-mono,monospace);font-size:10px;letter-spacing:0.06em;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;">
+      Start →
+    </a>
+    <button onclick="dismissPersonalityNudge()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-3);flex-shrink:0;line-height:1;font-size:16px;">✕</button>
+  `;
+  document.body.appendChild(nudge);
+
+  // Animate in after a short delay
+  setTimeout(() => {
+    nudge.style.opacity = '1';
+    nudge.style.transform = 'translateX(-50%) translateY(0)';
+  }, 1200);
+})();
+
+function dismissPersonalityNudge() {
+  localStorage.setItem('personality_skipped', '1');
+  const nudge = document.getElementById('personality-nudge');
+  if (!nudge) return;
+  nudge.style.opacity = '0';
+  nudge.style.transform = 'translateX(-50%) translateY(20px)';
+  setTimeout(() => nudge.remove(), 300);
+}
