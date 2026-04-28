@@ -137,9 +137,6 @@
     <!-- OVERVIEW TAB -->
     <div id="acc-tab-overview" class="acc-tab-panel acc-tab-panel--active">
 
-    <!-- Profile completeness nudge — shown by JS when fields are missing -->
-    <div class="acc-section" id="profile-nudge" style="display:none;padding:10px 14px;background:rgba(255,107,53,0.06);border:1px solid rgba(255,107,53,0.2);border-radius:var(--radius-sm);font-size:10px;color:var(--warm);line-height:1.6;letter-spacing:0.03em;margin-top:10px;"></div>
-
     <div class="acc-section" style="padding-bottom:14px;">
       <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         Bio
@@ -203,9 +200,8 @@
     </div>
 
     <div class="acc-bottom">
-      <a href="/account/edit" class="new-listing-link">Edit Profile</a>
-      <a href="/settings" class="new-listing-link" style="margin-top:8px;">Settings</a>
-      <button onclick="Auth.logout()" class="logout-btn" style="margin-top: 10px;">Log out</button>
+      <a href="/listings/new" class="new-listing-link">+ Create a listing</a>
+      <button onclick="Auth.logout()" class="logout-btn" style="margin-top:10px;">Log out</button>
     </div>
 
     </div><!-- /acc-tab-overview -->
@@ -284,22 +280,6 @@
       }
 
       // Profile completeness nudge
-      const missing = [];
-      if (!photoUrl)   missing.push('profile photo');
-      if (!user.bio)   missing.push('bio');
-      if (missing.length) {
-        const nudge = document.getElementById('profile-nudge');
-        nudge.innerHTML = `
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
-            <div>
-              <div style="font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-size:9px;margin-bottom:4px;">Profile incomplete</div>
-              Add ${missing.join(' and ')} to build trust with other locals.
-            </div>
-            <a href="/account/edit" style="flex-shrink:0;font-size:10px;color:var(--warm);text-decoration:none;font-weight:700;letter-spacing:0.06em;white-space:nowrap;">Edit →</a>
-          </div>`;
-        nudge.style.display = '';
-      }
-
       initAvailToggle(user.availableToMeet);
     });
   }

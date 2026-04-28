@@ -102,13 +102,19 @@
          </div>`
       : `<div><span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status.charAt(0) + r.status.slice(1).toLowerCase()}</span></div>`;
 
+    const hue = (r.user?.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const initials = ((r.user?.firstName?.[0] ?? '') + (r.user?.lastName?.[0] ?? '')).toUpperCase() || '?';
+    const avatarHtml = `<div style="width:38px;height:38px;border-radius:50%;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display);font-weight:800;font-size:14px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+
     return `
       <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-${r.id}">
-        <div class="req-card__name">
-          ${guestName}
-          ${guestHandle ? `<span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);margin-left:6px;">${guestHandle}</span>` : ''}
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${avatarHtml}
+          <div style="flex:1;min-width:0;">
+            <div class="req-card__name">${guestName} ${guestHandle ? `<span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">${guestHandle}</span>` : ''}</div>
+            ${meta ? `<div class="req-card__meta" style="margin-top:2px;">${meta}</div>` : ''}
+          </div>
         </div>
-        ${meta ? `<div class="req-card__meta">${meta}</div>` : ''}
         ${actionEl}
       </div>`;
   }
