@@ -189,15 +189,6 @@
         <span class="field-error" id="err-confirm">Passwords don't match.</span>
       </div>
 
-      <div class="auth-field">
-        <label for="bio">Bio <span style="color:#444;">(optional)</span></label>
-        <textarea id="bio" name="bio" maxlength="200" placeholder="Tell other travellers about yourself..." oninput="updateBioCounter(this)"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span class="auth-field__hint">Max 200 characters</span>
-          <span class="bio-counter" id="bio-counter">0/200</span>
-        </div>
-      </div>
-
       <button type="submit" id="register-btn" class="btn btn--primary btn-register">Create account</button>
     </form>
 
@@ -242,13 +233,6 @@
       for (let i = 0; i < score; i++) bars[i].classList.add('pw-strength__bar--' + levels[score - 1]);
       label.textContent = score > 0 ? labels[score - 1] : '';
       label.style.color = ['#ff4444','#ff9944','#44bb44','#00c9a7'][score - 1] || '#555';
-    }
-
-    function updateBioCounter(el) {
-      const counter = document.getElementById('bio-counter');
-      const len = el.value.length;
-      counter.textContent = len + '/200';
-      counter.className = 'bio-counter' + (len > 160 ? ' bio-counter--warn' : '');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -360,7 +344,6 @@
             idNumber: crypto.randomUUID(), // TODO: remove when backend makes idNumber optional or generates it server-side
             username,
             password,
-            bio: document.getElementById('bio').value || null,
           });
           const loginRes = await AuthAPI.login(username, password);
           Auth.saveToken(loginRes.token);

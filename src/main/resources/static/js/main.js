@@ -281,61 +281,85 @@ function userAvatar(username, size, userObj) {
 }
 
 /* ───────────────────────────────────────────────
-   PERSONALITY NUDGE
-   Shows a one-time bottom nudge to logged-in users
-   who haven't completed the onboarding quiz yet.
-   Skipping sets a flag so it never shows again.
+   PROFILE COMPLETION BUBBLE
+   Appears on every app page until profile is 100%.
+   Dismissable per-visit only — comes back every page.
+   Weight: photo 40% · bio 35% · quiz 25%
 ─────────────────────────────────────────────── */
-(function initPersonalityNudge() {
-  // Only on app pages (topbar exists), only if logged in, only if quiz not done
-  if (!document.getElementById('topbar-avatar')) return;
-  if (!localStorage.getItem('jwt')) return;
-  if (localStorage.getItem('personality_done')) return;
-  if (localStorage.getItem('personality_skipped')) return;
-  // Don't show on the onboarding page itself
-  if (window.location.pathname === '/onboarding') return;
+document.addEventListener('DOMContentLoaded', async function _completionBubble() {
+  const path = window.location.pathname;
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit'];
+  if (skip.some(p => path.startsWith(p))) return;
+  if (!document.querySelector('.topbar')) return;
+  const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
+  if (!userId) return;
 
-  const nudge = document.createElement('div');
-  nudge.id = 'personality-nudge';
-  nudge.style.cssText = `
-    position:fixed; bottom:calc(var(--navbar-h,64px) + 10px); left:50%;
-    transform:translateX(-50%) translateY(20px);
-    width:calc(100% - 32px); max-width:440px;
-    background:var(--surface); border:1px solid var(--accent-border);
-    border-radius:16px; padding:14px 16px;
-    display:flex; align-items:center; gap:12px;
-    box-shadow:0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px var(--accent-border);
-    z-index:800; opacity:0;
-    transition:opacity 0.3s ease, transform 0.3s cubic-bezier(0.32,0.72,0,1);
-    font-family:var(--font-mono,monospace);
-  `;
-  nudge.innerHTML = `
-    <div style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  let user = null;
+  try { user = await UserAPI.getById(userId); } catch(e) { return; }
+  if (!user) return;
+
+  const hasPhoto = !!(user.profilePhotoUrl || localStorage.getItem('photo_' + userId));
+  const hasBio   = !!user.bio;
+  const hasQuiz  = !!localStorage.getItem('personality_done');
+  const pct = (hasPhoto ? 40 : 0) + (hasBio ? 35 : 0) + (hasQuiz ? 25 : 0);
+  if (pct >= 100) return;
+
+  let actionText, actionHref = '/account/edit', detailText;
+  if (!hasPhoto) {
+    actionText  = 'Add a profile photo';
+    detailText  = 'hosts with photos get 3× more requests';
+  } else if (!hasBio) {
+    actionText  = 'Write your bio';
+    detailText  = 'let people know who you are';
+  } else {
+    actionText  = 'Take the personality quiz';
+    detailText  = 'unlock AI match scoring';
+    actionHref  = '/onboarding';
+  }
+
+  const C      = 75.4;
+  const filled = ((pct / 100) * C).toFixed(1);
+
+  const bubble = document.createElement('div');
+  bubble.id = 'completion-bubble';
+  bubble.style.cssText = [
+    'display:flex;align-items:center;gap:10px;padding:0 14px',
+    'background:linear-gradient(90deg,#c94a00,#e05500)',
+    'color:#fff;font-family:var(--font-mono,monospace);flex-shrink:0',
+    'overflow:hidden;max-height:0;opacity:0;border-bottom:1px solid rgba(0,0,0,0.2)',
+    'transition:max-height 0.4s cubic-bezier(0.32,0.72,0,1),opacity 0.3s ease',
+  ].join(';');
+
+  bubble.innerHTML = `
+    <svg width="26" height="26" viewBox="0 0 32 32" style="flex-shrink:0;transform:rotate(-90deg);">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="3"/>
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#fff" stroke-width="3"
+        stroke-dasharray="${filled} ${C}" stroke-linecap="round"/>
+    </svg>
+    <span style="font-size:12px;font-weight:700;">${pct}%</span>
+    <div style="flex:1;min-width:0;overflow:hidden;">
+      <span style="font-weight:600;font-size:11px;white-space:nowrap;">${actionText}</span>
+      <span style="opacity:0.72;font-size:10px;"> — ${detailText}</span>
     </div>
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:2px;">Discover your Mates</div>
-      <div style="font-size:10px;color:var(--text-3);letter-spacing:0.03em;">Take a 70-second quiz to unlock AI matching</div>
-    </div>
-    <a href="/onboarding" style="flex-shrink:0;background:var(--accent);color:#000;border:none;border-radius:20px;padding:7px 14px;font-family:var(--font-mono,monospace);font-size:10px;letter-spacing:0.06em;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;">
-      Start →
-    </a>
-    <button onclick="dismissPersonalityNudge()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text-3);flex-shrink:0;line-height:1;font-size:16px;">✕</button>
+    <a href="${actionHref}" style="flex-shrink:0;background:rgba(255,255,255,0.18);color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);">Fix it →</a>
+    <button id="bubble-close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:6px 2px;font-size:16px;line-height:1;flex-shrink:0;">✕</button>
   `;
-  document.body.appendChild(nudge);
 
-  // Animate in after a short delay
-  setTimeout(() => {
-    nudge.style.opacity = '1';
-    nudge.style.transform = 'translateX(-50%) translateY(0)';
-  }, 1200);
-})();
+  const topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+  topbar.insertAdjacentElement('afterend', bubble);
 
-function dismissPersonalityNudge() {
-  localStorage.setItem('personality_skipped', '1');
-  const nudge = document.getElementById('personality-nudge');
-  if (!nudge) return;
-  nudge.style.opacity = '0';
-  nudge.style.transform = 'translateX(-50%) translateY(20px)';
-  setTimeout(() => nudge.remove(), 300);
-}
+  requestAnimationFrame(() => {
+    bubble.style.maxHeight = '52px';
+    bubble.style.opacity   = '1';
+    bubble.style.padding   = '10px 14px';
+  });
+
+  document.getElementById('bubble-close').addEventListener('click', () => {
+    bubble.style.transition = 'max-height 0.25s ease,opacity 0.2s ease,padding 0.25s ease';
+    bubble.style.maxHeight  = '0';
+    bubble.style.opacity    = '0';
+    bubble.style.padding    = '0 14px';
+    setTimeout(() => bubble.remove(), 280);
+  });
+});
