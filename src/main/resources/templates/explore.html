@@ -116,7 +116,7 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
-<script>
+<script th:inline="none">
   // Saved locals — persisted in localStorage as a Set of usernames
   function _getSaved() {
     try { return new Set(JSON.parse(localStorage.getItem('saved_locals') || '[]')); } catch { return new Set(); }
