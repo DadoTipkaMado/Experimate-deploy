@@ -193,6 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initDateInputs();
 
+  // Page enter animation
+  const shell = document.querySelector('.app-shell');
+  if (shell) shell.classList.add('anim-fade-up');
+
   // Page exit transition — intercept internal link clicks
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href]');
@@ -304,17 +308,20 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   const pct = (hasPhoto ? 40 : 0) + (hasBio ? 35 : 0) + (hasQuiz ? 25 : 0);
   if (pct >= 100) return;
 
-  let actionText, actionHref = '/account/edit', detailText;
+  let actionText, actionHref = '/account/edit', detailText, ctaLabel;
   if (!hasPhoto) {
     actionText  = 'Add a profile photo';
-    detailText  = 'hosts with photos get 3× more requests';
+    detailText  = 'people are 3× more likely to connect with you';
+    ctaLabel    = 'Add photo →';
   } else if (!hasBio) {
     actionText  = 'Write your bio';
     detailText  = 'let people know who you are';
+    ctaLabel    = 'Write bio →';
   } else {
     actionText  = 'Take the personality quiz';
     detailText  = 'unlock AI match scoring';
     actionHref  = '/onboarding';
+    ctaLabel    = 'Take quiz →';
   }
 
   const C      = 75.4;
@@ -341,7 +348,7 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
       <span style="font-weight:600;font-size:11px;white-space:nowrap;">${actionText}</span>
       <span style="opacity:0.72;font-size:10px;"> — ${detailText}</span>
     </div>
-    <a href="${actionHref}" style="flex-shrink:0;background:rgba(255,255,255,0.18);color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);">Fix it →</a>
+    <a href="${actionHref}" style="flex-shrink:0;background:rgba(255,255,255,0.18);color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);">${ctaLabel}</a>
     <button id="bubble-close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:6px 2px;font-size:16px;line-height:1;flex-shrink:0;">✕</button>
   `;
 

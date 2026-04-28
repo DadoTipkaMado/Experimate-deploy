@@ -279,12 +279,12 @@
         avatarEl.innerHTML = `<span style="font-family:var(--font-display);font-weight:800;font-size:28px;color:hsl(${hue},60%,72%);">${initials}</span>`;
       }
 
-      // Profile completeness nudge
       initAvailToggle(user.availableToMeet);
     });
   }
 
 loadAccount();
+initAvailToggle();
 
   async function loadRequestsBadge() {
     try {
@@ -293,6 +293,7 @@ loadAccount();
       const pending = (requests || []).filter(r =>
         r.status === 'PENDING' && r.tourListing?.host?.username === username
       );
+      localStorage.setItem('pending_requests', pending.length > 0 ? '1' : '0');
       if (pending.length > 0) {
         const badge = document.getElementById('requests-badge');
         badge.textContent = pending.length;

@@ -57,14 +57,14 @@
   <a th:href="@{/tours}"
      th:classappend="${currentPage == 'tours'} ? ' navbar__item--active'"
      class="navbar__item"
-     aria-label="Tours">
+     aria-label="Activities">
     <div class="navbar__icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
            stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
       </svg>
     </div>
-    <span class="navbar__label">Days</span>
+    <span class="navbar__label">Activities</span>
     <div class="navbar__pip"></div>
   </a>
 
@@ -116,6 +116,17 @@
         (seg !== 'account' && seg !== 'tours' && path.startsWith('/' + seg));
       if (active) item.classList.add('navbar__item--active');
     });
+
+    // Notification dot on Account when there are pending requests
+    if (localStorage.getItem('pending_requests') === '1') {
+      const accountItem = document.querySelector('.navbar__item[href="/account"]');
+      if (accountItem) {
+        const dot = document.createElement('div');
+        dot.style.cssText = 'position:absolute;top:6px;right:14px;width:7px;height:7px;border-radius:50%;background:#ff9944;border:1.5px solid var(--bg,#0a0a0a);';
+        accountItem.style.position = 'relative';
+        accountItem.appendChild(dot);
+      }
+    }
   })();
 </script>
 
