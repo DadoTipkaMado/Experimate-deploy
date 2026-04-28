@@ -1297,6 +1297,157 @@ svg { display: block; flex-shrink: 0; }
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* ═══════════════════════════════════════════════
+   EXPLORE PAGE
+   TikTok snap-scroll feed styles.
+═══════════════════════════════════════════════ */
+.page-content--explore { overflow: hidden; display: flex; flex-direction: column; }
+.explore-header { padding: 14px 16px 10px; background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 5; }
+.explore-header .search-bar { margin-bottom: 10px; }
+.explore-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.explore-filters::-webkit-scrollbar { display: none; }
+
+#explore-feed {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+#explore-feed::-webkit-scrollbar { display: none; }
+
+.explore-card {
+  width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.explore-card__bg {
+  position: absolute; inset: 0;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 120px; user-select: none; pointer-events: none;
+}
+.explore-card__gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.0) 30%, rgba(10,10,10,0.5) 55%, rgba(10,10,10,0.97) 100%);
+  pointer-events: none;
+}
+.explore-card__rating {
+  position: absolute; top: 14px; left: 14px; z-index: 3;
+  background: rgba(10,10,10,0.80); border: 1px solid var(--border-2);
+  border-radius: var(--radius-pill); padding: 4px 11px;
+  font-size: 11px; color: var(--accent); letter-spacing: 0.05em;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.explore-card__match-pct {
+  position: absolute; top: 14px; left: 14px; z-index: 3;
+  background: rgba(10,10,10,0.82); border: 1px solid rgba(0,201,167,0.4);
+  border-radius: var(--radius-pill); padding: 4px 11px;
+  font-size: 11px; color: var(--accent); letter-spacing: 0.05em;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: none;
+}
+.explore-card--personalized .explore-card__rating { display: none; }
+.explore-card--personalized .explore-card__match-pct { display: block; }
+
+.explore-card__side {
+  position: absolute; right: 14px; bottom: 110px; z-index: 3;
+  display: flex; flex-direction: column; gap: 16px; align-items: center;
+}
+.side-action { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+.side-action__icon {
+  width: 42px; height: 42px;
+  background: rgba(255,255,255,0.08); border: 1px solid var(--border-2);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background var(--t-fast), transform var(--t-fast);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.side-action:hover .side-action__icon { background: rgba(255,255,255,0.14); transform: scale(1.08); }
+.side-action__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; }
+.side-action--saved .side-action__icon { background: rgba(255,107,53,0.18); border-color: rgba(255,107,53,0.35); }
+.side-action--saved .side-action__label { color: var(--warm); }
+
+.explore-card__content { position: relative; z-index: 2; padding: 0 16px 20px; }
+.explore-card__name {
+  font-family: var(--font-display); font-weight: 800; font-size: 26px;
+  line-height: 1.05; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em;
+}
+.explore-card__handle { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 8px; }
+.explore-card__why { font-size: 10px; color: rgba(0,201,167,0.85); letter-spacing: 0.04em; margin-bottom: 8px; display: none; }
+.explore-card--personalized .explore-card__why { display: block; }
+.explore-card__traits { display: none; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.explore-card--personalized .explore-card__traits { display: flex; }
+.explore-card__trait {
+  font-size: 9px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 10px;
+  background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.25); color: rgba(0,201,167,0.85);
+}
+.explore-card__desc {
+  font-size: 11px; color: var(--text-3); line-height: 1.65; margin-bottom: 16px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.explore-card__cta { display: flex; gap: 8px; align-items: center; }
+.explore-card__cta .btn--primary { flex: 1; }
+
+.explore-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 12px; text-align: center; padding: 40px 24px;
+}
+.explore-empty__icon { font-size: 40px; opacity: 0.2; }
+.explore-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+.explore-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+
+/* Personalized pill */
+.pill--personalized {
+  background: linear-gradient(90deg, rgba(0,201,167,0.18), rgba(0,201,167,0.08));
+  border-color: rgba(0,201,167,0.45);
+  color: var(--accent);
+}
+.pill--personalized::before { content: '✦ '; font-size: 8px; }
+
+/* AI search badge */
+.search-ai-badge {
+  font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase;
+  background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.25);
+  color: rgba(0,201,167,0.8); border-radius: 4px; padding: 1px 5px; flex-shrink: 0;
+}
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  opacity: 1; transition: opacity 0.4s ease; pointer-events: none;
+}
+.scroll-hint--hidden { opacity: 0; }
+.scroll-hint__arrow { animation: bounceUp 1.2s ease infinite; }
+.scroll-hint__label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+@keyframes bounceUp {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
+
+/* Auth register link */
+.auth-register-link {
+  display: flex; align-items: center; justify-content: center;
+  height: 44px; border-radius: 12px;
+  border: 1px solid var(--border-2, #2e2e2e);
+  color: var(--text, #efefef);
+  text-decoration: none; font-size: 13px; letter-spacing: 0.02em;
+  transition: border-color 0.14s, background 0.14s;
+}
+.auth-register-link:hover {
+  border-color: var(--accent, #00c9a7);
+  background: rgba(0,201,167,0.06);
+}
 /* ═══════════════════════════════════════════════
    LIGHT MODE
    Activates when OS/browser is in light mode.

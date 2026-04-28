@@ -66,7 +66,35 @@ function loadPins() {
         MapState.allMarkers.push({ marker, listing });
         MapState.clusterGroup.addLayer(marker);
       });
+
+      const count = MapState.allMarkers.length;
+      if (count === 0) {
+        showMapEmptyState();
+      } else if (!localStorage.getItem('map_tour_seen')) {
+        localStorage.setItem('map_tour_seen', '1');
+        setTimeout(() => showToast(`${count} local experience${count !== 1 ? 's' : ''} nearby — tap any pin to explore`, 'success'), 1200);
+      }
     });
+}
+
+function showMapEmptyState() {
+  const container = document.getElementById('page-map-content');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.id = 'map-empty-state';
+  el.style.cssText = [
+    'position:absolute;bottom:120px;left:50%;transform:translateX(-50%)',
+    'z-index:10;background:rgba(10,10,10,0.92);backdrop-filter:blur(14px)',
+    '-webkit-backdrop-filter:blur(14px);border:1px solid var(--border-2)',
+    'border-radius:var(--radius);padding:14px 18px;text-align:center',
+    'max-width:280px;width:calc(100% - 32px)',
+  ].join(';');
+  el.innerHTML = `
+    <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);margin-bottom:4px;">No listings here yet</div>
+    <div style="font-size:11px;color:var(--text-2);line-height:1.6;margin-bottom:12px;">Try searching a city above, or be the first to host one.</div>
+    <a href="/listings/new" style="display:inline-block;padding:7px 18px;border-radius:var(--radius-pill);background:var(--accent);color:#000;font-family:var(--font-display);font-weight:700;font-size:11px;text-decoration:none;">Host a day +</a>
+  `;
+  container.appendChild(el);
 }
 
 function buildMarker(listing) {

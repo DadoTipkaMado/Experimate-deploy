@@ -557,6 +557,13 @@
           const label = card.querySelector('.listing-card__status');
           if (dot) dot.style.background = '#ff9944';
           if (label) { label.textContent = 'Pending'; label.classList.remove('listing-card__status--available'); }
+          const foot = card.querySelector('.listing-card__foot');
+          if (foot) {
+            const nextSteps = document.createElement('div');
+            nextSteps.style.cssText = 'width:100%;margin-top:8px;padding:8px 12px;background:rgba(255,153,68,0.06);border:1px solid rgba(255,153,68,0.2);border-radius:8px;font-size:10px;color:rgba(255,153,68,0.9);letter-spacing:0.02em;line-height:1.6;';
+            nextSteps.innerHTML = '⏳ Request sent — the host will respond soon. Track it in <a href="/requests" style="color:inherit;text-decoration:underline;">Requests</a>.';
+            foot.insertAdjacentElement('afterend', nextSteps);
+          }
         }
       })
       .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = btn.dataset.originalLabel || 'Join'; });
@@ -767,7 +774,7 @@
       document.getElementById('listings-list').innerHTML = `
         <div class="listings-empty">
           <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
-          <div class="listings-empty__title">No tours yet</div>
+          <div class="listings-empty__title">No Days yet</div>
           <div class="listings-empty__sub">Be the first to host a local experience.</div>
           <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
         </div>`;

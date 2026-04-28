@@ -15,7 +15,7 @@
     html, body {
       height: unset !important;
       overflow: unset !important;
-      background: #0a0a0a !important;
+      background: var(--bg, #0a0a0a) !important;
     }
 
     body {
@@ -23,7 +23,7 @@
       align-items: center !important;
       justify-content: center !important;
       min-height: 100vh !important;
-      color: #efefef !important;
+      color: var(--text, #efefef) !important;
       color-scheme: dark;
     }
 
@@ -38,20 +38,20 @@
     }
     .orb-1 {
       width: 420px; height: 420px;
-      background: #00c9a7;
+      background: var(--accent, #00c9a7);
       top: -120px; left: -100px;
       animation-duration: 18s;
     }
     .orb-2 {
       width: 320px; height: 320px;
-      background: #ff6b35;
+      background: var(--warm, #ff6b35);
       bottom: -80px; right: -60px;
       animation-duration: 24s;
       animation-delay: -8s;
     }
     .orb-3 {
       width: 200px; height: 200px;
-      background: #00c9a7;
+      background: var(--accent, #00c9a7);
       bottom: 30%; left: 10%;
       opacity: 0.08;
       animation-duration: 30s;
@@ -72,7 +72,7 @@
       background: rgba(20, 20, 20, 0.72);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border: 1px solid #222;
+      border: 1px solid var(--border, #222);
       border-radius: 20px;
       padding: 36px 32px;
       display: flex;
@@ -92,14 +92,14 @@
       font-family: 'Syne', sans-serif;
       font-weight: 800;
       font-size: 30px;
-      color: #efefef;
+      color: var(--text, #efefef);
       letter-spacing: -0.03em;
     }
-    .auth-logo span { color: #00c9a7; }
+    .auth-logo span { color: var(--accent, #00c9a7); }
 
     .auth-tagline {
       font-size: 14px;
-      color: #999;
+      color: var(--text-3, #999);
       margin-top: 6px;
       letter-spacing: 0.01em;
     }
@@ -109,11 +109,11 @@
       font-family: 'Syne', sans-serif;
       font-weight: 700;
       font-size: 20px;
-      color: #efefef;
+      color: var(--text, #efefef);
     }
     .auth-subtitle {
       font-size: 13px;
-      color: #777;
+      color: var(--text-3, #777);
       letter-spacing: 0.04em;
       margin-top: 4px;
     }
@@ -122,16 +122,16 @@
     .auth-field { display: flex; flex-direction: column; gap: 6px; }
     .auth-field label {
       font-size: 11px;
-      color: #999;
+      color: var(--text-3, #999);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
     .auth-field input {
-      background: #1c1c1c;
-      border: 1px solid #2e2e2e;
+      background: var(--surface, #1c1c1c);
+      border: 1px solid var(--border-2, #2e2e2e);
       border-radius: 10px;
       padding: 13px 16px;
-      color: #efefef;
+      color: var(--text, #efefef);
       font-family: 'DM Mono', monospace;
       font-size: 13px;
       width: 100%;
@@ -139,7 +139,7 @@
     }
     .auth-field input:focus {
       outline: none;
-      border-color: #00c9a7;
+      border-color: var(--accent, #00c9a7);
       box-shadow: 0 0 0 3px rgba(0,201,167,0.12);
     }
 
@@ -160,7 +160,7 @@
       height: 46px;
       margin-top: 4px;
       overflow: hidden;
-      background: #00c9a7 !important;
+      background: var(--accent, #00c9a7) !important;
       color: #000 !important;
     }
     .btn-signin::after {
@@ -179,8 +179,8 @@
     }
 
     /* ── Footer links ── */
-    .auth-footer { font-size: 13px; color: #777; text-align: center; }
-    .auth-footer a { color: #00c9a7; text-decoration: none; }
+    .auth-footer { font-size: 13px; color: var(--text-3, #777); text-align: center; }
+    .auth-footer a { color: var(--accent, #00c9a7); text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
 
     /* ── Divider ── */
@@ -188,7 +188,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      color: #666;
+      color: var(--text-3, #666);
       font-size: 11px;
       letter-spacing: 0.08em;
     }
@@ -197,7 +197,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: #222;
+      background: var(--border, #222);
     }
   </style>
 </head>
@@ -229,7 +229,7 @@
         <label for="password">Password</label>
         <div style="position:relative;">
           <input type="password" id="password" name="password" autocomplete="current-password" required style="padding-right:42px;">
-          <button type="button" id="pw-toggle" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;padding:0;display:flex;">
+          <button type="button" id="pw-toggle" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3,#555);padding:0;display:flex;">
             <svg id="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
@@ -240,8 +240,8 @@
     <div class="auth-footer">
       <a href="/forgot-password">Forgot password?</a>
     </div>
-    <a href="/register" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;border:1px solid #2e2e2e;color:#efefef;text-decoration:none;font-size:13px;letter-spacing:0.02em;transition:border-color 0.14s,background 0.14s;" onmouseover="this.style.borderColor='#00c9a7';this.style.background='rgba(0,201,167,0.06)'" onmouseout="this.style.borderColor='#2e2e2e';this.style.background='transparent'">
-      New here? <strong style="color:#00c9a7;margin-left:5px;">Create an account →</strong>
+    <a href="/register" class="auth-register-link">
+      New here? <strong style="color:var(--accent,#00c9a7);margin-left:5px;">Create an account →</strong>
     </a>
   </div>
 
@@ -266,12 +266,7 @@
         try {
           const result = await UserAPI.getById(userId);
           if (result) {
-            const initials = ((result.firstName?.[0] ?? '') + (result.lastName?.[0] ?? '')).toUpperCase() || result.username?.[0]?.toUpperCase() || '?';
-            const hue = (result.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-            localStorage.setItem('user_initials', initials);
-            localStorage.setItem('user_hue', String(hue));
-            if (result.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(result.profilePhotoUrl));
-            else localStorage.removeItem('photo_' + userId);
+            _cacheUser(result, userId);
             window.location.href = '/map';
             return;
           }
@@ -288,14 +283,7 @@
         if (uid) {
           Auth.saveUserId(uid);
           const me = await UserAPI.getById(uid).catch(() => null);
-          if (me) {
-            if (me.profilePhotoUrl) localStorage.setItem('photo_' + uid, UserAPI.photoUrl(me.profilePhotoUrl));
-            else localStorage.removeItem('photo_' + uid);
-            const initials = ((me.firstName?.[0] ?? '') + (me.lastName?.[0] ?? '')).toUpperCase() || me.username?.[0]?.toUpperCase() || '?';
-            const hue = (me.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-            localStorage.setItem('user_initials', initials);
-            localStorage.setItem('user_hue', hue);
-          }
+          if (me) _cacheUser(me, uid);
         }
         window.location.href = '/map';
       } catch { /* stay on login */ }
@@ -323,14 +311,7 @@
         if (uid) {
           Auth.saveUserId(uid);
           const me = await UserAPI.getById(uid).catch(() => null);
-          if (me) {
-            if (me.profilePhotoUrl) localStorage.setItem('photo_' + uid, UserAPI.photoUrl(me.profilePhotoUrl));
-            else localStorage.removeItem('photo_' + uid);
-            const initials = ((me.firstName?.[0] ?? '') + (me.lastName?.[0] ?? '')).toUpperCase() || me.username?.[0]?.toUpperCase() || '?';
-            const hue = (me.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-            localStorage.setItem('user_initials', initials);
-            localStorage.setItem('user_hue', hue);
-          }
+          if (me) _cacheUser(me, uid);
         }
         btn.textContent = 'Welcome back ✓';
         window.location.href = '/map';

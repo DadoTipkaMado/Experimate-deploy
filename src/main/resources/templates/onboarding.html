@@ -336,24 +336,24 @@
 <script>
   // ── BFI-10 question texts (scoring is server-side) ────────────────
   const QUESTIONS = [
-    'Extraverted, enthusiastic.',
-    'Critical, quarrelsome.',
-    'Dependable, self-disciplined.',
-    'Anxious, easily upset.',
-    'Open to new experiences, complex.',
-    'Reserved, quiet.',
-    'Sympathetic, warm.',
-    'Disorganized, careless.',
-    'Calm, emotionally stable.',
-    'Conventional, uncreative.',
+    'Full of energy and enthusiasm when around other people',
+    'Quick to criticize or find fault with things',
+    'Someone who keeps promises and gets things done',
+    'Easily worried or anxious about everyday situations',
+    'Always curious and drawn to new ideas and experiences',
+    'More comfortable in your own company than in big groups',
+    'Genuinely caring and warm toward the people around you',
+    'A bit scattered — often forgets things or loses track',
+    'Cool under pressure and rarely shaken by stress',
+    'More into tried-and-true routines than experimenting',
   ];
 
   const SCALE = [
-    { val: 1, label: 'Strongly disagree' },
-    { val: 2, label: 'Somewhat disagree' },
-    { val: 3, label: 'Neutral'           },
-    { val: 4, label: 'Somewhat agree'    },
-    { val: 5, label: 'Strongly agree'    },
+    { val: 1, label: 'Not me at all'    },
+    { val: 2, label: 'Kinda not me'     },
+    { val: 3, label: 'Sort of both'     },
+    { val: 4, label: "That's kinda me"  },
+    { val: 5, label: 'Totally me'       },
   ];
 
   // Trait descriptors — keyed by Big5 field name, threshold ±0.25 on [-1,+1] scale
@@ -391,7 +391,7 @@
     const card = document.createElement('div');
     card.className = `q-card ${entered}`;
     card.innerHTML = `
-      <div class="q-prefix">I see myself as someone who is…</div>
+      <div class="q-prefix">How much does this sound like you?</div>
       <div class="q-text">${highlight(text)}</div>
       <div class="scale">
         ${SCALE.map(s => `

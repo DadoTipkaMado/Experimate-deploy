@@ -56,8 +56,13 @@ function initScrollHint() {
   `;
   firstCard.appendChild(hint);
 
-  // Hide after first scroll
+  // Hide after 5s or first scroll, whichever comes first
+  let _hintTimer = setTimeout(() => {
+    hint.classList.add('scroll-hint--hidden');
+    feed.removeEventListener('scroll', hideHint);
+  }, 5000);
   const hideHint = () => {
+    clearTimeout(_hintTimer);
     hint.classList.add('scroll-hint--hidden');
     feed.removeEventListener('scroll', hideHint);
   };

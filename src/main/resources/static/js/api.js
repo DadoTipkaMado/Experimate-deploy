@@ -189,3 +189,23 @@ const RatingAPI = {
   update: (id, dto)     => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id)          => apiFetch(`/api/rating/${id}`, { method: 'DELETE' }),
 };
+
+/* ───────────────────────────────────────────────
+   SHARED USER CACHE HELPER
+   Saves initials, hue, and photo to localStorage.
+   Called after login and auto-redirect so the
+   topbar avatar renders instantly on next page.
+─────────────────────────────────────────────── */
+function _cacheUser(user, userId) {
+  if (!user) return;
+  const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase()
+    || user.username?.[0]?.toUpperCase() || '?';
+  const hue = (user.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  localStorage.setItem('user_initials', initials);
+  localStorage.setItem('user_hue', String(hue));
+  if (userId) {
+    if (user.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(user.profilePhotoUrl));
+    else localStorage.removeItem('photo_' + userId);
+  }
+  return { initials, hue };
+}
