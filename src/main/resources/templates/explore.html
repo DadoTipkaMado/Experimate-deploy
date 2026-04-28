@@ -243,18 +243,22 @@
   function renderExplore(users, searchQuery) {
     const feed = document.getElementById('explore-feed');
     if (!users || users.length === 0) {
-      const msg = searchQuery
-        ? `No results for "${searchQuery}"`
-        : 'No locals yet';
-      const sub = searchQuery
-        ? 'Try a different name or username.'
-        : 'Be the first to create a profile and start hosting experiences.';
-      feed.innerHTML = `
-        <div class="explore-empty">
-          <div class="explore-empty__icon">🧭</div>
-          <div class="explore-empty__title">${msg}</div>
-          <div class="explore-empty__sub">${sub}</div>
-        </div>`;
+      if (searchQuery) {
+        feed.innerHTML = `
+          <div class="explore-empty">
+            <div class="explore-empty__icon">🔍</div>
+            <div class="explore-empty__title">No results for "${searchQuery}"</div>
+            <div class="explore-empty__sub">Try a different name or username.</div>
+          </div>`;
+      } else {
+        feed.innerHTML = `
+          <div class="explore-empty">
+            <div class="explore-empty__icon">🧭</div>
+            <div class="explore-empty__title">You're one of the first here</div>
+            <div class="explore-empty__sub">Other locals will show up here once they join. In the meantime, complete your profile so you stand out when they do.</div>
+            <a href="/account/edit" class="btn btn--primary" style="margin-top:16px;height:42px;padding:0 24px;font-size:12px;">Complete my profile</a>
+          </div>`;
+      }
       return;
     }
     feed.innerHTML = users.map(user => {

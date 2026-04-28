@@ -64,7 +64,7 @@
         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
       </svg>
     </div>
-    <span class="navbar__label">Tours</span>
+    <span class="navbar__label">Days</span>
     <div class="navbar__pip"></div>
   </a>
 
@@ -103,15 +103,18 @@
 </nav>
 
 <script>
-  // Highlight active nav item based on current URL path
   (function() {
     const path = window.location.pathname;
+    const accountPaths = ['/account', '/settings', '/requests', '/ratings', '/profile'];
+    const toursPaths   = ['/tours', '/listings'];
     document.querySelectorAll('.navbar__item').forEach(item => {
-      const href = item.getAttribute('href') || '';
-      const segment = href.split('/')[1] || '';
-      if (segment && path.includes('/' + segment)) {
-        item.classList.add('navbar__item--active');
-      }
+      const seg = (item.getAttribute('href') || '').split('/')[1] || '';
+      if (!seg) return;
+      const active =
+        (seg === 'account' && accountPaths.some(p => path.startsWith(p))) ||
+        (seg === 'tours'   && toursPaths.some(p => path.startsWith(p)))   ||
+        (seg !== 'account' && seg !== 'tours' && path.startsWith('/' + seg));
+      if (active) item.classList.add('navbar__item--active');
     });
   })();
 </script>
