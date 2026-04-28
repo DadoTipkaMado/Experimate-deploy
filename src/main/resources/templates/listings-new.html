@@ -122,10 +122,10 @@
         <textarea id="tourDescription" name="tourDescription"
                   placeholder="Describe the experience — what will guests see, do, and feel?"
                   required minlength="200" maxlength="2000"
-                  oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
+                  oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
         <div style="display:flex;justify-content:space-between;">
-          <span class="form-field__hint">Min 200 characters</span>
-          <span class="form-field__hint" id="desc-counter" style="color:rgba(255,80,80,0.7);">0/2000</span>
+          <span class="form-field__hint">Min 200 characters — tell guests what they'll see, do, and feel</span>
+          <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
         </div>
       </div>
 
