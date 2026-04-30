@@ -210,30 +210,19 @@
     <div class="settings-section">
       <div class="settings-section__label">Personality</div>
 
-      <!-- My Stat Sheet — disabled until built -->
-      <div class="settings-link settings-link--disabled" style="display:flex;">
+      <!-- Quiz status row — populated by JS -->
+      <div class="settings-row" id="quiz-status-row">
         <div class="settings-row__left">
           <div class="settings-row__icon settings-row__icon--teal">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
-          <span class="settings-link__title" style="flex:1;">My Stat Sheet</span>
+          <div class="settings-row__info">
+            <div class="settings-row__title">Personality quiz</div>
+            <div class="settings-row__desc skeleton" id="quiz-status-desc" style="height:12px;width:120px;border-radius:4px;"></div>
+          </div>
         </div>
-        <span class="soon-pill">Soon</span>
+        <div id="quiz-status-action"></div>
       </div>
-
-      <!-- Retake quiz -->
-      <a href="/onboarding" class="settings-link">
-        <div class="settings-row__left">
-          <div class="settings-row__icon settings-row__icon--teal">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          </div>
-          <div>
-            <div class="settings-link__title">Retake quiz</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Update your personality matching profile.</div>
-          </div>
-        </div>
-        <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </a>
 
       <!-- Why we ask this -->
       <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:0;cursor:pointer;" onclick="toggleWhyPanel(this)">
@@ -279,7 +268,7 @@
       </div>
     </div>
 
-    <!-- SIGN OUT -->
+    <!-- SESSION -->
     <div class="settings-section">
       <div class="settings-section__label">Session</div>
       <a href="#" class="settings-link" id="logout-btn">
@@ -350,6 +339,31 @@
     localStorage.setItem('availableToMeet', availToggle.checked ? 'true' : 'false');
   });
 
+  // Personality — quiz status
+  async function loadQuizStatus() {
+    const desc   = document.getElementById('quiz-status-desc');
+    const action = document.getElementById('quiz-status-action');
+    try {
+      const res = await OnboardingAPI.getStatus();
+      desc.classList.remove('skeleton');
+      if (res.status === 'COMPLETED') {
+        const dateStr = res.completedAt
+          ? new Date(res.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+          : null;
+        desc.textContent = dateStr ? `Completed · ${dateStr}` : 'Completed';
+        action.innerHTML = `<a href="/onboarding" style="font-size:11px;color:var(--accent);letter-spacing:0.04em;text-decoration:none;white-space:nowrap;">Retake</a>`;
+      } else {
+        desc.textContent = res.status === 'CANCELLED' ? 'Skipped' : 'Not started yet';
+        action.innerHTML = `<a href="/onboarding" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;white-space:nowrap;">Take quiz</a>`;
+      }
+    } catch {
+      const desc = document.getElementById('quiz-status-desc');
+      desc.classList.remove('skeleton');
+      desc.textContent = 'Could not load';
+    }
+  }
+  loadQuizStatus();
+
   // Personality — why panel toggle
   function toggleWhyPanel(row) {
     const panel = document.getElementById('why-panel');
@@ -374,6 +388,7 @@
       localStorage.removeItem('personality_done');
       localStorage.removeItem('personality_skipped');
       showToast('Personality data deleted.', 'success');
+      await loadQuizStatus();  // refresh status row after deletion
     } catch (e) {
       showToast(e.message || 'Could not delete data — try again.', 'error');
     }

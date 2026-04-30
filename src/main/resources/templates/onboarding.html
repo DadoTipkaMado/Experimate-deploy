@@ -253,6 +253,13 @@
       font-size: 9px; color: var(--text-3); letter-spacing: 0.06em;
       line-height: 1.6; max-width: 260px; margin-top: 20px;
     }
+
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, #1e1e1e 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
   </style>
 </head>
 <body>
@@ -334,29 +341,14 @@
 
 <script src="/js/api.js"></script>
 <script>
-  // ── BFI-10 question texts (scoring is server-side) ────────────────
-  const QUESTIONS = [
-    'Full of energy and enthusiasm when around other people',
-    'Quick to criticize or find fault with things',
-    'Someone who keeps promises and gets things done',
-    'Easily worried or anxious about everyday situations',
-    'Always curious and drawn to new ideas and experiences',
-    'More comfortable in your own company than in big groups',
-    'Genuinely caring and warm toward the people around you',
-    'A bit scattered — often forgets things or loses track',
-    'Cool under pressure and rarely shaken by stress',
-    'More into tried-and-true routines than experimenting',
-  ];
-
   const SCALE = [
-    { val: 1, label: 'Not me at all'    },
-    { val: 2, label: 'Kinda not me'     },
-    { val: 3, label: 'Sort of both'     },
-    { val: 4, label: "That's kinda me"  },
-    { val: 5, label: 'Totally me'       },
+    { val: 1, label: 'Not me at all'   },
+    { val: 2, label: 'Kinda not me'    },
+    { val: 3, label: 'Sort of both'    },
+    { val: 4, label: "That's kinda me" },
+    { val: 5, label: 'Totally me'      },
   ];
 
-  // Trait descriptors — keyed by Big5 field name, threshold ±0.25 on [-1,+1] scale
   const TRAITS_MAP = {
     openness:          { hi: ['Curious',      'Creative',    'Open-minded'],  lo: ['Grounded',    'Practical',   'Focused']    },
     conscientiousness: { hi: ['Organised',    'Reliable',    'Thorough'],     lo: ['Spontaneous', 'Flexible',    'Easy-going'] },
@@ -365,19 +357,34 @@
     neuroticism:       { hi: ['Sensitive',    'Expressive',  'Emotional'],    lo: ['Stable',      'Resilient',   'Steady']     },
   };
 
-  // Vertex order matches radar SVG: top=O, right=E, bottom-right=A, bottom-left=C, left=N
-  const VERTICES = [
-    [100, 30], [166.6, 78.4], [141.1, 156.6], [58.9, 156.6], [33.4, 78.4],
-  ];
-  const DIM_KEYS = ['openness', 'extraversion', 'agreeableness', 'conscientiousness', 'neuroticism'];
+  // Vertex order: top=O, right=E, bottom-right=A, bottom-left=C, left=N
+  const VERTICES  = [[100, 30], [166.6, 78.4], [141.1, 156.6], [58.9, 156.6], [33.4, 78.4]];
+  const DIM_KEYS  = ['openness', 'extraversion', 'agreeableness', 'conscientiousness', 'neuroticism'];
 
-  let current = 0;
-  let answers = new Array(10).fill(null);
+  let QUESTIONS = [];   // filled by backend
+  let current   = 0;
+  let answers   = [];
+
+  // ── Loading skeleton ──────────────────────────────────────────────
+  function showLoadingSkeleton() {
+    const stage = document.getElementById('stage');
+    stage.innerHTML = `
+      <div class="q-card q-card--active" style="pointer-events:none">
+        <div class="q-prefix">Loading questions…</div>
+        <div class="q-text" style="opacity:0.3">
+          <div class="skeleton" style="height:28px;border-radius:6px;margin-bottom:8px;width:80%"></div>
+          <div class="skeleton" style="height:28px;border-radius:6px;width:60%"></div>
+        </div>
+        <div class="scale" style="margin-top:40px">
+          ${[1,2,3,4,5].map(() => `<div class="skeleton" style="height:48px;border-radius:12px"></div>`).join('')}
+        </div>
+      </div>`;
+  }
 
   // ── Render question ───────────────────────────────────────────────
   function renderQuestion(idx, direction) {
-    const stage   = document.getElementById('stage');
-    const text    = QUESTIONS[idx];
+    const stage  = document.getElementById('stage');
+    const text   = QUESTIONS[idx];
     const entered = direction === 'next' ? 'q-card--enter-right' : 'q-card--enter-left';
     const exited  = direction === 'next' ? 'q-card--exit-left'  : 'q-card--exit-right';
 
@@ -403,7 +410,7 @@
       </div>`;
     stage.appendChild(card);
 
-    if (answers[idx] !== null) {
+    if (answers[idx] !== null && answers[idx] !== undefined) {
       const btn = card.querySelector(`[data-val="${answers[idx]}"]`);
       if (btn) btn.classList.add('scale-btn--selected');
     }
@@ -430,10 +437,10 @@
   }
 
   function updateNextBtn(idx) {
-    const btn = document.getElementById('btn-next');
-    const ready = answers[idx] !== null;
-    const arrowSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    btn.innerHTML = (idx === QUESTIONS.length - 1 ? 'See my results ' : 'Continue ') + arrowSvg;
+    const btn   = document.getElementById('btn-next');
+    const ready = answers[idx] != null;
+    const arrow = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+    btn.innerHTML = (idx === QUESTIONS.length - 1 ? 'See my results ' : 'Continue ') + arrow;
     btn.classList.toggle('btn-next--ready', ready);
   }
 
@@ -449,11 +456,8 @@
   }
 
   function nextQuestion() {
-    if (answers[current] === null) return;
-    if (current === QUESTIONS.length - 1) {
-      showAnalyzing();
-      return;
-    }
+    if (answers[current] == null) return;
+    if (current === QUESTIONS.length - 1) { showAnalyzing(); return; }
     current++;
     renderQuestion(current, 'next');
   }
@@ -461,7 +465,7 @@
   // ── Analyzing + API submit ────────────────────────────────────────
   async function showAnalyzing() {
     document.getElementById('progress-wrap').style.opacity = '0';
-    document.getElementById('next-wrap').style.opacity = '0';
+    document.getElementById('next-wrap').style.opacity    = '0';
     document.getElementById('analyzing').classList.add('analyzing--visible');
 
     const startTime = Date.now();
@@ -471,43 +475,38 @@
     } catch (err) {
       document.getElementById('analyzing').classList.remove('analyzing--visible');
       document.getElementById('progress-wrap').style.opacity = '';
-      document.getElementById('next-wrap').style.opacity = '';
+      document.getElementById('next-wrap').style.opacity    = '';
       alert(err.message || 'Could not save results — please try again.');
       return;
     }
 
-    // Animate radar polygon once we have the real vector
     document.getElementById('analyzing-poly').setAttribute('points', buildPolyPoints(response.vector));
 
-    // Ensure minimum 2600ms of analyzing animation
     const elapsed = Date.now() - startTime;
     if (elapsed < 2600) await new Promise(r => setTimeout(r, 2600 - elapsed));
 
-    showResult(response.vector);
+    showResult(response.vector, response.onboardingSummary);
   }
 
   // ── Radar polygon builder ─────────────────────────────────────────
-  // vector values are in [-1, +1]; normalise to [0, 1] for radius scaling
   function buildPolyPoints(vector) {
     const cx = 100, cy = 100;
     return DIM_KEYS.map((key, i) => {
       const t = ((vector[key] ?? 0) + 1) / 2;
       const [vx, vy] = VERTICES[i];
-      const x = cx + (vx - cx) * (0.15 + t * 0.85);
-      const y = cy + (vy - cy) * (0.15 + t * 0.85);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
+      return `${(cx + (vx - cx) * (0.15 + t * 0.85)).toFixed(1)},${(cy + (vy - cy) * (0.15 + t * 0.85)).toFixed(1)}`;
     }).join(' ');
   }
 
   // ── Show result ───────────────────────────────────────────────────
-  function showResult(vector) {
+  function showResult(vector, summary) {
     document.getElementById('analyzing').classList.remove('analyzing--visible');
     document.getElementById('analyzing').style.display = 'none';
 
     const pillColors = { accent: 'trait-pill--accent', warm: 'trait-pill--warm', muted: 'trait-pill--muted' };
     const pills = [];
     Object.keys(TRAITS_MAP).forEach(key => {
-      const s = vector[key] ?? 0;
+      const s      = vector[key] ?? 0;
       const bucket = s >= 0.25 ? 'hi' : s <= -0.25 ? 'lo' : null;
       if (bucket) {
         const type = key === 'extraversion' || key === 'openness' ? 'accent' : key === 'agreeableness' ? 'warm' : 'muted';
@@ -523,10 +522,9 @@
       .map((p, i) => `<span class="trait-pill ${pillColors[p.type]}" style="animation-delay:${i*0.07}s">${p.label}</span>`)
       .join('');
 
-    const eDesc = vector.extraversion >= 0.25 ? 'bring energy to every room' : 'prefer meaningful one-on-one moments';
-    const oDesc = vector.openness     >= 0.25 ? 'love discovering things off the beaten path' : 'enjoy the comfort of familiar experiences';
-    document.getElementById('result-desc').textContent =
-      `You tend to ${eDesc} and ${oDesc}. ExperiMate will match you with locals whose vibe genuinely overlaps with yours.`;
+    // Use AI-generated summary if available, fall back to generic copy
+    document.getElementById('result-desc').textContent = summary ||
+      `ExperiMate will match you with locals whose vibe genuinely overlaps with yours.`;
 
     document.getElementById('result-poly').setAttribute('points', buildPolyPoints(vector));
 
@@ -537,18 +535,46 @@
     document.getElementById('result').classList.add('result--visible');
   }
 
-  function finishOnboarding() {
-    window.location.href = '/explore';
-  }
+  function finishOnboarding() { window.location.href = '/explore'; }
 
   function skipQuiz() {
-    const dest = localStorage.getItem('jwt') ? '/map' : '/login';
-    if (!localStorage.getItem('jwt')) { window.location.href = dest; return; }
-    OnboardingAPI.cancel().catch(() => {}).finally(() => { window.location.href = dest; });
+    if (!localStorage.getItem('jwt')) { window.location.href = '/login'; return; }
+    OnboardingAPI.cancel().catch(() => {}).finally(() => { window.location.href = '/map'; });
   }
 
-  // ── Init ──────────────────────────────────────────────────────────
-  renderQuestion(0, 'next');
+  // ── Init — fetch questions from backend, check status ─────────────
+  async function init() {
+    if (!localStorage.getItem('jwt')) { window.location.href = '/login'; return; }
+
+    showLoadingSkeleton();
+
+    try {
+      const [statusRes, questionsRes] = await Promise.all([
+        OnboardingAPI.getStatus(),
+        OnboardingAPI.getQuestions(),
+      ]);
+
+      // Already completed — skip straight to explore
+      if (statusRes.status === 'COMPLETED') {
+        window.location.href = '/explore';
+        return;
+      }
+
+      QUESTIONS = questionsRes.map(q => q.text);
+      answers   = new Array(QUESTIONS.length).fill(null);
+
+      renderQuestion(0, 'next');
+    } catch (err) {
+      document.getElementById('stage').innerHTML = `
+        <div class="q-card q-card--active" style="justify-content:center;text-align:center;gap:16px">
+          <div class="q-prefix" style="color:var(--warm)">Could not load questions</div>
+          <div style="font-size:12px;color:var(--text-2)">${err.message || 'Check your connection and try again.'}</div>
+          <button class="btn-next btn-next--ready" style="margin-top:16px" onclick="init()">Retry</button>
+        </div>`;
+    }
+  }
+
+  init();
 </script>
 </body>
 </html>
