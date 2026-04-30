@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.model.user;
 
 import hr.tvz.experimate.experimate.model.onboarding.Big5Vector;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -38,7 +39,9 @@ public class User extends Person {
     private Double personalityAgreeableness;
     private Double personalityNeuroticism;
     private LocalDateTime personalityComputedAt;
+    @Column(columnDefinition="boolean default false")
     private boolean onboardingCompleted = false;
+    @Column(columnDefinition="int default 0")
     private int quizCompletionCount = 0;
 
     //For Hibernate to operate

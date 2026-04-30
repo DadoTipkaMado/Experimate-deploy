@@ -194,3 +194,8 @@ PATCH http://localhost:8080/api/booking-request/accept/3
 
 ### Decline booking request
 PATCH http://localhost:8080/api/booking-request/accept/1
+
+//------------------Ai search-----------------------
+
+###
+GET http://localhost:8080/api/match/q?
