@@ -36,4 +36,5 @@ build/
 *.log
 logs/
 Programiranje/
+application-local.properties
 
