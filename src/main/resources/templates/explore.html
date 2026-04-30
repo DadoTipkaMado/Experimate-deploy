@@ -22,14 +22,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input type="text" id="explore-search-input" placeholder="Find someone curious and adventurous..." autocomplete="off">
-        <span class="search-ai-badge">AI</span>
+        <input type="text" id="explore-search-input" placeholder="Search by name or username..." autocomplete="off">
       </div>
       <div class="explore-filters">
-        <div id="sort-personalized" class="pill" onclick="setExploreSort('personalized')">Personalized</div>
         <div id="sort-rating" class="pill pill--active" onclick="setExploreSort('rating')">Top rated</div>
         <div id="sort-name" class="pill" onclick="setExploreSort('name')">Name</div>
-        <div id="sort-listings" class="pill" onclick="setExploreSort('listings')">Most activities</div>
         <div id="filter-saved" class="pill" onclick="toggleSavedFilter(this)">Saved ♥</div>
       </div>
     </div>
@@ -65,16 +62,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- Explain compatibility bottom sheet -->
-<div class="bottom-sheet" id="explain-sheet">
-  <div class="bottom-sheet__handle"></div>
-  <div style="padding:20px 20px 40px;">
-    <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);margin-bottom:14px;" id="explain-sheet-title">Why you match</div>
-    <div id="explain-sheet-body" style="font-size:13px;color:var(--text-2);line-height:1.8;min-height:40px;"></div>
-  </div>
-</div>
-<div class="bottom-sheet-backdrop" id="explain-backdrop" onclick="closeExplainSheet()"></div>
-
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
@@ -87,14 +74,13 @@
     localStorage.setItem('saved_locals', JSON.stringify([...set]));
   }
 
-  let _showSavedOnly  = false;
-  var _currentQuery   = '';     // kept in sync by explore.js search handler
+  let _showSavedOnly = false;
 
   function toggleSave(el) {
-    const card   = el.closest('.explore-card');
+    const card     = el.closest('.explore-card');
     const username = card.dataset.username;
-    const saved  = _getSaved();
-    const isSaved = saved.has(username);
+    const saved    = _getSaved();
+    const isSaved  = saved.has(username);
     isSaved ? saved.delete(username) : saved.add(username);
     _setSaved(saved);
     const nowSaved = !isSaved;
@@ -116,71 +102,31 @@
     setCardHeights();
   }
 
-  // ── Explain compatibility sheet ───────────────────────────────────
-  async function showExplainSheet(userId, firstName) {
-    const sheet  = document.getElementById('explain-sheet');
-    const body   = document.getElementById('explain-sheet-body');
-    document.getElementById('explain-sheet-title').textContent = `You & ${firstName}`;
-    body.innerHTML = `
-      <div class="skeleton" style="height:14px;border-radius:6px;margin-bottom:8px;width:88%"></div>
-      <div class="skeleton" style="height:14px;border-radius:6px;margin-bottom:8px;width:72%"></div>
-      <div class="skeleton" style="height:14px;border-radius:6px;width:55%"></div>`;
-    sheet.classList.add('bottom-sheet--open');
-    document.getElementById('explain-backdrop').classList.add('bottom-sheet-backdrop--visible');
-    try {
-      const res = await MatchAPI.explainMatch(userId, _currentQuery || null);
-      body.textContent = res.explanation || 'No explanation available.';
-    } catch {
-      body.textContent = 'Could not load compatibility explanation — try again.';
-    }
-  }
-
-  function closeExplainSheet() {
-    document.getElementById('explain-sheet').classList.remove('bottom-sheet--open');
-    document.getElementById('explain-backdrop').classList.remove('bottom-sheet-backdrop--visible');
-  }
-
   // ── State ─────────────────────────────────────────────────────────
-  let _exploreMatches = [];
-  let _exploreSort    = 'personalized';
+  let _exploreUsers = [];
+  let _exploreSort  = 'rating';
 
   // ── Sort pills ────────────────────────────────────────────────────
   function setExploreSort(val) {
     _exploreSort = val;
-    ['rating','name','listings','personalized'].forEach(k => {
+    ['rating', 'name'].forEach(k => {
       const el = document.getElementById('sort-' + k);
-      if (!el) return;
-      el.classList.toggle('pill--active',        k === val && k !== 'personalized');
-      el.classList.toggle('pill--personalized',  k === val && k === 'personalized');
+      if (el) el.classList.toggle('pill--active', k === val);
     });
-    // If personalized selected but nobody has a score, prompt quiz
-    if (val === 'personalized' && _exploreMatches.every(m => m.compatibilityScore === null)) {
-      showToast('Take the personality quiz first!', 'default');
-      setTimeout(() => { window.location.href = '/onboarding'; }, 1200);
-      return;
-    }
     renderExploreSorted();
   }
 
   function renderExploreSorted() {
-    renderExploreWithSort(_exploreMatches);
+    renderExploreWithSort(_exploreUsers);
   }
 
-  function renderExploreWithSort(matches, searchQuery) {
-    let sorted = matches.slice();
+  function renderExploreWithSort(users, searchQuery) {
+    let sorted = users.slice();
     if (_exploreSort === 'name') {
       sorted.sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
-    } else if (_exploreSort === 'listings') {
-      sorted.sort((a, b) => (b.activeListing ? 1 : 0) - (a.activeListing ? 1 : 0));
-    } else if (_exploreSort === 'personalized') {
-      sorted.sort((a, b) => {
-        if (a.compatibilityScore == null && b.compatibilityScore == null) return 0;
-        if (a.compatibilityScore == null) return 1;
-        if (b.compatibilityScore == null) return -1;
-        return b.compatibilityScore - a.compatibilityScore;
-      });
+    } else {
+      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
-    // 'rating' — use backend order (no rating field in MatchResponse)
     renderExplore(sorted, searchQuery);
   }
 
@@ -190,29 +136,29 @@
   }
 
   // ── Render ────────────────────────────────────────────────────────
-  function renderExplore(matches, searchQuery) {
+  function renderExplore(users, searchQuery) {
     const feed = document.getElementById('explore-feed');
-    if (!matches || matches.length === 0) {
+    if (!users || users.length === 0) {
       feed.innerHTML = searchQuery
         ? `<div class="explore-empty">
              <div class="explore-empty__icon">🔍</div>
              <div class="explore-empty__title">No results for "${esc(searchQuery)}"</div>
-             <div class="explore-empty__sub">Try describing someone's personality or a place.</div>
+             <div class="explore-empty__sub">Try a different name or username.</div>
            </div>`
         : `<div class="explore-empty">
              <div class="explore-empty__icon">🧭</div>
              <div class="explore-empty__title">You're one of the first here</div>
-             <div class="explore-empty__sub">Other locals appear once they create a Day. In the meantime, complete your profile so you stand out.</div>
+             <div class="explore-empty__sub">Other locals appear once they create a Meet. Complete your profile so you stand out.</div>
              <a href="/account/edit" class="btn btn--primary" style="margin-top:16px;height:42px;padding:0 24px;font-size:12px;">Complete my profile</a>
            </div>`;
       return;
     }
 
-    feed.innerHTML = matches.map(m => {
-      const initials   = ((m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')).toUpperCase() || '?';
-      const hue        = (m.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-      const photoUrl   = UserAPI.photoUrl(m.profilePhotoUrl);
-      const bgDiv      = photoUrl
+    feed.innerHTML = users.map(m => {
+      const initials = ((m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue      = (m.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      const photoUrl = UserAPI.photoUrl(m.profilePhotoUrl);
+      const bgDiv    = photoUrl
         ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%) url('${photoUrl}') center top / cover;"></div>`
         : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);display:flex;align-items:center;justify-content:center;">
              <div style="width:96px;height:96px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;">
@@ -220,26 +166,11 @@
              </div>
            </div>`;
 
-      const pct        = m.compatibilityScore;
-      const listing    = m.activeListing;
-      const cityBadge  = listing
-        ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${esc(listing.city)}</span>`
-        : '';
-      const matchBadge = pct !== null
-        ? `<div class="explore-card__match-pct" style="cursor:pointer;" title="Tap to see why you match" onclick="showExplainSheet(${m.userId}, '${esc(m.firstName)}')">${pct}% match ✦</div>`
-        : '';
-      const snippet    = listing?.descriptionSnippet
-        ? `<div class="explore-card__why">✦ ${esc(listing.descriptionSnippet.length > 80 ? listing.descriptionSnippet.slice(0, 80) + '…' : listing.descriptionSnippet)}</div>`
-        : '';
-      const ctaHref    = listing ? `/tours?listing=${listing.id}` : `/profile/${m.username}`;
-      const ctaLabel   = listing ? 'View Day' : 'View Profile';
-
       return `
-      <div class="explore-card${pct !== null ? ' explore-card--personalized' : ''}"
-           data-id="${m.userId}" data-name="${esc(m.firstName)} ${esc(m.lastName)}" data-username="${esc(m.username)}">
+      <div class="explore-card"
+           data-id="${m.id}" data-name="${esc(m.firstName)} ${esc(m.lastName)}" data-username="${esc(m.username)}">
         ${bgDiv}
         <div class="explore-card__gradient"></div>
-        ${matchBadge}
         <div class="explore-card__side">
           <div class="side-action" onclick="toggleSave(this)">
             <div class="side-action__icon">
@@ -251,15 +182,13 @@
           </div>
         </div>
         <div class="explore-card__content">
-          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+          <div style="margin-bottom:4px;">
             <a href="/profile/${m.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${esc(m.firstName)} ${esc(m.lastName)}</a>
-            ${cityBadge}
           </div>
           <div class="explore-card__handle">@${esc(m.username)}</div>
-          ${snippet}
           <div class="explore-card__desc">${esc(m.bio ?? 'No bio yet.')}</div>
           <div class="explore-card__cta">
-            <a href="${ctaHref}" class="btn btn--primary">${ctaLabel}</a>
+            <a href="/profile/${m.username}" class="btn btn--primary">View Profile</a>
           </div>
         </div>
       </div>`;
@@ -268,7 +197,6 @@
     setCardHeights();
     initScrollHint();
 
-    // Restore saved hearts
     const saved = _getSaved();
     document.querySelectorAll('.explore-card').forEach(card => {
       if (!saved.has(card.dataset.username)) return;
@@ -281,9 +209,9 @@
   }
 
   // ── Initial load ──────────────────────────────────────────────────
-  MatchAPI.findMatches()
-    .then(matches => {
-      _exploreMatches = matches || [];
+  UserAPI.getAll()
+    .then(users => {
+      _exploreUsers = users || [];
       renderExploreSorted();
     })
     .catch(() => renderExplore([]));

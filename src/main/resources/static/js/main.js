@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   const bubble = document.createElement('div');
   bubble.id = 'completion-bubble';
   bubble.style.cssText = [
-    'display:flex;align-items:center;gap:10px;padding:0 14px',
+    'display:flex;align-items:center;gap:12px;padding:0 20px',
     'background:linear-gradient(90deg,#c94a00,#e05500)',
     'color:#fff;font-family:var(--font-mono,monospace);flex-shrink:0',
     'overflow:hidden;max-height:0;opacity:0;border-bottom:1px solid rgba(0,0,0,0.2)',
@@ -357,16 +357,16 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   topbar.insertAdjacentElement('afterend', bubble);
 
   requestAnimationFrame(() => {
-    bubble.style.maxHeight = '52px';
+    bubble.style.maxHeight = '62px';
     bubble.style.opacity   = '1';
-    bubble.style.padding   = '10px 14px';
+    bubble.style.padding   = '14px 20px';
   });
 
   document.getElementById('bubble-close').addEventListener('click', () => {
     bubble.style.transition = 'max-height 0.25s ease,opacity 0.2s ease,padding 0.25s ease';
     bubble.style.maxHeight  = '0';
     bubble.style.opacity    = '0';
-    bubble.style.padding    = '0 14px';
+    bubble.style.padding    = '0 20px';
     setTimeout(() => bubble.remove(), 280);
   });
 });

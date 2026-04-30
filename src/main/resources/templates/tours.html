@@ -206,11 +206,11 @@
 
     <div class="tours-header">
       <div class="tours-header__titles">
-        <div class="page-title">Days</div>
-        <div class="page-subtitle" style="margin-bottom: 14px;">Discover days with local Mates</div>
+        <div class="page-title">Meets</div>
+        <div class="page-subtitle" style="margin-bottom: 14px;"><span style="color:var(--accent);">Experiment</span> with <span style="color:var(--warm);">mates</span></div>
         <div class="tab-bar">
           <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
-          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Days</div>
+          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Meets</div>
         </div>
       </div>
       <a href="/listings/new" class="tours-fab" title="New listing">+</a>
@@ -230,14 +230,12 @@
 
     <!-- ── DISCOVER TAB ── -->
     <div id="tab-discover">
-      <div id="city-filter-bar" class="city-filter pill-group"></div>
-
       <!-- Sort + filter controls -->
-      <div id="discover-controls" style="display:flex;align-items:center;justify-content:space-between;padding:6px 18px 2px;gap:8px;">
+      <div id="discover-controls" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px 2px;gap:8px;">
         <div style="display:flex;gap:5px;align-items:center;">
           <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
-          <div id="sort-btn-asc" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('asc')">Soonest</div>
-          <div id="sort-btn-desc" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('desc')">Latest</div>
+          <div id="sort-btn-asc" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('asc')">Ascending</div>
+          <div id="sort-btn-desc" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('desc')">Descending</div>
         </div>
         <div id="pill-avail-discover" class="pill" style="font-size:10px;padding:4px 10px;" onclick="toggleDiscoverAvailable(this)">Available only</div>
       </div>
@@ -760,7 +758,6 @@
   /* ── Render listings — set up state + city pills, then delegate to applyDiscover ── */
   function renderListings(listings) {
     _allListings = listings || [];
-    const cityBar = document.getElementById('city-filter-bar');
 
     // Apply host filter if coming from Explore
     _baseListings = _allListings.slice();
@@ -774,17 +771,12 @@
       document.getElementById('listings-list').innerHTML = `
         <div class="listings-empty">
           <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
-          <div class="listings-empty__title">No Days yet</div>
+          <div class="listings-empty__title">No Meets yet</div>
           <div class="listings-empty__sub">Be the first to host a local experience.</div>
           <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
         </div>`;
-      cityBar.innerHTML = '';
       return;
     }
-
-    const cities = [...new Set(_baseListings.map(l => l.city).filter(Boolean))];
-    cityBar.innerHTML = `<div class="pill pill--active" data-city="all" onclick="selectPill(this); filterCity('all')">All</div>` +
-      cities.map(c => `<div class="pill" data-city="${c}" onclick="selectPill(this); filterCity(this.dataset.city)">${c}</div>`).join('');
 
     applyDiscover();
   }

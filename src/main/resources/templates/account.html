@@ -131,17 +131,14 @@
     <!-- Tab bar -->
     <div class="acc-tab-bar">
       <div class="acc-tab acc-tab--active" onclick="switchAccTab('overview', this)">Overview</div>
-      <div class="acc-tab" onclick="switchAccTab('memories', this)">Memories</div>
+      <div class="acc-tab" onclick="switchAccTab('memories', this)">Memories <span style="font-family:var(--font-mono);font-size:8px;font-weight:400;color:var(--text-3);font-style:italic;">(soon)</span></div>
     </div>
 
     <!-- OVERVIEW TAB -->
     <div id="acc-tab-overview" class="acc-tab-panel acc-tab-panel--active">
 
     <div class="acc-section" style="padding-bottom:14px;">
-      <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        Bio
-        <a href="/account/edit" style="font-size:10px;color:var(--accent);text-decoration:none;letter-spacing:0.06em;">Edit</a>
-      </div>
+      <div class="section-label" style="margin-bottom:8px;">Bio</div>
       <div id="account-bio" style="font-size:11px;line-height:1.7;color:var(--text-3);">No bio set.</div>
     </div>
 
@@ -150,7 +147,7 @@
     <div class="acc-section" style="padding-bottom:14px;display:none;" id="available-section">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <div>
-          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Available to meet</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Available to meet <span style="font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--text-3);font-style:italic;">(feature coming soon...)</span></div>
           <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Let others know you're open to meetups right now</div>
         </div>
         <button id="avail-toggle" onclick="toggleAvailability()" style="
@@ -166,55 +163,54 @@
       </div>
     </div>
 
-    <div class="acc-section">
-      <a href="/requests" id="requests-link" class="acc-link-card">
-        <div class="acc-link-card__left">
-          <div class="acc-link-card__icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+    <div class="acc-section" style="padding-bottom:14px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a href="/requests" id="requests-link" class="acc-link-card">
+          <div class="acc-link-card__left">
+            <div class="acc-link-card__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Meet Requests</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View and manage incoming meet requests</div>
+            </div>
           </div>
-          <div>
-            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Join Requests</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View and manage incoming day requests</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
+        </a>
+
+        <a href="/ratings" class="acc-link-card">
+          <div class="acc-link-card__left">
+            <div class="acc-link-card__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Ratings</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View ratings and reviews</div>
+            </div>
+          </div>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </a>
-    </div>
+        </a>
 
-    <div class="acc-section">
-      <a href="/ratings" class="acc-link-card">
-        <div class="acc-link-card__left">
-          <div class="acc-link-card__icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <a href="/settings" class="acc-link-card">
+          <div class="acc-link-card__left">
+            <div class="acc-link-card__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Settings</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Theme, personality, account</div>
+            </div>
           </div>
-          <div>
-            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Ratings</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:2px;">View ratings and reviews</div>
-          </div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>
-
-      <a href="/settings" class="acc-link-card">
-        <div class="acc-link-card__left">
-          <div class="acc-link-card__icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          </div>
-          <div>
-            <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Settings</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Theme, personality, account</div>
-          </div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
     </div>
 
     <div class="acc-bottom">
-      <a href="/listings/new" class="new-listing-link">+ Create a listing</a>
-      <button onclick="Auth.logout()" class="logout-btn" style="margin-top:10px;">Log out</button>
+      <button onclick="Auth.logout()" class="logout-btn">Log out</button>
     </div>
 
     </div><!-- /acc-tab-overview -->
