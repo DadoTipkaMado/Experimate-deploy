@@ -64,11 +64,22 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Explain compatibility bottom sheet -->
+<div class="bottom-sheet" id="explain-sheet">
+  <div class="bottom-sheet__handle"></div>
+  <div style="padding:20px 20px 40px;">
+    <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);margin-bottom:14px;" id="explain-sheet-title">Why you match</div>
+    <div id="explain-sheet-body" style="font-size:13px;color:var(--text-2);line-height:1.8;min-height:40px;"></div>
+  </div>
+</div>
+<div class="bottom-sheet-backdrop" id="explain-backdrop" onclick="closeExplainSheet()"></div>
+
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
 <script th:inline="none">
-  // Saved locals — persisted in localStorage as a Set of usernames
+  // ── Saved locals ──────────────────────────────────────────────────
   function _getSaved() {
     try { return new Set(JSON.parse(localStorage.getItem('saved_locals') || '[]')); } catch { return new Set(); }
   }
@@ -76,25 +87,22 @@
     localStorage.setItem('saved_locals', JSON.stringify([...set]));
   }
 
-  let _showSavedOnly = false;
+  let _showSavedOnly  = false;
+  var _currentQuery   = '';     // kept in sync by explore.js search handler
 
   function toggleSave(el) {
-    const card = el.closest('.explore-card');
+    const card   = el.closest('.explore-card');
     const username = card.dataset.username;
-    const saved = _getSaved();
+    const saved  = _getSaved();
     const isSaved = saved.has(username);
-    if (isSaved) { saved.delete(username); } else { saved.add(username); }
+    isSaved ? saved.delete(username) : saved.add(username);
     _setSaved(saved);
-
     const nowSaved = !isSaved;
     el.classList.toggle('side-action--saved', nowSaved);
     const heart = el.querySelector('.save-heart');
-    heart.setAttribute('fill', nowSaved ? 'var(--warm)' : 'none');
+    heart.setAttribute('fill',   nowSaved ? 'var(--warm)' : 'none');
     heart.setAttribute('stroke', nowSaved ? 'var(--warm)' : 'var(--text)');
-    const name = card.dataset.name;
-    showToast(nowSaved ? 'Saved ' + name : 'Removed ' + name);
-
-    // If Saved filter is active and we just un-saved, hide the card
+    showToast(nowSaved ? 'Saved ' + card.dataset.name : 'Removed ' + card.dataset.name);
     if (_showSavedOnly && !nowSaved) card.style.display = 'none';
   }
 
@@ -103,67 +111,50 @@
     el.classList.toggle('pill--active', _showSavedOnly);
     const saved = _getSaved();
     document.querySelectorAll('.explore-card').forEach(card => {
-      if (!_showSavedOnly) { card.style.display = ''; return; }
-      card.style.display = saved.has(card.dataset.username) ? '' : 'none';
+      card.style.display = (!_showSavedOnly || saved.has(card.dataset.username)) ? '' : 'none';
     });
     setCardHeights();
   }
 
-  let _exploreUsers    = [];
-  let _exploreSort     = 'rating';
-  let _listingCountMap = {}; // username → active listing count
-
-  // ── Personality match helpers ─────────────────────────────────────
-  // personality_scores stores Big5VectorDto: { openness, conscientiousness, extraversion, agreeableness, neuroticism }
-  // Values are in [-1.0, +1.0] (server-normalised).
-  const _BIG5_KEYS  = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'];
-  const _BIG5_SEEDS = [7, 13, 3, 17, 11];
-
-  function _getMyScores() {
-    try { return JSON.parse(localStorage.getItem('personality_scores') || 'null'); } catch { return null; }
+  // ── Explain compatibility sheet ───────────────────────────────────
+  async function showExplainSheet(userId, firstName) {
+    const sheet  = document.getElementById('explain-sheet');
+    const body   = document.getElementById('explain-sheet-body');
+    document.getElementById('explain-sheet-title').textContent = `You & ${firstName}`;
+    body.innerHTML = `
+      <div class="skeleton" style="height:14px;border-radius:6px;margin-bottom:8px;width:88%"></div>
+      <div class="skeleton" style="height:14px;border-radius:6px;margin-bottom:8px;width:72%"></div>
+      <div class="skeleton" style="height:14px;border-radius:6px;width:55%"></div>`;
+    sheet.classList.add('bottom-sheet--open');
+    document.getElementById('explain-backdrop').classList.add('bottom-sheet-backdrop--visible');
+    try {
+      const res = await MatchAPI.explainMatch(userId, _currentQuery || null);
+      body.textContent = res.explanation || 'No explanation available.';
+    } catch {
+      body.textContent = 'Could not load compatibility explanation — try again.';
+    }
   }
 
-  function _seedVec(username) {
-    const h = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return _BIG5_SEEDS.map(seed => ((h * seed) % 100) / 100 * 2 - 1);
+  function closeExplainSheet() {
+    document.getElementById('explain-sheet').classList.remove('bottom-sheet--open');
+    document.getElementById('explain-backdrop').classList.remove('bottom-sheet-backdrop--visible');
   }
 
-  function matchPct(username) {
-    const my = _getMyScores();
-    if (!my) return null;
-    const myVec    = _BIG5_KEYS.map(k => my[k] ?? 0);
-    const theirVec = _seedVec(username);
-    const dot  = myVec.reduce((s, v, i) => s + v * theirVec[i], 0);
-    const magA = Math.sqrt(myVec.reduce((s, v) => s + v * v, 0));
-    const magB = Math.sqrt(theirVec.reduce((s, v) => s + v * v, 0));
-    if (!magA || !magB) return null;
-    const sim = dot / (magA * magB);
-    return Math.min(99, Math.max(50, Math.round(sim * 25 + 75)));
-  }
-  function whyMatch(username) {
-    const traits = ['curious','calm','adventurous','thoughtful','warm','creative','organised','spontaneous','bold','empathetic'];
-    const h = username.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
-    const t1 = traits[h % traits.length];
-    const t2 = traits[(h * 3 + 2) % traits.length];
-    return t1 === t2 ? `Both ${t1} — great match` : `Both ${t1} and ${t2}`;
-  }
-  function matchTraits(username) {
-    const traits = ['Curious','Calm','Adventurous','Thoughtful','Warm','Creative'];
-    const h = username.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
-    return [traits[h % traits.length], traits[(h*3) % traits.length]].filter((v,i,a) => a.indexOf(v)===i);
-  }
+  // ── State ─────────────────────────────────────────────────────────
+  let _exploreMatches = [];
+  let _exploreSort    = 'personalized';
 
+  // ── Sort pills ────────────────────────────────────────────────────
   function setExploreSort(val) {
     _exploreSort = val;
     ['rating','name','listings','personalized'].forEach(k => {
       const el = document.getElementById('sort-' + k);
       if (!el) return;
-      const isActive = k === val;
-      el.classList.toggle('pill--active', isActive && k !== 'personalized');
-      el.classList.toggle('pill--personalized', isActive && k === 'personalized');
+      el.classList.toggle('pill--active',        k === val && k !== 'personalized');
+      el.classList.toggle('pill--personalized',  k === val && k === 'personalized');
     });
-    // Prompt quiz if trying personalized without scores
-    if (val === 'personalized' && !_getMyScores()) {
+    // If personalized selected but nobody has a score, prompt quiz
+    if (val === 'personalized' && _exploreMatches.every(m => m.compatibilityScore === null)) {
       showToast('Take the personality quiz first!', 'default');
       setTimeout(() => { window.location.href = '/onboarding'; }, 1200);
       return;
@@ -172,91 +163,108 @@
   }
 
   function renderExploreSorted() {
-    renderExploreWithSort(_exploreUsers);
+    renderExploreWithSort(_exploreMatches);
   }
 
-  // Sorts users by current _exploreSort then calls renderExplore.
-  // Pass an array to render that instead of _exploreUsers (used by search).
-  function renderExploreWithSort(users, searchQuery) {
-    let sorted = users.slice();
-    if (_exploreSort === 'rating') {
-      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    } else if (_exploreSort === 'name') {
+  function renderExploreWithSort(matches, searchQuery) {
+    let sorted = matches.slice();
+    if (_exploreSort === 'name') {
       sorted.sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
     } else if (_exploreSort === 'listings') {
-      sorted.sort((a, b) => (_listingCountMap[b.username] ?? 0) - (_listingCountMap[a.username] ?? 0));
+      sorted.sort((a, b) => (b.activeListing ? 1 : 0) - (a.activeListing ? 1 : 0));
     } else if (_exploreSort === 'personalized') {
-      sorted.sort((a, b) => (matchPct(b.username) ?? 0) - (matchPct(a.username) ?? 0));
+      sorted.sort((a, b) => {
+        if (a.compatibilityScore == null && b.compatibilityScore == null) return 0;
+        if (a.compatibilityScore == null) return 1;
+        if (b.compatibilityScore == null) return -1;
+        return b.compatibilityScore - a.compatibilityScore;
+      });
     }
+    // 'rating' — use backend order (no rating field in MatchResponse)
     renderExplore(sorted, searchQuery);
   }
 
-  function renderExplore(users, searchQuery) {
+  // ── HTML escaping helper ──────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Render ────────────────────────────────────────────────────────
+  function renderExplore(matches, searchQuery) {
     const feed = document.getElementById('explore-feed');
-    if (!users || users.length === 0) {
-      if (searchQuery) {
-        feed.innerHTML = `
-          <div class="explore-empty">
-            <div class="explore-empty__icon">🔍</div>
-            <div class="explore-empty__title">No results for "${searchQuery}"</div>
-            <div class="explore-empty__sub">Try a different name or username.</div>
-          </div>`;
-      } else {
-        feed.innerHTML = `
-          <div class="explore-empty">
-            <div class="explore-empty__icon">🧭</div>
-            <div class="explore-empty__title">You're one of the first here</div>
-            <div class="explore-empty__sub">Other locals will show up here once they join. In the meantime, complete your profile so you stand out when they do.</div>
-            <a href="/account/edit" class="btn btn--primary" style="margin-top:16px;height:42px;padding:0 24px;font-size:12px;">Complete my profile</a>
-          </div>`;
-      }
+    if (!matches || matches.length === 0) {
+      feed.innerHTML = searchQuery
+        ? `<div class="explore-empty">
+             <div class="explore-empty__icon">🔍</div>
+             <div class="explore-empty__title">No results for "${esc(searchQuery)}"</div>
+             <div class="explore-empty__sub">Try describing someone's personality or a place.</div>
+           </div>`
+        : `<div class="explore-empty">
+             <div class="explore-empty__icon">🧭</div>
+             <div class="explore-empty__title">You're one of the first here</div>
+             <div class="explore-empty__sub">Other locals appear once they create a Day. In the meantime, complete your profile so you stand out.</div>
+             <a href="/account/edit" class="btn btn--primary" style="margin-top:16px;height:42px;padding:0 24px;font-size:12px;">Complete my profile</a>
+           </div>`;
       return;
     }
-    feed.innerHTML = users.map(user => {
-      const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
-      const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-      const activeCount = _listingCountMap[user.username] ?? 0;
-      const listingBadge = activeCount > 0
-        ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${activeCount} tour${activeCount > 1 ? 's' : ''}</span>`
+
+    feed.innerHTML = matches.map(m => {
+      const initials   = ((m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue        = (m.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      const photoUrl   = UserAPI.photoUrl(m.profilePhotoUrl);
+      const bgDiv      = photoUrl
+        ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%) url('${photoUrl}') center top / cover;"></div>`
+        : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);display:flex;align-items:center;justify-content:center;">
+             <div style="width:96px;height:96px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;">
+               <span style="font-family:var(--font-display);font-weight:800;font-size:34px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>
+             </div>
+           </div>`;
+
+      const pct        = m.compatibilityScore;
+      const listing    = m.activeListing;
+      const cityBadge  = listing
+        ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${esc(listing.city)}</span>`
         : '';
-      const storedPhoto = UserAPI.photoUrl(user.profilePhotoUrl) || localStorage.getItem('photo_' + user.id);
-      const bgDiv = storedPhoto
-        ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%) url('${storedPhoto}') center top / cover;"></div>`
-        : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);display:flex;align-items:center;justify-content:center;"><div style="width:96px;height:96px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;overflow:hidden;"><span style="font-family:var(--font-display);font-weight:800;font-size:34px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span></div></div>`;
-      const pct     = matchPct(user.username);
-      const why     = whyMatch(user.username);
-      const traits  = matchTraits(user.username);
-      const isPersonalized = _exploreSort === 'personalized' && pct !== null;
-      const trailsHtml = traits.map(t => `<span class="explore-card__trait">${t}</span>`).join('');
+      const matchBadge = pct !== null
+        ? `<div class="explore-card__match-pct" style="cursor:pointer;" title="Tap to see why you match" onclick="showExplainSheet(${m.userId}, '${esc(m.firstName)}')">${pct}% match ✦</div>`
+        : '';
+      const snippet    = listing?.descriptionSnippet
+        ? `<div class="explore-card__why">✦ ${esc(listing.descriptionSnippet.length > 80 ? listing.descriptionSnippet.slice(0, 80) + '…' : listing.descriptionSnippet)}</div>`
+        : '';
+      const ctaHref    = listing ? `/tours?listing=${listing.id}` : `/profile/${m.username}`;
+      const ctaLabel   = listing ? 'View Day' : 'View Profile';
+
       return `
-      <div class="explore-card${isPersonalized ? ' explore-card--personalized' : ''}" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}" data-username="${user.username}">
+      <div class="explore-card${pct !== null ? ' explore-card--personalized' : ''}"
+           data-id="${m.userId}" data-name="${esc(m.firstName)} ${esc(m.lastName)}" data-username="${esc(m.username)}">
         ${bgDiv}
         <div class="explore-card__gradient"></div>
-        <div class="explore-card__rating">★ ${user.rating > 0 ? Number(user.rating).toFixed(1) : '—'}</div>
-        <div class="explore-card__match-pct">${pct ?? '—'}% match</div>
+        ${matchBadge}
         <div class="explore-card__side">
           <div class="side-action" onclick="toggleSave(this)">
             <div class="side-action__icon">
-              <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
             </div>
             <div class="side-action__label">Save</div>
           </div>
         </div>
         <div class="explore-card__content">
           <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-            <a href="/profile/${user.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${user.firstName} ${user.lastName}</a>
-            ${listingBadge}
+            <a href="/profile/${m.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${esc(m.firstName)} ${esc(m.lastName)}</a>
+            ${cityBadge}
           </div>
-          <div class="explore-card__handle">@${user.username}</div>
-          <div class="explore-card__why">✦ ${why}</div>
-          <div class="explore-card__traits">${trailsHtml}</div>
-          <div class="explore-card__desc">${user.bio ?? 'No bio yet.'}</div>
+          <div class="explore-card__handle">@${esc(m.username)}</div>
+          ${snippet}
+          <div class="explore-card__desc">${esc(m.bio ?? 'No bio yet.')}</div>
           <div class="explore-card__cta">
-            <a href="${activeCount > 0 ? `/tours?host=${user.username}` : `/profile/${user.username}`}" class="btn btn--primary">${activeCount > 0 ? `View ${activeCount} Tour${activeCount > 1 ? 's' : ''}` : 'View Profile'}</a>
+            <a href="${ctaHref}" class="btn btn--primary">${ctaLabel}</a>
           </div>
         </div>
       </div>`;
     }).join('');
+
     setCardHeights();
     initScrollHint();
 
@@ -272,16 +280,10 @@
     });
   }
 
-  Promise.all([UserAPI.getAll(), TourListingAPI.getAll()])
-    .then(([users, listings]) => {
-      const now = new Date();
-      _exploreUsers = users || [];
-      // Build listing count map: username → number of non-reserved upcoming listings
-      _listingCountMap = {};
-      (listings || []).forEach(l => {
-        if (!l.host?.username || l.reserved || new Date(l.meetingDate) <= now) return;
-        _listingCountMap[l.host.username] = (_listingCountMap[l.host.username] ?? 0) + 1;
-      });
+  // ── Initial load ──────────────────────────────────────────────────
+  MatchAPI.findMatches()
+    .then(matches => {
+      _exploreMatches = matches || [];
       renderExploreSorted();
     })
     .catch(() => renderExplore([]));

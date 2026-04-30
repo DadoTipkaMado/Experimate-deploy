@@ -140,6 +140,107 @@
     .marker-cluster { background: rgba(0,201,167,0.15) !important; border: 1px solid rgba(0,201,167,0.4) !important; }
     .marker-cluster div { background: rgba(0,201,167,0.85) !important; color: #000 !important; font-family: var(--font-display) !important; font-weight: 700 !important; font-size: 12px !important; }
     .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background: rgba(0,201,167,0.15) !important; }
+
+    /* ── Match results panel ── */
+    .match-panel {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+      background: var(--bg); border-top: 1px solid var(--border-2);
+      border-radius: 16px 16px 0 0;
+      max-height: 68vh; display: flex; flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      will-change: transform;
+    }
+    .match-panel--open { transform: translateY(0); }
+    .match-panel__grip {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: var(--border-2); margin: 10px auto 0; flex-shrink: 0; cursor: pointer;
+    }
+    .match-panel__header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px 10px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .match-panel__title {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 13px; color: var(--text);
+    }
+    .match-panel__close {
+      background: none; border: none; color: var(--text-3);
+      font-size: 20px; line-height: 1; cursor: pointer; padding: 0 2px;
+      transition: color 0.15s;
+    }
+    .match-panel__close:hover { color: var(--text); }
+    .match-panel__list {
+      overflow-y: auto; flex: 1;
+      padding: 10px 12px 90px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    /* ── Match card ── */
+    .match-card {
+      display: flex; gap: 12px; padding: 12px 12px 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .match-card__avatar {
+      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      object-fit: cover;
+    }
+    .match-card__body { flex: 1; min-width: 0; }
+    .match-card__top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 8px; margin-bottom: 2px;
+    }
+    .match-card__name {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 13px; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .match-card__handle { font-size: 10px; color: var(--text-3); margin-bottom: 5px; }
+    .match-card__pct {
+      font-size: 10px; color: var(--accent);
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      border-radius: var(--radius-pill); padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0; letter-spacing: 0.04em;
+    }
+    .match-card__city { font-size: 10px; color: var(--text-2); margin-bottom: 5px; letter-spacing: 0.02em; }
+    .match-card__bio {
+      font-size: 11px; color: var(--text-2); line-height: 1.55; margin-bottom: 10px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .match-card__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .match-card__explain-btn {
+      background: none; border: 1px solid var(--border-2);
+      border-radius: var(--radius-pill); padding: 5px 12px;
+      font-size: 10px; color: var(--text-2); cursor: pointer;
+      font-family: var(--font-mono); letter-spacing: 0.04em;
+      transition: border-color 0.15s, color 0.15s; white-space: nowrap;
+    }
+    .match-card__explain-btn:hover { border-color: var(--accent-border); color: var(--accent); }
+    .match-card__explain-area {
+      overflow: hidden; max-height: 0; opacity: 0;
+      transition: max-height 0.28s ease, opacity 0.2s ease, margin-top 0.2s ease;
+      margin-top: 0;
+    }
+    .match-card__explain-area--open { max-height: 240px; opacity: 1; margin-top: 10px; }
+    .match-card__explain-text {
+      font-size: 11px; color: var(--text-2); line-height: 1.8;
+      padding: 10px 12px; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+
+    /* ── Backdrop ── */
+    .match-panel-backdrop {
+      position: fixed; inset: 0; z-index: 490;
+      background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none;
+      transition: opacity 0.26s;
+    }
+    .match-panel-backdrop--visible { opacity: 1; pointer-events: all; }
+
+    /* ── Search bar AI badge ── */
+    .map-search .search-ai-badge { margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -157,7 +258,8 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" id="map-search-input" placeholder="Search city or host name..." autocomplete="off">
+          <input type="text" id="map-search-input" placeholder="Find someone curious, or search a city..." autocomplete="off">
+          <span class="search-ai-badge">AI</span>
         </div>
       </div>
 
@@ -176,6 +278,17 @@
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <!-- Match results panel (slides up on AI search) -->
+  <div class="match-panel" id="match-panel">
+    <div class="match-panel__grip" onclick="closeMatchPanel()"></div>
+    <div class="match-panel__header">
+      <div class="match-panel__title" id="match-panel-title">Matches</div>
+      <button class="match-panel__close" onclick="closeMatchPanel()" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="match-panel__list" id="match-panel-list"></div>
+  </div>
+  <div class="match-panel-backdrop" id="match-panel-backdrop" onclick="closeMatchPanel()"></div>
 
 </div>
 

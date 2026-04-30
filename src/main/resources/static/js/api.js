@@ -173,10 +173,19 @@ const SavedAPI = {
    ONBOARDING  /api/onboarding
 ─────────────────────────────────────────────── */
 const OnboardingAPI = {
-  getStatus:  ()        => apiFetch('/api/onboarding/status'),
-  submit:     (answers) => apiFetch('/api/onboarding/answers', { method: 'POST', body: JSON.stringify({ answers }) }),
-  cancel:     ()        => apiFetch('/api/onboarding/cancel',  { method: 'POST' }),
-  deleteData: ()        => apiFetch('/api/onboarding/data',    { method: 'DELETE' }),
+  getQuestions: ()       => apiFetch('/api/onboarding/questions'),
+  getStatus:    ()       => apiFetch('/api/onboarding/status'),
+  submit:    (answers)   => apiFetch('/api/onboarding/answers', { method: 'POST', body: JSON.stringify({ answers }) }),
+  cancel:       ()       => apiFetch('/api/onboarding/cancel',  { method: 'POST' }),
+  deleteData:   ()       => apiFetch('/api/onboarding/data',    { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   MATCH  /api/match
+─────────────────────────────────────────────── */
+const MatchAPI = {
+  findMatches:  (q)                => apiFetch('/api/match' + (q ? `?q=${encodeURIComponent(q)}` : '')),
+  explainMatch: (candidateId, q)   => apiFetch(`/api/match/${candidateId}/explain` + (q ? `?q=${encodeURIComponent(q)}` : '')),
 };
 
 /* ───────────────────────────────────────────────

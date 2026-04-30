@@ -11,20 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* ───────────────────────────────────────────────
    CARD HEIGHTS
-   Each card must fill exactly the feed container
-   height so snap-scroll works correctly.
 ─────────────────────────────────────────────── */
 function setCardHeights() {
   const feed = document.getElementById('explore-feed');
   if (!feed) return;
-
   const h = feed.clientHeight;
   document.querySelectorAll('.explore-card').forEach(card => {
     card.style.height = h + 'px';
   });
 }
 
-// Recalculate on resize — debounced so it doesn't thrash during drag
 let _resizeTimer = null;
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
@@ -33,15 +29,12 @@ window.addEventListener('resize', () => {
 
 /* ───────────────────────────────────────────────
    SCROLL HINT
-   Show "swipe up" hint on first card,
-   hide it after user scrolls once.
 ─────────────────────────────────────────────── */
 function initScrollHint() {
-  const feed = document.getElementById('explore-feed');
+  const feed     = document.getElementById('explore-feed');
   const firstCard = feed?.querySelector('.explore-card');
   if (!feed || !firstCard) return;
 
-  // Inject hint into first card
   const hint = document.createElement('div');
   hint.className = 'scroll-hint';
   hint.innerHTML = `
@@ -56,7 +49,6 @@ function initScrollHint() {
   `;
   firstCard.appendChild(hint);
 
-  // Hide after 5s or first scroll, whichever comes first
   let _hintTimer = setTimeout(() => {
     hint.classList.add('scroll-hint--hidden');
     feed.removeEventListener('scroll', hideHint);
@@ -71,8 +63,9 @@ function initScrollHint() {
 
 /* ───────────────────────────────────────────────
    SEARCH
-   Calls GET /api/user/search?query= and re-renders
-   results; clears back to full list when empty.
+   Calls GET /api/match?q= — backend scores +
+   AI-parses the query. Clears back to full list
+   when input is empty.
 ─────────────────────────────────────────────── */
 function initSearch() {
   const input = document.getElementById('explore-search-input');
@@ -84,6 +77,9 @@ function initSearch() {
     const query = e.target.value.trim();
     clearTimeout(_searchTimer);
 
+    // Keep shared query state for explain calls
+    window._currentQuery = query;
+
     if (!query) {
       if (typeof renderExploreSorted === 'function') renderExploreSorted();
       return;
@@ -92,10 +88,9 @@ function initSearch() {
     showExploreLoading();
 
     _searchTimer = setTimeout(() => {
-      UserAPI.search(query)
-        .then(res => {
-          const users = res?.searchResult ?? [];
-          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(users, query);
+      MatchAPI.findMatches(query)
+        .then(matches => {
+          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(matches, query);
         })
         .catch(() => {
           if (typeof renderExploreWithSort === 'function') renderExploreWithSort([], query);
@@ -103,10 +98,11 @@ function initSearch() {
     }, 300);
   });
 
-  // Pre-fill from ?q= URL param (e.g. coming from host link on tours page)
+  // Pre-fill from ?q= URL param (e.g. coming from map or profile)
   const urlQ = new URLSearchParams(window.location.search).get('q');
   if (urlQ) {
     input.value = urlQ;
+    window._currentQuery = urlQ;
     input.dispatchEvent(new Event('input'));
   }
 }
@@ -127,4 +123,3 @@ function showExploreLoading() {
     </div>`;
   setCardHeights();
 }
-
