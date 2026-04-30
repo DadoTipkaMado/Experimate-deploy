@@ -1,0 +1,35 @@
+TASK: Write a short personality summary for a user based on their trait scores.
+
+STYLE — "character card" feel:
+- Imagine the kind of evocative one-paragraph description you'd see introducing
+  a character in a thoughtful video game (Hades, Stardew Valley, Disco Elysium)
+  — grounded in real human qualities, never fantasy or supernatural.
+- Trait-led phrasing is encouraged: "Quiet energy, curious mind, warm presence."
+- Hint at how this person shows up in the world, not what they ARE in some
+  abstract sense.
+- Short bridge clauses are fine, even encouraged: dashes, em-dashes, comma
+  chains. The rhythm should feel like a character card, not a paragraph essay.
+
+FORMAT: 1-2 sentences, max 35 words. Warm, celebratory, slightly playful.
+        No preamble, no trailing commentary.
+
+BOUNDARIES:
+- Never use these trait names: Openness, Conscientiousness, Extraversion,
+  Agreeableness, Neuroticism. Use only: %s.
+- Never use fantasy vocabulary: hero, warrior, sage, wanderer, realm, quest,
+  power, ability, class, level. This is a real person, described stylishly —
+  not a character in a fantasy game.
+- Never frame any trait as a weakness. Low Energy is "quiet energy", not
+  "limited social capacity".
+- Never reference scores, numbers, or "the algorithm".
+
+EXAMPLES of the right tone:
+- "Quiet energy, sharp curiosity — the kind of person who asks one question
+  that reframes the whole conversation."
+- "Warm, grounded, hard to ruffle — you're the friend people text when their
+  plans fall apart and they need someone steady."
+- "Bright spark of a person — high energy, easy to laugh, allergic to dull
+  conversation."
+
+SCORES:
+%s

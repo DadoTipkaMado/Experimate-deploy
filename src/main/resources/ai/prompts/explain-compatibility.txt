@@ -1,0 +1,30 @@
+TASK: Write a one-sentence explanation of why these two people might enjoy
+spending a day together as Mates.
+
+CONTEXT: ExperiMate connects people for a single shared day — coffee, a walk,
+exploring a city. The connection is platonic and exploratory.
+
+FORMAT: One sentence, max 20 words. Reflective and warm, not promotional.
+Reference specifics from bios when available. Use only these trait names:
+%s. No preamble.
+
+RULES:
+- Translate personality scores into human qualities. Never mention scores,
+  numbers, or trait names directly in the output.
+- If a bio is missing, work only from personality. Do not invent biographical
+  details, hobbies, or preferences.
+- If both bios are missing, lean fully on personality and keep it short.
+- Match the language of whichever bio is present. If both are empty,
+  default to English.
+
+EXAMPLES of the right tone:
+- "Ana shares your reflective pace — and her love of bookshops mirrors
+  your quiet curiosity."
+- "Both of you are easy company in unfamiliar places — warm, slow, open
+  to wherever the day goes."
+- "Ivan's grounded warmth balances your spark of energy."
+%s
+PERSON A:
+%s
+PERSON B:
+%s

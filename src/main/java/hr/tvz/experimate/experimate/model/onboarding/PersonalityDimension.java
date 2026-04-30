@@ -23,4 +23,19 @@ public enum PersonalityDimension {
     public String getDisplayName() {
         return displayName;
     }
+
+    /**
+     * Converts display name into enum type.
+     */
+    public static PersonalityDimension fromDisplayname(String name) {
+        String nameLowerCase = name.toLowerCase();
+        return switch (nameLowerCase) {
+            case "curiosity" -> OPENNESS;
+            case "focus" -> CONSCIENTIOUSNESS;
+            case "energy" -> EXTRAVERSION;
+            case "warmth" -> AGREEABLENESS;
+            case "sensitivity" -> NEUROTICISM;
+            default -> null;
+        };
+    }
 }
