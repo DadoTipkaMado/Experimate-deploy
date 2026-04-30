@@ -88,9 +88,10 @@ function initSearch() {
     showExploreLoading();
 
     _searchTimer = setTimeout(() => {
-      MatchAPI.findMatches(query)
-        .then(matches => {
-          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(matches, query);
+      UserAPI.search(query)
+        .then(resp => {
+          const users = resp?.searchResult ?? (Array.isArray(resp) ? resp : []);
+          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(users, query);
         })
         .catch(() => {
           if (typeof renderExploreWithSort === 'function') renderExploreWithSort([], query);
