@@ -173,19 +173,7 @@ cd experimate
 
 ### 2. Add required configuration
 
-The `application.properties` file requires a JWT secret and database path before the app can start. Copy the example below into `src/main/resources/application.properties` (or add the missing keys to an existing file):
-
-```properties
-# JWT — must be a Base64-encoded secret of at least 256 bits
-jwt.secret=ZXhwZXJpbWF0ZWxvY2FsZGV2c2VjcmV0a2V5Zm9ydGVzdGluZ29ubHkyMDI2
-
-# H2 file database (created automatically on first run)
-spring.datasource.url=jdbc:h2:~/experimateDb;AUTO_SERVER=TRUE
-spring.datasource.username=
-spring.datasource.password=
-```
-
-> ⚠️ The secret above is for local development only. Generate a new one for any shared or deployed environment.
+The `application.properties` file requires a JWT secret and database path before the app can start. 
 
 ### 3. Build and run
 
