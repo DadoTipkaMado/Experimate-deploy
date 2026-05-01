@@ -236,7 +236,7 @@ svg { display: block; flex-shrink: 0; }
   text-decoration: none;
   position: absolute;
   left: 50%;
-  transform: translateX(-50%) scaleY(2);
+  transform: translateX(-50%) scaleY(1.7);
   white-space: nowrap;
 }
 
@@ -1368,7 +1368,7 @@ svg { display: block; flex-shrink: 0; }
 .explore-card--personalized .explore-card__match-pct { display: block; }
 
 .explore-card__side {
-  position: absolute; right: 14px; bottom: 110px; z-index: 3;
+  position: absolute; right: 14px; bottom: 102px; z-index: 3;
   display: flex; flex-direction: column; gap: 16px; align-items: center;
 }
 .side-action { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
