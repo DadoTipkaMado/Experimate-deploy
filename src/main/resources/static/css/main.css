@@ -236,7 +236,7 @@ svg { display: block; flex-shrink: 0; }
   text-decoration: none;
   position: absolute;
   left: 50%;
-  transform: translateX(-50%) scaleY(1.7);
+  transform: translateX(-50%) scaleY(1.5);
   white-space: nowrap;
 }
 
