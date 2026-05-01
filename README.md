@@ -1,8 +1,8 @@
 # ExperiMate
 
-> **Connect with locals. Get real experiences.**
+> **Meet new people. Share real experiences.**
 
-ExperiMate is a full-stack web platform that connects travellers with local hosts who offer authentic, in-person city tours. Hosts publish tour listings; guests discover them, send booking requests, check in on the day, and rate each other after — all without any messaging or intermediary. The premise is simple: real people, real places, no DMs.
+ExperiMate is a full-stack social web platform that connects people who want to meet, hang out, and explore together — whether you're a traveller looking for a local guide, a student new to the city, or simply someone who wants to vibe with new people. Users create activity listings, others discover them, send booking requests, check in on the day, and rate each other after — all without any messaging or intermediary. The premise is simple: real people, real places, no DMs.
 
 ---
 
@@ -23,7 +23,7 @@ ExperiMate is a full-stack web platform that connects travellers with local host
 
 ## Overview
 
-ExperiMate was built for students and travellers who want to go beyond tourist traps and experience a city through the eyes of someone who actually lives there. A local host creates a tour listing — a date, a location, and a description of what they'll show. A guest discovers it on the map or explore feed, sends a booking request, and if accepted, meets the host IRL. After the tour both parties rate each other, building a reputation system that rewards good hosting and respectful guests.
+ExperiMate was built for anyone who wants to connect with new people and experience a city in an authentic, unscripted way. That includes travellers who want a local perspective, students freshly arrived in a new city, and locals who simply want to meet people and do things together. A host creates a listing — a date, a location, and a description of what they're offering, whether that's a city tour, a casual hangout, or any kind of shared activity. A guest discovers it on the map or explore feed, sends a booking request, and if accepted, meets the host IRL. After the meetup both parties rate each other, building a reputation system that rewards good hosts and respectful guests.
 
 The application follows a **mobile-first, progressive web app** philosophy — it is designed to feel native on a phone while adapting gracefully to desktop via a sidebar layout.
 
@@ -32,19 +32,19 @@ The application follows a **mobile-first, progressive web app** philosophy — i
 ## Features
 
 ### For Guests
-- Browse and search available tour listings on an interactive map or card feed
+- Browse and search available listings on an interactive map or card feed
 - Filter listings by city, date, and availability
 - Send booking requests to hosts
-- Check in on the day with the "I'm here" button — tour activates when both parties confirm
-- Rate and review hosts after the tour is completed
+- Check in on the day with the "I'm here" button — meetup activates when both parties confirm
+- Rate and review hosts after the meetup is completed
 - View profile pages of prospective hosts including their bio and upcoming listings
 
 ### For Hosts
-- Create tour listings with a location picker, date/time, and detailed description
+- Create listings with a location picker, date/time, and detailed description of the activity
 - Manage incoming booking requests (accept or decline)
-- Check in alongside guests to activate the tour
-- End the tour to trigger the rating flow
-- View hosted tours and listing status (Available / Requested / Booked)
+- Check in alongside guests to activate the meetup
+- End the session to trigger the rating flow
+- View hosted meetups and listing status (Available / Requested / Booked)
 
 ### Platform
 - JWT authentication with automatic silent token refresh via HTTP-only refresh cookie
@@ -219,9 +219,9 @@ Navigate to [http://localhost:8080](http://localhost:8080) — you will be redir
 
 | Page | URL | What to do |
 |---|---|---|
-| Map | `/map` | See all tour listings as pins; tap a pin for details |
-| Tours | `/tours` | Browse listings; request a tour; manage your meetups |
-| New listing | `/listings/new` | Create a tour as a host |
+| Map | `/map` | See all listings as pins; tap a pin for details |
+| Tours | `/tours` | Browse listings; request a meetup; manage your schedule |
+| New listing | `/listings/new` | Create a listing as a host |
 | Explore | `/explore` | Snap-scroll through user profiles; search by name |
 | Requests | `/requests` | Accept or decline incoming booking requests (host) |
 | Account | `/account` | View stats, bio, ratings; edit profile |
@@ -270,7 +270,7 @@ The current version represents the **MVP**. Planned future iterations:
 
 - **AI integration** — smart tour recommendations and personalised explore feed
 - **Gamification** — ELO-style rating system, seasonal points, achievement badges, and a premium multiplier (no paywalled features)
-- **Community tab** — local activity groups (running, cycling, dog walking) and a travel section for visiting users
+- **Community tab** — local activity groups (running, cycling, dog walking) and a social discovery section for people looking to hang out, not just tour
 - **Trust & safety** — mutual blind reviews, user vouching, profile completeness score, verified phone/ID badge, response rate display
 - **UX evolution** — feed-first layout, accessibility toolbar (dyslexia support), everything reachable in 3 taps
 
