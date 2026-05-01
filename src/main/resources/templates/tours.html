@@ -207,7 +207,7 @@
     <div class="tours-header">
       <div class="tours-header__titles">
         <div class="page-title">Meets</div>
-        <div class="page-subtitle" style="margin-bottom: 14px;"><span style="color:var(--accent);">Experiment</span> with <span style="color:var(--warm);">mates</span></div>
+        <div class="page-subtitle" style="margin-bottom: 14px;"><span style="color:#fff;">Experiment</span> with <span style="color:var(--accent);">mates</span></div>
         <div class="tab-bar">
           <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
           <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Meets</div>
@@ -233,7 +233,7 @@
       <!-- Sort + filter controls -->
       <div id="discover-controls" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px 2px;gap:8px;">
         <div style="display:flex;gap:5px;align-items:center;">
-          <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
+          <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort by date</span>
           <div id="sort-btn-asc" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('asc')">Ascending</div>
           <div id="sort-btn-desc" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('desc')">Descending</div>
         </div>
@@ -297,7 +297,7 @@
         <div class="tab-bar">
           <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetupTab(this,'guest')">Joined</div>
           <div class="tab-bar__item" onclick="switchMeetupTab(this,'host')">Hosted</div>
-          <div class="tab-bar__item" onclick="switchMeetupTab(this,'listings')">Open Days</div>
+          <div class="tab-bar__item" onclick="switchMeetupTab(this,'listings')">Open Meets</div>
         </div>
       </div>
 
@@ -468,9 +468,9 @@
       : reqStatus === 'ACCEPTED'
         ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
       : reqStatus === 'DECLINED'
-        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'} again</button>`
+        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Meet ${listing.host?.firstName || 'Mate'} again</button>`
       : currentUserId
-        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'}</button>`
+        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Meet ${listing.host?.firstName || 'Mate'}</button>`
         : `<a href="/login" class="btn btn--ghost" style="height:40px;font-size:11px;">Sign in to join</a>`;
     const dotColor = listing.reserved ? 'var(--text-3)' : reqStatus === 'PENDING' ? '#ff9944' : reqStatus === 'DECLINED' ? 'rgba(255,80,80,0.7)' : 'var(--accent)';
     const dotLabel = listing.reserved ? 'Joined' : reqStatus === 'PENDING' ? 'Pending' : reqStatus === 'ACCEPTED' ? 'Accepted' : reqStatus === 'DECLINED' ? 'Declined' : 'Available';
@@ -564,7 +564,7 @@
           }
         }
       })
-      .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = btn.dataset.originalLabel || 'Join'; });
+      .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = btn.dataset.originalLabel || 'Meet'; });
   }
 
   /* ── Cancel modal ── */
@@ -645,7 +645,7 @@
         localStorage.removeItem('activeTour');
         document.getElementById('tour-takeover').classList.remove('tour-takeover--visible');
         sessionStorage.setItem('openTab', 'meetups');
-        showToast('Day ended! Rate your Mate in My Days.', 'success');
+        showToast('Meet ended! Rate your Mate in My Meets.', 'success');
         setTimeout(() => window.location.reload(), 1200);
       })
       .catch(err => {
@@ -907,8 +907,8 @@
         </div>`;
     };
 
-    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming days.</div>';
-    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past days yet.</div>';
+    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming meets.</div>';
+    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past meets yet.</div>';
   }
 
   /* ── Sub-tab switcher for My Days ── */
@@ -959,7 +959,7 @@
       : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming Mates.</div>';
     pastEl.innerHTML = past.length
       ? past.map(r => mkHostCard(r, true)).join('')
-      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past hosted days yet.</div>';
+      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past hosted meets yet.</div>';
   }
 
   /* ── Render My Listings (host's own listings with delete) ── */

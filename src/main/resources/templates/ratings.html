@@ -86,7 +86,7 @@
 
     <!-- Score hero -->
     <div class="rating-score-hero">
-      <div class="rating-score-num" id="score-num">—</div>
+      <div class="rating-score-num" id="score-num">/</div>
       <div class="rating-stars" id="score-stars">
         <span class="rating-star">★</span>
         <span class="rating-star">★</span>
@@ -161,7 +161,7 @@
 
       // Score hero
       const score = user.rating ?? 0;
-      document.getElementById('score-num').textContent = score > 0 ? Number(score).toFixed(1) : '—';
+      document.getElementById('score-num').textContent = score > 0 ? Number(score).toFixed(1) : '/';
       renderStars(document.getElementById('score-stars'), Math.round(score));
       document.getElementById('score-sub').textContent = score > 0
         ? `Average score based on community ratings`

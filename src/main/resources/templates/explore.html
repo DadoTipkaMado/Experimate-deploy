@@ -159,10 +159,15 @@
       const hue      = (m.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       const photoUrl = UserAPI.photoUrl(m.profilePhotoUrl);
       const bgDiv    = photoUrl
-        ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%) url('${photoUrl}') center top / cover;"></div>`
-        : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);display:flex;align-items:center;justify-content:center;">
-             <div style="width:96px;height:96px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;">
-               <span style="font-family:var(--font-display);font-weight:800;font-size:34px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>
+        ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%);">
+             <div style="position:absolute;inset:-30px;background:url('${photoUrl}') center/cover no-repeat;filter:blur(24px) brightness(0.22);"></div>
+             <div style="position:relative;z-index:5;width:192px;height:192px;border-radius:50%;overflow:hidden;flex-shrink:0;box-shadow:0 0 0 4px rgba(255,255,255,0.1),0 8px 32px rgba(0,0,0,0.5);">
+               <img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+             </div>
+           </div>`
+        : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);">
+             <div style="width:192px;height:192px;border-radius:50%;background:hsl(${hue},35%,22%);border:3px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+               <span style="font-family:var(--font-display);font-weight:800;font-size:68px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>
              </div>
            </div>`;
 

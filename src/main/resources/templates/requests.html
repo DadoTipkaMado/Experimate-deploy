@@ -57,10 +57,10 @@
 
     <div class="requests-header">
       <div style="display:flex;align-items:center;gap:10px;">
-        <a href="/account" style="color:var(--text-3);text-decoration:none;font-size:18px;line-height:1;">‹</a>
+        <a href="/account" style="color:var(--text-3);text-decoration:none;font-size:36px;line-height:1;">‹</a>
         <div>
-          <div class="page-title">Join Requests</div>
-          <div class="page-subtitle">Manage incoming requests for your days</div>
+          <div class="page-title">Meet Requests</div>
+          <div class="page-subtitle">Manage incoming requests for your meets</div>
         </div>
       </div>
     </div>
@@ -68,7 +68,7 @@
     <div class="section-divider">Pending</div>
     <div id="pending-list"></div>
 
-    <div class="section-divider" style="margin-top:8px;">Recent</div>
+    <div class="section-divider" style="margin-top:8px;">Past</div>
     <div id="recent-list"></div>
 
   </main>
@@ -178,7 +178,7 @@
 
       pendingEl.innerHTML = pending.length
         ? pending.map(mkCard).join('')
-        : `<div class="req-empty"><div class="req-empty__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><div class="req-empty__title">No pending requests</div><div class="req-empty__sub">When Mates request your days, they'll appear here.</div></div>`;
+        : `<div class="req-empty"><div class="req-empty__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><div class="req-empty__title">No pending requests</div><div class="req-empty__sub">When Mates request your meets, they'll appear here.</div></div>`;
 
       recentEl.innerHTML = recent.length
         ? recent.map(mkCard).join('')

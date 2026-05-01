@@ -236,7 +236,7 @@ svg { display: block; flex-shrink: 0; }
   text-decoration: none;
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scaleY(2);
   white-space: nowrap;
 }
 
@@ -1342,6 +1342,7 @@ svg { display: block; flex-shrink: 0; }
   background: var(--surface-2);
   display: flex; align-items: center; justify-content: center;
   font-size: 120px; user-select: none; pointer-events: none;
+  overflow: hidden;
 }
 .explore-card__gradient {
   position: absolute; inset: 0;
@@ -1399,7 +1400,8 @@ svg { display: block; flex-shrink: 0; }
 }
 .explore-card__desc {
   font-size: 11px; color: var(--text-3); line-height: 1.65; margin-bottom: 16px;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  min-height: calc(11px * 1.65 * 3);
 }
 .explore-card__cta { display: flex; gap: 8px; align-items: center; }
 .explore-card__cta .btn--primary { flex: 1; }
