@@ -86,7 +86,7 @@
   <main class="page-content">
     <div class="new-listing-header">
       <div class="page-title">New Tour</div>
-      <div class="page-subtitle">Create an experience for travellers</div>
+      <div class="page-subtitle">Create an experience with a Mate</div>
     </div>
 
     <form id="listing-form" class="new-listing-form">
@@ -124,7 +124,7 @@
                   required minlength="200" maxlength="2000"
                   oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
         <div style="display:flex;justify-content:space-between;">
-          <span class="form-field__hint">Min 200 characters — tell guests what they'll see, do, and feel</span>
+          <span class="form-field__hint">Min 200 characters — describe to Mates what they'll see, do, and experience</span>
           <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
         </div>
       </div>
