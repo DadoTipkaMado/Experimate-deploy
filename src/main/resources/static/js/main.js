@@ -292,7 +292,7 @@ function userAvatar(username, size, userObj) {
 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async function _completionBubble() {
   const path = window.location.pathname;
-  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit'];
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit', '/explore'];
   if (skip.some(p => path.startsWith(p))) return;
   if (!document.querySelector('.topbar')) return;
   const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
@@ -330,9 +330,9 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   const bubble = document.createElement('div');
   bubble.id = 'completion-bubble';
   bubble.style.cssText = [
-    'display:flex;align-items:center;gap:12px;padding:0 20px',
+    'display:flex;align-items:center;gap:8px;padding:0 20px',
     'background:linear-gradient(90deg,#c94a00,#e05500)',
-    'color:#fff;font-family:var(--font-mono,monospace);flex-shrink:0',
+    'color:#fff;font-family:var(--font-mono,monospace);flex-shrink:0;line-height:1',
     'overflow:hidden;max-height:0;opacity:0;border-bottom:1px solid rgba(0,0,0,0.2)',
     'transition:max-height 0.4s cubic-bezier(0.32,0.72,0,1),opacity 0.3s ease',
   ].join(';');
@@ -357,9 +357,9 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   topbar.insertAdjacentElement('afterend', bubble);
 
   requestAnimationFrame(() => {
-    bubble.style.maxHeight = '62px';
+    bubble.style.maxHeight = '46px';
     bubble.style.opacity   = '1';
-    bubble.style.padding   = '14px 20px';
+    bubble.style.padding   = '8px 20px';
   });
 
   document.getElementById('bubble-close').addEventListener('click', () => {
@@ -367,6 +367,6 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
     bubble.style.maxHeight  = '0';
     bubble.style.opacity    = '0';
     bubble.style.padding    = '0 20px';
-    setTimeout(() => bubble.remove(), 280);
+    setTimeout(() => bubble.remove(), 260);
   });
 });

@@ -29,7 +29,7 @@
     .acc-link-card:hover { border-color: var(--border-2); }
     .acc-link-card__left { display: flex; align-items: center; gap: 12px; }
     .acc-link-card__icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); flex-shrink: 0; }
-    .logout-btn { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border); color: var(--text-3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 18px; transition: border-color var(--t-base), color var(--t-base); }
+    .logout-btn { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: transparent; border: 1px solid var(--border); color: var(--text-3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-top: 16px; margin-bottom: 18px; transition: border-color var(--t-base), color var(--t-base); }
     .logout-btn:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
     .new-listing-link { display: block; width: 100%; height: 44px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border-2); color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: background var(--t-base), border-color var(--t-base), color var(--t-base); }
     .new-listing-link:hover { background: var(--surface-2); border-color: var(--accent-border); color: var(--accent); }
@@ -115,15 +115,15 @@
       </div>
       <div id="account-name" style="display:none;font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-0.01em;"></div>
       <div id="account-handle" style="display:none;font-size:11px;color:var(--text-2);letter-spacing:0.08em;margin-top:-4px;"></div>
-      <div class="account-hero__rating" id="account-rating-badge" style="display:none;">★ <span id="account-rating">0.0</span></div>
+      <div class="account-hero__rating" id="account-rating-badge" style="display:none;"><span style="font-size:2em;line-height:1;">★</span> <span id="account-rating">0.0</span></div>
       <div id="account-stats" class="acc-stats" style="display:none;">
         <div class="acc-stat">
           <div class="acc-stat__num" id="stat-total">0</div>
-          <div class="acc-stat__label">Days</div>
+          <div class="acc-stat__label">Total Meets</div>
         </div>
         <div class="acc-stat">
           <div class="acc-stat__num acc-stat__num--accent" id="stat-active">0</div>
-          <div class="acc-stat__label">Active</div>
+          <div class="acc-stat__label">Currently Listed</div>
         </div>
       </div>
     </div>
