@@ -27,4 +27,7 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     Optional<Reservation> findByGuest_IdAndTourListing_Host_IdAndStatus(Integer guestId, Integer tourListingHostId, ReservationStatus status);
 
     Optional<Reservation> findByTourListing_Id(Integer listingId);
+
+    @Query("SELECT r FROM Reservation r WHERE r.guest.id = :userId OR r.tourListing.host.id = :userId")
+    List<Reservation> findAllForUser(@Param("userId") Integer userId);
 }

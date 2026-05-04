@@ -1,11 +1,15 @@
 package hr.tvz.experimate.experimate.model.rating;
 
-import hr.tvz.experimate.experimate.model.booking_request.BookingRequest;
+import hr.tvz.experimate.experimate.model.rating.exception.DuplicateRatingException;
+import hr.tvz.experimate.experimate.model.rating.exception.RatingNotFoundException;
+import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.model.reservation.ReservationStatus;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.event.RatingCreatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,23 +28,31 @@ public class RatingService {
 
     private final RatingRepo ratingRepo;
     private final UserRepo userRepo;
+    private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
 
-    public RatingService(RatingRepo ratingRepo, UserRepo userRepo, ApplicationEventPublisher publisher) {
+    public RatingService(RatingRepo ratingRepo, UserRepo userRepo, ReservationRepo reservationRepo, ApplicationEventPublisher publisher) {
         this.ratingRepo = ratingRepo;
         this.userRepo = userRepo;
+        this.reservationRepo = reservationRepo;
         this.publisher = publisher;
     }
 
     @Transactional
-    public RatingResponse createRating(CreateRatingDto dto) {
-        User rater = userRepo.findById(dto.raterId())
-                .orElseThrow(() -> new UserNotFoundException(dto.raterId()));
+    public RatingResponse createRating(CreateRatingDto dto, Integer raterId) {
+        User rater = userRepo.findById(raterId)
+                .orElseThrow(() -> new UserNotFoundException(raterId));
         User rated = userRepo.findById(dto.ratedId())
                 .orElseThrow(() -> new UserNotFoundException(dto.ratedId()));
 
-        if(rater == rated)
+        if(rater.getId().equals(rated.getId()))
             throw new IllegalArgumentException("User cannot rate themselves.");
+
+        boolean sharedTour =
+                reservationRepo.findByGuest_IdAndTourListing_Host_IdAndStatus(raterId, rated.getId(), ReservationStatus.CLOSED).isPresent()
+                || reservationRepo.findByGuest_IdAndTourListing_Host_IdAndStatus(rated.getId(), raterId, ReservationStatus.CLOSED).isPresent();
+        if (!sharedTour)
+            throw new ForbiddenActionException("You can only rate someone you have completed a tour with.");
 
         if(ratingRepo.existsByRater_IdAndRated_Id(rater.getId(), rated.getId()))
             throw new DuplicateRatingException(rater.getId(), rated.getId());
@@ -90,9 +102,12 @@ public class RatingService {
     }
 
     @Transactional
-    public RatingResponse updateRating(Integer id, UpdateRatingDto dto) {
+    public RatingResponse updateRating(Integer id, UpdateRatingDto dto, Integer callerId) {
         Rating rating = ratingRepo.findById(id)
                 .orElseThrow(() -> new RatingNotFoundException(id));
+
+        if (!rating.getRater().getId().equals(callerId))
+            throw new ForbiddenActionException("Only the author of the rating can edit it.");
 
         if (dto.score() != null)
             rating.setScore(dto.score());

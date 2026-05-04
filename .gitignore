@@ -1,5 +1,4 @@
 HELP.md
-CLAUDE.md
 
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -41,4 +40,7 @@ application-local.properties
 *.log
 logs/
 Programiranje/
+uploads/
+http/
+.env
 
