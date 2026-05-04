@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Edit Profile — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
@@ -23,7 +25,7 @@
       width: 100%; box-sizing: border-box;
       transition: border-color var(--t-fast);
     }
-    .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-border); }
+    .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(0,201,167,0.08); }
     .form-field textarea { resize: vertical; min-height: 100px; line-height: 1.65; }
     .form-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
     .form-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
@@ -61,18 +63,33 @@
 
       <div id="form-error" class="form-error" style="display:none;"></div>
 
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-field">
+          <label for="firstName">First name</label>
+          <input type="text" id="firstName" name="firstName" required autocomplete="given-name">
+        </div>
+        <div class="form-field">
+          <label for="lastName">Last name</label>
+          <input type="text" id="lastName" name="lastName" required autocomplete="family-name">
+        </div>
+      </div>
+
       <div class="form-field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username"
                minlength="4" maxlength="15" autocomplete="username" required>
-        <span class="form-field__hint">4–15 characters</span>
+        <span class="form-field__hint">4–15 characters · used in your profile URL</span>
       </div>
 
       <div class="form-field">
         <label for="bio">Bio <span style="color: var(--text-3);">(optional)</span></label>
         <textarea id="bio" name="bio" maxlength="200"
-                  placeholder="Tell other travellers about yourself..."></textarea>
-        <span class="form-field__hint">Max 200 characters</span>
+                  placeholder="Tell other travellers about yourself..."
+                  oninput="document.getElementById('bio-count').textContent=this.value.length+'/200';document.getElementById('bio-count').style.color=this.value.length>160?'var(--warm)':'var(--text-3)';"></textarea>
+        <div style="display:flex;justify-content:space-between;">
+          <span class="form-field__hint">What makes you a great local guide?</span>
+          <span class="form-field__hint" id="bio-count" style="color:var(--text-3);">0/200</span>
+        </div>
       </div>
 
       <div class="form-field">
@@ -114,10 +131,16 @@
   let currentPhotoUrl  = null;
 
   UserAPI.getById(userId).then(user => {
-    document.getElementById('username').value = user.username ?? '';
-    document.getElementById('bio').value      = user.bio ?? '';
+    document.getElementById('firstName').value = user.firstName ?? '';
+    document.getElementById('lastName').value  = user.lastName  ?? '';
+    document.getElementById('username').value  = user.username  ?? '';
+    const bio = user.bio ?? '';
+    document.getElementById('bio').value       = bio;
+    if (bio) {
+      document.getElementById('bio-count').textContent = bio.length + '/200';
+    }
 
-    currentPhotoUrl = user.profilePhotoUrl || null;
+    currentPhotoUrl = UserAPI.photoUrl(user.profilePhotoUrl);
     if (currentPhotoUrl) {
       showPhotoPreview(currentPhotoUrl);
     } else {
@@ -201,14 +224,16 @@
     btn.disabled = true; btn.textContent = 'Saving...';
     try {
       await UserAPI.update(userId, {
-        username: document.getElementById('username').value,
-        bio:      document.getElementById('bio').value || null,
+        firstName: document.getElementById('firstName').value,
+        lastName:  document.getElementById('lastName').value,
+        username:  document.getElementById('username').value,
+        bio:       document.getElementById('bio').value || null,
       });
 
       if (pendingPhotoBlob) {
         const updated = await UserAPI.uploadPhoto(userId, pendingPhotoBlob);
         // Sync new server URL to localStorage for topbar
-        if (updated?.profilePhotoUrl) localStorage.setItem('photo_' + userId, updated.profilePhotoUrl);
+        if (updated?.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(updated.profilePhotoUrl));
       } else if (removePhotoFlag) {
         localStorage.removeItem('photo_' + userId);
       }

@@ -7,41 +7,8 @@
   <title>Explore — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <style>
-    .page-content--explore { overflow: hidden; display: flex; flex-direction: column; }
-    .explore-header { padding: 14px 16px 10px; background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 5; }
-    .explore-header .search-bar { margin-bottom: 10px; }
-    .explore-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
-    .explore-filters::-webkit-scrollbar { display: none; }
-    #explore-feed { flex: 1; overflow-y: scroll; overflow-x: hidden; scroll-snap-type: y mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-    #explore-feed::-webkit-scrollbar { display: none; }
-    .explore-card { width: 100%; scroll-snap-align: start; scroll-snap-stop: always; position: relative; overflow: hidden; background: var(--surface); display: flex; flex-direction: column; justify-content: flex-end; flex-shrink: 0; }
-    .explore-card__bg { position: absolute; inset: 0; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 120px; user-select: none; pointer-events: none; }
-    .explore-card__gradient { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.0) 30%, rgba(10,10,10,0.5) 55%, rgba(10,10,10,0.97) 100%); pointer-events: none; }
-    .explore-card__rating { position: absolute; top: 14px; left: 14px; z-index: 3; background: rgba(10,10,10,0.80); border: 1px solid var(--border-2); border-radius: var(--radius-pill); padding: 4px 11px; font-size: 11px; color: var(--accent); letter-spacing: 0.05em; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-    .explore-card__side { position: absolute; right: 14px; bottom: 110px; z-index: 3; display: flex; flex-direction: column; gap: 16px; align-items: center; }
-    .side-action { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-    .side-action__icon { width: 42px; height: 42px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-2); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background var(--t-fast), transform var(--t-fast); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-    .side-action:hover .side-action__icon { background: rgba(255,255,255,0.14); transform: scale(1.08); }
-    .side-action__label { font-size: 9px; color: rgba(239,239,239,0.5); letter-spacing: 0.06em; }
-    .side-action--saved .side-action__icon { background: rgba(255,107,53,0.18); border-color: rgba(255,107,53,0.35); }
-    .side-action--saved .side-action__label { color: var(--warm); }
-    .explore-card__content { position: relative; z-index: 2; padding: 0 16px 20px; }
-    .explore-card__name { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.05; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em; }
-    .explore-card__handle { font-size: 11px; color: rgba(239,239,239,0.5); letter-spacing: 0.08em; margin-bottom: 10px; }
-    .explore-card__desc { font-size: 11px; color: rgba(239,239,239,0.55); line-height: 1.65; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .explore-card__cta { display: flex; gap: 8px; align-items: center; }
-    .explore-card__cta .btn--primary { flex: 1; }
-    .explore-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; text-align: center; padding: 40px 24px; }
-    .explore-empty__icon { font-size: 40px; opacity: 0.2; }
-    .explore-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
-    .explore-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
-    .scroll-hint { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 1; transition: opacity 0.4s ease; pointer-events: none; }
-    .scroll-hint--hidden { opacity: 0; }
-    .scroll-hint__arrow { animation: bounceUp 1.2s ease infinite; }
-    .scroll-hint__label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(239,239,239,0.35); }
-    @keyframes bounceUp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-  </style>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
 </head>
 <body>
 <div class="app-shell">
@@ -55,14 +22,12 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input type="text" id="explore-search-input" placeholder="Search locals..." autocomplete="off">
+        <input type="text" id="explore-search-input" placeholder="Search by name or username..." autocomplete="off">
       </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-        <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort</span>
-        <div id="sort-rating" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('rating')">Top rated</div>
-        <div id="sort-name" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('name')">Name</div>
-        <div id="sort-listings" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setExploreSort('listings')">Most tours</div>
-        <div id="filter-saved" class="pill" style="font-size:10px;padding:4px 10px;margin-left:4px;" onclick="toggleSavedFilter(this)">Saved ♥</div>
+      <div class="explore-filters">
+        <div id="sort-rating" class="pill pill--active" onclick="setExploreSort('rating')">Top rated</div>
+        <div id="sort-name" class="pill" onclick="setExploreSort('name')">Name</div>
+        <!---<div id="filter-saved" class="pill" onclick="toggleSavedFilter(this)">Saved ♥</div>---->
       </div>
     </div>
 
@@ -96,11 +61,12 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
-<script>
-  // Saved locals — persisted in localStorage as a Set of usernames
+<script th:inline="none">
+  // ── Saved locals ──────────────────────────────────────────────────
   function _getSaved() {
     try { return new Set(JSON.parse(localStorage.getItem('saved_locals') || '[]')); } catch { return new Set(); }
   }
@@ -111,22 +77,18 @@
   let _showSavedOnly = false;
 
   function toggleSave(el) {
-    const card = el.closest('.explore-card');
+    const card     = el.closest('.explore-card');
     const username = card.dataset.username;
-    const saved = _getSaved();
-    const isSaved = saved.has(username);
-    if (isSaved) { saved.delete(username); } else { saved.add(username); }
+    const saved    = _getSaved();
+    const isSaved  = saved.has(username);
+    isSaved ? saved.delete(username) : saved.add(username);
     _setSaved(saved);
-
     const nowSaved = !isSaved;
     el.classList.toggle('side-action--saved', nowSaved);
     const heart = el.querySelector('.save-heart');
-    heart.setAttribute('fill', nowSaved ? 'var(--warm)' : 'none');
+    heart.setAttribute('fill',   nowSaved ? 'var(--warm)' : 'none');
     heart.setAttribute('stroke', nowSaved ? 'var(--warm)' : 'var(--text)');
-    const name = card.dataset.name;
-    showToast(nowSaved ? 'Saved ' + name : 'Removed ' + name);
-
-    // If Saved filter is active and we just un-saved, hide the card
+    showToast(nowSaved ? 'Saved ' + card.dataset.name : 'Removed ' + card.dataset.name);
     if (_showSavedOnly && !nowSaved) card.style.display = 'none';
   }
 
@@ -135,20 +97,21 @@
     el.classList.toggle('pill--active', _showSavedOnly);
     const saved = _getSaved();
     document.querySelectorAll('.explore-card').forEach(card => {
-      if (!_showSavedOnly) { card.style.display = ''; return; }
-      card.style.display = saved.has(card.dataset.username) ? '' : 'none';
+      card.style.display = (!_showSavedOnly || saved.has(card.dataset.username)) ? '' : 'none';
     });
     setCardHeights();
   }
 
-  let _exploreUsers    = [];
-  let _exploreSort     = 'rating';
-  let _listingCountMap = {}; // username → active listing count
+  // ── State ─────────────────────────────────────────────────────────
+  let _exploreUsers = [];
+  let _exploreSort  = 'rating';
 
+  // ── Sort pills ────────────────────────────────────────────────────
   function setExploreSort(val) {
     _exploreSort = val;
-    ['rating','name','listings'].forEach(k => {
-      document.getElementById('sort-' + k).classList.toggle('pill--active', k === val);
+    ['rating', 'name'].forEach(k => {
+      const el = document.getElementById('sort-' + k);
+      if (el) el.classList.toggle('pill--active', k === val);
     });
     renderExploreSorted();
   }
@@ -157,85 +120,88 @@
     renderExploreWithSort(_exploreUsers);
   }
 
-  // Sorts users by current _exploreSort then calls renderExplore.
-  // Pass an array to render that instead of _exploreUsers (used by search).
   function renderExploreWithSort(users, searchQuery) {
     let sorted = users.slice();
-    if (_exploreSort === 'rating') {
-      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    } else if (_exploreSort === 'name') {
+    if (_exploreSort === 'name') {
       sorted.sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
-    } else if (_exploreSort === 'listings') {
-      sorted.sort((a, b) => (_listingCountMap[b.username] ?? 0) - (_listingCountMap[a.username] ?? 0));
+    } else {
+      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     }
     renderExplore(sorted, searchQuery);
   }
 
+  // ── HTML escaping helper ──────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Render ────────────────────────────────────────────────────────
   function renderExplore(users, searchQuery) {
     const feed = document.getElementById('explore-feed');
     if (!users || users.length === 0) {
-      const msg = searchQuery
-        ? `No results for "${searchQuery}"`
-        : 'No locals yet';
-      const sub = searchQuery
-        ? 'Try a different name or username.'
-        : 'Be the first to create a profile and start hosting experiences.';
-      feed.innerHTML = `
-        <div class="explore-empty">
-          <div class="explore-empty__icon">🧭</div>
-          <div class="explore-empty__title">${msg}</div>
-          <div class="explore-empty__sub">${sub}</div>
-        </div>`;
+      feed.innerHTML = searchQuery
+        ? `<div class="explore-empty">
+             <div class="explore-empty__icon">🔍</div>
+             <div class="explore-empty__title">No results for "${esc(searchQuery)}"</div>
+             <div class="explore-empty__sub">Try a different name or username.</div>
+           </div>`
+        : `<div class="explore-empty">
+             <div class="explore-empty__icon">🧭</div>
+             <div class="explore-empty__title">You're one of the first here</div>
+             <div class="explore-empty__sub">Other locals appear once they create a Meet. Complete your profile so you stand out.</div>
+             <a href="/account/edit" class="btn btn--primary" style="margin-top:16px;height:42px;padding:0 24px;font-size:12px;">Complete my profile</a>
+           </div>`;
       return;
     }
-    const now = new Date();
-    feed.innerHTML = users.map(user => {
-      const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
-      const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-      const activeCount = _listingCountMap[user.username] ?? 0;
-      const listingBadge = activeCount > 0
-        ? `<span style="font-size:9px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-pill);padding:2px 9px;letter-spacing:0.06em;white-space:nowrap;">${activeCount} tour${activeCount > 1 ? 's' : ''}</span>`
-        : '';
-      // Photo or initials avatar
-      const storedPhoto = user.profilePhotoUrl || localStorage.getItem('photo_' + user.id);
-      const avatarBg = storedPhoto
-        ? `background:hsl(${hue},22%,14%);`
-        : `background:hsl(${hue},22%,14%);`;
-      const avatarInner = storedPhoto
-        ? `<img src="${storedPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="">`
-        : `<span style="font-family:var(--font-display);font-weight:800;font-size:32px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>`;
+
+    feed.innerHTML = users.map(m => {
+      const initials = ((m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue      = (m.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      const photoUrl = UserAPI.photoUrl(m.profilePhotoUrl);
+      const bgDiv    = photoUrl
+        ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%);">
+             <div style="position:absolute;inset:-30px;background:url('${photoUrl}') center/cover no-repeat;filter:blur(24px) brightness(0.22);"></div>
+             <div style="position:relative;z-index:5;width:192px;height:192px;border-radius:50%;overflow:hidden;flex-shrink:0;box-shadow:0 0 0 4px rgba(255,255,255,0.1),0 8px 32px rgba(0,0,0,0.5);">
+               <img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
+             </div>
+           </div>`
+        : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);">
+             <div style="width:192px;height:192px;border-radius:50%;background:hsl(${hue},35%,22%);border:3px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+               <span style="font-family:var(--font-display);font-weight:800;font-size:68px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>
+             </div>
+           </div>`;
+
       return `
-      <div class="explore-card" data-id="${user.id}" data-name="${user.firstName} ${user.lastName}" data-username="${user.username}">
-        <div class="explore-card__bg" style="${avatarBg}font-size:0;">
-          <div style="width:90px;height:90px;border-radius:50%;background:hsl(${hue},35%,22%);border:2px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;overflow:hidden;">${avatarInner}</div>
-        </div>
+      <div class="explore-card"
+           data-id="${m.id}" data-name="${esc(m.firstName)} ${esc(m.lastName)}" data-username="${esc(m.username)}">
+        ${bgDiv}
         <div class="explore-card__gradient"></div>
-        <div class="explore-card__rating">★ ${user.rating > 0 ? Number(user.rating).toFixed(1) : '—'}</div>
-        <div class="explore-card__side">
+        <!--<div class="explore-card__side">
           <div class="side-action" onclick="toggleSave(this)">
             <div class="side-action__icon">
-              <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(&#45;&#45;text)" stroke-width="2" stroke-linecap="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
             </div>
             <div class="side-action__label">Save</div>
           </div>
-        </div>
+        </div>-->
         <div class="explore-card__content">
-          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-            <a href="/profile/${user.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${user.firstName} ${user.lastName}</a>
-            ${listingBadge}
+          <div style="margin-bottom:4px;">
+            <a href="/profile/${m.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${esc(m.firstName)} ${esc(m.lastName)}</a>
           </div>
-          <div class="explore-card__handle">@${user.username}</div>
-          <div class="explore-card__desc">${user.bio ?? 'No bio yet.'}</div>
+          <div class="explore-card__handle">@${esc(m.username)}</div>
+          <div class="explore-card__desc">${esc(m.bio ?? 'No bio yet.')}</div>
           <div class="explore-card__cta">
-            <a href="/tours?host=${user.username}" class="btn btn--primary">${activeCount > 0 ? `View ${activeCount} Tour${activeCount > 1 ? 's' : ''}` : 'View Profile'}</a>
+            <a href="/profile/${m.username}" class="btn btn--primary">View Profile</a>
           </div>
         </div>
       </div>`;
     }).join('');
+
     setCardHeights();
     initScrollHint();
 
-    // Restore saved hearts
     const saved = _getSaved();
     document.querySelectorAll('.explore-card').forEach(card => {
       if (!saved.has(card.dataset.username)) return;
@@ -247,16 +213,10 @@
     });
   }
 
-  Promise.all([UserAPI.getAll(), TourListingAPI.getAll()])
-    .then(([users, listings]) => {
-      const now = new Date();
+  // ── Initial load ──────────────────────────────────────────────────
+  UserAPI.getAll()
+    .then(users => {
       _exploreUsers = users || [];
-      // Build listing count map: username → number of non-reserved upcoming listings
-      _listingCountMap = {};
-      (listings || []).forEach(l => {
-        if (!l.host?.username || l.reserved || new Date(l.meetingDate) <= now) return;
-        _listingCountMap[l.host.username] = (_listingCountMap[l.host.username] ?? 0) + 1;
-      });
       renderExploreSorted();
     })
     .catch(() => renderExplore([]));

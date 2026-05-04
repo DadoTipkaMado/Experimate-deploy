@@ -5,12 +5,16 @@
 <!--
   TOPBAR FRAGMENT
   ───────────────
-  Used in: layout/base.html
-  Variables expected from controller:
-    - ${cityName}   String  e.g. "Zagreb"   (optional, defaults to "–")
-    - ${userEmoji}  String  e.g. "👤"       (optional)
+  Included in all app pages via th:replace.
+  Avatar is rendered client-side from localStorage / API fallback.
 -->
 <header th:fragment="topbar" class="topbar">
+  <script>(function(){if(localStorage.getItem('theme')==='light')document.body.classList.add('light-mode');})();</script>
+
+  <!-- Back button (shown when nav history exists) -->
+  <button class="topbar__back" id="back-btn" aria-label="Go back">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
 
   <!-- Logo -->
   <a th:href="@{/map}" class="topbar__logo">
@@ -19,32 +23,134 @@
 
   <div class="topbar__right">
 
+    <!-- Theme toggle -->
+    <button id="theme-toggle" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text-2);display:flex;align-items:center;transition:color 0.2s;">
+      <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </button>
+
     <!-- Avatar — links to account page -->
-    <a th:href="@{/account}" class="topbar__avatar" id="topbar-avatar" aria-label="My account">
-      <span>👤</span>
-    </a>
+    <a th:href="@{/account}" class="topbar__avatar" id="topbar-avatar" aria-label="My account"></a>
 
   </div>
 
-</header>
-
 <script>
-  (function() {
+  function _applyTopbarAvatar(initials, hue, photoUrl, userId) {
     const el = document.getElementById('topbar-avatar');
     if (!el) return;
-    const userId   = localStorage.getItem('userId');
-    const initials = localStorage.getItem('user_initials');
-    const hue      = localStorage.getItem('user_hue');
-    const photo    = userId ? localStorage.getItem('photo_' + userId) : null;
-    if (photo) {
-      el.innerHTML = `<img src="${photo}" alt="Profile" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    el.innerHTML = '';
+    el.style.background = '';
+    el.style.border = '';
+    if (photoUrl) {
+      const img = document.createElement('img');
+      img.src = photoUrl;
+      img.alt = 'Profile';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+      img.onerror = function() {
+        localStorage.removeItem('photo_' + userId);
+        _applyTopbarAvatar(initials, hue, null, userId);
+      };
+      el.appendChild(img);
     } else if (initials) {
       el.innerHTML = `<span style="font-weight:800;font-size:13px;color:hsl(${hue},60%,72%);font-family:sans-serif;">${initials}</span>`;
       el.style.background = `hsl(${hue},35%,22%)`;
       el.style.border = `1.5px solid hsl(${hue},40%,35%)`;
     }
+  }
+
+  function renderTopbarAvatar() {
+    const userId   = localStorage.getItem('userId');
+    const initials = localStorage.getItem('user_initials');
+    const hue      = localStorage.getItem('user_hue') || '0';
+    const photo    = userId ? localStorage.getItem('photo_' + userId) : null;
+
+    if (initials) {
+      _applyTopbarAvatar(initials, hue, photo, userId);
+      return;
+    }
+
+    // Nothing cached — fetch user once, save to localStorage, then render
+    if (!userId) return;
+    const token = localStorage.getItem('jwt');
+    if (!token) return;
+    function _doUserFetch(tok) {
+      return fetch('/api/user/' + userId, { headers: { 'Authorization': 'Bearer ' + tok } })
+        .then(r => {
+          if (r.status === 401) {
+            return fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+              .then(rr => rr.ok ? rr.json() : null)
+              .then(data => {
+                if (!data?.token) return null;
+                localStorage.setItem('jwt', data.token);
+                return fetch('/api/user/' + userId, { headers: { 'Authorization': 'Bearer ' + data.token } })
+                  .then(r2 => r2.ok ? r2.json() : null);
+              });
+          }
+          return r.ok ? r.json() : null;
+        });
+    }
+    _doUserFetch(token)
+      .then(u => {
+        if (!u) return;
+        const i = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || u.username?.[0]?.toUpperCase() || '?';
+        const h = (u.username ?? '').split('').reduce((a,c) => a + c.charCodeAt(0), 0) % 360;
+        localStorage.setItem('user_initials', i);
+        localStorage.setItem('user_hue', String(h));
+        const p = u.profilePhotoUrl
+          ? (u.profilePhotoUrl.startsWith('/') ? u.profilePhotoUrl : '/api/user/profile-photo/' + u.profilePhotoUrl)
+          : null;
+        if (p) localStorage.setItem('photo_' + userId, p);
+        _applyTopbarAvatar(i, String(h), p, userId);
+      })
+      .catch(() => {});
+  }
+  renderTopbarAvatar();
+
+  // Back button — sessionStorage URL queue
+  (function() {
+    const KEY = 'navHistory';
+    const MAX = 6;
+    const stack = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+    const current = window.location.pathname + window.location.search;
+    if (stack[stack.length - 1] !== current) {
+      stack.push(current);
+      if (stack.length > MAX) stack.shift();
+      sessionStorage.setItem(KEY, JSON.stringify(stack));
+    }
+    const btn = document.getElementById('back-btn');
+    if (!btn || stack.length < 2) return;
+    btn.style.display = 'flex';
+    btn.addEventListener('click', () => {
+      const s = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+      s.pop(); // remove current
+      const prev = s[s.length - 1] || '/map';
+      sessionStorage.setItem(KEY, JSON.stringify(s));
+      window.location.href = prev;
+    });
+  })();
+
+  // Theme toggle
+  const MOON_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  const SUN_SVG  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+  (function() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const updateIcon = () => btn.innerHTML = document.body.classList.contains('light-mode') ? MOON_SVG : SUN_SVG;
+    updateIcon();
+    btn.addEventListener('click', () => {
+      const isLight = document.body.classList.toggle('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      updateIcon();
+    });
   })();
 </script>
+
+</header>
 
 </body>
 </html>

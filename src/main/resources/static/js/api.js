@@ -23,6 +23,7 @@ const Auth = {
     } catch { return null; }
   },
   logout: () => {
+    sessionStorage.setItem('explicit_logout', '1');
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
     window.location.href = '/login';
@@ -42,13 +43,27 @@ async function apiFetch(path, options = {}, _isRetry = false) {
     ...options,
   });
 
-  if ((res.status === 401 || res.status === 403) && !_isRetry) {
+  if (res.status === 403) {
+    // 403 from the refresh endpoint = refresh token expired → logout
+    // 403 from any other endpoint = authorization failure → throw normally, don't touch token
+    if (path === '/api/auth/refresh') {
+      sessionStorage.setItem('explicit_logout', '1');
+      Auth.clearToken();
+      localStorage.removeItem('userId');
+      window.location.href = '/login';
+      throw new Error('Session expired. Please sign in.');
+    }
+    // fall through to !res.ok handler below
+  }
+
+  if (res.status === 401 && !_isRetry) {
     if (!_refreshPromise) {
       _refreshPromise = fetch(API_BASE + '/api/auth/refresh', {
         method: 'POST',
         credentials: 'include',
       }).then(async (refreshRes) => {
         if (!refreshRes.ok) {
+          sessionStorage.setItem('explicit_logout', '1');
           Auth.clearToken();
           localStorage.removeItem('userId');
           const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
@@ -99,10 +114,10 @@ const AuthAPI = {
 const UserAPI = {
   getAll: ()               => apiFetch('/api/user'),
   getById: (id)            => apiFetch(`/api/user/${id}`),
-  // TODO: swap profile.html to use this once David adds GET /api/user/by-username/{username} (Issue #1)
   getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
   search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
   uploadPhoto: (id, blob)  => { const f = new FormData(); f.append('file', blob, 'photo.jpg'); return apiFetch(`/api/user/${id}/profile-photo`, { method: 'POST', body: f }); },
+  photoUrl: (url)          => url ? (url.startsWith('/') ? url : `/api/user/profile-photo/${url}`) : null,
   create: (dto)            => apiFetch('/api/user',        { method: 'POST', body: JSON.stringify(dto) }),
   update: (id, dto)        => apiFetch(`/api/user/${id}`,  { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id)             => apiFetch(`/api/user/${id}`,  { method: 'DELETE' }),
@@ -113,6 +128,7 @@ const UserAPI = {
 ─────────────────────────────────────────────── */
 const TourListingAPI = {
   getAll: ()           => apiFetch('/api/tour-listing'),
+  getMine: ()          => apiFetch('/api/tour-listing/mine'),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
@@ -124,8 +140,8 @@ const TourListingAPI = {
 ─────────────────────────────────────────────── */
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
+  getMine: ()          => apiFetch('/api/reservation/mine'),   // returns { asGuest: [], asHost: [] }
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
-  create: (dto)        => apiFetch('/api/booking-request',        { method: 'POST',   body: JSON.stringify(dto) }),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
   endTour: (id)        => apiFetch(`/api/reservation/end-tour/${id}`,  { method: 'PATCH' }),
@@ -145,13 +161,31 @@ const BookingRequestAPI = {
 };
 
 /* ───────────────────────────────────────────────
-   SAVED LOCALS  /api/saved
-   TODO: swap explore.html localStorage logic to use this once David adds the endpoints (Issue #4)
+   SAVED LOCALS  /api/saved  (post-MVP, endpoints pending)
 ─────────────────────────────────────────────── */
 const SavedAPI = {
   getAll: ()                   => apiFetch('/api/saved'),
   save:   (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'POST' }),
   unsave: (targetUserId)       => apiFetch(`/api/saved/${targetUserId}`,  { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   ONBOARDING  /api/onboarding
+─────────────────────────────────────────────── */
+const OnboardingAPI = {
+  getQuestions: ()       => apiFetch('/api/onboarding/questions'),
+  getStatus:    ()       => apiFetch('/api/onboarding/status'),
+  submit:    (answers)   => apiFetch('/api/onboarding/answers', { method: 'POST', body: JSON.stringify({ answers }) }),
+  cancel:       ()       => apiFetch('/api/onboarding/cancel',  { method: 'POST' }),
+  deleteData:   ()       => apiFetch('/api/onboarding/data',    { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   MATCH  /api/match
+─────────────────────────────────────────────── */
+const MatchAPI = {
+  findMatches:  (q)                => apiFetch('/api/match' + (q ? `?q=${encodeURIComponent(q)}` : '')),
+  explainMatch: (candidateId, q)   => apiFetch(`/api/match/${candidateId}/explain` + (q ? `?q=${encodeURIComponent(q)}` : '')),
 };
 
 /* ───────────────────────────────────────────────
@@ -162,5 +196,25 @@ const RatingAPI = {
   getById: (id)         => apiFetch(`/api/rating/${id}`),
   create: (dto)         => apiFetch('/api/rating',       { method: 'POST',  body: JSON.stringify(dto) }),
   update: (id, dto)     => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
-  delete: (id, raterId) => apiFetch(`/api/rating/${id}?raterId=${raterId}`, { method: 'DELETE' }),
+  delete: (id)          => apiFetch(`/api/rating/${id}`, { method: 'DELETE' }),
 };
+
+/* ───────────────────────────────────────────────
+   SHARED USER CACHE HELPER
+   Saves initials, hue, and photo to localStorage.
+   Called after login and auto-redirect so the
+   topbar avatar renders instantly on next page.
+─────────────────────────────────────────────── */
+function _cacheUser(user, userId) {
+  if (!user) return;
+  const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase()
+    || user.username?.[0]?.toUpperCase() || '?';
+  const hue = (user.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  localStorage.setItem('user_initials', initials);
+  localStorage.setItem('user_hue', String(hue));
+  if (userId) {
+    if (user.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(user.profilePhotoUrl));
+    else localStorage.removeItem('photo_' + userId);
+  }
+  return { initials, hue };
+}

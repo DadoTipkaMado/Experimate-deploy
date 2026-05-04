@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Ratings — ExperiMate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
@@ -46,7 +48,7 @@
     .review-card__stars { display: flex; gap: 3px; }
     .review-card__star { font-size: 13px; color: var(--accent); opacity: 0.2; }
     .review-card__star--lit { opacity: 1; }
-    .review-card__text { font-size: 11px; color: rgba(239,239,239,0.65); line-height: 1.7; }
+    .review-card__text { font-size: 11px; color: var(--text-2); line-height: 1.7; }
     .review-card__empty { font-size: 10px; color: var(--text-3); font-style: italic; }
 
     .reviews-empty {
@@ -98,7 +100,7 @@
     <div class="section-divider">All reviews</div>
 
     <div class="notice-bar">
-      Reviews show score and text only — rater names require a backend update (coming soon).
+      After completing a Day, both host and guest can leave each other a review.
     </div>
 
     <div id="reviews-list"></div>
