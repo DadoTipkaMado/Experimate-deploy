@@ -1,11 +1,25 @@
 package hr.tvz.experimate.experimate.model.user;
 
+import hr.tvz.experimate.experimate.model.onboarding.Big5Vector;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+/**
+ * Application user entity, extending {@link Person} with account credentials,
+ * profile data, and computed Big Five personality scores.
+ *
+ * <p>Personality fields are initially {@code null} and are populated by
+ * {@link #setPersonalityMetricsFromVector(Big5Vector)} once the user completes
+ * the onboarding quiz. {@code onboardingCompleted} is the canonical flag for
+ * whether a personality profile exists; {@code personalityComputedAt} records when it was set.
+ *
+ * <p>Constructed exclusively via {@link UserBuilder}.
+ */
 @Entity
 @Table(name="app_user")
 public class User extends Person {
@@ -17,7 +31,18 @@ public class User extends Person {
     private String password;
     private String bio;
     private double rating = 0.0;
-    private String profilePhotoUrl;
+    private String profilePhotoFilename;
+
+    private Double personalityOpenness;
+    private Double personalityConscientiousness;
+    private Double personalityExtraversion;
+    private Double personalityAgreeableness;
+    private Double personalityNeuroticism;
+    private LocalDateTime personalityComputedAt;
+    @Column(columnDefinition="boolean default false")
+    private boolean onboardingCompleted = false;
+    @Column(columnDefinition="int default 0")
+    private int quizCompletionCount = 0;
 
     //For Hibernate to operate
     protected User(){}
@@ -104,12 +129,85 @@ public class User extends Person {
         this.rating = rating;
     }
 
-    public String getProfilePhotoUrl() {
-        return profilePhotoUrl;
+    public String getProfilePhotoFilename() {
+        return profilePhotoFilename;
     }
 
-    public void setProfilePhotoUrl(String profilePhotoUrl) {
-        this.profilePhotoUrl = profilePhotoUrl;
+    public void setProfilePhotoFilename(String profilePhotoFilename) {
+        this.profilePhotoFilename = profilePhotoFilename;
+    }
+
+    /**
+     * Populates all five Big Five personality fields from the given vector, records the
+     * timestamp, and marks onboarding as completed.
+     *
+     * <p>This is the only way personality data is written to the entity — there are no
+     * individual setters for the personality fields.
+     *
+     * @param vector the computed {@link Big5Vector} returned by
+     *               {@link hr.tvz.experimate.experimate.model.onboarding.Big5Calculator#compute}
+     */
+    public void setPersonalityMetricsFromVector(Big5Vector vector) {
+        this.personalityOpenness          = vector.openness();
+        this.personalityConscientiousness = vector.conscientiousness();
+        this.personalityExtraversion      = vector.extraversion();
+        this.personalityAgreeableness     = vector.agreeableness();
+        this.personalityNeuroticism       = vector.neuroticism();
+        this.personalityComputedAt        = LocalDateTime.now();
+        this.onboardingCompleted          = true;
+    }
+
+    /** @return {@code true} if the user has completed the onboarding quiz and has a personality profile. */
+    public boolean isOnboardingCompleted() {
+        return onboardingCompleted;
+    }
+
+    /** @return Openness score in {@code [-1.0, +1.0]}, or {@code null} before onboarding. */
+    public Double getPersonalityOpenness() { return personalityOpenness; }
+
+    /** @return Conscientiousness score in {@code [-1.0, +1.0]}, or {@code null} before onboarding. */
+    public Double getPersonalityConscientiousness() { return personalityConscientiousness; }
+
+    /** @return Extraversion score in {@code [-1.0, +1.0]}, or {@code null} before onboarding. */
+    public Double getPersonalityExtraversion() { return personalityExtraversion; }
+
+    /** @return Agreeableness score in {@code [-1.0, +1.0]}, or {@code null} before onboarding. */
+    public Double getPersonalityAgreeableness() { return personalityAgreeableness; }
+
+    /** @return Neuroticism score in {@code [-1.0, +1.0]}, or {@code null} before onboarding. */
+    public Double getPersonalityNeuroticism() { return personalityNeuroticism; }
+
+    /** @return Timestamp of when the personality profile was last computed, or {@code null} before onboarding. */
+    public LocalDateTime getPersonalityComputedAt() { return personalityComputedAt; }
+
+    /** @return the number of times this user has completed the onboarding quiz. */
+    public int getQuizCompletionCount() { return quizCompletionCount; }
+
+    /**
+     * Increments the quiz completion counter by one.
+     *
+     * <p>Called by the service layer each time the user successfully submits quiz answers.
+     * The counter is never decremented — it persists across GDPR data deletions to
+     * enforce the retake limit.
+     */
+    public void incrementQuizCompletionCount() {
+        this.quizCompletionCount++;
+    }
+
+    /**
+     * Clears all personality data from this user, reverting their onboarding state.
+     *
+     * <p>Called during a GDPR data deletion request. The quiz completion counter is
+     * intentionally preserved to enforce the retake limit.
+     */
+    public void clearPersonalityData() {
+        this.personalityOpenness          = null;
+        this.personalityConscientiousness = null;
+        this.personalityExtraversion      = null;
+        this.personalityAgreeableness     = null;
+        this.personalityNeuroticism       = null;
+        this.personalityComputedAt        = null;
+        this.onboardingCompleted          = false;
     }
 
     private String validateUsername(String username) {

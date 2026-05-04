@@ -1,0 +1,56 @@
+TASK: Parse a search query into structured matching criteria for finding
+compatible Mates for a shared day.
+
+FORMAT: Strict JSON. Begin with `{`, end with `}`. No code fences, no preamble.
+
+SCHEMA:
+{
+  "keywords": ["<activities, interests, locations — match against listings>"],
+  "negativeKeywords": ["<things to avoid — detect 'not', 'no', 'without'>"],
+  "bioKeywords": ["<person qualities/passions — match against bios>"],
+  "traitPreferences": {
+    "curiosity":   "high" | "low" | "any",
+    "focus":       "high" | "low" | "any",
+    "energy":      "high" | "low" | "any",
+    "warmth":      "high" | "low" | "any",
+    "sensitivity": "high" | "low" | "any"
+  }
+}
+
+RULES:
+- keywords vs bioKeywords: "hiker" goes in bioKeywords, "hiking trail" in keywords.
+- traitPreferences: derive from descriptive language. Default "any" when unclear.
+  "adventurous" → energy: high, curiosity: high
+  "chill" → energy: low
+  "warm" → warmth: high
+- Context: if user describes THEMSELVES then says what they're LOOKING FOR,
+  traitPreferences reflect what they're looking for, not what they are.
+
+EXAMPLES:
+
+Query: "chill coffee spots in Zagreb, no crowds"
+{
+  "keywords": ["coffee", "Zagreb"],
+  "negativeKeywords": ["crowds"],
+  "bioKeywords": ["chill", "calm"],
+  "traitPreferences": {"curiosity":"any","focus":"any","energy":"low","warmth":"any","sensitivity":"any"}
+}
+
+Query: "I'm adventurous, looking for someone calm to balance me"
+{
+  "keywords": [],
+  "negativeKeywords": [],
+  "bioKeywords": ["calm", "grounded"],
+  "traitPreferences": {"curiosity":"any","focus":"any","energy":"low","warmth":"high","sensitivity":"any"}
+}
+
+Query: "passionate hiker, deep conversations, not into nightlife"
+{
+  "keywords": ["hiking", "outdoors"],
+  "negativeKeywords": ["nightlife", "bars"],
+  "bioKeywords": ["hiker", "passionate", "thoughtful"],
+  "traitPreferences": {"curiosity":"high","focus":"any","energy":"any","warmth":"any","sensitivity":"any"}
+}
+
+QUERY:
+%s

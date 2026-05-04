@@ -1,5 +1,8 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
-public record CreateReservationDto(Integer guestId,
-                                   Integer tourListingId) {
+import jakarta.validation.constraints.Positive;
+
+public record CreateReservationDto(
+        @Positive Integer guestId,
+        @Positive Integer tourListingId) {
 }

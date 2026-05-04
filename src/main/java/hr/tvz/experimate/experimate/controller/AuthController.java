@@ -1,18 +1,19 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.refresh_token.RefreshTokenService;
-import hr.tvz.experimate.experimate.model.shared.TokenResponse;
+import hr.tvz.experimate.experimate.model.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.security.AuthResponse;
 import hr.tvz.experimate.experimate.security.AuthService;
 import hr.tvz.experimate.experimate.security.LoginRequest;
 import hr.tvz.experimate.experimate.security.MissingCookieException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    ResponseEntity<AuthResponse> authenticate(@RequestBody LoginRequest loginRequest) {
+    ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         TokenResponse tokenResponse = authService.login(loginRequest.username(), loginRequest.password());
 
         ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, tokenResponse.refreshToken());

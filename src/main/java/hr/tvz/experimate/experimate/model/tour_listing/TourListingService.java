@@ -3,8 +3,11 @@ package hr.tvz.experimate.experimate.model.tour_listing;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
 import hr.tvz.experimate.experimate.model.shared.event.*;
 import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.HostAlreadyTakenException;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingNotFoundException;
 import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +22,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,15 +45,15 @@ public class TourListingService {
 
     //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
     @Transactional
-    public TourListingResponse createListing(CreateTourListingDto dto) {
+    public TourListingResponse createListing(CreateTourListingDto dto, Integer hostId) {
         User host = userRepo
-                .findById(dto.hostId())
-                .orElseThrow(() -> new UserNotFoundException(dto.hostId()));
+                .findById(hostId)
+                .orElseThrow(() -> new UserNotFoundException(hostId));
 
         if (!hostAvailableAtDate(host, dto.meetingDate().toLocalDate())) {
             log.warn("Host with id {} has already listed a listing on the date {}.",
                     host.getId(), dto.meetingDate().toLocalDate());
-            throw new HostAlreadyTakenException(dto.hostId());
+            throw new HostAlreadyTakenException(hostId);
         }
 
         TourListing saved = listingRepo.save(
@@ -72,39 +76,67 @@ public class TourListingService {
                 .map(listing -> createListingResponse(listing));
     }
 
-    public List<TourListingResponse> getAllListings() {
-        return listingRepo.findAll()
+    public List<TourListingResponse> getListingsByHost(Integer hostId) {
+        return listingRepo.findAllByHost_Id(hostId)
                 .stream()
-                .map(listing -> createListingResponse(listing))
+                .map(this::createListingResponse)
                 .toList();
     }
 
-    public TourListingResponse updateListing(Integer id, UpdateTourListingDto dto) {
-        TourListing listing = listingRepo
-                .findById(id)
+    public List<TourListingResponse> getAllListings(Integer resourceOwnerId) {
+        return listingRepo.findAll()
+                .stream()
+                .filter(listing -> (!listing.getHost().getId().equals(resourceOwnerId)))
+                .map(this::createListingResponse)
+                .toList();
+    }
+
+    public TourListingResponse updateListing(Integer id, UpdateTourListingDto dto, Integer callerId) {
+        TourListing listing = listingRepo.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Could not find TourListing with id {}", id);
                     return new TourListingNotFoundException(id);
                 });
 
-        //TODO napravi privatnu metodu koja validira ove atribute
-        if (dto.meetingDate() != null) listing.setMeetingDate(dto.meetingDate());
-        if (dto.tourDescription() != null) listing.setTourDescription(dto.tourDescription());
-        listing.setReserved(dto.isReserved());
+        if (!listing.getHost().getId().equals(callerId))
+            throw new ForbiddenActionException("Only the host can update their listing.");
 
+        applyListingUpdate(listing, dto);
         TourListing saved = listingRepo.save(listing);
         log.info("Updated TourListing with id {}", saved.getId());
-
         return createListingResponse(saved);
     }
 
+    // For internal/event use — no ownership check needed (trusted system operation)
+    TourListingResponse updateListing(Integer id, UpdateTourListingDto dto) {
+        TourListing listing = listingRepo.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Could not find TourListing with id {}", id);
+                    return new TourListingNotFoundException(id);
+                });
+
+        applyListingUpdate(listing, dto);
+        TourListing saved = listingRepo.save(listing);
+        log.info("Updated TourListing with id {}", saved.getId());
+        return createListingResponse(saved);
+    }
+
+    private void applyListingUpdate(TourListing listing, UpdateTourListingDto dto) {
+        if (dto.meetingDate() != null) listing.setMeetingDate(dto.meetingDate());
+        if (dto.tourDescription() != null) listing.setTourDescription(dto.tourDescription());
+        listing.setReserved(dto.isReserved());
+    }
+
     @Transactional
-    public void deleteListing(Integer id) {
+    public void deleteListing(Integer id, Integer callerId) {
         TourListing listing = listingRepo.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Could not find TourListing with id {} to delete.", id);
                     return new TourListingNotFoundException(id);
                 });
+
+        if (!listing.getHost().getId().equals(callerId))
+            throw new ForbiddenActionException("Only the host can delete their listing.");
 
         publisher.publishEvent(new TourListingDeletedEvent(listing.getId()));
 
