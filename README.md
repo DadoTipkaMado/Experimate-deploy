@@ -58,16 +58,16 @@ The application follows a **mobile-first, progressive web app** philosophy — i
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | Java 21, Spring Boot 4, Spring Security, Spring Data JPA |
-| Database | H2 (embedded, file-based) |
-| Auth | JWT (jjwt 0.12) + HTTP-only refresh token cookie |
+| Layer | Technology                                                    |
+|---|---------------------------------------------------------------|
+| Backend | Java 21, Spring Boot 4, Spring Security, Spring Data JPA      |
+| Database | PostgreSQL (local)                                            |
+| Auth | JWT (jjwt 0.12) + HTTP-only refresh token cookie              |
 | Frontend | Thymeleaf templates, Vanilla JS (no framework, no build step) |
-| Map | Leaflet.js + Leaflet.markercluster |
-| Geocoding | Nominatim (OpenStreetMap) |
-| API Docs | SpringDoc OpenAPI / Swagger UI |
-| Build | Maven (Maven Wrapper included) |
+| Map | Leaflet.js + Leaflet.markercluster                            |
+| Geocoding | Nominatim (OpenStreetMap)                                     |
+| API Docs | SpringDoc OpenAPI / Swagger UI                                |
+| Build | Maven (Maven Wrapper included)                                |
 
 ---
 
@@ -152,13 +152,13 @@ ExperiMate/
 
 ## Prerequisites
 
-| Requirement | Minimum version |
-|---|---|
-| Java (JDK) | 21 |
-| Maven | 3.9+ (or use the included `mvnw` wrapper) |
+| Requirement | Minimum version                                    |
+|---|----------------------------------------------------|
+| Java (JDK) | 21                                                 |
+| Maven | 3.9+ (or use the included `mvnw` wrapper)          |
 | Browser | Any modern browser (Chrome, Firefox, Safari, Edge) |
 
-No database installation is required — the app uses an embedded H2 file database.
+Requires Docker — PostgreSQL runs as a Docker container. Start it with the provided docker run command before launching the application.
 
 ---
 
@@ -169,6 +169,12 @@ No database installation is required — the app uses an embedded H2 file databa
 ```bash
 git clone https://github.com/your-org/experimate.git
 cd experimate
+```
+
+### 2. Start the database
+
+```bash
+docker run --name PLACEHOLDER -e POSTGRES_DB=PLACEHOLDER -e POSTGRES_USER=PLACEHOLDER -e POSTGRES_PASSWORD=PLACEHOLDER -p 5432:5432 -d postgres
 ```
 
 ### 2. Add required configuration

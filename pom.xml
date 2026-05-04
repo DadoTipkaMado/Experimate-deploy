@@ -72,9 +72,10 @@
         </dependency>
 
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.11</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -98,6 +99,7 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
