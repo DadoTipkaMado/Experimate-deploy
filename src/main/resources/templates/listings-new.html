@@ -7,6 +7,8 @@
   <title>New Tour — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
@@ -16,11 +18,15 @@
     .form-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
     .form-field input, .form-field textarea {
       background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm); padding: 12px 14px;
+      border-radius: var(--radius-sm); padding: 13px 16px;
       color: var(--text); font-family: var(--font-mono); font-size: 13px;
-      width: 100%; box-sizing: border-box; transition: border-color var(--t-fast);
+      width: 100%; box-sizing: border-box;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    .form-field input:focus, .form-field textarea:focus { outline: none; border-color: var(--accent-border); }
+    .form-field input:focus, .form-field textarea:focus {
+      outline: none; border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.08);
+    }
     .form-field input.input--error { border-color: rgba(255,80,80,0.5); }
     .form-field textarea { resize: vertical; min-height: 140px; line-height: 1.65; }
     .form-field__hint { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; }
@@ -80,7 +86,7 @@
   <main class="page-content">
     <div class="new-listing-header">
       <div class="page-title">New Tour</div>
-      <div class="page-subtitle">Create an experience for travellers</div>
+      <div class="page-subtitle">Create an experience with a Mate</div>
     </div>
 
     <form id="listing-form" class="new-listing-form">
@@ -116,10 +122,10 @@
         <textarea id="tourDescription" name="tourDescription"
                   placeholder="Describe the experience — what will guests see, do, and feel?"
                   required minlength="200" maxlength="2000"
-                  oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
+                  oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
         <div style="display:flex;justify-content:space-between;">
-          <span class="form-field__hint">Min 200 characters</span>
-          <span class="form-field__hint" id="desc-counter" style="color:rgba(255,80,80,0.7);">0/2000</span>
+          <span class="form-field__hint">Min 200 characters — describe to Mates what they'll see, do, and experience</span>
+          <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
         </div>
       </div>
 
@@ -308,8 +314,7 @@
     const errorEl = document.getElementById('form-error');
     errorEl.style.display = 'none';
 
-    const hostId = Auth.getUserId();
-    if (!hostId) { window.location.href = '/login'; return; }
+    if (!Auth.getToken()) { window.location.href = '/login'; return; }
 
     const dateVal = meetingDateInput.value.trim();
     const timeVal = meetingTimeInput.value.trim();
@@ -340,7 +345,6 @@
     btn.disabled = true; btn.textContent = 'Publishing...';
     try {
       await TourListingAPI.create({
-        hostId,
         city:            document.getElementById('city').value,
         meetingDate,
         tourDescription: document.getElementById('tourDescription').value,

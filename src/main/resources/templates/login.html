@@ -7,13 +7,15 @@
   <title>Login — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
 
     html, body {
       height: unset !important;
       overflow: unset !important;
-      background: #0a0a0a !important;
+      background: var(--bg, #0a0a0a) !important;
     }
 
     body {
@@ -21,7 +23,7 @@
       align-items: center !important;
       justify-content: center !important;
       min-height: 100vh !important;
-      color: #efefef !important;
+      color: var(--text, #efefef) !important;
       color-scheme: dark;
     }
 
@@ -36,20 +38,20 @@
     }
     .orb-1 {
       width: 420px; height: 420px;
-      background: #00c9a7;
+      background: var(--accent, #00c9a7);
       top: -120px; left: -100px;
       animation-duration: 18s;
     }
     .orb-2 {
       width: 320px; height: 320px;
-      background: #ff6b35;
+      background: var(--warm, #ff6b35);
       bottom: -80px; right: -60px;
       animation-duration: 24s;
       animation-delay: -8s;
     }
     .orb-3 {
       width: 200px; height: 200px;
-      background: #00c9a7;
+      background: var(--accent, #00c9a7);
       bottom: 30%; left: 10%;
       opacity: 0.08;
       animation-duration: 30s;
@@ -70,7 +72,7 @@
       background: rgba(20, 20, 20, 0.72);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border: 1px solid #222;
+      border: 1px solid var(--border, #222);
       border-radius: 20px;
       padding: 36px 32px;
       display: flex;
@@ -90,14 +92,14 @@
       font-family: 'Syne', sans-serif;
       font-weight: 800;
       font-size: 30px;
-      color: #efefef;
+      color: var(--text, #efefef);
       letter-spacing: -0.03em;
     }
-    .auth-logo span { color: #00c9a7; }
+    .auth-logo span { color: var(--accent, #00c9a7); }
 
     .auth-tagline {
       font-size: 14px;
-      color: #888;
+      color: var(--text-3, #999);
       margin-top: 6px;
       letter-spacing: 0.01em;
     }
@@ -107,11 +109,11 @@
       font-family: 'Syne', sans-serif;
       font-weight: 700;
       font-size: 20px;
-      color: #efefef;
+      color: var(--text, #efefef);
     }
     .auth-subtitle {
       font-size: 13px;
-      color: #555;
+      color: var(--text-3, #777);
       letter-spacing: 0.04em;
       margin-top: 4px;
     }
@@ -120,16 +122,16 @@
     .auth-field { display: flex; flex-direction: column; gap: 6px; }
     .auth-field label {
       font-size: 11px;
-      color: #888;
+      color: var(--text-3, #999);
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
     .auth-field input {
-      background: #1c1c1c;
-      border: 1px solid #2e2e2e;
-      border-radius: 8px;
-      padding: 12px 14px;
-      color: #efefef;
+      background: var(--surface, #1c1c1c);
+      border: 1px solid var(--border-2, #2e2e2e);
+      border-radius: 10px;
+      padding: 13px 16px;
+      color: var(--text, #efefef);
       font-family: 'DM Mono', monospace;
       font-size: 13px;
       width: 100%;
@@ -137,7 +139,7 @@
     }
     .auth-field input:focus {
       outline: none;
-      border-color: #00c9a7;
+      border-color: var(--accent, #00c9a7);
       box-shadow: 0 0 0 3px rgba(0,201,167,0.12);
     }
 
@@ -145,7 +147,7 @@
     .auth-error {
       background: rgba(255,80,80,0.08);
       border: 1px solid rgba(255,80,80,0.2);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 10px 14px;
       font-size: 11px;
       color: rgba(255,100,100,0.9);
@@ -158,7 +160,7 @@
       height: 46px;
       margin-top: 4px;
       overflow: hidden;
-      background: #00c9a7 !important;
+      background: var(--accent, #00c9a7) !important;
       color: #000 !important;
     }
     .btn-signin::after {
@@ -177,8 +179,8 @@
     }
 
     /* ── Footer links ── */
-    .auth-footer { font-size: 13px; color: #555; text-align: center; }
-    .auth-footer a { color: #00c9a7; text-decoration: none; }
+    .auth-footer { font-size: 13px; color: var(--text-3, #777); text-align: center; }
+    .auth-footer a { color: var(--accent, #00c9a7); text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
 
     /* ── Divider ── */
@@ -186,7 +188,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      color: #444;
+      color: var(--text-3, #666);
       font-size: 11px;
       letter-spacing: 0.08em;
     }
@@ -195,7 +197,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: #222;
+      background: var(--border, #222);
     }
   </style>
 </head>
@@ -227,7 +229,7 @@
         <label for="password">Password</label>
         <div style="position:relative;">
           <input type="password" id="password" name="password" autocomplete="current-password" required style="padding-right:42px;">
-          <button type="button" id="pw-toggle" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#555;padding:0;display:flex;">
+          <button type="button" id="pw-toggle" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3,#555);padding:0;display:flex;">
             <svg id="pw-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
@@ -238,9 +240,9 @@
     <div class="auth-footer">
       <a href="/forgot-password">Forgot password?</a>
     </div>
-    <div class="auth-footer">
-      Don't have an account? <a href="/register">Register</a>
-    </div>
+    <a href="/register" class="auth-register-link">
+      New here? <strong style="color:var(--accent,#00c9a7);margin-left:5px;">Create an account →</strong>
+    </a>
   </div>
 
   <script src="/js/api.js"></script>
@@ -253,12 +255,21 @@
 
     // Auto-redirect if already logged in (or refresh token still valid)
     (async function () {
+      // Don't auto-redirect after an explicit logout — prevents refresh-cookie loop
+      if (sessionStorage.getItem('explicit_logout')) {
+        sessionStorage.removeItem('explicit_logout');
+        return;
+      }
       // Try existing JWT first
       const userId = Auth.getUserId();
       if (userId && Auth.getToken()) {
         try {
           const result = await UserAPI.getById(userId);
-          if (result) { window.location.href = '/map'; return; }
+          if (result) {
+            _cacheUser(result, userId);
+            window.location.href = '/map';
+            return;
+          }
         } catch { /* fall through to refresh */ }
       }
       // No valid JWT — try refresh cookie
@@ -268,8 +279,12 @@
         const { token } = await refreshRes.json();
         Auth.saveToken(token);
         const users = await UserAPI.getAll();
-        const me = users?.find(u => u.username === Auth.getUsername());
-        if (me) Auth.saveUserId(me.id);
+        const uid = users?.find(u => u.username === Auth.getUsername())?.id ?? null;
+        if (uid) {
+          Auth.saveUserId(uid);
+          const me = await UserAPI.getById(uid).catch(() => null);
+          if (me) _cacheUser(me, uid);
+        }
         window.location.href = '/map';
       } catch { /* stay on login */ }
     })();
@@ -288,12 +303,15 @@
           document.getElementById('password').value
         );
         Auth.saveToken(res.token);
-        if (res.id) {
-          Auth.saveUserId(res.id);
-        } else {
+        let uid = res.id || null;
+        if (!uid) {
           const users = await UserAPI.getAll();
-          const me = users.find(u => u.username === Auth.getUsername());
-          if (me) Auth.saveUserId(me.id);
+          uid = users?.find(u => u.username === Auth.getUsername())?.id ?? null;
+        }
+        if (uid) {
+          Auth.saveUserId(uid);
+          const me = await UserAPI.getById(uid).catch(() => null);
+          if (me) _cacheUser(me, uid);
         }
         btn.textContent = 'Welcome back ✓';
         window.location.href = '/map';

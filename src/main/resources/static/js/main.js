@@ -193,6 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initDateInputs();
 
+  // Page enter animation
+  const shell = document.querySelector('.app-shell');
+  if (shell) shell.classList.add('anim-fade-up');
+
   // Page exit transition — intercept internal link clicks
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href]');
@@ -239,4 +243,130 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+});
+
+/* ───────────────────────────────────────────────
+   DATE / TIME DISPLAY FORMATTERS
+─────────────────────────────────────────────── */
+const _MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]}`;
+}
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function fmtDatetime(iso) {
+  return `${fmtDate(iso)} · ${fmtTime(iso)}`;
+}
+
+/* ───────────────────────────────────────────────
+   USER AVATAR
+   Returns HTML string for a circular avatar.
+   Pass the cached UserResponse as userObj for photo/initials;
+   omit for username-initial fallback.
+─────────────────────────────────────────────── */
+function userAvatar(username, size, userObj) {
+  size = size || 24;
+  const hue = (username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+  const initials = userObj
+    ? ((userObj.firstName?.[0] ?? '') + (userObj.lastName?.[0] ?? '')).toUpperCase() || '?'
+    : (username?.[0]?.toUpperCase() ?? '?');
+  const photoUrl = userObj?.profilePhotoUrl ? UserAPI.photoUrl(userObj.profilePhotoUrl) : null;
+  const base = `width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;`;
+  if (photoUrl) {
+    return `<div style="${base}overflow:hidden;border:1px solid hsl(${hue},40%,30%);"><img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>`;
+  }
+  return `<div style="${base}background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:${Math.floor(size * 0.4)}px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</div>`;
+}
+
+/* ───────────────────────────────────────────────
+   PROFILE COMPLETION BUBBLE
+   Appears on every app page until profile is 100%.
+   Dismissable per-visit only — comes back every page.
+   Weight: photo 40% · bio 35% · quiz 25%
+─────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async function _completionBubble() {
+  const path = window.location.pathname;
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit', '/explore'];
+  if (skip.some(p => path.startsWith(p))) return;
+  if (!document.querySelector('.topbar')) return;
+  const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
+  if (!userId) return;
+
+  let user = null;
+  try { user = await UserAPI.getById(userId); } catch(e) { return; }
+  if (!user) return;
+
+  const hasPhoto = !!(user.profilePhotoUrl || localStorage.getItem('photo_' + userId));
+  const hasBio   = !!user.bio;
+  const hasQuiz  = !!localStorage.getItem('personality_done');
+  const pct = (hasPhoto ? 40 : 0) + (hasBio ? 35 : 0) + (hasQuiz ? 25 : 0);
+  if (pct >= 100) return;
+
+  let actionText, actionHref = '/account/edit', detailText, ctaLabel;
+  if (!hasPhoto) {
+    actionText  = 'Add a profile photo';
+    detailText  = 'people are 3× more likely to connect with you';
+    ctaLabel    = 'Add photo →';
+  } else if (!hasBio) {
+    actionText  = 'Write your bio';
+    detailText  = 'let people know who you are';
+    ctaLabel    = 'Write bio →';
+  } else {
+    actionText  = 'Take the personality quiz';
+    detailText  = 'unlock AI match scoring';
+    actionHref  = '/onboarding';
+    ctaLabel    = 'Take quiz →';
+  }
+
+  const C      = 75.4;
+  const filled = ((pct / 100) * C).toFixed(1);
+
+  const bubble = document.createElement('div');
+  bubble.id = 'completion-bubble';
+  bubble.style.cssText = [
+    'display:flex;align-items:center;gap:8px;padding:0 20px',
+    'background:linear-gradient(90deg,#c94a00,#e05500)',
+    'color:#fff;font-family:var(--font-mono,monospace);flex-shrink:0;line-height:1',
+    'overflow:hidden;max-height:0;opacity:0;border-bottom:1px solid rgba(0,0,0,0.2)',
+    'transition:max-height 0.4s cubic-bezier(0.32,0.72,0,1),opacity 0.3s ease',
+  ].join(';');
+
+  bubble.innerHTML = `
+    <svg width="26" height="26" viewBox="0 0 32 32" style="flex-shrink:0;transform:rotate(-90deg);">
+      <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="3"/>
+      <circle cx="16" cy="16" r="12" fill="none" stroke="#fff" stroke-width="3"
+        stroke-dasharray="${filled} ${C}" stroke-linecap="round"/>
+    </svg>
+    <span style="font-size:12px;font-weight:700;">${pct}%</span>
+    <div style="flex:1;min-width:0;overflow:hidden;">
+      <span style="font-weight:600;font-size:11px;white-space:nowrap;">${actionText}</span>
+      <span style="opacity:0.72;font-size:10px;"> — ${detailText}</span>
+    </div>
+    <a href="${actionHref}" style="flex-shrink:0;background:rgba(255,255,255,0.18);color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);">${ctaLabel}</a>
+    <button id="bubble-close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:6px 2px;font-size:16px;line-height:1;flex-shrink:0;">✕</button>
+  `;
+
+  const topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+  topbar.insertAdjacentElement('afterend', bubble);
+
+  requestAnimationFrame(() => {
+    bubble.style.maxHeight = '46px';
+    bubble.style.opacity   = '1';
+    bubble.style.padding   = '8px 20px';
+  });
+
+  document.getElementById('bubble-close').addEventListener('click', () => {
+    bubble.style.transition = 'max-height 0.25s ease,opacity 0.2s ease,padding 0.25s ease';
+    bubble.style.maxHeight  = '0';
+    bubble.style.opacity    = '0';
+    bubble.style.padding    = '0 20px';
+    setTimeout(() => bubble.remove(), 260);
+  });
 });

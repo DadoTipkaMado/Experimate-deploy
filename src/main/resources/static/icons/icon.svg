@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0f0f0f"/>
+
+  <!-- Ambient glow (old logo style) -->
+  <circle cx="216" cy="260" r="108" fill="#00C9A7" opacity="0.10"/>
+  <circle cx="296" cy="260" r="108" fill="#FF6B35" opacity="0.10"/>
+
+  <!-- Bodies — 125% wider (±27px from center instead of ±22px) -->
+  <path d="M189,240 Q178,328 216,396 Q254,328 243,240 Z" fill="#00C9A7" opacity="0.55"/>
+  <path d="M269,240 Q258,328 296,396 Q334,328 323,240 Z" fill="#FF6B35" opacity="0.55"/>
+
+  <!-- Teal arm reaching right toward orange -->
+  <path d="M240,303 Q252,297 263,303 L263,317 Q252,323 240,317 Z" fill="#00C9A7" opacity="0.70"/>
+
+  <!-- Orange arm reaching left toward teal -->
+  <path d="M272,303 Q260,297 249,303 L249,317 Q260,323 272,317 Z" fill="#FF6B35" opacity="0.70"/>
+
+  <!-- Small white clasp at the handshake meeting point -->
+  <ellipse cx="256" cy="310" rx="7" ry="8" fill="#ffffff" opacity="0.55"/>
+
+  <!-- Head circles -->
+  <circle cx="216" cy="183" r="54" fill="#00C9A7"/>
+  <circle cx="296" cy="183" r="54" fill="#FF6B35"/>
+
+  <!-- Venn intersection — personality match -->
+  <path d="M256,147 A54,54 0 0,1 256,219 A54,54 0 0,1 256,147 Z" fill="#ffffff" opacity="0.88"/>
+
+</svg>
