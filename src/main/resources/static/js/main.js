@@ -344,8 +344,8 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
         stroke-dasharray="${filled} ${C}" stroke-linecap="round"/>
     </svg>
     <span style="font-size:12px;font-weight:700;">${pct}%</span>
-    <div style="flex:1;min-width:0;overflow:hidden;">
-      <span style="font-weight:600;font-size:11px;white-space:nowrap;">${actionText}</span>
+    <div style="flex:1;min-width:0;">
+      <span style="font-weight:600;font-size:11px;">${actionText}</span>
       <span style="opacity:0.72;font-size:10px;"> — ${detailText}</span>
     </div>
     <a href="${actionHref}" style="flex-shrink:0;background:rgba(255,255,255,0.18);color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);">${ctaLabel}</a>
@@ -357,9 +357,9 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   topbar.insertAdjacentElement('afterend', bubble);
 
   requestAnimationFrame(() => {
-    bubble.style.maxHeight = '46px';
+    bubble.style.maxHeight = '80px';
     bubble.style.opacity   = '1';
-    bubble.style.padding   = '8px 20px';
+    bubble.style.padding   = '8px 16px';
   });
 
   document.getElementById('bubble-close').addEventListener('click', () => {

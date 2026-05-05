@@ -1153,6 +1153,9 @@ svg { display: block; flex-shrink: 0; }
     overflow: hidden;
   }
 
+  /* Profile completion bubble — hidden on desktop (sidebar layout) */
+  #completion-bubble { display: none !important; }
+
   /* ───────────────────────────────────────────
      TOAST — reposition for sidebar layout
   ─────────────────────────────────────────── */
