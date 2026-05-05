@@ -3,6 +3,8 @@ package hr.tvz.experimate.experimate.controller;
 import hr.tvz.experimate.experimate.model.match.MatchExplanationResponse;
 import hr.tvz.experimate.experimate.model.match.MatchResponse;
 import hr.tvz.experimate.experimate.model.match.MatchService;
+import hr.tvz.experimate.experimate.model.shared.RateLimitOperation;
+import hr.tvz.experimate.experimate.model.shared.RateLimiterService;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,8 +24,11 @@ public class MatchController {
 
     private final MatchService matchService;
 
-    public MatchController(MatchService matchService) {
+    private final RateLimiterService rateLimiterService;
+
+    public MatchController(MatchService matchService, RateLimiterService rateLimiterService) {
         this.matchService = matchService;
+        this.rateLimiterService = rateLimiterService;
     }
 
     /**
@@ -41,6 +46,7 @@ public class MatchController {
     public ResponseEntity<List<MatchResponse>> findMatches(
             @RequestParam(required = false) String q,
             @AuthenticationPrincipal AppUserDetails principal) {
+        rateLimiterService.consume(RateLimitOperation.AI_SEARCH, principal.getId());
         return ResponseEntity.ok(matchService.findMatches(principal.getId(), q));
     }
 
@@ -60,6 +66,7 @@ public class MatchController {
             @PathVariable Integer candidateId,
             @RequestParam(required = false) String q,
             @AuthenticationPrincipal AppUserDetails principal) {
+        rateLimiterService.consume(RateLimitOperation.AI_EXPLAIN, principal.getId());
         return ResponseEntity.ok(matchService.explainMatch(principal.getId(), candidateId, q));
     }
 }
