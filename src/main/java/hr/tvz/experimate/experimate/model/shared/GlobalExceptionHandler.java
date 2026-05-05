@@ -3,6 +3,7 @@ import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
 import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
 import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
+import hr.tvz.experimate.experimate.model.shared.exception.RateLimitException;
 import hr.tvz.experimate.experimate.model.shared.exception.RefreshTokenException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -68,6 +69,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAppAuthException(RefreshTokenException ex) {
         ErrorResponse auth = createErrorResponse(HttpStatus.FORBIDDEN, ex);
         return new ResponseEntity<>(auth, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitException(RateLimitException ex) {
+        ErrorResponse rateLimit = createErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ex);
+        return new ResponseEntity<>(rateLimit, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(InternalServerException.class)
