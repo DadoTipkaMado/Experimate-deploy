@@ -51,7 +51,22 @@
     <div class="navbar__pip"></div>
   </a>
 
-  <!-- TOURS (merged Meet + Listings) -->
+  <!-- EXPLORE -->
+  <a th:href="@{/explore}"
+     th:classappend="${currentPage == 'explore'} ? ' navbar__item--active'"
+     class="navbar__item"
+     aria-label="Discover">
+    <div class="navbar__icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+    <div class="navbar__pip"></div>
+  </a>
+
+  <!-- TOURS (Meet management) -->
   <a th:href="@{/tours}"
      th:classappend="${currentPage == 'tours'} ? ' navbar__item--active'"
      class="navbar__item"
@@ -63,21 +78,6 @@
         <line x1="16" y1="2" x2="16" y2="6"/>
         <line x1="8" y1="2" x2="8" y2="6"/>
         <line x1="3" y1="10" x2="21" y2="10"/>
-      </svg>
-    </div>
-    <div class="navbar__pip"></div>
-  </a>
-
-  <!-- EXPLORE -->
-  <a th:href="@{/explore}"
-     th:classappend="${currentPage == 'explore'} ? ' navbar__item--active'"
-     class="navbar__item"
-     aria-label="Discover">
-    <div class="navbar__icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-           stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
     </div>
     <div class="navbar__pip"></div>
