@@ -362,6 +362,7 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .navbar__label {
+  display: none;
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.08em;
@@ -1119,6 +1120,7 @@ svg { display: block; flex-shrink: 0; }
   }
 
   .navbar__label {
+    display: block;
     font-size: 11px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
