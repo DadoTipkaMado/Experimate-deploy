@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
 import hr.tvz.experimate.experimate.model.user.User;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +16,7 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
 
     List<TourListing> findAllByReservedAndMeetingDateBefore(Boolean isReserved, LocalDateTime meetingDateTime);
 
-    List<TourListing> findAllByHost_Id(Integer hostId);
+    List<TourListing> findAllByHost_Id(Integer hostId, Sort sort);
 
     /**
      * Returns all active listings eligible as match candidates for the given viewer.
@@ -28,4 +29,7 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
      */
     @Query("SELECT l FROM TourListing l WHERE l.host.id != :viewerId AND l.reserved = false AND l.meetingDate > :now ORDER BY l.meetingDate ASC")
     List<TourListing> findMatchCandidateListings(@Param("viewerId") Integer viewerId, @Param("now") LocalDateTime now);
+
+    @Query("SELECT l FROM TourListing l JOIN Reservation r ON r.tourListing = l WHERE r.guest.id = :guestId")
+    List<TourListing> findAllJoinedByGuestId(@Param("guestId") Integer guestId, Sort sort);
 }
