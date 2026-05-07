@@ -25,9 +25,9 @@
   --border-2:       #2e2e2e;
   --border-3:       #3a3a3a;
 
-  --text:           #efefef;
-  --text-2:         #9a9a9a;
-  --text-3:         #606060;
+  --text:           #f2f2f2;
+  --text-2:         #c0c0c0;
+  --text-3:         #909090;
 
   --accent:         #00c9a7;
   --accent-dim:     rgba(0, 201, 167, 0.10);
@@ -363,7 +363,7 @@ svg { display: block; flex-shrink: 0; }
 
 .navbar__label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -473,7 +473,7 @@ svg { display: block; flex-shrink: 0; }
   padding: 3px 9px;
   border-radius: var(--radius-pill);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: 1px solid;
@@ -692,7 +692,7 @@ svg { display: block; flex-shrink: 0; }
 /* — Section label — */
 .section-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -1383,7 +1383,7 @@ svg { display: block; flex-shrink: 0; }
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 .side-action:hover .side-action__icon { background: rgba(255,255,255,0.14); transform: scale(1.08); }
-.side-action__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; }
+.side-action__label { font-size: 11px; color: var(--text-3); letter-spacing: 0.06em; }
 .side-action--saved .side-action__icon { background: rgba(255,107,53,0.18); border-color: rgba(255,107,53,0.35); }
 .side-action--saved .side-action__label { color: var(--warm); }
 
@@ -1398,7 +1398,7 @@ svg { display: block; flex-shrink: 0; }
 .explore-card__traits { display: none; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
 .explore-card--personalized .explore-card__traits { display: flex; }
 .explore-card__trait {
-  font-size: 9px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 10px;
   background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.25); color: rgba(0,201,167,0.85);
 }
 .explore-card__desc {
@@ -1440,7 +1440,7 @@ svg { display: block; flex-shrink: 0; }
 }
 .scroll-hint--hidden { opacity: 0; }
 .scroll-hint__arrow { animation: bounceUp 1.2s ease infinite; }
-.scroll-hint__label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+.scroll-hint__label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
 @keyframes bounceUp {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-5px); }
