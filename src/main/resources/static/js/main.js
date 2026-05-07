@@ -299,7 +299,7 @@ function userAvatar(username, size, userObj) {
 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async function _completionBubble() {
   const path = window.location.pathname;
-  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit', '/explore'];
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit'];
   if (skip.some(p => path.startsWith(p))) return;
   if (!document.querySelector('.topbar')) return;
   const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
