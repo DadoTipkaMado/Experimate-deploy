@@ -7,6 +7,7 @@ import hr.tvz.experimate.experimate.model.tour_listing.UpdateTourListingDto;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,9 +28,12 @@ public class TourListingController {
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<List<TourListingResponse>> getMyListings(@AuthenticationPrincipal AppUserDetails userDetails) {
+    public ResponseEntity<List<TourListingResponse>> getMyListings(
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @RequestParam(required = false) String filter,
+            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction direction) {
         return ResponseEntity.ok(
-                tourListingService.getListingsByHost(userDetails.getId())
+                tourListingService.getMyListings(userDetails.getId(), filter, direction)
         );
     }
 
