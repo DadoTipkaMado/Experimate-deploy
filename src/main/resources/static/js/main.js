@@ -359,6 +359,16 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
     <button id="bubble-close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:6px 2px;font-size:16px;line-height:1;flex-shrink:0;">✕</button>
   `;
 
+  // Desktop sidebar: orange dot on Account nav item
+  const accountNavItem = document.getElementById('navbar-account');
+  if (accountNavItem) {
+    accountNavItem.style.position = 'relative';
+    const dot = document.createElement('div');
+    dot.id = 'profile-completion-dot';
+    dot.style.cssText = 'position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#ff6b35;border:2px solid var(--bg,#0a0a0a);pointer-events:none;';
+    accountNavItem.appendChild(dot);
+  }
+
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
   topbar.insertAdjacentElement('afterend', bubble);
