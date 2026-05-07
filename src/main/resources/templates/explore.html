@@ -4,54 +4,118 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
-  <title>Explore — Experimate</title>
+  <title>Discover — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <style>
+    .explore-header {
+      padding: 14px 16px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0; z-index: 5;
+    }
+    .explore-header .search-bar { margin-bottom: 10px; }
+    .explore-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Feed ── */
+    .listing-feed {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 12px 16px 32px;
+    }
+
+    /* ── Feed card ── */
+    .feed-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color var(--t-base), transform var(--t-base);
+    }
+    .feed-card:hover { border-color: var(--border-2); transform: translateY(-1px); }
+    .feed-card--available { box-shadow: inset 3px 0 0 var(--accent); }
+    .feed-card--pending   { box-shadow: inset 3px 0 0 #ff9944; }
+    .feed-card--reserved  { opacity: 0.55; }
+
+    .feed-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .feed-card__city { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text); letter-spacing: -0.01em; }
+    .feed-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0; padding-top: 3px; text-align: right; }
+    .feed-card__time { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 2px; }
+    .feed-card__host { display: flex; align-items: center; gap: 8px; }
+    .feed-card__host-name { font-size: 11px; color: var(--accent); letter-spacing: 0.04em; text-decoration: none; }
+    .feed-card__host-name:hover { text-decoration: underline; }
+    .feed-card__desc {
+      font-size: 11px; color: var(--text-2); line-height: 1.65;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .feed-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .feed-card__status { display: flex; align-items: center; gap: 6px; }
+    .feed-card__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .feed-card__label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* ── Empty state ── */
+    .feed-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 60px 24px; gap: 12px; text-align: center;
+    }
+    .feed-empty__icon { font-size: 36px; opacity: 0.35; }
+    .feed-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .feed-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+  </style>
 </head>
 <body>
 <div class="app-shell">
 
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-  <main class="page-content page-content--explore">
+  <main class="page-content">
 
     <div class="explore-header">
       <div class="search-bar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input type="text" id="explore-search-input" placeholder="Search by name or username..." autocomplete="off">
+        <input type="text" id="explore-search-input" placeholder="Search by city or host..." autocomplete="off">
       </div>
       <div class="explore-filters">
-        <div id="sort-rating" class="pill pill--active" onclick="setExploreSort('rating')">Top rated</div>
-        <div id="sort-name" class="pill" onclick="setExploreSort('name')">Name</div>
+        <div id="pill-soonest" class="pill pill--active" onclick="setSort('soonest')">Soonest</div>
+        <div id="pill-available" class="pill" onclick="toggleAvailable(this)">Available only</div>
         <div id="pill-ai" class="pill" onclick="toggleAiSearch(this)">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>AI Match
         </div>
       </div>
     </div>
 
-    <div id="explore-feed">
-      <!-- Skeleton loading state -->
-      <div class="explore-card" id="explore-sk1" style="background:var(--surface);">
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 16px 20px;">
-          <div class="skeleton skeleton-line skeleton-line--lg" style="width:55%;margin-bottom:8px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--sm" style="width:35%;margin-bottom:14px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-full" style="margin-bottom:6px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-3q" style="margin-bottom:6px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-half" style="margin-bottom:18px;"></div>
-          <div class="skeleton skeleton-line" style="width:100%;height:44px;border-radius:12px;"></div>
+    <div id="listing-feed" class="listing-feed">
+      <!-- Skeleton -->
+      <div class="feed-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <div class="skeleton skeleton-line skeleton-line--lg" style="width:45%;"></div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:60%;"></div>
+          </div>
+          <div class="skeleton skeleton-line skeleton-line--sm" style="width:70px;"></div>
+        </div>
+        <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px;">
+          <div class="skeleton skeleton-line skeleton-line--sm" style="width:60px;"></div>
+          <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
         </div>
       </div>
-      <div class="explore-card" id="explore-sk2" style="background:var(--surface-2);">
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 16px 20px;">
-          <div class="skeleton skeleton-line skeleton-line--lg" style="width:45%;margin-bottom:8px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--sm" style="width:30%;margin-bottom:14px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-full" style="margin-bottom:6px;"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-3q" style="margin-bottom:18px;"></div>
-          <div class="skeleton skeleton-line" style="width:100%;height:44px;border-radius:12px;"></div>
+      <div class="feed-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;">
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <div class="skeleton skeleton-line skeleton-line--lg" style="width:55%;"></div>
+            <div class="skeleton skeleton-line skeleton-line--sm" style="width:40%;"></div>
+          </div>
+          <div class="skeleton skeleton-line skeleton-line--sm" style="width:65px;"></div>
+        </div>
+        <div class="skeleton skeleton-line skeleton-line--w-full"></div>
+        <div class="skeleton skeleton-line skeleton-line--w-half"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px;">
+          <div class="skeleton skeleton-line skeleton-line--sm" style="width:55px;"></div>
+          <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
         </div>
       </div>
     </div>
@@ -78,161 +142,5 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/explore.js}"></script>
-<script th:inline="none">
-  // ── Saved locals ──────────────────────────────────────────────────
-  function _getSaved() {
-    try { return new Set(JSON.parse(localStorage.getItem('saved_locals') || '[]')); } catch { return new Set(); }
-  }
-  function _setSaved(set) {
-    localStorage.setItem('saved_locals', JSON.stringify([...set]));
-  }
-
-  let _showSavedOnly = false;
-
-  function toggleSave(el) {
-    const card     = el.closest('.explore-card');
-    const username = card.dataset.username;
-    const saved    = _getSaved();
-    const isSaved  = saved.has(username);
-    isSaved ? saved.delete(username) : saved.add(username);
-    _setSaved(saved);
-    const nowSaved = !isSaved;
-    el.classList.toggle('side-action--saved', nowSaved);
-    const heart = el.querySelector('.save-heart');
-    heart.setAttribute('fill',   nowSaved ? 'var(--warm)' : 'none');
-    heart.setAttribute('stroke', nowSaved ? 'var(--warm)' : 'var(--text)');
-    showToast(nowSaved ? 'Saved ' + card.dataset.name : 'Removed ' + card.dataset.name);
-    if (_showSavedOnly && !nowSaved) card.style.display = 'none';
-  }
-
-  function toggleSavedFilter(el) {
-    _showSavedOnly = !_showSavedOnly;
-    el.classList.toggle('pill--active', _showSavedOnly);
-    const saved = _getSaved();
-    document.querySelectorAll('.explore-card').forEach(card => {
-      card.style.display = (!_showSavedOnly || saved.has(card.dataset.username)) ? '' : 'none';
-    });
-    setCardHeights();
-  }
-
-  // ── State ─────────────────────────────────────────────────────────
-  let _exploreUsers = [];
-  let _exploreSort  = 'rating';
-
-  // ── Sort pills ────────────────────────────────────────────────────
-  function setExploreSort(val) {
-    _exploreSort = val;
-    ['rating', 'name'].forEach(k => {
-      const el = document.getElementById('sort-' + k);
-      if (el) el.classList.toggle('pill--active', k === val);
-    });
-    renderExploreSorted();
-  }
-
-  function renderExploreSorted() {
-    renderExploreWithSort(_exploreUsers);
-  }
-
-  function renderExploreWithSort(users, searchQuery) {
-    let sorted = users.slice();
-    if (_exploreSort === 'name') {
-      sorted.sort((a, b) => (a.firstName + ' ' + a.lastName).localeCompare(b.firstName + ' ' + b.lastName));
-    } else {
-      sorted.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    }
-    renderExplore(sorted, searchQuery);
-  }
-
-  // ── HTML escaping helper ──────────────────────────────────────────
-  function esc(s) {
-    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ── Render ────────────────────────────────────────────────────────
-  function renderExplore(users, searchQuery) {
-    const feed = document.getElementById('explore-feed');
-    if (!users || users.length === 0) {
-      feed.innerHTML = searchQuery
-        ? `<div class="explore-empty">
-             <div class="explore-empty__icon">🔍</div>
-             <div class="explore-empty__title">No results for "${esc(searchQuery)}"</div>
-             <div class="explore-empty__sub">Try a different name or username.</div>
-           </div>`
-        : `<div class="explore-empty">
-             <div class="explore-empty__icon">🧭</div>
-             <div class="explore-empty__title">You're one of the first here</div>
-             <div class="explore-empty__sub">Other locals appear once they create a Meet. Complete your profile so you stand out.</div>
-             <a href="/account/edit" class="btn btn--primary" style="margin-top:16px;height:42px;padding:0 24px;font-size:12px;">Complete my profile</a>
-           </div>`;
-      return;
-    }
-
-    feed.innerHTML = users.map(m => {
-      const initials = ((m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')).toUpperCase() || '?';
-      const hue      = (m.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-      const photoUrl = UserAPI.photoUrl(m.profilePhotoUrl);
-      const bgDiv    = photoUrl
-        ? `<div class="explore-card__bg" style="background:hsl(${hue},22%,14%);">
-             <div style="position:absolute;inset:-30px;background:url('${photoUrl}') center/cover no-repeat;filter:blur(24px) brightness(0.22);"></div>
-             <div style="position:relative;z-index:5;width:192px;height:192px;border-radius:50%;overflow:hidden;flex-shrink:0;box-shadow:0 0 0 4px rgba(255,255,255,0.1),0 8px 32px rgba(0,0,0,0.5);">
-               <img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
-             </div>
-           </div>`
-        : `<div class="explore-card__bg" style="background:linear-gradient(160deg,hsl(${hue},28%,10%) 0%,hsl(${hue},18%,18%) 100%);">
-             <div style="width:192px;height:192px;border-radius:50%;background:hsl(${hue},35%,22%);border:3px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-               <span style="font-family:var(--font-display);font-weight:800;font-size:68px;color:hsl(${hue},60%,72%);letter-spacing:-0.02em;">${initials}</span>
-             </div>
-           </div>`;
-
-      return `
-      <div class="explore-card"
-           data-id="${m.id}" data-name="${esc(m.firstName)} ${esc(m.lastName)}" data-username="${esc(m.username)}">
-        ${bgDiv}
-        <div class="explore-card__gradient"></div>
-        <!--<div class="explore-card__side">
-          <div class="side-action" onclick="toggleSave(this)">
-            <div class="side-action__icon">
-              <svg class="save-heart" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(&#45;&#45;text)" stroke-width="2" stroke-linecap="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-            </div>
-            <div class="side-action__label">Save</div>
-          </div>
-        </div>-->
-        <div class="explore-card__content">
-          <div style="margin-bottom:4px;">
-            <a href="/profile/${m.username}" class="explore-card__name" style="margin-bottom:0;text-decoration:none;color:inherit;">${esc(m.firstName)} ${esc(m.lastName)}</a>
-          </div>
-          <div class="explore-card__handle">@${esc(m.username)}</div>
-          <div class="explore-card__desc">${esc(m.bio ?? 'No bio yet.')}</div>
-          <div class="explore-card__cta">
-            <a href="/profile/${m.username}" class="btn btn--primary">View Profile</a>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-
-    setCardHeights();
-    initScrollHint();
-
-    const saved = _getSaved();
-    document.querySelectorAll('.explore-card').forEach(card => {
-      if (!saved.has(card.dataset.username)) return;
-      const action = card.querySelector('.side-action');
-      if (!action) return;
-      action.classList.add('side-action--saved');
-      const heart = action.querySelector('.save-heart');
-      if (heart) { heart.setAttribute('fill','var(--warm)'); heart.setAttribute('stroke','var(--warm)'); }
-    });
-  }
-
-  // ── Initial load ──────────────────────────────────────────────────
-  UserAPI.getAll()
-    .then(users => {
-      _exploreUsers = users || [];
-      renderExploreSorted();
-    })
-    .catch(() => renderExplore([]));
-</script>
 </body>
 </html>
