@@ -51,6 +51,11 @@
       position: relative; z-index: 10; padding: 20px 24px 0; flex-shrink: 0;
       display: flex; align-items: center; gap: 14px;
     }
+    .q-instruction {
+      position: relative; z-index: 10; padding: 14px 28px 0; flex-shrink: 0;
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
     .progress-bar {
       flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
     }
@@ -278,6 +283,8 @@
     <button class="skip-btn" onclick="skipQuiz()">Skip</button>
   </div>
 
+  <div class="q-instruction">How much does this sound like you?</div>
+
   <!-- Question stage -->
   <div class="stage" id="stage"></div>
 
@@ -398,7 +405,6 @@
     const card = document.createElement('div');
     card.className = `q-card ${entered}`;
     card.innerHTML = `
-      <div class="q-prefix">How much does this sound like you?</div>
       <div class="q-text">${highlight(text)}</div>
       <div class="scale">
         ${SCALE.map(s => `
