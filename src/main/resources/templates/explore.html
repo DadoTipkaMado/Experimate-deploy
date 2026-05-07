@@ -27,7 +27,9 @@
       <div class="explore-filters">
         <div id="sort-rating" class="pill pill--active" onclick="setExploreSort('rating')">Top rated</div>
         <div id="sort-name" class="pill" onclick="setExploreSort('name')">Name</div>
-        <!---<div id="filter-saved" class="pill" onclick="toggleSavedFilter(this)">Saved ♥</div>---->
+        <div id="pill-ai" class="pill" onclick="toggleAiSearch(this)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>AI Match
+        </div>
       </div>
     </div>
 
@@ -59,6 +61,17 @@
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 </div>
+
+<!-- AI Match panel -->
+<div class="match-panel" id="match-panel">
+  <div class="match-panel__grip" onclick="closeMatchPanel()"></div>
+  <div class="match-panel__header">
+    <div class="match-panel__title" id="match-panel-title">AI Matches</div>
+    <button class="match-panel__close" onclick="closeMatchPanel()" aria-label="Close">&#x2715;</button>
+  </div>
+  <div class="match-panel__list" id="match-panel-list"></div>
+</div>
+<div class="match-panel-backdrop" id="match-panel-backdrop" onclick="closeMatchPanel()"></div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
