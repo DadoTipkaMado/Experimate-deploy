@@ -127,31 +127,43 @@ function renderFeed(listings) {
 
     const hostHandle = l.host?.username ?? '';
     const hostName   = l.host ? l.host.firstName + ' ' + l.host.lastName : '?';
+    const u          = _userCache[hostHandle];
+    const hue        = hostHandle.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const photoUrl   = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
+    const initials   = ((u?.firstName?.[0] ?? '') + (u?.lastName?.[0] ?? '')).toUpperCase() || hostHandle[0]?.toUpperCase() || '?';
+
+    const heroBg = photoUrl
+      ? `style="background-image:url('${photoUrl}')"`
+      : `style="background:hsl(${hue},30%,14%);"`;
+    const avatarInner = photoUrl
+      ? `<img src="${photoUrl}" alt="">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,22%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
 
     return `
       <div class="feed-card anim-fade-up${cardClass}" style="animation-delay:${i * 0.03}s;">
-        <div class="feed-card__head">
-          <div style="min-width:0;">
+        <div class="feed-card__hero">
+          <div class="feed-card__hero-bg" ${heroBg}></div>
+          <div class="feed-card__hero-avatar">${avatarInner}</div>
+          <div class="feed-card__hero-info">
             <div class="feed-card__city">${escapeHtml(l.city)}</div>
-            <div class="feed-card__host" style="margin-top:5px;">
-              ${userAvatar(hostHandle, 20, _userCache[hostHandle])}
-              <a href="/profile/${hostHandle}" class="feed-card__host-name" onclick="event.stopPropagation()">${escapeHtml(hostName)}</a>
-            </div>
+            <a href="/profile/${hostHandle}" class="feed-card__host-name" onclick="event.stopPropagation()">${escapeHtml(hostName)}</a>
           </div>
-          <div style="text-align:right;flex-shrink:0;">
+          <div class="feed-card__hero-date">
             <div class="feed-card__date">${fmtDate(l.meetingDate)}</div>
             <div class="feed-card__time">${fmtTime(l.meetingDate)}</div>
           </div>
         </div>
-        <div class="feed-card__desc">${escapeHtml(l.tourDescription)}</div>
-        <div class="feed-card__foot">
-          <div class="feed-card__status">
-            <div class="feed-card__dot" style="background:${dotColor};${dotGlow}"></div>
-            <div class="feed-card__label" style="color:${dotColor};">${statusLabel}</div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            ${l.lat != null ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${l.lat}" data-lng="${l.lng}" onclick="goToMap(this)">📍 Map</button>` : ''}
-            ${joinBtn}
+        <div class="feed-card__body">
+          <div class="feed-card__desc">${escapeHtml(l.tourDescription)}</div>
+          <div class="feed-card__foot">
+            <div class="feed-card__status">
+              <div class="feed-card__dot" style="background:${dotColor};${dotGlow}"></div>
+              <div class="feed-card__label" style="color:${dotColor};">${statusLabel}</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${l.lat != null ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${l.lat}" data-lng="${l.lng}" onclick="goToMap(this)">📍 Map</button>` : ''}
+              ${joinBtn}
+            </div>
           </div>
         </div>
       </div>`;
