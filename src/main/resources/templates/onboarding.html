@@ -51,6 +51,11 @@
       position: relative; z-index: 10; padding: 20px 24px 0; flex-shrink: 0;
       display: flex; align-items: center; gap: 14px;
     }
+    .q-instruction {
+      position: relative; z-index: 10; padding: 14px 28px 0; flex-shrink: 0;
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
     .progress-bar {
       flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
     }
@@ -196,7 +201,7 @@
     /* ── Result screen ── */
     .result {
       display: none; position: absolute; inset: 0; z-index: 20;
-      flex-direction: column; align-items: center; overflow-y: auto;
+      flex-direction: column; align-items: center; overflow: hidden;
       padding: 40px 28px 40px; background: var(--bg); text-align: center;
     }
     .result--visible { display: flex; animation: slideUp 0.55s cubic-bezier(0.32,0.72,0,1) both; }
@@ -278,6 +283,8 @@
     <button class="skip-btn" onclick="skipQuiz()">Skip</button>
   </div>
 
+  <div class="q-instruction">How much does this sound like you?</div>
+
   <!-- Question stage -->
   <div class="stage" id="stage"></div>
 
@@ -333,7 +340,7 @@
     <div class="result__traits" id="result-traits"></div>
     <p class="result__desc" id="result-desc"></p>
     <button class="btn-continue" onclick="finishOnboarding()">Find my Mates →</button>
-    <button class="btn-skip-result" onclick="skipQuiz()">Skip for now</button>
+    <button class="btn-skip-result" onclick="window.location.href='/map'">Skip for now</button>
     <p class="result__note">Your personality data is private and used only to rank who you see in Explore. You can delete it any time in Settings.</p>
   </div>
 
@@ -398,7 +405,6 @@
     const card = document.createElement('div');
     card.className = `q-card ${entered}`;
     card.innerHTML = `
-      <div class="q-prefix">How much does this sound like you?</div>
       <div class="q-text">${highlight(text)}</div>
       <div class="scale">
         ${SCALE.map(s => `
