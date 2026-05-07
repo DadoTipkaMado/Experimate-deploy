@@ -1,64 +1,210 @@
 /* ═══════════════════════════════════════════════
    EXPERIMATE — explore.js
-   TikTok snap-scroll feed logic.
+   Listing feed + AI match panel.
 ═══════════════════════════════════════════════ */
 
+let _allListings   = [];
+let _myRequests    = {};   // listingId → { status, id }
+let _userCache     = {};
+let _sortMode      = 'soonest';
+let _availableOnly = false;
+let _searchQuery   = '';
+
+/* ───────────────────────────────────────────────
+   INIT
+─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  setCardHeights();
-  initScrollHint();
   initSearch();
+
+  Promise.all([
+    TourListingAPI.getAll(),
+    BookingRequestAPI.getAll().catch(() => []),
+    UserAPI.getAll().catch(() => []),
+  ]).then(([listings, allRequests, allUsers]) => {
+    (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
+
+    const currentUsername = Auth.getUsername();
+    _myRequests = {};
+    (allRequests || [])
+      .filter(r => r.user?.username === currentUsername && r.tourListing?.id)
+      .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
+
+    // Only future listings
+    const now = new Date();
+    _allListings = (listings || []).filter(l => new Date(l.meetingDate) > now);
+
+    applyAndRender();
+  }).catch(() => renderFeed([]));
 });
 
 /* ───────────────────────────────────────────────
-   CARD HEIGHTS
+   FILTERS + SORT
 ─────────────────────────────────────────────── */
-function setCardHeights() {
-  const feed = document.getElementById('explore-feed');
-  if (!feed) return;
-  const h = feed.clientHeight;
-  document.querySelectorAll('.explore-card').forEach(card => {
-    card.style.height = h + 'px';
-  });
+function setSort(mode) {
+  _sortMode = mode;
+  document.getElementById('pill-soonest')?.classList.toggle('pill--active', mode === 'soonest');
+  applyAndRender();
 }
 
-let _resizeTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(setCardHeights, 150);
-});
+function toggleAvailable(pill) {
+  _availableOnly = !_availableOnly;
+  pill.classList.toggle('pill--active', _availableOnly);
+  applyAndRender();
+}
+
+function applyAndRender() {
+  let items = _allListings.slice();
+
+  if (_searchQuery) {
+    const q = _searchQuery.toLowerCase();
+    items = items.filter(l => {
+      const city = (l.city ?? '').toLowerCase();
+      const host = [l.host?.firstName, l.host?.lastName, l.host?.username].filter(Boolean).join(' ').toLowerCase();
+      return city.includes(q) || host.includes(q);
+    });
+  }
+
+  if (_availableOnly) items = items.filter(l => !l.reserved);
+
+  items.sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
+
+  renderFeed(items);
+}
 
 /* ───────────────────────────────────────────────
-   SCROLL HINT
+   RENDER
 ─────────────────────────────────────────────── */
-function initScrollHint() {
-  const feed     = document.getElementById('explore-feed');
-  const firstCard = feed?.querySelector('.explore-card');
-  if (!feed || !firstCard) return;
+function renderFeed(listings) {
+  const feed = document.getElementById('listing-feed');
+  if (!feed) return;
 
-  const hint = document.createElement('div');
-  hint.className = 'scroll-hint';
-  hint.innerHTML = `
-    <div class="scroll-hint__arrow">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="rgba(239,239,239,0.35)" stroke-width="2" stroke-linecap="round">
-        <line x1="12" y1="19" x2="12" y2="5"/>
-        <polyline points="5 12 12 5 19 12"/>
-      </svg>
-    </div>
-    <div class="scroll-hint__label">Swipe up</div>
-  `;
-  firstCard.appendChild(hint);
+  if (!listings.length) {
+    feed.innerHTML = `
+      <div class="feed-empty">
+        <div class="feed-empty__icon">${_searchQuery ? '🔍' : '🗺️'}</div>
+        <div class="feed-empty__title">${_searchQuery ? `No results for "${escapeHtml(_searchQuery)}"` : 'No meets yet'}</div>
+        <div class="feed-empty__sub">${_searchQuery ? 'Try a different city or host name.' : 'Be the first to host a local experience.'}</div>
+        ${!_searchQuery ? `<a href="/listings/new" class="btn btn--primary" style="margin-top:12px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>` : ''}
+      </div>`;
+    return;
+  }
 
-  let _hintTimer = setTimeout(() => {
-    hint.classList.add('scroll-hint--hidden');
-    feed.removeEventListener('scroll', hideHint);
-  }, 5000);
-  const hideHint = () => {
-    clearTimeout(_hintTimer);
-    hint.classList.add('scroll-hint--hidden');
-    feed.removeEventListener('scroll', hideHint);
-  };
-  feed.addEventListener('scroll', hideHint, { passive: true });
+  const currentUserId = Auth.getUserId();
+  const currentUsername = Auth.getUsername();
+
+  feed.innerHTML = listings.map((l, i) => {
+    const myReq     = _myRequests[l.id];
+    const reqStatus = myReq?.status;
+    const isOwn     = currentUsername && l.host?.username === currentUsername;
+
+    const dotColor = l.reserved        ? 'var(--text-3)'
+      : reqStatus === 'PENDING'         ? '#ff9944'
+      : reqStatus === 'ACCEPTED'        ? 'var(--accent)'
+      : reqStatus === 'DECLINED'        ? 'rgba(255,80,80,0.7)'
+      : 'var(--accent)';
+    const dotGlow   = (!l.reserved && !reqStatus) ? 'box-shadow:0 0 5px var(--accent);' : '';
+    const statusLabel = l.reserved     ? 'Joined'
+      : reqStatus === 'PENDING'         ? 'Pending'
+      : reqStatus === 'ACCEPTED'        ? 'Accepted'
+      : reqStatus === 'DECLINED'        ? 'Declined'
+      : 'Available';
+
+    const cardClass = l.reserved       ? ' feed-card--reserved'
+      : reqStatus === 'PENDING'         ? ' feed-card--pending'
+      : reqStatus === 'DECLINED'        ? ''
+      : ' feed-card--available';
+
+    const joinBtn = isOwn ? `<span style="font-size:10px;color:var(--text-3);letter-spacing:0.06em;">Your listing</span>`
+      : l.reserved
+        ? `<button class="btn" style="height:34px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`
+      : reqStatus === 'PENDING'
+        ? `<button class="btn" style="height:34px;font-size:10px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
+      : reqStatus === 'ACCEPTED'
+        ? `<button class="btn" style="height:34px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
+      : currentUserId
+        ? `<button class="btn btn--primary" style="height:34px;font-size:10px;" data-listing-id="${l.id}" onclick="joinListing(this)">Join</button>`
+        : `<a href="/login" class="btn btn--ghost" style="height:34px;font-size:10px;">Sign in</a>`;
+
+    const hostHandle = l.host?.username ?? '';
+    const hostName   = l.host ? l.host.firstName + ' ' + l.host.lastName : '?';
+
+    return `
+      <div class="feed-card anim-fade-up${cardClass}" style="animation-delay:${i * 0.03}s;">
+        <div class="feed-card__head">
+          <div style="min-width:0;">
+            <div class="feed-card__city">${escapeHtml(l.city)}</div>
+            <div class="feed-card__host" style="margin-top:5px;">
+              ${userAvatar(hostHandle, 20, _userCache[hostHandle])}
+              <a href="/profile/${hostHandle}" class="feed-card__host-name" onclick="event.stopPropagation()">${escapeHtml(hostName)}</a>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div class="feed-card__date">${fmtDate(l.meetingDate)}</div>
+            <div class="feed-card__time">${fmtTime(l.meetingDate)}</div>
+          </div>
+        </div>
+        <div class="feed-card__desc">${escapeHtml(l.tourDescription)}</div>
+        <div class="feed-card__foot">
+          <div class="feed-card__status">
+            <div class="feed-card__dot" style="background:${dotColor};${dotGlow}"></div>
+            <div class="feed-card__label" style="color:${dotColor};">${statusLabel}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${l.lat != null ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${l.lat}" data-lng="${l.lng}" onclick="goToMap(this)">📍 Map</button>` : ''}
+            ${joinBtn}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function goToMap(btn) {
+  sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
+  window.location.href = '/map';
+}
+
+function joinListing(btn) {
+  const listingId = parseInt(btn.dataset.listingId, 10);
+  if (!Auth.getToken()) { window.location.href = '/login'; return; }
+  btn.disabled = true;
+  btn.textContent = '...';
+  BookingRequestAPI.create({ listingId })
+    .then(res => {
+      _myRequests[listingId] = { status: 'PENDING', id: res?.id };
+      showToast('Request sent!', 'success');
+      applyAndRender();
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = 'Join';
+      showToast(err.message || 'Request failed — try again.', 'error');
+    });
+}
+
+/* ───────────────────────────────────────────────
+   SEARCH
+─────────────────────────────────────────────── */
+function initSearch() {
+  const input = document.getElementById('explore-search-input');
+  if (!input) return;
+
+  input.addEventListener('input', (e) => {
+    _searchQuery = e.target.value.trim();
+    if (_aiActive && !_searchQuery) closeMatchPanel();
+    applyAndRender();
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && _aiActive && _searchQuery) {
+      showMatchPanelLoading();
+      MatchAPI.findMatches(_searchQuery)
+        .then(matches => openMatchPanel(matches, _searchQuery))
+        .catch(() => openMatchPanel([], _searchQuery));
+    }
+  });
+
+  const urlQ = new URLSearchParams(window.location.search).get('q');
+  if (urlQ) { input.value = urlQ; _searchQuery = urlQ; }
 }
 
 /* ───────────────────────────────────────────────
@@ -78,21 +224,19 @@ function openMatchPanel(matches, query) {
   document.getElementById('match-panel-title').textContent = matches.length
     ? `${matches.length} match${matches.length !== 1 ? 'es' : ''} for "${query}"`
     : `No matches for "${query}"`;
-
   document.getElementById('match-panel-list').innerHTML = matches.length
     ? matches.map(renderMatchCard).join('')
     : `<div style="text-align:center;padding:36px 16px;color:var(--text-3);">
          <div style="font-size:28px;margin-bottom:12px;">🔍</div>
          <div style="font-size:12px;line-height:1.65;">No matching profiles found.<br>Try different keywords.</div>
        </div>`;
-
   document.getElementById('match-panel').classList.add('match-panel--open');
   document.getElementById('match-panel-backdrop').classList.add('match-panel-backdrop--visible');
 }
 
 function showMatchPanelLoading() {
   document.getElementById('match-panel-title').textContent = 'Searching…';
-  document.getElementById('match-panel-list').innerHTML = [1, 2, 3].map(() => `
+  document.getElementById('match-panel-list').innerHTML = [1,2,3].map(() => `
     <div class="match-card">
       <div class="match-card__avatar" style="background:var(--surface-2);"></div>
       <div class="match-card__body">
@@ -115,23 +259,18 @@ function renderMatchCard(m) {
   const initials = ((m.firstName?.[0] ?? '') + (m.lastName?.[0] ?? '')).toUpperCase() || '?';
   const hue      = (m.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
   const photoUrl = UserAPI.photoUrl(m.profilePhotoUrl);
-
   const avatarHtml = photoUrl
     ? `<img class="match-card__avatar" src="${photoUrl}" alt="${escapeHtml(m.firstName)}">`
     : `<div class="match-card__avatar" style="background:hsl(${hue},35%,20%);border:1.5px solid hsl(${hue},40%,30%);">
          <span style="font-family:var(--font-display);font-weight:800;font-size:16px;color:hsl(${hue},60%,72%);">${initials}</span>
        </div>`;
-
-  const pctHtml  = m.compatibilityScore != null
-    ? `<div class="match-card__pct">${m.compatibilityScore}% match</div>` : '';
-  const cityHtml = m.activeListing
-    ? `<div class="match-card__city">📍 ${escapeHtml(m.activeListing.city)}</div>` : '';
-  const ctaHref  = m.activeListing ? `/tours?listing=${m.activeListing.id}` : `/profile/${m.username}`;
-  const ctaLabel = m.activeListing ? 'View Day' : 'View Profile';
-  const sparkle  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
+  const pctHtml    = m.compatibilityScore != null ? `<div class="match-card__pct">${m.compatibilityScore}% match</div>` : '';
+  const cityHtml   = m.activeListing ? `<div class="match-card__city">📍 ${escapeHtml(m.activeListing.city)}</div>` : '';
+  const ctaHref    = m.activeListing ? `/tours?listing=${m.activeListing.id}` : `/profile/${m.username}`;
+  const ctaLabel   = m.activeListing ? 'View Day' : 'View Profile';
+  const sparkle    = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   const explainBtn = m.compatibilityScore != null
-    ? `<button class="match-card__explain-btn" onclick="toggleExplain(${m.userId}, this)">${sparkle} Why we match</button>` : '';
-
+    ? `<button class="match-card__explain-btn" onclick="toggleExplain(${m.userId},this)">${sparkle} Why we match</button>` : '';
   return `
     <div class="match-card">
       ${avatarHtml}
@@ -163,12 +302,10 @@ async function toggleExplain(userId, btn) {
   const sparkle = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   btn.innerHTML = isOpen ? `${sparkle} Hide` : `${sparkle} Why we match`;
   if (!isOpen || textEl.dataset.loaded) return;
-
   textEl.innerHTML = `
     <div class="skeleton" style="height:12px;border-radius:4px;margin-bottom:6px;width:90%"></div>
     <div class="skeleton" style="height:12px;border-radius:4px;margin-bottom:6px;width:75%"></div>
     <div class="skeleton" style="height:12px;border-radius:4px;width:55%"></div>`;
-
   try {
     const res = await MatchAPI.explainMatch(userId, _matchQuery || null);
     textEl.textContent = res.explanation || 'No explanation available.';
@@ -176,68 +313,4 @@ async function toggleExplain(userId, btn) {
   } catch {
     textEl.textContent = 'Could not load explanation — try again.';
   }
-}
-
-/* ───────────────────────────────────────────────
-   SEARCH
-─────────────────────────────────────────────── */
-function initSearch() {
-  const input = document.getElementById('explore-search-input');
-  if (!input) return;
-
-  function runSearch(query) {
-    window._currentQuery = query;
-    if (!query) {
-      closeMatchPanel();
-      if (typeof renderExploreSorted === 'function') renderExploreSorted();
-      return;
-    }
-    if (_aiActive) {
-      showMatchPanelLoading();
-      MatchAPI.findMatches(query)
-        .then(matches => openMatchPanel(matches, query))
-        .catch(() => openMatchPanel([], query));
-    } else {
-      showExploreLoading();
-      UserAPI.search(query)
-        .then(resp => {
-          const users = resp?.searchResult ?? (Array.isArray(resp) ? resp : []);
-          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(users, query);
-        })
-        .catch(() => {
-          if (typeof renderExploreWithSort === 'function') renderExploreWithSort([], query);
-        });
-    }
-  }
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') runSearch(input.value.trim());
-  });
-
-  input.addEventListener('input', (e) => {
-    if (!e.target.value.trim()) runSearch('');
-  });
-
-  const urlQ = new URLSearchParams(window.location.search).get('q');
-  if (urlQ) {
-    input.value = urlQ;
-    runSearch(urlQ);
-  }
-}
-
-function showExploreLoading() {
-  const feed = document.getElementById('explore-feed');
-  if (!feed) return;
-  feed.innerHTML = `
-    <div class="explore-card" style="background:var(--surface);">
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 16px 20px;">
-        <div class="skeleton skeleton-line skeleton-line--lg" style="width:55%;margin-bottom:8px;"></div>
-        <div class="skeleton skeleton-line skeleton-line--sm" style="width:35%;margin-bottom:14px;"></div>
-        <div class="skeleton skeleton-line skeleton-line--w-full" style="margin-bottom:6px;"></div>
-        <div class="skeleton skeleton-line skeleton-line--w-3q" style="margin-bottom:6px;"></div>
-        <div class="skeleton skeleton-line skeleton-line--w-half" style="margin-bottom:18px;"></div>
-        <div class="skeleton skeleton-line" style="width:100%;height:44px;border-radius:12px;"></div>
-      </div>
-    </div>`;
-  setCardHeights();
 }
