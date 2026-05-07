@@ -71,40 +71,36 @@ function initSearch() {
   const input = document.getElementById('explore-search-input');
   if (!input) return;
 
-  let _searchTimer = null;
-
-  input.addEventListener('input', (e) => {
-    const query = e.target.value.trim();
-    clearTimeout(_searchTimer);
-
-    // Keep shared query state for explain calls
+  function runSearch(query) {
     window._currentQuery = query;
-
     if (!query) {
       if (typeof renderExploreSorted === 'function') renderExploreSorted();
       return;
     }
-
     showExploreLoading();
+    UserAPI.search(query)
+      .then(resp => {
+        const users = resp?.searchResult ?? (Array.isArray(resp) ? resp : []);
+        if (typeof renderExploreWithSort === 'function') renderExploreWithSort(users, query);
+      })
+      .catch(() => {
+        if (typeof renderExploreWithSort === 'function') renderExploreWithSort([], query);
+      });
+  }
 
-    _searchTimer = setTimeout(() => {
-      UserAPI.search(query)
-        .then(resp => {
-          const users = resp?.searchResult ?? (Array.isArray(resp) ? resp : []);
-          if (typeof renderExploreWithSort === 'function') renderExploreWithSort(users, query);
-        })
-        .catch(() => {
-          if (typeof renderExploreWithSort === 'function') renderExploreWithSort([], query);
-        });
-    }, 300);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runSearch(input.value.trim());
+  });
+
+  input.addEventListener('input', (e) => {
+    if (!e.target.value.trim()) runSearch('');
   });
 
   // Pre-fill from ?q= URL param (e.g. coming from map or profile)
   const urlQ = new URLSearchParams(window.location.search).get('q');
   if (urlQ) {
     input.value = urlQ;
-    window._currentQuery = urlQ;
-    input.dispatchEvent(new Event('input'));
+    runSearch(urlQ);
   }
 }
 
