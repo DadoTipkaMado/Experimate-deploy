@@ -43,6 +43,15 @@
     }
     .map-search .search-bar:focus-within { border-color: var(--accent-border); }
     .map-filters { top: 62px; left: 12px; display: flex; gap: 6px; }
+    .map-geo-search { top: 104px; left: 12px; right: 12px; }
+    .map-geo-search .search-bar {
+      background: rgba(10,10,10,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-color: var(--border-2);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .map-geo-search .search-bar:focus-within { border-color: rgba(255,255,255,0.18); }
     .map-filters .pill {
       background: rgba(10,10,10,0.88);
       backdrop-filter: blur(10px);
@@ -258,7 +267,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" id="map-search-input" placeholder="Find someone curious, or search a city..." autocomplete="off">
+          <input type="text" id="map-search-input" placeholder="Search by name or host..." autocomplete="off">
         </div>
       </div>
 
@@ -266,6 +275,15 @@
         <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('gems')">Gems</div>
         <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('events')">Events</div>
         <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available only</div>
+      </div>
+
+      <div class="map-overlay map-overlay--interactive map-geo-search">
+        <div class="search-bar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <input type="text" id="map-geo-input" placeholder="Fly to a city..." autocomplete="off">
+        </div>
       </div>
 
       <a href="/listings/new" class="map-fab">

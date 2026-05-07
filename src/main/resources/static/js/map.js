@@ -286,12 +286,16 @@ if (searchInput) {
     }, 420);
   });
 
-  // Enter → geocode via Nominatim and fly to city
-  searchInput.addEventListener('keydown', async e => {
+}
+
+/* ── Geo search — fly to city via Nominatim ── */
+const geoInput = document.getElementById('map-geo-input');
+if (geoInput) {
+  geoInput.addEventListener('keydown', async e => {
     if (e.key !== 'Enter') return;
-    const query = searchInput.value.trim();
+    const query = geoInput.value.trim();
     if (!query) return;
-    searchInput.disabled = true;
+    geoInput.disabled = true;
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
@@ -302,11 +306,11 @@ if (searchInput) {
       const { lat, lon, display_name } = results[0];
       MapState.map.flyTo([parseFloat(lat), parseFloat(lon)], 13, { duration: 1.2 });
       showToast(`Flew to ${display_name.split(',')[0]}`, 'success');
+      geoInput.blur();
     } catch {
       showToast('Could not reach geocoding service.', 'error');
     } finally {
-      searchInput.disabled = false;
-      searchInput.focus();
+      geoInput.disabled = false;
     }
   });
 }
