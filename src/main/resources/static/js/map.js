@@ -91,6 +91,7 @@ function buildMarker(listing) {
 
 function openMapPopup(listing) {
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing);
+  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action">See listing →</a>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
 
@@ -121,7 +122,6 @@ function buildPopupContent(listing) {
       <div class="popup-status__dot" style="background:${dotColor};${dotGlow}"></div>
       <div class="popup-status__label" style="color:${dotColor};">${statusLabel}</div>
     </div>
-    <a class="popup-action">See listing →</a>
   `;
 }
 

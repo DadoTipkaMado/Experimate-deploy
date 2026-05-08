@@ -135,8 +135,16 @@
     .popup-status { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
     .popup-status__dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
     .popup-status__label { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .popup-action { display: block; margin-top: 10px; padding: 6px 12px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-decoration: none; text-align: center; transition: background var(--t-fast), color var(--t-fast); }
-    .popup-action:hover { background: var(--accent); color: #000; }
+    .popup-action { display: flex; align-items: center; justify-content: center; padding: 3% 5%; border-radius: var(--radius-pill); border: none; background: var(--accent); color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,0.55); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-decoration: none; text-align: center; box-shadow: 0 0 14px rgba(0,201,167,0.45), 0 2px 8px rgba(0,0,0,0.3); transition: opacity var(--t-fast); }
+    .popup-action:hover { opacity: 0.85; }
+    @media (max-width: 1024px) {
+      .map-popup-card__footer { justify-content: center; padding: 3% 4%; }
+      .popup-action { width: 85%; height: 85%; }
+    }
+    @media (min-width: 1025px) {
+      .map-popup-card__footer { justify-content: flex-end; }
+      .popup-action { width: 150px; height: 50px; padding: 0; }
+    }
     /* Cluster styling */
     .marker-cluster { background: rgba(0,201,167,0.15) !important; border: 1px solid rgba(0,201,167,0.4) !important; }
     .marker-cluster div { background: rgba(0,201,167,0.85) !important; color: #000 !important; font-family: var(--font-display) !important; font-weight: 700 !important; font-size: 12px !important; }
@@ -146,24 +154,44 @@
     .map-popup-overlay {
       position: absolute; inset: 0; z-index: 20;
       display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(1.3px);
+      -webkit-backdrop-filter: blur(1.3px);
+      background: rgba(0,0,0,0.5);
     }
     .map-popup-card {
       width: 85%; height: 85%;
-      background: var(--surface); border: 1px solid var(--border-2);
+      background: var(--bg);
       border-radius: var(--radius);
       box-shadow: 0 8px 32px rgba(0,0,0,0.6);
       display: flex; flex-direction: column;
-      overflow: hidden; position: relative;
+      position: relative;
+    }
+    .map-popup-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit; padding: 1.5px;
+      background: linear-gradient(to bottom, #00c9a7 0%, rgba(0,201,167,0) 90%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none; z-index: 2;
+    }
+    .map-popup-card::after {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: inherit;
+      background: linear-gradient(to bottom, rgba(0,201,167,0.35) 0%, rgba(0,201,167,0) 85%);
+      filter: blur(10px);
+      pointer-events: none; z-index: -1;
     }
     .map-popup-card__close {
-      position: absolute; top: 10px; right: 12px;
+      position: absolute; top: 10px; right: 16px;
       background: none; border: none;
-      color: var(--text-3); font-size: 18px; cursor: pointer; z-index: 1;
+      color: #fff; font-size: 18px; cursor: pointer; z-index: 1;
     }
-    .map-popup-card__close:hover { color: var(--text); }
+    .map-popup-card__close:hover { color: rgba(255,255,255,0.6); }
     .map-popup-card__body { padding: 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+    .map-popup-card__footer { padding: 2% 4%; flex: 0 0 13%; display: flex; align-items: center; }
 
   </style>
 </head>
@@ -181,6 +209,7 @@
         <div class="map-popup-card">
           <button class="map-popup-card__close" onclick="closeMapPopup()">✕</button>
           <div class="map-popup-card__body" id="map-popup-body"></div>
+          <div class="map-popup-card__footer" id="map-popup-footer"></div>
         </div>
       </div>
 
