@@ -30,6 +30,14 @@ const Auth = {
   },
 };
 
+function buildQuery(params = {}) {
+  const q = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+  return q ? '?' + q : '';
+}
+
 // Shared refresh promise — prevents parallel calls from each triggering /refresh separately
 let _refreshPromise = null;
 
@@ -132,7 +140,7 @@ const UserAPI = {
 ─────────────────────────────────────────────── */
 const TourListingAPI = {
   getAll: ()           => apiFetch('/api/tour-listing'),
-  getMine: ()          => apiFetch('/api/tour-listing/mine'),
+  getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
@@ -144,7 +152,7 @@ const TourListingAPI = {
 ─────────────────────────────────────────────── */
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
-  getMine: ()          => apiFetch('/api/reservation/mine'),   // returns { asGuest: [], asHost: [] }
+  getMine: (params = {}) => apiFetch('/api/reservation/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
@@ -157,6 +165,7 @@ const ReservationAPI = {
 ─────────────────────────────────────────────── */
 const BookingRequestAPI = {
   getAll: ()           => apiFetch('/api/booking-request'),
+  getMine: (params = {}) => apiFetch('/api/booking-request/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/booking-request/${id}`),
   create: (dto)        => apiFetch('/api/booking-request',             { method: 'POST',   body: JSON.stringify(dto) }),
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),

@@ -26,7 +26,7 @@ public class TourListing {
     private Double latitude;
     private LocalDateTime postDate;
     private LocalDateTime meetingDate;
-    @Lob        //unlimited VARCHAR length
+    @Column(columnDefinition = "TEXT")
     private String tourDescription;
     private boolean reserved;
 
