@@ -91,7 +91,7 @@ function buildMarker(listing) {
 }
 
 function buildPopup(listing) {
-  const dateStr = `${fmtDate(listing.meetingDate)} · ${fmtTime(listing.meetingDate)}`;
+  const dateStr = `${fmtDate(listing.meetingDate)} ${new Date(listing.meetingDate).getFullYear()} · ${fmtTime(listing.meetingDate)}`;
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
   const available  = !listing.reserved;
