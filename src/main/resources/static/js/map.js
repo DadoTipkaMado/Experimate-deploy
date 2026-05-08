@@ -82,15 +82,23 @@ function buildMarker(listing) {
     html: `<div class="map-pin map-pin--event"></div>`,
     iconSize:   [14, 14],
     iconAnchor: [7, 14],
-    popupAnchor:[0, -16],
   });
 
   const marker = L.marker([listing.lat, listing.lng], { icon });
-  marker.bindPopup(buildPopup(listing), { className: 'dark-popup', maxWidth: 220 });
+  marker.on('click', () => openMapPopup(listing));
   return marker;
 }
 
-function buildPopup(listing) {
+function openMapPopup(listing) {
+  document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing);
+  document.getElementById('map-popup-overlay').style.display = 'flex';
+}
+
+function closeMapPopup() {
+  document.getElementById('map-popup-overlay').style.display = 'none';
+}
+
+function buildPopupContent(listing) {
   const dateStr = `${fmtDate(listing.meetingDate)} ${new Date(listing.meetingDate).getFullYear()} · ${fmtTime(listing.meetingDate)}`;
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
