@@ -123,7 +123,9 @@
       sessionStorage.setItem(KEY, JSON.stringify(stack));
     }
     const btn = document.getElementById('back-btn');
-    if (!btn || stack.length < 2) return;
+    const mainNavPages = ['/map', '/explore', '/community', '/tours', '/account'];
+    const isSubPage = !mainNavPages.includes(window.location.pathname);
+    if (!btn || stack.length < 2 || !isSubPage) return;
     btn.style.display = 'flex';
     btn.addEventListener('click', () => {
       const s = JSON.parse(sessionStorage.getItem(KEY) || '[]');

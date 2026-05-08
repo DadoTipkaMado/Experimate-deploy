@@ -57,6 +57,10 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   }
 
   if (res.status === 401 && !_isRetry) {
+    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register'].some(p => path.startsWith(p));
+    if (isAuthEndpoint) {
+      throw new Error('Incorrect username or password.');
+    }
     if (!_refreshPromise) {
       _refreshPromise = fetch(API_BASE + '/api/auth/refresh', {
         method: 'POST',

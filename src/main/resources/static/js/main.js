@@ -5,6 +5,44 @@
 ═══════════════════════════════════════════════ */
 
 /* ───────────────────────────────────────────────
+   ROTATING PLACEHOLDERS
+─────────────────────────────────────────────── */
+(function() {
+  const PLACEHOLDERS = {
+    'explore-search-input': [
+      'Search by city or host...',
+      'Find someone in Zagreb...',
+      'Looking for a guide in Split?',
+      'Try "coffee in Dubrovnik"...',
+      'Find a local in your city...',
+      'Who\'s hosting near you?',
+    ],
+    'map-search-input': [
+      'Search by name or host...',
+      'Find locals on the map...',
+      'Filter by host name...',
+      'Who\'s near you?',
+      'Search by city...',
+    ],
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Object.entries(PLACEHOLDERS).forEach(([id, list]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.placeholder = list[Math.floor(Math.random() * list.length)];
+    });
+  });
+})();
+
+/* ───────────────────────────────────────────────
+   HTML ESCAPE
+─────────────────────────────────────────────── */
+function escapeHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ───────────────────────────────────────────────
    TOAST
    Usage: showToast('Saved!') or showToast('Error', 'warn')
 ─────────────────────────────────────────────── */
@@ -292,7 +330,7 @@ function userAvatar(username, size, userObj) {
 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async function _completionBubble() {
   const path = window.location.pathname;
-  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit', '/explore'];
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit'];
   if (skip.some(p => path.startsWith(p))) return;
   if (!document.querySelector('.topbar')) return;
   const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
@@ -351,6 +389,16 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
     <a href="${actionHref}" style="flex-shrink:0;background:rgba(255,255,255,0.18);color:#fff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid rgba(255,255,255,0.25);">${ctaLabel}</a>
     <button id="bubble-close" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:6px 2px;font-size:16px;line-height:1;flex-shrink:0;">✕</button>
   `;
+
+  // Desktop sidebar: orange dot on Account nav item
+  const accountNavItem = document.getElementById('navbar-account');
+  if (accountNavItem) {
+    accountNavItem.style.position = 'relative';
+    const dot = document.createElement('div');
+    dot.id = 'profile-completion-dot';
+    dot.style.cssText = 'position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#ff6b35;border:2px solid var(--bg,#0a0a0a);pointer-events:none;';
+    accountNavItem.appendChild(dot);
+  }
 
   const topbar = document.querySelector('.topbar');
   if (!topbar) return;
