@@ -98,7 +98,6 @@ function buildPopup(listing) {
   const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
   const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
   const statusLabel = available ? 'Available' : 'Booked';
-  const actionHref  = `/tours?listing=${listing.id}`;
 
   let hostHtml = '';
   if (hostName) {
@@ -114,7 +113,7 @@ function buildPopup(listing) {
       <div class="popup-status__dot" style="background:${dotColor};${dotGlow}"></div>
       <div class="popup-status__label" style="color:${dotColor};">${statusLabel}</div>
     </div>
-    <a href="${actionHref}" class="popup-action">See listing →</a>
+    <a class="popup-action">See listing →</a>
   `;
 }
 
