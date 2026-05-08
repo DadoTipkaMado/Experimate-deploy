@@ -173,7 +173,6 @@ if (geoInput) {
       if (!results.length) { showToast(`No location found for "${query}"`, 'error'); return; }
       const { lat, lon, display_name } = results[0];
       MapState.map.flyTo([parseFloat(lat), parseFloat(lon)], 13, { duration: 1.2 });
-      showToast(`Flew to ${display_name.split(',')[0]}`, 'success');
       geoInput.blur();
     } catch {
       showToast('Could not reach geocoding service.', 'error');
