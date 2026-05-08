@@ -17,7 +17,7 @@
 ─────────────────────────────────────────────── */
 :root {
   /* Colours */
-  --bg:             #0a0a0a;
+  --bg: #020505;
   --surface:        #141414;
   --surface-2:      #1c1c1c;
   --surface-3:      #242424;
@@ -216,7 +216,7 @@ svg { display: block; flex-shrink: 0; }
 .topbar {
   height: var(--topbar-h);
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  /*border-bottom: 1px solid var(--border);*/
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -241,7 +241,7 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .topbar__logo span {
-  color: var(--accent);
+  color: rgb(0 201 167);
 }
 
 .topbar__right {
@@ -298,7 +298,7 @@ svg { display: block; flex-shrink: 0; }
 .navbar {
   height: var(--navbar-h);
   background: var(--bg);
-  border-top: 1px solid var(--border);
+  /*border-top: 1px solid var(--border);*/
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -1037,9 +1037,8 @@ svg { display: block; flex-shrink: 0; }
     height: 100dvh;
     display: grid;
     grid-template-columns: 200px 1fr;
-    grid-template-rows: var(--topbar-h) 1fr;
+    grid-template-rows: 1fr;
     grid-template-areas:
-      "sidebar topbar"
       "sidebar content";
     box-shadow: none;
     border-radius: 0;
@@ -1047,17 +1046,9 @@ svg { display: block; flex-shrink: 0; }
   }
 
   /* ───────────────────────────────────────────
-     TOPBAR — spans content column only
+     TOPBAR — hidden on desktop (sidebar handles brand + nav)
   ─────────────────────────────────────────── */
   .topbar {
-    grid-area: topbar;
-    border-bottom: 1px solid var(--border);
-    border-left: 1px solid var(--border);
-    padding: 0 28px;
-  }
-
-  /* Sidebar already shows the brand — hide duplicate topbar logo */
-  .topbar__logo {
     display: none;
   }
 
@@ -1072,8 +1063,8 @@ svg { display: block; flex-shrink: 0; }
     align-items: stretch;
     justify-content: flex-start;
     padding: 20px 12px;
-    border-top: none;
-    border-right: 1px solid var(--border);
+    /*border-top: none;
+    border-right: 1px solid var(--border);*/
     background: var(--bg);
     gap: 4px;
     overflow-y: auto;
@@ -1088,14 +1079,15 @@ svg { display: block; flex-shrink: 0; }
     letter-spacing: 0.02em;
     color: var(--text);
     text-decoration: none;
-    padding: 8px 12px 24px;
-    border-bottom: 1px solid var(--border);
+    padding: 8px 10px;
     margin-bottom: 12px;
     flex-shrink: 0;
+    transform: scaleY(1.5);
+    transform-origin: left center;
   }
 
   .navbar__brand span {
-    color: var(--accent);
+    color: rgb(0 201 167);
   }
 
   .navbar__item {
