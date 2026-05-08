@@ -7,7 +7,6 @@ import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionExcept
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
-import hr.tvz.experimate.experimate.model.reservation.response.MyReservationsResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
@@ -22,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,20 +93,22 @@ public class ReservationService {
         return createReservationResponse(reservation);
     }
 
-    public MyReservationsResponse getReservationsForUser(Integer userId) {
-        List<Reservation> all = reservationRepo.findAllForUser(userId);
+    public List<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe) {
+        Sort sort = Sort.by(direction, "tourListing.meetingDate");
+        LocalDateTime now = LocalDateTime.now();
 
-        List<ReservationResponse> asGuest = all.stream()
-                .filter(r -> r.getGuest().getId().equals(userId))
-                .map(this::createReservationResponse)
-                .toList();
+        List<Reservation> results = switch (filter) {
+            case "hosted" -> switch (timeframe) {
+                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, sort);
+                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+            };
+            default -> switch (timeframe) {
+                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, sort);
+                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+            };
+        };
 
-        List<ReservationResponse> asHost = all.stream()
-                .filter(r -> r.getTourListing().getHost().getId().equals(userId))
-                .map(this::createReservationResponse)
-                .toList();
-
-        return new MyReservationsResponse(asGuest, asHost);
+        return results.stream().map(this::createReservationResponse).toList();
     }
 
     public List<ReservationResponse> getAllReservations() {

@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
 import hr.tvz.experimate.experimate.model.user.User;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,4 +31,10 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
 
     @Query("SELECT r FROM Reservation r WHERE r.guest.id = :userId OR r.tourListing.host.id = :userId")
     List<Reservation> findAllForUser(@Param("userId") Integer userId);
+
+    List<Reservation> findAllByGuest_IdAndTourListing_MeetingDateAfter(Integer guestId, LocalDateTime now, Sort sort);
+    List<Reservation> findAllByGuest_IdAndTourListing_MeetingDateBefore(Integer guestId, LocalDateTime now, Sort sort);
+
+    List<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(Integer hostId, LocalDateTime now, Sort sort);
+    List<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(Integer hostId, LocalDateTime now, Sort sort);
 }
