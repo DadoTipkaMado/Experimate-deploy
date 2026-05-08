@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.model.booking_request;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -30,4 +31,7 @@ public interface BookingRequestRepo extends JpaRepository<BookingRequest, Intege
     Optional<BookingRequest> findByListing_Id(Integer listingId);
 
     int deleteAllByListing_IdIn(Collection<Integer> listing_id);
+
+    List<BookingRequest> findAllByListing_Host_IdAndStatus(Integer hostId, BookingRequestStatus status, Sort sort);
+    List<BookingRequest> findAllByGuest_IdAndStatus(Integer guestId, BookingRequestStatus status, Sort sort);
 }
