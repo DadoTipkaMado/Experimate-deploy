@@ -85,15 +85,8 @@ public class TourListingService {
     }
 
     public List<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction) {
-        Sort sort = Sort.by(direction, "MeetingDate");
-        if ("hosted".equalsIgnoreCase(filter)) return getListingsByHost(userId, sort);
-        if ("joined".equalsIgnoreCase(filter)) {
-            return listingRepo.findAllJoinedByGuestId(userId, sort)
-                    .stream()
-                    .map(this::createListingResponse)
-                    .toList();
-        }
-        throw new IllegalArgumentException("Invalid filter value: " + filter + ". Must be 'hosted' or 'joined'.");
+        Sort sort = Sort.by(direction, "meetingDate");
+        return getListingsByHost(userId, sort);
     }
 
     public List<TourListingResponse> getAllListings(Integer resourceOwnerId) {
