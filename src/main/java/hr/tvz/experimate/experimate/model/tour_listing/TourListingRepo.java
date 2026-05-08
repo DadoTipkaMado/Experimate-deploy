@@ -30,6 +30,4 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
     @Query("SELECT l FROM TourListing l WHERE l.host.id != :viewerId AND l.reserved = false AND l.meetingDate > :now ORDER BY l.meetingDate ASC")
     List<TourListing> findMatchCandidateListings(@Param("viewerId") Integer viewerId, @Param("now") LocalDateTime now);
 
-    @Query("SELECT l FROM TourListing l JOIN Reservation r ON r.tourListing = l WHERE r.guest.id = :guestId")
-    List<TourListing> findAllJoinedByGuestId(@Param("guestId") Integer guestId, Sort sort);
 }
