@@ -123,6 +123,49 @@
     .star-picker__star--active { opacity: 1; }
     .star-picker__star:hover { transform: scale(1.15); }
 
+    /* ── FILTER ── */
+    .tab-bar__filter {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); cursor: pointer;
+      background: var(--bg); border: none;
+      color: var(--accent); transition: opacity var(--t-fast);
+    }
+    .tab-bar__filter:hover { opacity: 0.7; }
+    .tab-bar__filter--active { opacity: 1; }
+    .filter-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 290;
+      background: rgba(0,0,0,0.5);
+    }
+    .filter-backdrop--visible { display: block; }
+    .filter-sheet {
+      position: fixed; bottom: -100%; left: 0; right: 0; z-index: 300;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 20px 20px 0 0;
+      padding-bottom: calc(var(--navbar-h) + 12px);
+      transition: bottom 0.25s ease;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .filter-sheet--visible { bottom: 0; }
+    .filter-sheet__handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
+    .filter-sheet__header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; }
+    .filter-sheet__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); }
+    .filter-sheet__close { font-size: 20px; color: var(--text-3); cursor: pointer; line-height: 1; background: none; border: none; padding: 4px; }
+    .filter-group { padding: 12px 20px; border-top: 1px solid var(--border); }
+    .filter-group__label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-chip {
+      height: 32px; padding: 0 14px;
+      border: 1px solid var(--border-2); border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-2);
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+      cursor: pointer; transition: all var(--t-fast);
+    }
+    .filter-chip--active { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .filter-sheet__actions { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
+    .filter-sheet__actions .btn { flex: 1; height: 44px; }
+
     /* ── COUNTDOWN BAR ── */
     .countdown-bar {
       display: none; position: fixed; bottom: calc(var(--navbar-h) + 0px); left: 0; right: 0; z-index: 90;
@@ -166,6 +209,11 @@
       <div class="page-title">Meets</div>
       <div class="page-subtitle" style="margin-bottom:14px;">Manage your days</div>
       <div class="tab-bar">
+        <button class="tab-bar__filter" id="filter-btn" onclick="openFilterDialog()" title="Filter &amp; Sort">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4h12M4 8h8M6 12h4"/>
+          </svg>
+        </button>
         <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this,'meets')">My Meets</div>
         <div class="tab-bar__item" onclick="switchTab(this,'listings')">My Listings</div>
         <div class="tab-bar__item" id="tab-requests-item" onclick="switchTab(this,'requests')">Requests</div>
@@ -174,49 +222,42 @@
 
     <!-- ── MY MEETS TAB ── -->
     <div id="tab-meets" style="display:flex;flex-direction:column;gap:0;">
-
-      <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
-        <div class="tab-bar">
-          <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetsTab(this,'guest')">Joined</div>
-          <div class="tab-bar__item" onclick="switchMeetsTab(this,'host')">Hosting</div>
-        </div>
-      </div>
-
-      <!-- Guest -->
-      <div id="meets-panel-guest" style="display:flex;flex-direction:column;gap:14px;padding:14px 18px 32px;">
-        <div class="section-label">Upcoming</div>
-        <div id="meetups-upcoming"></div>
-        <div class="section-label" style="margin-top:8px;">Past</div>
-        <div id="meetups-past"></div>
-      </div>
-
-      <!-- Host -->
-      <div id="meets-panel-host" style="display:none;flex-direction:column;gap:14px;padding:14px 18px 32px;">
-        <div class="section-label">Upcoming guests</div>
-        <div id="host-upcoming"></div>
-        <div class="section-label" style="margin-top:8px;">Past hosted</div>
-        <div id="host-past"></div>
-      </div>
-
+      <div id="meets-panel" style="display:flex;flex-direction:column;gap:14px;padding:14px 18px 32px;"></div>
     </div>
 
     <!-- ── MY LISTINGS TAB ── -->
-    <div id="tab-listings" hidden style="display:flex;flex-direction:column;gap:10px;padding:14px 18px 32px;">
-      <a href="/listings/new" class="btn btn--primary" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;margin-bottom:4px;">
-        <span style="font-size:18px;line-height:1;">+</span> New Meet
-      </a>
-      <div id="my-listings-panel"></div>
-    </div>
+    <div id="tab-listings" style="display:none;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
 
     <!-- ── REQUESTS TAB ── -->
-    <div id="tab-requests" hidden style="display:flex;flex-direction:column;gap:10px;padding:14px 18px 32px;">
-      <div id="requests-panel"></div>
+    <div id="tab-requests" style="display:none;flex-direction:column;gap:0;">
+      <div id="requests-panel" style="display:flex;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
+    </div>
+
+    <div style="padding:0 18px 32px;">
+      <a href="/listings/new" class="btn btn--primary" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+        <span style="font-size:18px;line-height:1;">+</span> New Meet
+      </a>
     </div>
 
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
+</div>
+
+<!-- ── FILTER BACKDROP + SHEET ── -->
+<div id="filter-backdrop" class="filter-backdrop" onclick="closeFilterDialog()"></div>
+<div id="filter-sheet" class="filter-sheet">
+  <div class="filter-sheet__handle"></div>
+  <div class="filter-sheet__header">
+    <div class="filter-sheet__title">Filter &amp; Sort</div>
+    <button class="filter-sheet__close" onclick="closeFilterDialog()">×</button>
+  </div>
+  <div id="filter-sheet-body"></div>
+  <div class="filter-sheet__actions">
+    <button class="btn btn--ghost" onclick="resetFilter()">Reset</button>
+    <button class="btn btn--primary" onclick="applyFilter()">Apply</button>
+  </div>
 </div>
 
 <!-- ── COUNTDOWN BAR ── -->
@@ -272,40 +313,42 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
   let _userCache = {};
+  let _activeTab = 'meets';
+  let _loadedData = {};
+  let _filterState = {
+    meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
+    listings: { direction: 'ASC' },
+    requests: { flowDirection: 'incoming', status: 'PENDING', reqDir: 'DESC', meetDir: 'ASC' }
+  };
+  let _pendingFilter = {};
 
   /* ── Tab switcher ── */
   function switchTab(el, tab) {
+    _activeTab = tab;
     document.querySelectorAll('.tours-header .tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
     el.classList.add('tab-bar__item--active');
     ['meets','listings','requests'].forEach(id => {
-      const el = document.getElementById('tab-' + id);
-      if (el) el.hidden = (id !== tab);
-      if (el && id === tab) el.style.display = 'flex';
+      const panel = document.getElementById('tab-' + id);
+      if (panel) panel.style.display = (id === tab) ? 'flex' : 'none';
     });
-  }
-
-  function switchMeetsTab(el, panel) {
-    el.closest('.tab-bar').querySelectorAll('.tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
-    el.classList.add('tab-bar__item--active');
-    document.getElementById('meets-panel-guest').style.display = panel === 'guest' ? 'flex' : 'none';
-    document.getElementById('meets-panel-host').style.display  = panel === 'host'  ? 'flex' : 'none';
   }
 
   /* ── Countdown bar + Active tour takeover ── */
   let _countdownInterval = null;
   let _activeTourResId   = null;
 
-  function initCountdownAndTakeover(asGuest) {
+  function initCountdownAndTakeover(joinedUpcoming) {
     if (!Auth.getToken()) return;
     const stored = localStorage.getItem('activeTour');
     if (stored) {
       try { const active = JSON.parse(stored); _activeTourResId = active.resId; showTakeover(active); return; }
       catch(e) { localStorage.removeItem('activeTour'); }
     }
-    const mine = (asGuest || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
-    const now  = new Date();
+    const now = new Date();
     const ONE_HOUR = 60 * 60 * 1000;
-    const soon = mine.filter(r => { const diff = new Date(r.tourListing.meetingDate) - now; return diff > 0 && diff <= ONE_HOUR; })
+    const soon = (joinedUpcoming || [])
+                     .filter(r => r.status !== 'CANCELLED')
+                     .filter(r => { const diff = new Date(r.tourListing.meetingDate) - now; return diff > 0 && diff <= ONE_HOUR; })
                      .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
     if (!soon.length) return;
     const next = soon[0];
@@ -433,20 +476,20 @@
   document.getElementById('rating-modal').addEventListener('click', function(e) { if (e.target === this) closeRatingModal(); });
 
   /* ── Render My Meets (guest) ── */
-  function renderMeetups(asGuest) {
-    const upcomingEl = document.getElementById('meetups-upcoming');
-    const pastEl     = document.getElementById('meetups-past');
-    if (!Auth.getToken()) {
-      upcomingEl.innerHTML = `<div class="meet-empty"><div class="meet-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
-      pastEl.innerHTML = '';
-      return;
-    }
-    const mine = (asGuest || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
-    const now  = new Date();
-    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
-    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
+  function renderMeetsPanel() {
+    const el = document.getElementById('meets-panel');
+    if (!Auth.getToken()) { el.innerHTML = `<div class="meet-empty"><div class="meet-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`; return; }
+    const { role, timeframe, direction } = _filterState.meets;
+    const isJoined = role === 'joined';
+    const isPast   = timeframe === 'past';
 
-    const mkCard = (res, isPast) => {
+    let items = isJoined
+      ? (isPast ? _loadedData.joinedPast : _loadedData.joinedUpcoming)
+      : (isPast ? _loadedData.hostedPast : _loadedData.hostedUpcoming);
+    items = (items || []).filter(r => r.status !== 'CANCELLED');
+    if (direction === 'DESC') items = [...items].reverse();
+
+    const mkJoinedCard = (res) => {
       const d = new Date(res.tourListing.meetingDate);
       const alreadyRated = !!localStorage.getItem('rated_' + res.id);
       const hostUsername = res.tourListing.host?.username ?? '';
@@ -459,10 +502,7 @@
            </div>`;
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
-          <div class="meet-card__date">
-            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
-          </div>
+          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
             <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span>${hostName}</span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
@@ -471,29 +511,14 @@
           ${actionEl}
         </div>`;
     };
-    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming meets.</div>';
-    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past meets yet.</div>';
-  }
 
-  /* ── Render My Meets (host) ── */
-  function renderHostMeetups(asHost) {
-    const upcomingEl = document.getElementById('host-upcoming');
-    const pastEl     = document.getElementById('host-past');
-    if (!Auth.getToken()) return;
-    const mine = (asHost || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
-    const now  = new Date();
-    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now).sort((a,b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
-    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now).sort((a,b)  => new Date(b.tourListing.meetingDate) - new Date(a.tourListing.meetingDate));
-    const mkCard = (res, isPast) => {
+    const mkHostedCard = (res) => {
       const d = new Date(res.tourListing.meetingDate);
       const guestName   = res.guest ? res.guest.firstName + ' ' + res.guest.lastName : '?';
       const guestHandle = res.guest?.username ?? '';
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
-          <div class="meet-card__date">
-            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
-          </div>
+          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
             <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(guestHandle, 26, _userCache[guestHandle])}<span>${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
@@ -502,81 +527,46 @@
           ${!isPast ? `<button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>` : '<div class="badge--rated" style="opacity:0.5;">Past</div>'}
         </div>`;
     };
-    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming Mates.</div>';
-    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past hosted meets yet.</div>';
+
+    const mkCard = isJoined ? mkJoinedCard : mkHostedCard;
+    const emptyMsg = isPast
+      ? (isJoined ? 'No past meets yet.' : 'No past hosted meets yet.')
+      : (isJoined ? 'No upcoming meets.' : 'No upcoming Mates.');
+    el.innerHTML = items.length ? items.map(mkCard).join('') : `<div style="font-size:11px;color:var(--text-3);padding:4px 0;">${emptyMsg}</div>`;
   }
 
-  /* ── Render My Listings ── */
-  function renderMyListings(myListings) {
-    const el = document.getElementById('my-listings-panel');
-    if (!Auth.getToken()) { el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to manage your listings.</div>`; return; }
-    const mine = (myListings || []).sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
-    if (!mine.length) {
-      el.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--text-3);font-size:12px;">No listings yet — create your first one above.</div>`;
-      return;
-    }
-    el.innerHTML = mine.map(listing => {
-      const isPast = new Date(listing.meetingDate) < new Date();
-      const dotColor = listing.reserved || isPast ? 'var(--text-3)' : 'var(--accent)';
-      const dotGlow  = !listing.reserved && !isPast ? 'box-shadow:0 0 5px var(--accent);' : '';
-      const statusLabel = listing.reserved ? 'Booked' : isPast ? 'Past' : 'Available';
-      return `
-        <div class="listing-card" id="my-listing-${listing.id}" style="opacity:${isPast ? '0.5' : '1'};">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-            <div style="min-width:0;">
-              <div class="listing-card__city">${listing.city}</div>
-              <div class="listing-card__date" style="margin-top:3px;">${fmtDatetime(listing.meetingDate)}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-              <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};${dotGlow}"></div>
-              <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};">${statusLabel}</div>
-            </div>
-          </div>
-          <div class="listing-card__desc">${listing.tourDescription}</div>
-          <div style="display:flex;justify-content:flex-end;">
-            <button class="meet-card__cancel" data-listing-id="${listing.id}" onclick="deleteMyListing(this)">Delete</button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  function deleteMyListing(btn) {
-    const id = parseInt(btn.dataset.listingId, 10);
-    if (!confirm('Delete this listing? This cannot be undone.')) return;
-    btn.disabled = true;
-    TourListingAPI.delete(id)
-      .then(() => { document.getElementById('my-listing-' + id)?.remove(); showToast('Listing deleted.', 'success'); })
-      .catch(err => { btn.disabled = false; showToast(err.message || 'Could not delete listing.', 'error'); });
-  }
-
-  /* ── Render Requests (incoming) ── */
-  function renderRequests(allRequests) {
+  /* ── Render Requests ── */
+  function renderRequestsPanel() {
     const el = document.getElementById('requests-panel');
     if (!Auth.getToken()) { el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to see requests.</div>`; return; }
-    const currentUsername = Auth.getUsername();
-    const incoming = (allRequests || []).filter(r => r.tourListing?.host?.username === currentUsername);
-    const pending  = incoming.filter(r => r.status === 'PENDING');
-    const others   = incoming.filter(r => r.status !== 'PENDING');
 
-    // Update badge on tab
+    const { flowDirection, status } = _filterState.requests;
+    const isIncoming = flowDirection === 'incoming';
+    const pendingArr  = isIncoming ? (_loadedData.incomingPending || [])  : (_loadedData.outgoingPending || []);
+    const declinedArr = isIncoming ? (_loadedData.incomingDeclined || []) : (_loadedData.outgoingDeclined || []);
+    const items = status === 'PENDING' ? pendingArr : declinedArr;
+
     const tabItem = document.getElementById('tab-requests-item');
-    if (pending.length > 0) {
-      tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${pending.length}</span>`;
+    const badgeCount = (_loadedData.incomingPending || []).length;
+    if (badgeCount > 0) {
+      tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${badgeCount}</span>`;
+    } else {
+      tabItem.textContent = 'Requests';
     }
 
-    if (!incoming.length) {
+    if (!items.length) {
       el.innerHTML = `
         <div class="meet-empty">
           <div class="meet-empty__icon">📬</div>
-          <div class="meet-empty__title">No requests yet</div>
-          <div class="meet-empty__sub">When someone requests to join your listing, it'll appear here.</div>
+          <div class="meet-empty__title">No ${status.toLowerCase()} ${isIncoming ? 'incoming' : 'outgoing'} requests</div>
+          <div class="meet-empty__sub">${isIncoming ? 'When someone requests to join your listing, it\'ll appear here.' : 'Requests you\'ve sent will appear here.'}</div>
         </div>`;
       return;
     }
 
-    const mkReqCard = (r) => {
-      const guestName   = r.user ? r.user.firstName + ' ' + r.user.lastName : r.guest?.firstName + ' ' + r.guest?.lastName || '?';
-      const guestHandle = r.user?.username ?? r.guest?.username ?? '';
+    const mkIncomingCard = (r) => {
+      const guestName   = r.user ? r.user.firstName + ' ' + r.user.lastName : '?';
+      const guestHandle = r.user?.username ?? '';
       const city        = r.tourListing?.city ?? '';
       const date        = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
       const actionEl    = r.status === 'PENDING'
@@ -598,8 +588,26 @@
         </div>`;
     };
 
-    el.innerHTML = (pending.length ? `<div class="section-label" style="margin-bottom:6px;">Pending</div>` + pending.map(mkReqCard).join('') : '')
-                 + (others.length  ? `<div class="section-label" style="margin:14px 0 6px;">Previous</div>` + others.map(mkReqCard).join('') : '');
+    const mkOutgoingCard = (r) => {
+      const hostName   = r.tourListing?.host ? r.tourListing.host.firstName + ' ' + r.tourListing.host.lastName : '?';
+      const hostHandle = r.tourListing?.host?.username ?? '';
+      const city       = r.tourListing?.city ?? '';
+      const date       = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
+      return `
+        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-out-${r.id}">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${userAvatar(hostHandle, 36, _userCache[hostHandle])}
+            <div style="flex:1;min-width:0;">
+              <div class="req-card__who">${hostName}</div>
+              <div class="req-card__meta">@${hostHandle} · ${city} · ${date}</div>
+            </div>
+            <span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span>
+          </div>
+        </div>`;
+    };
+
+    const mkCard = isIncoming ? mkIncomingCard : mkOutgoingCard;
+    el.innerHTML = items.map(mkCard).join('');
   }
 
   async function handleRequest(action, id, btn) {
@@ -625,6 +633,105 @@
     }
   }
 
+  /* ── Filter dialog ── */
+  function openFilterDialog() {
+    _pendingFilter = { ..._filterState[_activeTab] };
+    document.getElementById('filter-sheet-body').innerHTML = buildFilterContent();
+    document.getElementById('filter-backdrop').classList.add('filter-backdrop--visible');
+    document.getElementById('filter-sheet').classList.add('filter-sheet--visible');
+    document.getElementById('filter-btn').classList.add('tab-bar__filter--active');
+  }
+
+  function closeFilterDialog() {
+    document.getElementById('filter-backdrop').classList.remove('filter-backdrop--visible');
+    document.getElementById('filter-sheet').classList.remove('filter-sheet--visible');
+    document.getElementById('filter-btn').classList.remove('tab-bar__filter--active');
+  }
+
+  function selectChip(group, value) {
+    _pendingFilter[group] = value;
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => {
+      c.classList.toggle('filter-chip--active', c.dataset.value === value);
+    });
+  }
+
+  function buildFilterContent() {
+    if (_activeTab === 'meets') {
+      const f = _pendingFilter;
+      return `
+        <div class="filter-group">
+          <div class="filter-group__label">Role</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.role === 'joined' ? 'filter-chip--active' : ''}" data-group="role" data-value="joined" onclick="selectChip('role','joined')">Joined</button>
+            <button class="filter-chip ${f.role === 'hosting' ? 'filter-chip--active' : ''}" data-group="role" data-value="hosting" onclick="selectChip('role','hosting')">Hosting</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group__label">Timeframe</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.timeframe === 'upcoming' ? 'filter-chip--active' : ''}" data-group="timeframe" data-value="upcoming" onclick="selectChip('timeframe','upcoming')">Upcoming</button>
+            <button class="filter-chip ${f.timeframe === 'past' ? 'filter-chip--active' : ''}" data-group="timeframe" data-value="past" onclick="selectChip('timeframe','past')">Past</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group__label">Sort</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.direction === 'ASC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="ASC" onclick="selectChip('direction','ASC')">Oldest first</button>
+            <button class="filter-chip ${f.direction === 'DESC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="DESC" onclick="selectChip('direction','DESC')">Newest first</button>
+          </div>
+        </div>`;
+    }
+    if (_activeTab === 'listings') {
+      const f = _pendingFilter;
+      return `
+        <div class="filter-group">
+          <div class="filter-group__label">Sort</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.direction === 'ASC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="ASC" onclick="selectChip('direction','ASC')">Oldest first</button>
+            <button class="filter-chip ${f.direction === 'DESC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="DESC" onclick="selectChip('direction','DESC')">Newest first</button>
+          </div>
+        </div>`;
+    }
+    if (_activeTab === 'requests') {
+      const f = _pendingFilter;
+      return `
+        <div class="filter-group">
+          <div class="filter-group__label">Direction</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.flowDirection === 'incoming' ? 'filter-chip--active' : ''}" data-group="flowDirection" data-value="incoming" onclick="selectChip('flowDirection','incoming')">Incoming</button>
+            <button class="filter-chip ${f.flowDirection === 'outgoing' ? 'filter-chip--active' : ''}" data-group="flowDirection" data-value="outgoing" onclick="selectChip('flowDirection','outgoing')">Outgoing</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group__label">Status</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.status === 'PENDING' ? 'filter-chip--active' : ''}" data-group="status" data-value="PENDING" onclick="selectChip('status','PENDING')">Pending</button>
+            <button class="filter-chip ${f.status === 'DECLINED' ? 'filter-chip--active' : ''}" data-group="status" data-value="DECLINED" onclick="selectChip('status','DECLINED')">Declined</button>
+          </div>
+        </div>`;
+    }
+    return '';
+  }
+
+  function applyFilter() {
+    _filterState[_activeTab] = { ..._pendingFilter };
+    closeFilterDialog();
+    if (_activeTab === 'meets') renderMeetsPanel();
+    else if (_activeTab === 'requests') renderRequestsPanel();
+  }
+
+  function resetFilter() {
+    const defaults = {
+      meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
+      listings: { direction: 'ASC' },
+      requests: { flowDirection: 'incoming', status: 'PENDING' }
+    };
+    _filterState[_activeTab] = { ...defaults[_activeTab] };
+    closeFilterDialog();
+    if (_activeTab === 'meets') renderMeetsPanel();
+    else if (_activeTab === 'requests') renderRequestsPanel();
+  }
+
   /* ── Auto-switch tab ── */
   (function() {
     const tab = sessionStorage.getItem('openTab');
@@ -637,20 +744,22 @@
 
   /* ── Load data ── */
   Promise.all([
-    ReservationAPI.getMine(),
-    BookingRequestAPI.getAll(),
+    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'upcoming' }).catch(() => []),
+    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'past'     }).catch(() => []),
+    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'upcoming' }).catch(() => []),
+    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'past'     }).catch(() => []),
+    BookingRequestAPI.getMine({ status: 'PENDING'  }).catch(() => []),
+    BookingRequestAPI.getMine({ status: 'DECLINED' }).catch(() => []),
+    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'  }).catch(() => []),
+    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => []),
     UserAPI.getAll().catch(() => []),
-    TourListingAPI.getMine().catch(() => []),
   ])
-    .then(([myReservations, allRequests, allUsers, myListings]) => {
+    .then(([joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined, allUsers]) => {
       (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
-      const asGuest = myReservations?.asGuest ?? [];
-      const asHost  = myReservations?.asHost  ?? [];
-      renderMeetups(asGuest);
-      renderHostMeetups(asHost);
-      renderMyListings(myListings ?? []);
-      renderRequests(allRequests ?? []);
-      initCountdownAndTakeover(asGuest);
+      _loadedData = { joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined };
+      renderMeetsPanel();
+      renderRequestsPanel();
+      initCountdownAndTakeover(joinedUpcoming);
     })
     .catch(() => showToast('Could not load data — check your connection.', 'error'));
 </script>
