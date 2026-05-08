@@ -9,6 +9,8 @@ const MapState = {
   allMarkers: [],       // { marker, listing } — full list for filtering
   availableOnly: false,
   userCache: {},        // username → UserResponse (for popup photos)
+  userLat: null,
+  userLng: null,
 };
 
 /* ───────────────────────────────────────────────
@@ -21,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initMap() {
   MapState.map = L.map('map', {
-    center:           [45.815, 15.982],
+    center:           [45.815, 15.977],
     zoom:             14,
     zoomControl:      false,
     attributionControl: false,
@@ -48,6 +50,25 @@ function initMap() {
       MapState.map.setView([lat, lng], zoom || 16);
     } catch (e) { /* ignore */ }
     sessionStorage.removeItem('mapFlyTo');
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        MapState.userLat = latitude;
+        MapState.userLng = longitude;
+        MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
+        L.marker([latitude, longitude], {
+          icon: L.divIcon({
+            className: '',
+            html: `<div class="user-location-pin"></div>`,
+            iconSize:   [35, 35],
+            iconAnchor: [17, 42],
+          }),
+          zIndexOffset: 1000,
+        }).addTo(MapState.map);
+      },
+      () => { /* denied or unavailable — keep Zagreb default */ }
+    );
   }
 }
 
@@ -97,6 +118,32 @@ function openMapPopup(listing) {
 
 function closeMapPopup() {
   document.getElementById('map-popup-overlay').style.display = 'none';
+}
+
+function centerOnUser() {
+  if (MapState.userLat !== null) {
+    MapState.map.flyTo([MapState.userLat, MapState.userLng], 17, { duration: 1 });
+    return;
+  }
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude, longitude } = pos.coords;
+      MapState.userLat = latitude;
+      MapState.userLng = longitude;
+      MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
+      L.marker([latitude, longitude], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="user-location-pin"></div>`,
+          iconSize:   [35, 35],
+          iconAnchor: [17, 42],
+        }),
+        zIndexOffset: 1000,
+      }).addTo(MapState.map);
+    },
+    () => showToast('Location access denied.', 'error')
+  );
 }
 
 function buildPopupContent(listing) {
