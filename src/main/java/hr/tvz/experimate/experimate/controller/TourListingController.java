@@ -7,7 +7,10 @@ import hr.tvz.experimate.experimate.model.tour_listing.UpdateTourListingDto;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,9 +41,11 @@ public class TourListingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TourListingResponse>> getAllTourListings(@AuthenticationPrincipal AppUserDetails userDetails) {
+    public ResponseEntity<Page<TourListingResponse>> getAllTourListings(
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @PageableDefault(size = 20, sort = "meetingDate", direction = Sort.Direction.ASC) Pageable pageable) {
         return ResponseEntity.ok(
-                tourListingService.getAllListings(userDetails.getId())
+                tourListingService.getAllListings(userDetails.getId(), pageable)
         );
     }
 

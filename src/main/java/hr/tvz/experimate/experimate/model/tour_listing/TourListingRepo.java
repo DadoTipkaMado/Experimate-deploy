@@ -1,6 +1,8 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
 import hr.tvz.experimate.experimate.model.user.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +19,16 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
     List<TourListing> findAllByReservedAndMeetingDateBefore(Boolean isReserved, LocalDateTime meetingDateTime);
 
     List<TourListing> findAllByHost_Id(Integer hostId, Sort sort);
+
+    /**
+     * Returns a paginated slice of listings whose host is not the given viewer.
+     * Filtering is done at the database level to ensure correct page sizes.
+     *
+     * @param hostId   ID of the viewer to exclude from results
+     * @param pageable pagination and sorting parameters
+     * @return page of listings not owned by the viewer
+     */
+    Page<TourListing> findAllByHost_IdNot(Integer hostId, Pageable pageable);
 
     /**
      * Returns all active listings eligible as match candidates for the given viewer.
