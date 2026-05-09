@@ -112,7 +112,7 @@ function buildMarker(listing) {
 
 function openMapPopup(listing) {
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing);
-  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action">See listing →</a>`;
+  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action" href="/explore">See listing →</a>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
 
@@ -158,8 +158,12 @@ function buildPopupContent(listing) {
   let hostHtml = '';
   if (hostName) {
     const avatar = userAvatar(hostHandle, 28, MapState.userCache[hostHandle]);
-    hostHtml = `<div class="popup-host" style="display:flex;align-items:center;gap:7px;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:9px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></div>`;
+    hostHtml = `<div class="popup-host" style="display:flex;align-items:center;gap:7px;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:12px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></div>`;
   }
+
+  const descHtml = listing.tourDescription
+    ? `<div class="popup-desc">${escapeHtml(listing.tourDescription.slice(0, 200))}${listing.tourDescription.length > 200 ? '…' : ''}</div>`
+    : '';
 
   return `
     <div class="popup-name">${escapeHtml(listing.city)}</div>
@@ -169,6 +173,7 @@ function buildPopupContent(listing) {
       <div class="popup-status__dot" style="background:${dotColor};${dotGlow}"></div>
       <div class="popup-status__label" style="color:${dotColor};">${statusLabel}</div>
     </div>
+    ${descHtml}
   `;
 }
 
