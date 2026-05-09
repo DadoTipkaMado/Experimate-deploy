@@ -232,6 +232,7 @@ public class BookingRequestService {
         );
 
         TourListingDetails listingDetails = new TourListingDetails(
+                request.getListing().getId(),
                 request.getListing().getMeetingDate(),
                 request.getListing().getCity(),
                 hostDetails
