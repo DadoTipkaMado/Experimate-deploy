@@ -404,6 +404,7 @@ public class ReservationService {
         );
 
         TourListingDetails listingDetails = new TourListingDetails(
+                tourListing.getId(),
                 tourListing.getMeetingDate(),
                 tourListing.getCity(),
                 hostDetails
