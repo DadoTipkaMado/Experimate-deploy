@@ -25,6 +25,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -95,22 +98,24 @@ public class ReservationService {
         return createReservationResponse(reservation);
     }
 
-    public List<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe) {
+    public Page<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe, Pageable pageable) {
         Sort sort = Sort.by(direction, "tourListing.meetingDate");
+        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         LocalDateTime now = LocalDateTime.now();
 
-        List<Reservation> results = switch (filter) {
+        // route to the correct query based on user role (guest/host) and timeframe (past/upcoming)
+        Page<Reservation> results = switch (filter) {
             case "hosted" -> switch (timeframe) {
-                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, sort);
-                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, pageableWithSort);
+                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, pageableWithSort);
             };
             default -> switch (timeframe) {
-                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, sort);
-                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, pageableWithSort);
+                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, pageableWithSort);
             };
         };
 
-        return results.stream().map(this::createReservationResponse).toList();
+        return results.map(this::createReservationResponse);
     }
 
     public List<ReservationResponse> getAllReservations() {
