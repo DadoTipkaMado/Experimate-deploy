@@ -36,6 +36,9 @@ build/
 ### Spring ###
 application-local.properties
 
+### Claude ###
+CLAUDE.md
+
 ### ostalo ###
 *.log
 logs/
