@@ -322,8 +322,8 @@ function renderMatchCard(m) {
        </div>`;
   const pctHtml    = m.compatibilityScore != null ? `<div class="match-card__pct">${m.compatibilityScore}% match</div>` : '';
   const cityHtml   = m.activeListing ? `<div class="match-card__city">📍 ${escapeHtml(m.activeListing.city)}</div>` : '';
-  const ctaHref    = m.activeListing ? `/tours?listing=${m.activeListing.id}` : `/profile/${m.username}`;
-  const ctaLabel   = m.activeListing ? 'View Day' : 'View Profile';
+  const ctaHref    = `/profile/${m.username}`;
+  const ctaLabel   = 'View Profile';
   const sparkle    = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   const explainBtn = m.compatibilityScore != null
     ? `<button class="match-card__explain-btn" onclick="toggleExplain(${m.userId},this)">${sparkle} Why we match</button>` : '';

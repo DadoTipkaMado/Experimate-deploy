@@ -212,10 +212,10 @@
           }
         </div>`;
 
-      const actionRow = !isOwnProfile ? `
+      const actionRow = (!isOwnProfile && userListings.length > 0) ? `
         <div class="profile-actions">
           <a href="/tours?host=${user.username}" class="btn btn--primary" style="flex:1;height:42px;font-size:12px;">
-            ${userListings.length > 0 ? `View ${userListings.length} Day${userListings.length !== 1 ? 's' : ''}` : 'View Profile'}
+            View ${userListings.length} Meet${userListings.length !== 1 ? 's' : ''}
           </a>
         </div>` : '';
 
