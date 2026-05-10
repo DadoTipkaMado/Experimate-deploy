@@ -113,7 +113,7 @@ function buildMarker(listing) {
 function openMapPopup(listing) {
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing);
   const hostHandle = listing.host?.username ?? '';
-  const href = hostHandle ? `/profile/${hostHandle}` : '/explore';
+  const href = hostHandle ? `/explore?q=${encodeURIComponent(hostHandle)}` : '/explore';
   document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action" href="${href}">See listing →</a>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
