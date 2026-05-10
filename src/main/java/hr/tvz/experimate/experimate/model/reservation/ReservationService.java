@@ -3,11 +3,11 @@ package hr.tvz.experimate.experimate.model.reservation;
 import hr.tvz.experimate.experimate.model.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.model.reservation.exception.IllegalReservationStateException;
 import hr.tvz.experimate.experimate.model.reservation.exception.ReservationNotFoundException;
+import hr.tvz.experimate.experimate.model.shared.Constraints;
 import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
-import hr.tvz.experimate.experimate.model.reservation.response.MyReservationsResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,20 +95,22 @@ public class ReservationService {
         return createReservationResponse(reservation);
     }
 
-    public MyReservationsResponse getReservationsForUser(Integer userId) {
-        List<Reservation> all = reservationRepo.findAllForUser(userId);
+    public List<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe) {
+        Sort sort = Sort.by(direction, "tourListing.meetingDate");
+        LocalDateTime now = LocalDateTime.now();
 
-        List<ReservationResponse> asGuest = all.stream()
-                .filter(r -> r.getGuest().getId().equals(userId))
-                .map(this::createReservationResponse)
-                .toList();
+        List<Reservation> results = switch (filter) {
+            case "hosted" -> switch (timeframe) {
+                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, sort);
+                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+            };
+            default -> switch (timeframe) {
+                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, sort);
+                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+            };
+        };
 
-        List<ReservationResponse> asHost = all.stream()
-                .filter(r -> r.getTourListing().getHost().getId().equals(userId))
-                .map(this::createReservationResponse)
-                .toList();
-
-        return new MyReservationsResponse(asGuest, asHost);
+        return results.stream().map(this::createReservationResponse).toList();
     }
 
     public List<ReservationResponse> getAllReservations() {
@@ -138,6 +142,18 @@ public class ReservationService {
         log.info("Reservation deleted with id {}", id);
     }
 
+    /**
+     * Checks a participant (guest or host) into a confirmed reservation if the check-in
+     * window is open. If both participants have checked in, the reservation transitions
+     * to ACTIVE status.
+     *
+     * @param userId        ID of the user attempting to check in
+     * @param reservationId ID of the target reservation
+     * @return {@link CheckInResponse} reflecting the updated check-in state
+     * @throws ReservationNotFoundException     if no reservation exists with the given ID
+     * @throws IllegalReservationStateException if the reservation is not CONFIRMED or the check-in window has not opened yet
+     * @throws IllegalArgumentException         if the user is not a participant of the reservation
+     */
     public CheckInResponse checkUserIn(Integer userId, Integer reservationId) {
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> {
@@ -145,9 +161,19 @@ public class ReservationService {
                     return new ReservationNotFoundException(reservationId);
                 });
 
+        // reservation must be in CONFIRMED status to allow check-in
         if (!reservation.getStatus().equals(ReservationStatus.CONFIRMED))
             throw new IllegalReservationStateException("Users can be checked into reservation only during 'CONFIRMED' phase");
 
+        LocalDateTime meetingDateTime = reservation.getTourListing().getMeetingDate();
+        long minutesUntilMeeting = ChronoUnit.MINUTES.between(LocalDateTime.now(), meetingDateTime);
+        // check-in window: user must be within MINS_DIFF_TO_CHECK_IN_MIN minutes of the meeting
+        if (minutesUntilMeeting > Constraints.ReservationConstraints.MINS_DIFF_TO_CHECK_IN_MIN)
+            throw new IllegalReservationStateException(
+                    "Check-in opens %d minutes before the meeting"
+                            .formatted(Constraints.ReservationConstraints.MINS_DIFF_TO_CHECK_IN_MIN));
+
+        // check in guest or host depending on which participant is calling
         if (reservation.getGuest().getId().equals(userId)
                 && !reservation.isGuestCheckedIn()) {
             reservation.checkGuestIn();
@@ -229,8 +255,10 @@ public class ReservationService {
                     return new UserNotFoundException(userId);
                 });
 
-        if (!reservation.getStatus().equals(ReservationStatus.CONFIRMED))
-            throw new IllegalReservationStateException("Reservation can be cancelled only during 'CONFIRMED' phase.");
+        log.debug("Attempting to cancel Reservation with status {}.",  reservation.getStatus());
+
+        if (!(reservation.getStatus().equals(ReservationStatus.CONFIRMED) || reservation.getStatus().equals(ReservationStatus.ACTIVE)))
+            throw new IllegalReservationStateException("Reservation can be cancelled only during 'CONFIRMED' or 'ACTIVE' phase.");
 
         if (!reservation.getGuest().getId().equals(user.getId()) &&
                 !reservation.getTourListing().getHost().getId().equals(user.getId())) {
@@ -376,6 +404,7 @@ public class ReservationService {
         );
 
         TourListingDetails listingDetails = new TourListingDetails(
+                tourListing.getId(),
                 tourListing.getMeetingDate(),
                 tourListing.getCity(),
                 hostDetails

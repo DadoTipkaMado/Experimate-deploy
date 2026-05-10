@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
-  <title>Tours — Experimate</title>
+  <title>Meets — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
@@ -13,61 +13,9 @@
     .tours-header {
       padding: 22px 18px 0;
       border-bottom: 1px solid var(--border);
-      display: flex; align-items: flex-start; justify-content: space-between;
-    }
-    .tours-header__titles { flex: 1; }
-    .tours-fab {
-      width: 36px; height: 36px; background: var(--accent); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      text-decoration: none; font-size: 20px; line-height: 1; color: #000; font-weight: 700;
-      flex-shrink: 0; margin-top: 4px;
-      transition: transform var(--t-fast), opacity var(--t-fast);
-    }
-    .tours-fab:hover { transform: scale(1.1); opacity: 0.9; }
-    .irl-notice {
-      display: flex; align-items: center; gap: 10px;
-      margin: 12px 18px 0;
-      padding: 10px 14px;
-      background: var(--accent-dim); border: 1px solid var(--accent-border);
-      border-radius: var(--radius-sm);
-      font-size: 10px; color: var(--accent); letter-spacing: 0.05em; line-height: 1.5;
     }
 
-    /* ── CITY FILTER ── */
-    .city-filter {
-      display: flex; gap: 6px; overflow-x: auto; padding: 12px 18px 0;
-      scrollbar-width: none;
-    }
-    .city-filter::-webkit-scrollbar { display: none; }
-
-    /* ── DISCOVER TAB ── */
-    .listings-list { display: flex; flex-direction: column; gap: 10px; padding: 12px 18px 32px; }
-    .listing-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px;
-      display: flex; flex-direction: column; gap: 10px;
-      transition: border-color var(--t-base), transform var(--t-base);
-    }
-    .listing-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
-    .listing-card--reserved  { opacity: 0.5; }
-    .listing-card--available { box-shadow: inset 3px 0 0 var(--accent); }
-    .listing-card--pending   { box-shadow: inset 3px 0 0 #ff9944; }
-    .listing-card--declined  { box-shadow: inset 3px 0 0 rgba(255,80,80,0.45); }
-    .empty-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
-    .listing-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-    .listing-card__city { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
-    .listing-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0; padding-top: 3px; }
-    .listing-card__host { font-size: 10px; color: var(--accent); letter-spacing: 0.06em; }
-    .listing-card__desc { font-size: 11px; color: var(--text-2); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .listing-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-    .listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
-    .listing-card__status--available { color: var(--accent); }
-    .listings-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
-    .listings-empty__icon { font-size: 36px; opacity: 0.35; }
-    .listings-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
-    .listings-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
-
-    /* ── MY MEETUPS TAB ── */
+    /* ── MY MEETUPS ── */
     .meet-card {
       display: flex; align-items: center; gap: 12px; padding: 14px;
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -92,13 +40,57 @@
       transition: border-color var(--t-fast), color var(--t-fast);
     }
     .meet-card__cancel:hover { border-color: rgba(255,80,80,0.5); color: rgba(255,100,100,0.9); }
-    .meet-empty { display: flex; flex-direction: column; align-items: center; padding: 60px 24px; gap: 12px; text-align: center; }
+    .meet-empty { display: flex; flex-direction: column; align-items: center; padding: 48px 24px; gap: 12px; text-align: center; }
     .meet-empty__icon { font-size: 36px; opacity: 0.25; }
     .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
     .meet-empty__sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; line-height: 1.6; max-width: 220px; }
+    .meet-card__rate {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill);
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--accent-border); background: var(--accent-dim);
+      color: var(--accent); cursor: pointer; flex-shrink: 0;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+    .meet-card__rate:hover { background: var(--accent); color: #000; }
+    .badge--rated { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); flex-shrink: 0; }
+    .meet-card__here { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); flex-shrink: 0; cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
+    .meet-card__here:hover { background: var(--accent); color: #000; }
+    .meet-card__here:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── MEETUPS TAB PANEL ── */
-    #tab-meetups:not([hidden]) { display: flex; }
+    /* ── MY LISTINGS ── */
+    .listing-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .listing-card__city { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); letter-spacing: -0.01em; }
+    .listing-card__date { font-size: 10px; color: var(--text-2); letter-spacing: 0.06em; }
+    .listing-card__desc { font-size: 11px; color: var(--text-2); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .empty-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
+
+    /* ── REQUESTS ── */
+    .req-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .req-card--pending { border-left: 3px solid #ff9944; }
+    .req-card__who { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text); }
+    .req-card__meta { font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; }
+    .req-card__actions { display: flex; gap: 8px; }
+    .req-btn {
+      flex: 1; height: 36px; border-radius: var(--radius-pill);
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1px solid; cursor: pointer; transition: background var(--t-fast), color var(--t-fast);
+    }
+    .req-btn--accept { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .req-btn--accept:hover { background: var(--accent); color: #000; }
+    .req-btn--decline { background: transparent; border-color: var(--border-2); color: var(--text-3); }
+    .req-btn--decline:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
+    .req-status-badge { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); }
+    .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
+    .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
 
     /* ── CANCEL MODAL ── */
     .modal-backdrop {
@@ -124,32 +116,59 @@
     .modal-card textarea:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(0,201,167,0.08); }
     .modal-actions { display: flex; gap: 10px; }
     .modal-actions .btn { flex: 1; height: 44px; }
+
     /* ── RATING MODAL ── */
     .star-picker { display: flex; gap: 6px; justify-content: center; padding: 8px 0; }
-    .star-picker__star {
-      font-size: 28px; cursor: pointer; opacity: 0.25;
-      transition: opacity var(--t-fast), transform var(--t-fast);
-      user-select: none;
-    }
+    .star-picker__star { font-size: 28px; cursor: pointer; opacity: 0.25; transition: opacity var(--t-fast), transform var(--t-fast); user-select: none; }
     .star-picker__star--active { opacity: 1; }
     .star-picker__star:hover { transform: scale(1.15); }
-    .meet-card__rate {
-      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-      min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill);
-      display: inline-flex; align-items: center; justify-content: center;
-      border: 1px solid var(--accent-border); background: var(--accent-dim);
-      color: var(--accent); cursor: pointer; flex-shrink: 0;
-      transition: background var(--t-fast), color var(--t-fast);
+
+    /* ── FILTER ── */
+    .tab-bar__filter {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); cursor: pointer;
+      background: var(--bg); border: none;
+      color: var(--accent); transition: opacity var(--t-fast);
     }
-    .meet-card__rate:hover { background: var(--accent); color: #000; }
-    .badge--rated { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); flex-shrink: 0; }
-    .meet-card__here { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); flex-shrink: 0; cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
-    .meet-card__here:hover { background: var(--accent); color: #000; }
-    .meet-card__here:disabled { opacity: 0.5; cursor: not-allowed; }
+    .tab-bar__filter:hover { opacity: 0.7; }
+    .tab-bar__filter--active { opacity: 1; }
+    .filter-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 290;
+      background: rgba(0,0,0,0.5);
+    }
+    .filter-backdrop--visible { display: block; }
+    .filter-sheet {
+      position: fixed; bottom: -100%; left: 0; right: 0; z-index: 300;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 20px 20px 0 0;
+      padding-bottom: calc(var(--navbar-h) + 12px);
+      transition: bottom 0.25s ease;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .filter-sheet--visible { bottom: 0; }
+    .filter-sheet__handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
+    .filter-sheet__header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; }
+    .filter-sheet__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); }
+    .filter-sheet__close { font-size: 20px; color: var(--text-3); cursor: pointer; line-height: 1; background: none; border: none; padding: 4px; }
+    .filter-group { padding: 12px 20px; border-top: 1px solid var(--border); }
+    .filter-group__label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-chip {
+      height: 32px; padding: 0 14px;
+      border: 1px solid var(--border-2); border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-2);
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
+      cursor: pointer; transition: all var(--t-fast);
+    }
+    .filter-chip--active { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .filter-sheet__actions { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
+    .filter-sheet__actions .btn { flex: 1; height: 44px; }
 
     /* ── COUNTDOWN BAR ── */
     .countdown-bar {
-      display: none; position: fixed; bottom: 64px; left: 0; right: 0; z-index: 90;
+      display: none; position: fixed; bottom: calc(var(--navbar-h) + 0px); left: 0; right: 0; z-index: 90;
       background: var(--accent); color: #000;
       padding: 9px 18px; gap: 8px;
       align-items: center; justify-content: space-between;
@@ -177,24 +196,6 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(0,201,167,0.4); }
       50% { box-shadow: 0 0 0 14px rgba(0,201,167,0); }
     }
-
-    /* ── LISTING DETAIL MODAL ── */
-    .lm-card { width: min(740px, 92vw); }
-    .lm-city { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
-    .lm-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-    .lm-date-block { display: flex; flex-direction: column; gap: 2px; }
-    .lm-date-main { font-size: 13px; color: var(--text-2); font-weight: 600; }
-    .lm-date-time { font-size: 11px; color: var(--text-3); }
-    .lm-divider { height: 1px; background: var(--border-2); margin: 2px 0; }
-    .listing-modal__desc { font-size: 13px; color: var(--text-2); line-height: 1.8; max-height: 35vh; overflow-y: auto; }
-    .lm-host-btn { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; text-decoration: none; transition: border-color var(--t-fast), background var(--t-fast); width: 100%; box-sizing: border-box; }
-    .lm-host-btn:hover { border-color: var(--accent-border); background: var(--accent-dim); }
-    .lm-host-avatar { width: 36px; height: 36px; border-radius: 50%; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-    .lm-host-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-    .lm-host-name { font-size: 13px; font-weight: 600; color: var(--text); }
-    .lm-host-handle { font-size: 11px; color: var(--text-3); margin-top: 1px; }
-    .lm-host-arrow { margin-left: auto; color: var(--text-3); font-size: 14px; }
-    .lm-foot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -205,126 +206,62 @@
   <main class="page-content">
 
     <div class="tours-header">
-      <div class="tours-header__titles">
-        <div class="page-title">Meets</div>
-        <div class="page-subtitle" style="margin-bottom: 14px;"><span style="color:#fff;">Experiment</span> with <span style="color:var(--accent);">mates</span></div>
-        <div class="tab-bar">
-          <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this, 'discover')">Discover</div>
-          <div class="tab-bar__item" onclick="switchTab(this, 'meetups')">My Meets</div>
-        </div>
-      </div>
-      <a href="/listings/new" class="tours-fab" title="New listing">+</a>
-    </div>
-
-    <!-- Host filter banner (shown when coming from Explore) -->
-    <div id="host-filter-banner" style="display:none;align-items:center;gap:8px;margin:10px 18px 0;padding:8px 14px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:var(--radius-sm);font-size:11px;color:var(--accent);letter-spacing:0.04em;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <span></span>
-      <a href="/tours" style="margin-left:auto;font-size:10px;color:var(--text-3);text-decoration:none;letter-spacing:0.06em;">Clear ✕</a>
-    </div>
-
-    <!-- IRL notice — always visible above both tabs -->
-    <div class="irl-notice">
-      🤝&nbsp; Experimate is IRL only — no messages, just meetups.
-    </div>
-
-    <!-- ── DISCOVER TAB ── -->
-    <div id="tab-discover">
-      <!-- Sort + filter controls -->
-      <div id="discover-controls" style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px 2px;gap:8px;">
-        <div style="display:flex;gap:5px;align-items:center;">
-          <span style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">Sort by date</span>
-          <div id="sort-btn-asc" class="pill pill--active" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('asc')">Ascending</div>
-          <div id="sort-btn-desc" class="pill" style="font-size:10px;padding:4px 10px;" onclick="setDiscoverSort('desc')">Descending</div>
-        </div>
-        <div id="pill-avail-discover" class="pill" style="font-size:10px;padding:4px 10px;" onclick="toggleDiscoverAvailable(this)">Available only</div>
-      </div>
-
-      <div id="listings-list" class="listings-list">
-        <!-- Skeleton loading state -->
-        <div class="skeleton-card" id="sk1">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
-              <div class="skeleton skeleton-line skeleton-line--lg skeleton-line--w-half"></div>
-              <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-3q"></div>
-            </div>
-            <div class="skeleton skeleton-line skeleton-line--sm" style="width:70px;margin-left:12px;"></div>
-          </div>
-          <div class="skeleton skeleton-line skeleton-line--w-full"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-            <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-third"></div>
-            <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
-          </div>
-        </div>
-        <div class="skeleton-card" id="sk2">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
-              <div class="skeleton skeleton-line skeleton-line--lg" style="width:40%;"></div>
-              <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-half"></div>
-            </div>
-            <div class="skeleton skeleton-line skeleton-line--sm" style="width:60px;margin-left:12px;"></div>
-          </div>
-          <div class="skeleton skeleton-line skeleton-line--w-full"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-half"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-            <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-third"></div>
-            <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
-          </div>
-        </div>
-        <div class="skeleton-card" id="sk3">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
-              <div class="skeleton skeleton-line skeleton-line--lg skeleton-line--w-3q"></div>
-              <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-half"></div>
-            </div>
-            <div class="skeleton skeleton-line skeleton-line--sm" style="width:65px;margin-left:12px;"></div>
-          </div>
-          <div class="skeleton skeleton-line skeleton-line--w-full"></div>
-          <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
-            <div class="skeleton skeleton-line skeleton-line--sm skeleton-line--w-third"></div>
-            <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
-          </div>
-        </div>
+      <div class="page-title">Meets</div>
+      <div class="page-subtitle" style="margin-bottom:14px;">Manage your days</div>
+      <div class="tab-bar">
+        <button class="tab-bar__filter" id="filter-btn" onclick="openFilterDialog()" title="Filter &amp; Sort">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 4h12M4 8h8M6 12h4"/>
+          </svg>
+        </button>
+        <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this,'meets')">My Meets</div>
+        <div class="tab-bar__item" onclick="switchTab(this,'listings')">My Listings</div>
+        <div class="tab-bar__item" id="tab-requests-item" onclick="switchTab(this,'requests')">Requests</div>
       </div>
     </div>
 
-    <!-- ── MY MEETUPS TAB ── -->
-    <div id="tab-meetups" hidden style="flex-direction: column; gap: 0;">
-      <!-- Sub-tab bar: Joined / Hosted / Open Days -->
-      <div style="padding: 0 18px; border-bottom: 1px solid var(--border);">
-        <div class="tab-bar">
-          <div class="tab-bar__item tab-bar__item--active" onclick="switchMeetupTab(this,'guest')">Joined</div>
-          <div class="tab-bar__item" onclick="switchMeetupTab(this,'host')">Hosted</div>
-          <div class="tab-bar__item" onclick="switchMeetupTab(this,'listings')">Open Meets</div>
-        </div>
-      </div>
+    <!-- ── MY MEETS TAB ── -->
+    <div id="tab-meets" style="display:flex;flex-direction:column;gap:0;">
+      <div id="meets-panel" style="display:flex;flex-direction:column;gap:14px;padding:14px 18px 32px;"></div>
+    </div>
 
-      <!-- Guest view -->
-      <div id="meetup-panel-guest" style="display:flex;flex-direction:column;gap:14px;padding:14px 18px;">
-        <div class="section-label">Upcoming</div>
-        <div id="meetups-upcoming"></div>
-        <div class="section-label" style="margin-top: 8px;">Past</div>
-        <div id="meetups-past"></div>
-      </div>
+    <!-- ── MY LISTINGS TAB ── -->
+    <div id="tab-listings" style="display:none;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
 
-      <!-- Host view -->
-      <div id="meetup-panel-host" style="display:none;flex-direction:column;gap:14px;padding:14px 18px;">
-        <div class="section-label">Incoming guests</div>
-        <div id="host-upcoming"></div>
-        <div class="section-label" style="margin-top: 8px;">Past tours hosted</div>
-        <div id="host-past"></div>
-      </div>
+    <!-- ── REQUESTS TAB ── -->
+    <div id="tab-requests" style="display:none;flex-direction:column;gap:0;">
+      <div id="requests-panel" style="display:flex;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
+    </div>
 
-      <!-- Open Days view -->
-      <div id="meetup-panel-listings" style="display:none;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
+    <div style="padding:0 18px 32px;display:flex;flex-direction:column;gap:10px;">
+      <a href="/listings/new" class="btn btn--primary" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+        <span style="font-size:18px;line-height:1;">+</span> New Meet
+      </a>
+      <a href="/map" class="btn btn--ghost" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        Browse Available Meets
+      </a>
     </div>
 
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
+</div>
+
+<!-- ── FILTER BACKDROP + SHEET ── -->
+<div id="filter-backdrop" class="filter-backdrop" onclick="closeFilterDialog()"></div>
+<div id="filter-sheet" class="filter-sheet">
+  <div class="filter-sheet__handle"></div>
+  <div class="filter-sheet__header">
+    <div class="filter-sheet__title">Filter &amp; Sort</div>
+    <button class="filter-sheet__close" onclick="closeFilterDialog()">×</button>
+  </div>
+  <div id="filter-sheet-body"></div>
+  <div class="filter-sheet__actions">
+    <button class="btn btn--ghost" onclick="resetFilter()">Reset</button>
+    <button class="btn btn--primary" onclick="applyFilter()">Apply</button>
+  </div>
 </div>
 
 <!-- ── COUNTDOWN BAR ── -->
@@ -355,37 +292,6 @@
   </div>
 </div>
 
-<!-- ── LISTING DETAIL MODAL ── -->
-<div id="listing-modal" class="modal-backdrop">
-  <div class="modal-card lm-card" style="max-height:88vh;overflow-y:auto;gap:16px;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
-      <div id="lm-city" class="lm-city"></div>
-      <div class="lm-date-block" style="text-align:right;flex-shrink:0;padding-top:3px;">
-        <div id="lm-date-main" class="lm-date-main"></div>
-        <div id="lm-date-time" class="lm-date-time"></div>
-      </div>
-    </div>
-    <div class="lm-divider"></div>
-    <div id="lm-desc" class="listing-modal__desc"></div>
-    <div class="lm-divider"></div>
-    <a id="lm-host-btn" class="lm-host-btn">
-      <div id="lm-host-avatar" class="lm-host-avatar"></div>
-      <div>
-        <div id="lm-host-name" class="lm-host-name"></div>
-        <div id="lm-host-handle" class="lm-host-handle"></div>
-      </div>
-      <div class="lm-host-arrow">›</div>
-    </a>
-    <div id="lm-foot" class="lm-foot"></div>
-    <div class="modal-actions" style="margin-top:0;">
-      <button onclick="closeListingModal()" class="btn btn--ghost">Close</button>
-      <button onclick="shareListing()" class="btn btn--ghost" style="flex:0;padding:0 14px;" title="Copy link">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- ── RATING MODAL ── -->
 <div id="rating-modal" class="modal-backdrop">
   <div class="modal-card">
@@ -410,218 +316,56 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  let _allListings  = [];   // full API response — never filtered (used by modal lookup)
-  let _baseListings = [];   // after host-filter; source for discover controls
-  let _currentListingId = null;
-  let _discoverSort          = 'asc';   // 'asc' = soonest first
-  let _discoverAvailableOnly = false;
-  let _discoverCity          = 'all';
-  let _userCache = {};      // username → UserResponse (for photos)
+  let _userCache = {};
+  let _activeTab = 'meets';
+  let _loadedData = {};
+  let _pages = {};
+  let _filterState = {
+    meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
+    listings: { direction: 'ASC' },
+    requests: { flowDirection: 'incoming', status: 'PENDING', reqDir: 'DESC', meetDir: 'ASC' }
+  };
+  let _pendingFilter = {};
 
-  /* ── Listing detail modal ── */
-  function openListingModal(listingId) {
-    _currentListingId = listingId;
-    const listing = _allListings.find(l => l.id === listingId);
-    if (!listing) return;
-    const currentUserId = Auth.getUserId();
-    const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
-    const hostHandle = listing.host?.username ?? '';
-
-    // City + date
-    document.getElementById('lm-city').textContent = listing.city;
-    document.getElementById('lm-date-main').textContent = fmtDate(listing.meetingDate);
-    document.getElementById('lm-date-time').textContent = fmtTime(listing.meetingDate);
-
-    // Description
-    document.getElementById('lm-desc').textContent = listing.tourDescription;
-
-    // Host card
-    const hostBtn = document.getElementById('lm-host-btn');
-    hostBtn.href = `/profile/${hostHandle}`;
-    const u = _userCache[hostHandle];
-    const hue = hostHandle.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-    const photoUrl = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
-    const now = new Date();
-    const hostOtherUpcoming = _allListings.filter(l =>
-      l.id !== listing.id && l.host?.username === hostHandle &&
-      !l.reserved && new Date(l.meetingDate) > now
-    ).length;
-    document.getElementById('lm-host-avatar').innerHTML = photoUrl
-      ? `<img src="${photoUrl}" alt="">`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:hsl(${hue},60%,72%);">${((u?.firstName?.[0] ?? '') + (u?.lastName?.[0] ?? '')).toUpperCase() || hostHandle[0]?.toUpperCase() || '?'}</div>`;
-    document.getElementById('lm-host-name').textContent = hostName + (hostOtherUpcoming > 0 ? `  +${hostOtherUpcoming} more day${hostOtherUpcoming > 1 ? 's' : ''}` : '');
-    document.getElementById('lm-host-handle').textContent = `@${hostHandle}`;
-
-    // Footer: status dot + map + reserve
-    const isOwn    = currentUserId && listing.host?.username === Auth.getUsername();
-    const myReq    = _myRequests[listing.id];
-    const reqStatus = myReq?.status;
-    const hasCoords = listing.lat != null && listing.lng != null;
-    const mapBtn = hasCoords
-      ? `<button class="btn btn--ghost" style="height:40px;font-size:11px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
-      : '';
-    const reserveBtn = isOwn ? ''
-      : listing.reserved
-        ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`
-      : reqStatus === 'PENDING'
-        ? `<button class="btn" style="height:40px;font-size:11px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
-      : reqStatus === 'ACCEPTED'
-        ? `<button class="btn" style="height:40px;font-size:11px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
-      : reqStatus === 'DECLINED'
-        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Meet ${listing.host?.firstName || 'Mate'} again</button>`
-      : currentUserId
-        ? `<button class="btn btn--primary" style="height:40px;font-size:11px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Meet ${listing.host?.firstName || 'Mate'}</button>`
-        : `<a href="/login" class="btn btn--ghost" style="height:40px;font-size:11px;">Sign in to join</a>`;
-    const dotColor = listing.reserved ? 'var(--text-3)' : reqStatus === 'PENDING' ? '#ff9944' : reqStatus === 'DECLINED' ? 'rgba(255,80,80,0.7)' : 'var(--accent)';
-    const dotLabel = listing.reserved ? 'Joined' : reqStatus === 'PENDING' ? 'Pending' : reqStatus === 'ACCEPTED' ? 'Accepted' : reqStatus === 'DECLINED' ? 'Declined' : 'Available';
-    const dot = `<div style="display:flex;align-items:center;gap:6px;margin-right:auto;">
-      <div style="width:7px;height:7px;border-radius:50%;background:${dotColor};${!listing.reserved && !reqStatus ? 'box-shadow:0 0 6px var(--accent);' : ''}"></div>
-      <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};font-weight:600;">${dotLabel}</div>
-    </div>`;
-    document.getElementById('lm-foot').innerHTML = dot + mapBtn + reserveBtn;
-    document.getElementById('listing-modal').classList.add('modal-backdrop--visible');
-  }
-  function closeListingModal() {
-    document.getElementById('listing-modal').classList.remove('modal-backdrop--visible');
-  }
-  function shareListing() {
-    if (!_currentListingId) return;
-    const url = window.location.origin + '/tours?listing=' + _currentListingId;
-    navigator.clipboard.writeText(url)
-      .then(() => showToast('Link copied!'))
-      .catch(() => showToast('Could not copy link'));
-  }
-  document.getElementById('listing-modal').addEventListener('click', function(e) { if (e.target === this) closeListingModal(); });
-
-
-  /* ── Host filter from URL ── */
-  const _hostFilter   = new URLSearchParams(window.location.search).get('host');
-  const _listingParam = new URLSearchParams(window.location.search).get('listing');
-  const _listingDeepLink = _listingParam ? parseInt(_listingParam, 10) : null;
-
-  /* ── Discover controls ── */
-  function filterCity(city) {
-    _discoverCity = city;
-    applyDiscover();
-  }
-
-  function setDiscoverSort(val) {
-    _discoverSort = val;
-    document.getElementById('sort-btn-asc').classList.toggle('pill--active', val === 'asc');
-    document.getElementById('sort-btn-desc').classList.toggle('pill--active', val === 'desc');
-    applyDiscover();
-  }
-
-  function toggleDiscoverAvailable(el) {
-    _discoverAvailableOnly = !_discoverAvailableOnly;
-    el.classList.toggle('pill--active', _discoverAvailableOnly);
-    applyDiscover();
-  }
-
-  function applyDiscover() {
-    let items = _baseListings.slice();
-    if (_discoverCity !== 'all') items = items.filter(l => l.city === _discoverCity);
-    if (_discoverAvailableOnly) items = items.filter(l => !l.reserved);
-    items.sort((a, b) => {
-      const da = new Date(a.meetingDate), db = new Date(b.meetingDate);
-      return _discoverSort === 'asc' ? da - db : db - da;
+  /* ── Tab switcher ── */
+  function switchTab(el, tab) {
+    _activeTab = tab;
+    document.querySelectorAll('.tours-header .tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
+    el.classList.add('tab-bar__item--active');
+    ['meets','listings','requests'].forEach(id => {
+      const panel = document.getElementById('tab-' + id);
+      if (panel) panel.style.display = (id === tab) ? 'flex' : 'none';
     });
-    renderListingCards(items);
   }
-
-  /* ── View on map ── */
-  function goToMap(btn) {
-    sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
-    window.location.href = '/map';
-  }
-
-  /* ── Reserve listing ── */
-  function reserveListing(btn) {
-    const listingId = parseInt(btn.dataset.listingId, 10);
-    if (!Auth.getToken()) { window.location.href = '/login'; return; }
-    btn.disabled = true;
-    btn.textContent = 'Sending...';
-    BookingRequestAPI.create({ listingId })
-      .then(res => {
-        _myRequests[listingId] = { status: 'PENDING', id: res?.id };
-        showToast('Request sent!', 'success');
-        btn.disabled = true;
-        btn.textContent = 'Pending';
-        btn.classList.remove('btn--primary');
-        btn.style.cssText += ';border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);';
-        const card = btn.closest('.listing-card');
-        if (card) {
-          const dot = card.querySelector('.listing-card__foot [style*="border-radius:50%"]');
-          const label = card.querySelector('.listing-card__status');
-          if (dot) dot.style.background = '#ff9944';
-          if (label) { label.textContent = 'Pending'; label.classList.remove('listing-card__status--available'); }
-          const foot = card.querySelector('.listing-card__foot');
-          if (foot) {
-            const nextSteps = document.createElement('div');
-            nextSteps.style.cssText = 'width:100%;margin-top:8px;padding:8px 12px;background:rgba(255,153,68,0.06);border:1px solid rgba(255,153,68,0.2);border-radius:8px;font-size:10px;color:rgba(255,153,68,0.9);letter-spacing:0.02em;line-height:1.6;';
-            nextSteps.innerHTML = '⏳ Request sent — the host will respond soon. Track it in <a href="/requests" style="color:inherit;text-decoration:underline;">Requests</a>.';
-            foot.insertAdjacentElement('afterend', nextSteps);
-          }
-        }
-      })
-      .catch(err => { showToast(err.message || 'Request failed — please try again.', 'error'); btn.disabled = false; btn.textContent = btn.dataset.originalLabel || 'Meet'; });
-  }
-
-  /* ── Cancel modal ── */
-  let _cancelResId = null, _cancelBtn = null;
 
   /* ── Countdown bar + Active tour takeover ── */
   let _countdownInterval = null;
-  let _activeTourResId = null;
+  let _activeTourResId   = null;
 
-  function initCountdownAndTakeover(asGuest) {
+  function initCountdownAndTakeover(joinedUpcoming) {
     if (!Auth.getToken()) return;
-
-    // If a tour was marked active in a previous session, show takeover immediately
     const stored = localStorage.getItem('activeTour');
     if (stored) {
-      try {
-        const active = JSON.parse(stored);
-        _activeTourResId = active.resId;
-        showTakeover(active);
-        return;
-      } catch(e) { localStorage.removeItem('activeTour'); }
+      try { const active = JSON.parse(stored); _activeTourResId = active.resId; showTakeover(active); return; }
+      catch(e) { localStorage.removeItem('activeTour'); }
     }
-
-    // Find soonest upcoming CONFIRMED/ACTIVE tour within 1 hour
-    const mine = (asGuest || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
     const now = new Date();
     const ONE_HOUR = 60 * 60 * 1000;
-    const soon = mine
-      .filter(r => {
-        const diff = new Date(r.tourListing.meetingDate) - now;
-        return diff > 0 && diff <= ONE_HOUR;
-      })
-      .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
-
+    const soon = (joinedUpcoming || [])
+                     .filter(r => r.status !== 'CANCELLED')
+                     .filter(r => { const diff = new Date(r.tourListing.meetingDate) - now; return diff > 0 && diff <= ONE_HOUR; })
+                     .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
     if (!soon.length) return;
-
     const next = soon[0];
     const meetTime = new Date(next.tourListing.meetingDate);
-    const hostName = next.tourListing.host
-      ? next.tourListing.host.firstName + ' ' + next.tourListing.host.lastName
-      : 'your Mate';
-
-    document.getElementById('countdown-label').textContent =
-      `${next.tourListing.city} · ${hostName} in`;
+    const hostName = next.tourListing.host ? next.tourListing.host.firstName + ' ' + next.tourListing.host.lastName : 'your Mate';
+    document.getElementById('countdown-label').textContent = `${next.tourListing.city} · ${hostName} in`;
     document.getElementById('countdown-bar').classList.add('countdown-bar--visible');
-
     function tick() {
       const remaining = meetTime - new Date();
-      if (remaining <= 0) {
-        clearInterval(_countdownInterval);
-        document.getElementById('countdown-bar').classList.remove('countdown-bar--visible');
-        return;
-      }
+      if (remaining <= 0) { clearInterval(_countdownInterval); document.getElementById('countdown-bar').classList.remove('countdown-bar--visible'); return; }
       const totalSecs = Math.floor(remaining / 1000);
-      const h = Math.floor(totalSecs / 3600);
-      const m = Math.floor((totalSecs % 3600) / 60);
-      const s = totalSecs % 60;
+      const h = Math.floor(totalSecs / 3600), m = Math.floor((totalSecs % 3600) / 60), s = totalSecs % 60;
       document.getElementById('countdown-timer').textContent = h > 0
         ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
         : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
@@ -631,35 +375,27 @@
   }
 
   function showTakeover(active) {
-    document.getElementById('takeover-info').innerHTML =
-      `<strong style="color:var(--text);">${active.city}</strong><br>with ${active.hostName}`;
+    document.getElementById('takeover-info').innerHTML = `<strong style="color:var(--text);">${active.city}</strong><br>with ${active.hostName}`;
     document.getElementById('tour-takeover').classList.add('tour-takeover--visible');
   }
 
   function endActiveTour() {
     const btn = document.getElementById('end-tour-btn');
-    btn.disabled = true;
-    btn.textContent = 'Ending...';
+    btn.disabled = true; btn.textContent = 'Ending...';
     ReservationAPI.endTour(_activeTourResId)
       .then(() => {
         localStorage.removeItem('activeTour');
         document.getElementById('tour-takeover').classList.remove('tour-takeover--visible');
-        sessionStorage.setItem('openTab', 'meetups');
-        showToast('Meet ended! Rate your Mate in My Meets.', 'success');
+        showToast('Meet ended! Rate your Mate below.', 'success');
         setTimeout(() => window.location.reload(), 1200);
       })
-      .catch(err => {
-        btn.disabled = false;
-        btn.textContent = 'End Day';
-        showToast(err.message || 'Could not end day — try again.', 'error');
-      });
+      .catch(err => { btn.disabled = false; btn.textContent = 'End Day'; showToast(err.message || 'Could not end day — try again.', 'error'); });
   }
 
   /* ── Check-in ── */
   function checkIn(btn) {
     const resId = parseInt(btn.dataset.resId, 10);
-    btn.disabled = true;
-    btn.textContent = '...';
+    btn.disabled = true; btn.textContent = '...';
     ReservationAPI.checkIn(resId)
       .then(res => {
         if (res.guestCheckedIn && res.hostCheckedIn) {
@@ -676,12 +412,11 @@
           showToast('Checked in! Waiting for your Mate.', 'success');
         }
       })
-      .catch(err => {
-        btn.disabled = false;
-        btn.textContent = "I'm here";
-        showToast(err.message || 'Check-in failed — try again.', 'error');
-      });
+      .catch(err => { btn.disabled = false; btn.textContent = "I'm here"; showToast(err.message || 'Check-in failed — try again.', 'error'); });
   }
+
+  /* ── Cancel modal ── */
+  let _cancelResId = null, _cancelBtn = null;
 
   function openCancelModal(btn) {
     _cancelResId = parseInt(btn.dataset.resId, 10);
@@ -722,184 +457,59 @@
   }
   function setRating(val) {
     _ratingScore = val;
-    document.querySelectorAll('.star-picker__star').forEach(s => {
-      s.classList.toggle('star-picker__star--active', parseInt(s.dataset.val) <= val);
-    });
+    document.querySelectorAll('.star-picker__star').forEach(s => s.classList.toggle('star-picker__star--active', parseInt(s.dataset.val) <= val));
   }
   async function submitRating() {
     if (_ratingScore === 0) { showToast('Please select a star rating.', 'warn'); return; }
     const submitBtn = document.getElementById('rating-submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true; submitBtn.textContent = 'Submitting...';
     try {
       const users = await UserAPI.getAll();
-      const host = users.find(u => u.username === _ratingHostUsername);
+      const host  = users.find(u => u.username === _ratingHostUsername);
       if (!host) throw new Error('Host not found.');
-      await RatingAPI.create({
-        ratedId: host.id,
-        score: _ratingScore,
-        review: document.getElementById('rating-review').value.trim() || null,
-      });
+      await RatingAPI.create({ ratedId: host.id, score: _ratingScore, review: document.getElementById('rating-review').value.trim() || null });
       localStorage.setItem('rated_' + _ratingResId, '1');
-      if (_ratingBtn) {
-        _ratingBtn.outerHTML = `<div class="badge--rated">Rated ✓</div>`;
-      }
+      if (_ratingBtn) _ratingBtn.outerHTML = `<div class="badge--rated">Rated ✓</div>`;
       showToast('Rating submitted!', 'success');
       closeRatingModal();
     } catch (e) {
       showToast(e.message || 'Could not submit rating — try again.', 'error');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
+      submitBtn.disabled = false; submitBtn.textContent = 'Submit';
     }
   }
   document.getElementById('rating-modal').addEventListener('click', function(e) { if (e.target === this) closeRatingModal(); });
 
-  /* ── Render listings — set up state + city pills, then delegate to applyDiscover ── */
-  function renderListings(listings) {
-    _allListings = listings || [];
+  /* ── Render My Meets (guest) ── */
+  function renderMeetsPanel() {
+    const el = document.getElementById('meets-panel');
+    if (!Auth.getToken()) { el.innerHTML = `<div class="meet-empty"><div class="meet-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`; return; }
+    const { role, timeframe, direction } = _filterState.meets;
+    const isJoined = role === 'joined';
+    const isPast   = timeframe === 'past';
 
-    // Apply host filter if coming from Explore
-    _baseListings = _allListings.slice();
-    if (_hostFilter) {
-      _baseListings = _baseListings.filter(l => l.host && l.host.username === _hostFilter);
-      const banner = document.getElementById('host-filter-banner');
-      if (banner) { banner.querySelector('span').textContent = `Showing tours by @${_hostFilter}`; banner.style.display = 'flex'; }
-    }
+    let items = isJoined
+      ? (isPast ? _loadedData.joinedPast : _loadedData.joinedUpcoming)
+      : (isPast ? _loadedData.hostedPast : _loadedData.hostedUpcoming);
+    items = (items || []).filter(r => r.status !== 'CANCELLED');
+    if (direction === 'DESC') items = [...items].reverse();
 
-    if (_baseListings.length === 0) {
-      document.getElementById('listings-list').innerHTML = `
-        <div class="listings-empty">
-          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></div>
-          <div class="listings-empty__title">No Meets yet</div>
-          <div class="listings-empty__sub">Be the first to host a local experience.</div>
-          <a href="/listings/new" class="btn btn--primary" style="margin-top:8px;height:40px;padding:0 22px;font-size:12px;">+ Create a listing</a>
-        </div>`;
-      return;
-    }
-
-    applyDiscover();
-  }
-
-  /* ── Render listing cards (called by applyDiscover) ── */
-  function renderListingCards(listings) {
-    const currentUserId = Auth.getUserId();
-    const list = document.getElementById('listings-list');
-
-    if (!listings.length) {
-      list.innerHTML = `
-        <div class="listings-empty">
-          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-          <div class="listings-empty__title">No matches</div>
-          <div class="listings-empty__sub">Try changing the city or filter.</div>
-        </div>`;
-      return;
-    }
-
-    list.innerHTML = listings.map((listing, i) => {
-      const reserved = listing.reserved;
-      const hasCoords = listing.lat != null && listing.lng != null;
-      const mapBtn = hasCoords ? `<button class="btn btn--ghost" style="height:36px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>` : '';
-      const isOwnListing = currentUserId && listing.host && listing.host.username === Auth.getUsername();
-      const myReq = _myRequests[listing.id];
-      const reqStatus = myReq?.status;
-
-      const statusLabel = reserved ? 'Joined'
-        : reqStatus === 'PENDING'   ? 'Pending'
-        : reqStatus === 'ACCEPTED'  ? 'Accepted'
-        : reqStatus === 'DECLINED'  ? 'Declined'
-        : 'Available';
-      const dotColor = reserved ? 'var(--text-3)'
-        : reqStatus === 'PENDING'  ? '#ff9944'
-        : reqStatus === 'ACCEPTED' ? 'var(--accent)'
-        : reqStatus === 'DECLINED' ? 'rgba(255,80,80,0.7)'
-        : 'var(--accent)';
-      const dotGlow = (!reserved && !reqStatus) ? 'box-shadow:0 0 6px var(--accent);' : '';
-      const statusColor = reserved ? '' : reqStatus === 'DECLINED' ? 'color:rgba(255,80,80,0.7);' : (!reqStatus ? 'listing-card__status--available' : '');
-
-      const reserveBtn = isOwnListing ? ''
-        : reserved
-          ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`
-        : reqStatus === 'PENDING'
-          ? `<button class="btn" style="height:36px;font-size:10px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
-        : reqStatus === 'ACCEPTED'
-          ? `<button class="btn" style="height:36px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`
-        : reqStatus === 'DECLINED'
-          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'} again</button>`
-        : currentUserId
-          ? `<button class="btn btn--primary" style="height:36px;font-size:10px;" data-listing-id="${listing.id}" onclick="reserveListing(this)">Join ${listing.host?.firstName || 'Mate'}</button>`
-          : `<a href="/login" class="btn btn--ghost" style="height:36px;font-size:10px;">Sign in to join</a>`;
-
-      const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '?';
-      const hostHandle = listing.host ? listing.host.username : '?';
-      const _cardStatusClass = reserved ? ' listing-card--reserved'
-        : reqStatus === 'PENDING'  ? ' listing-card--pending'
-        : reqStatus === 'DECLINED' ? ' listing-card--declined'
-        : ' listing-card--available';
-      return `
-        <div class="listing-card anim-fade-up${_cardStatusClass}" data-listing-id="${listing.id}" style="animation-delay:${i * 0.04}s;cursor:pointer;" onclick="openListingModal(${listing.id})">
-          <div class="listing-card__head">
-            <div style="flex:1;min-width:0;">
-              <div class="listing-card__city">${listing.city}</div>
-              <div style="display:flex;align-items:center;gap:7px;margin-top:5px;">
-                ${userAvatar(hostHandle, 22, _userCache[hostHandle])}
-                <a href="/profile/${hostHandle}" class="listing-card__host" style="text-decoration:none;" onclick="event.stopPropagation()">${hostName} · <span style="color:var(--text-3);">@${hostHandle}</span></a>
-              </div>
-            </div>
-            <div style="text-align:right;flex-shrink:0;padding-top:2px;">
-              <div class="listing-card__date">${fmtDate(listing.meetingDate)}</div>
-              <div style="font-size:9px;color:var(--text-3);letter-spacing:0.04em;margin-top:2px;">${fmtTime(listing.meetingDate)}</div>
-            </div>
-          </div>
-          <div class="listing-card__desc">${listing.tourDescription}</div>
-          <div class="listing-card__foot">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};flex-shrink:0;${dotGlow}"></div>
-              <div class="listing-card__status ${statusColor}">${statusLabel}</div>
-            </div>
-            <div style="display:flex;gap:6px;align-items:center;" onclick="event.stopPropagation()">${mapBtn}${reserveBtn}</div>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  /* ── Render meetups ── */
-  function renderMeetups(asGuest) {
-    const upcomingEl = document.getElementById('meetups-upcoming');
-    const pastEl     = document.getElementById('meetups-past');
-
-    if (!Auth.getToken()) {
-      upcomingEl.innerHTML = `<div class="meet-empty"><div class="empty-icon" style="margin-bottom:4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="meet-empty__title">Not signed in</div><div class="meet-empty__sub">Sign in to see your meetups.</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
-      pastEl.innerHTML = '';
-      return;
-    }
-
-    const mine = (asGuest || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
-    const now   = new Date();
-    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now);
-    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now);
-
-    const mkCard = (res, isPast) => {
+    const mkJoinedCard = (res) => {
       const d = new Date(res.tourListing.meetingDate);
       const alreadyRated = !!localStorage.getItem('rated_' + res.id);
       const hostUsername = res.tourListing.host?.username ?? '';
       const hostName = res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?';
       const actionEl = isPast
-        ? (alreadyRated
-            ? `<div class="badge--rated">Rated ✓</div>`
-            : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">Rate</button>`)
+        ? (alreadyRated ? `<div class="badge--rated">Rated ✓</div>` : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">Rate</button>`)
         : `<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
              <button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>
              <button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>
            </div>`;
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
-          <div class="meet-card__date">
-            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
-          </div>
+          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
-            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${hostName}</span></div>
+            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span>${hostName}</span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
             <div class="meet-card__booked">Joined ${fmtDate(res.dateOfReservation)}</div>
           </div>
@@ -907,158 +517,323 @@
         </div>`;
     };
 
-    upcomingEl.innerHTML = upcoming.length ? upcoming.map(r => mkCard(r, false)).join('') : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming meets.</div>';
-    pastEl.innerHTML     = past.length     ? past.map(r => mkCard(r, true)).join('')     : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past meets yet.</div>';
-  }
-
-  /* ── Sub-tab switcher for My Days ── */
-  function switchMeetupTab(el, panel) {
-    el.closest('.tab-bar').querySelectorAll('.tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
-    el.classList.add('tab-bar__item--active');
-    document.getElementById('meetup-panel-guest').style.display    = panel === 'guest'    ? 'flex' : 'none';
-    document.getElementById('meetup-panel-host').style.display     = panel === 'host'     ? 'flex' : 'none';
-    document.getElementById('meetup-panel-listings').style.display = panel === 'listings' ? 'flex' : 'none';
-  }
-
-  /* ── Render host meetups ── */
-  function renderHostMeetups(asHost) {
-    const upcomingEl = document.getElementById('host-upcoming');
-    const pastEl     = document.getElementById('host-past');
-    if (!Auth.getToken()) return;
-
-    const mine = (asHost || []).filter(r => r.status !== 'CANCELLED' && r.status !== 'EXPIRED');
-    const now  = new Date();
-    const upcoming = mine.filter(r => new Date(r.tourListing.meetingDate) >= now)
-                         .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
-    const past     = mine.filter(r => new Date(r.tourListing.meetingDate) < now)
-                         .sort((a, b) => new Date(b.tourListing.meetingDate) - new Date(a.tourListing.meetingDate));
-
-    const mkHostCard = (res, isPast) => {
+    const mkHostedCard = (res) => {
       const d = new Date(res.tourListing.meetingDate);
-      const guestName = res.guest ? res.guest.firstName + ' ' + res.guest.lastName : '?';
+      const guestName   = res.guest ? res.guest.firstName + ' ' + res.guest.lastName : '?';
       const guestHandle = res.guest?.username ?? '';
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
-          <div class="meet-card__date">
-            <div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div>
-            <div class="meet-card__month">${_MONTHS[d.getMonth()]}</div>
-          </div>
+          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
-            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;overflow:visible;">${userAvatar(guestHandle, 26, _userCache[guestHandle])}<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
+            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(guestHandle, 26, _userCache[guestHandle])}<span>${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
             <div class="meet-card__where">${res.tourListing.city}</div>
             <div class="meet-card__booked">${fmtDate(res.tourListing.meetingDate)} · ${fmtTime(res.tourListing.meetingDate)}</div>
           </div>
-          ${!isPast ? `<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
-            <button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>
-          </div>` : '<div class="badge--rated" style="opacity:0.5;">Past</div>'}
+          ${!isPast ? `<button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>` : '<div class="badge--rated" style="opacity:0.5;">Past</div>'}
         </div>`;
     };
 
-    upcomingEl.innerHTML = upcoming.length
-      ? upcoming.map(r => mkHostCard(r, false)).join('')
-      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No upcoming Mates.</div>';
-    pastEl.innerHTML = past.length
-      ? past.map(r => mkHostCard(r, true)).join('')
-      : '<div style="font-size:11px;color:var(--text-3);padding:4px 0;">No past hosted meets yet.</div>';
+    const mkCard = isJoined ? mkJoinedCard : mkHostedCard;
+    const emptyMsg = isPast
+      ? (isJoined ? 'No past meets yet.' : 'No past hosted meets yet.')
+      : (isJoined ? 'No upcoming meets.' : 'No upcoming Mates.');
+    el.innerHTML = items.length ? items.map(mkCard).join('') : `<div style="font-size:11px;color:var(--text-3);padding:4px 0;">${emptyMsg}</div>`;
   }
 
-  /* ── Render My Listings (host's own listings with delete) ── */
-  function renderMyListings(myListings) {
-    const el = document.getElementById('meetup-panel-listings');
-    if (!Auth.getToken()) {
-      el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to manage your listings.</div>`;
-      return;
+  /* ── Render Requests ── */
+  function renderRequestsPanel() {
+    const el = document.getElementById('requests-panel');
+    if (!Auth.getToken()) { el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to see requests.</div>`; return; }
+
+    const { flowDirection, status } = _filterState.requests;
+    const isIncoming = flowDirection === 'incoming';
+    const pendingArr  = isIncoming ? (_loadedData.incomingPending || [])  : (_loadedData.outgoingPending || []);
+    const declinedArr = isIncoming ? (_loadedData.incomingDeclined || []) : (_loadedData.outgoingDeclined || []);
+    const items = status === 'PENDING' ? pendingArr : declinedArr;
+
+    const tabItem = document.getElementById('tab-requests-item');
+    const badgeCount = (_loadedData.incomingPending || []).length;
+    if (badgeCount > 0) {
+      tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${badgeCount}</span>`;
+    } else {
+      tabItem.textContent = 'Requests';
     }
-    const mine = (myListings || []).sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
-    if (!mine.length) {
+
+    if (!items.length) {
       el.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:10px;text-align:center;">
-          <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
-          <div style="font-size:12px;color:var(--text-3);">You have no listings yet.</div>
-          <a href="/listings/new" class="btn btn--primary" style="margin-top:4px;height:38px;padding:0 20px;font-size:11px;">+ Create one</a>
+        <div class="meet-empty">
+          <div class="meet-empty__icon">📬</div>
+          <div class="meet-empty__title">No ${status.toLowerCase()} ${isIncoming ? 'incoming' : 'outgoing'} requests</div>
+          <div class="meet-empty__sub">${isIncoming ? 'When someone requests to join your listing, it\'ll appear here.' : 'Requests you\'ve sent will appear here.'}</div>
         </div>`;
       return;
     }
-    el.innerHTML = mine.map(listing => {
-      const isPast = new Date(listing.meetingDate) < new Date();
-      const dotColor = listing.reserved ? 'var(--text-3)' : isPast ? 'var(--text-3)' : 'var(--accent)';
-      const dotGlow  = !listing.reserved && !isPast ? 'box-shadow:0 0 5px var(--accent);' : '';
-      const statusLabel = listing.reserved ? 'Joined' : isPast ? 'Past' : 'Available';
+
+    const mkIncomingCard = (r) => {
+      const guestName   = r.user ? r.user.firstName + ' ' + r.user.lastName : '?';
+      const guestHandle = r.user?.username ?? '';
+      const city        = r.tourListing?.city ?? '';
+      const date        = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
+      const actionEl    = r.status === 'PENDING'
+        ? `<div class="req-card__actions">
+             <button class="req-btn req-btn--accept" onclick="handleRequest('accept',${r.id},this)">Accept</button>
+             <button class="req-btn req-btn--decline" onclick="handleRequest('decline',${r.id},this)">Decline</button>
+           </div>`
+        : `<span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span>`;
       return `
-        <div class="listing-card" id="my-listing-${listing.id}" style="opacity:${isPast ? '0.5' : '1'};">
-          <div class="listing-card__head">
+        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-${r.id}">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${userAvatar(guestHandle, 36, _userCache[guestHandle])}
             <div style="flex:1;min-width:0;">
-              <div class="listing-card__city">${listing.city}</div>
-              <div class="listing-card__date" style="margin-top:3px;">${fmtDatetime(listing.meetingDate)}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-              <div style="width:6px;height:6px;border-radius:50%;background:${dotColor};${dotGlow}"></div>
-              <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${dotColor};">${statusLabel}</div>
+              <div class="req-card__who">${guestName}</div>
+              <div class="req-card__meta">@${guestHandle} · ${city} · ${date}</div>
             </div>
           </div>
-          <div class="listing-card__desc">${listing.tourDescription}</div>
-          <div style="display:flex;justify-content:flex-end;">
-            <button class="meet-card__cancel" data-listing-id="${listing.id}" onclick="deleteMyListing(this)">Delete</button>
+          ${actionEl}
+        </div>`;
+    };
+
+    const mkOutgoingCard = (r) => {
+      const hostName   = r.tourListing?.host ? r.tourListing.host.firstName + ' ' + r.tourListing.host.lastName : '?';
+      const hostHandle = r.tourListing?.host?.username ?? '';
+      const city       = r.tourListing?.city ?? '';
+      const date       = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
+      return `
+        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-out-${r.id}">
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${userAvatar(hostHandle, 36, _userCache[hostHandle])}
+            <div style="flex:1;min-width:0;">
+              <div class="req-card__who">${hostName}</div>
+              <div class="req-card__meta">@${hostHandle} · ${city} · ${date}</div>
+            </div>
+            <span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span>
           </div>
         </div>`;
-    }).join('');
+    };
+
+    const mkCard = isIncoming ? mkIncomingCard : mkOutgoingCard;
+    el.innerHTML = items.map(mkCard).join('');
   }
 
-  function deleteMyListing(btn) {
-    const id = parseInt(btn.dataset.listingId, 10);
-    if (!confirm('Delete this listing? This cannot be undone.')) return;
+  async function handleRequest(action, id, btn) {
     btn.disabled = true;
-    TourListingAPI.delete(id)
-      .then(() => {
-        document.getElementById('my-listing-' + id)?.remove();
-        _allListings = _allListings.filter(l => l.id !== id);
-        _baseListings = _baseListings.filter(l => l.id !== id);
-        showToast('Listing deleted.', 'success');
-      })
-      .catch(err => {
-        btn.disabled = false;
-        showToast(err.message || 'Could not delete listing.', 'error');
-      });
+    try {
+      if (action === 'accept') {
+        await BookingRequestAPI.accept(id);
+        document.querySelector(`#req-${id} .req-card__actions`).innerHTML = '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
+        showToast('Request accepted!', 'success');
+      } else {
+        await BookingRequestAPI.decline(id);
+        document.querySelector(`#req-${id} .req-card__actions`).innerHTML = '<span class="req-status-badge req-status-badge--declined">Declined</span>';
+        showToast('Request declined.', 'default');
+      }
+      // Update pending count badge
+      const remaining = document.querySelectorAll('.req-btn--accept').length;
+      const tabItem = document.getElementById('tab-requests-item');
+      if (remaining === 0) tabItem.textContent = 'Requests';
+      else tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${remaining}</span>`;
+    } catch(err) {
+      btn.disabled = false;
+      showToast(err.message || 'Could not process request.', 'error');
+    }
   }
 
-  /* ── Auto-switch tab if flagged (e.g. after ending a tour) ── */
-  (function () {
+  /* ── Filter dialog ── */
+  function openFilterDialog() {
+    _pendingFilter = { ..._filterState[_activeTab] };
+    document.getElementById('filter-sheet-body').innerHTML = buildFilterContent();
+    document.getElementById('filter-backdrop').classList.add('filter-backdrop--visible');
+    document.getElementById('filter-sheet').classList.add('filter-sheet--visible');
+    document.getElementById('filter-btn').classList.add('tab-bar__filter--active');
+  }
+
+  function closeFilterDialog() {
+    document.getElementById('filter-backdrop').classList.remove('filter-backdrop--visible');
+    document.getElementById('filter-sheet').classList.remove('filter-sheet--visible');
+    document.getElementById('filter-btn').classList.remove('tab-bar__filter--active');
+  }
+
+  function selectChip(group, value) {
+    _pendingFilter[group] = value;
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => {
+      c.classList.toggle('filter-chip--active', c.dataset.value === value);
+    });
+  }
+
+  function buildFilterContent() {
+    if (_activeTab === 'meets') {
+      const f = _pendingFilter;
+      return `
+        <div class="filter-group">
+          <div class="filter-group__label">Role</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.role === 'joined' ? 'filter-chip--active' : ''}" data-group="role" data-value="joined" onclick="selectChip('role','joined')">Joined</button>
+            <button class="filter-chip ${f.role === 'hosting' ? 'filter-chip--active' : ''}" data-group="role" data-value="hosting" onclick="selectChip('role','hosting')">Hosting</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group__label">Timeframe</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.timeframe === 'upcoming' ? 'filter-chip--active' : ''}" data-group="timeframe" data-value="upcoming" onclick="selectChip('timeframe','upcoming')">Upcoming</button>
+            <button class="filter-chip ${f.timeframe === 'past' ? 'filter-chip--active' : ''}" data-group="timeframe" data-value="past" onclick="selectChip('timeframe','past')">Past</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group__label">Sort</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.direction === 'ASC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="ASC" onclick="selectChip('direction','ASC')">Oldest first</button>
+            <button class="filter-chip ${f.direction === 'DESC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="DESC" onclick="selectChip('direction','DESC')">Newest first</button>
+          </div>
+        </div>`;
+    }
+    if (_activeTab === 'listings') {
+      const f = _pendingFilter;
+      return `
+        <div class="filter-group">
+          <div class="filter-group__label">Sort</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.direction === 'ASC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="ASC" onclick="selectChip('direction','ASC')">Oldest first</button>
+            <button class="filter-chip ${f.direction === 'DESC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="DESC" onclick="selectChip('direction','DESC')">Newest first</button>
+          </div>
+        </div>`;
+    }
+    if (_activeTab === 'requests') {
+      const f = _pendingFilter;
+      return `
+        <div class="filter-group">
+          <div class="filter-group__label">Direction</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.flowDirection === 'incoming' ? 'filter-chip--active' : ''}" data-group="flowDirection" data-value="incoming" onclick="selectChip('flowDirection','incoming')">Incoming</button>
+            <button class="filter-chip ${f.flowDirection === 'outgoing' ? 'filter-chip--active' : ''}" data-group="flowDirection" data-value="outgoing" onclick="selectChip('flowDirection','outgoing')">Outgoing</button>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-group__label">Status</div>
+          <div class="filter-chips">
+            <button class="filter-chip ${f.status === 'PENDING' ? 'filter-chip--active' : ''}" data-group="status" data-value="PENDING" onclick="selectChip('status','PENDING')">Pending</button>
+            <button class="filter-chip ${f.status === 'DECLINED' ? 'filter-chip--active' : ''}" data-group="status" data-value="DECLINED" onclick="selectChip('status','DECLINED')">Declined</button>
+          </div>
+        </div>`;
+    }
+    return '';
+  }
+
+  function applyFilter() {
+    _filterState[_activeTab] = { ..._pendingFilter };
+    closeFilterDialog();
+    if (_activeTab === 'meets') renderMeetsPanel();
+    else if (_activeTab === 'requests') renderRequestsPanel();
+  }
+
+  function resetFilter() {
+    const defaults = {
+      meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
+      listings: { direction: 'ASC' },
+      requests: { flowDirection: 'incoming', status: 'PENDING' }
+    };
+    _filterState[_activeTab] = { ...defaults[_activeTab] };
+    closeFilterDialog();
+    if (_activeTab === 'meets') renderMeetsPanel();
+    else if (_activeTab === 'requests') renderRequestsPanel();
+  }
+
+  /* ── Auto-switch tab ── */
+  (function() {
     const tab = sessionStorage.getItem('openTab');
     if (tab) {
       sessionStorage.removeItem('openTab');
-      const item = document.querySelector(`.tab-bar__item[onclick*="${tab}"]`);
-      if (item) switchTab(item, tab);
+      const item = document.querySelector(`.tours-header .tab-bar__item[onclick*="${tab}"]`);
+      if (item) item.click();
     }
   })();
 
-  /* ── Load data ── */
-  // _myRequests: map of meetingDate ISO string → { status, id } for current user's booking requests
-  let _myRequests = {};
+  /* ── Scroll pagination helpers ── */
+  function _pageKey() {
+    if (_activeTab === 'meets') {
+      const { role, timeframe } = _filterState.meets;
+      return (role === 'joined' ? 'joined' : 'hosted') + (timeframe === 'upcoming' ? 'Upcoming' : 'Past');
+    }
+    if (_activeTab === 'requests') {
+      const { flowDirection, status } = _filterState.requests;
+      return (flowDirection === 'incoming' ? 'incoming' : 'outgoing') + (status === 'PENDING' ? 'Pending' : 'Declined');
+    }
+    return null;
+  }
 
+  function _loadMoreCurrentTab() {
+    const key   = _pageKey();
+    const state = key ? _pages[key] : null;
+    if (!state || state.loading || state.last) return;
+    state.loading = true;
+
+    let promise;
+    if (_activeTab === 'meets') {
+      const { role, timeframe, direction } = _filterState.meets;
+      promise = ReservationAPI.getMine({ filter: role === 'joined' ? 'joined' : 'hosted', timeframe, direction, page: state.page + 1 });
+    } else if (_activeTab === 'requests') {
+      const { flowDirection, status, reqDir, meetDir } = _filterState.requests;
+      promise = BookingRequestAPI.getMine({ flowDirection, status, requestDateDirection: reqDir || 'DESC', meetingDateDirection: meetDir || 'ASC', page: state.page + 1 });
+    }
+
+    if (!promise) { state.loading = false; return; }
+    promise
+      .then(page => {
+        state.page++;
+        state.last = page.last ?? true;
+        _loadedData[key] = [...(_loadedData[key] || []), ...(page.content || [])];
+        if (_activeTab === 'meets') renderMeetsPanel();
+        else if (_activeTab === 'requests') renderRequestsPanel();
+      })
+      .catch(() => {})
+      .finally(() => { state.loading = false; });
+  }
+
+  window.addEventListener('scroll', () => {
+    if ((window.innerHeight + window.scrollY) < (document.body.scrollHeight - 200)) return;
+    _loadMoreCurrentTab();
+  }, { passive: true });
+
+  /* ── Load data ── */
+  const _empty = { content: [], last: true };
   Promise.all([
-    TourListingAPI.getAll(),
-    ReservationAPI.getMine(),
-    BookingRequestAPI.getAll(),
+    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'upcoming' }).catch(() => _empty),
+    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'past'     }).catch(() => _empty),
+    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'upcoming' }).catch(() => _empty),
+    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'past'     }).catch(() => _empty),
+    BookingRequestAPI.getMine({ status: 'PENDING'  }).catch(() => _empty),
+    BookingRequestAPI.getMine({ status: 'DECLINED' }).catch(() => _empty),
+    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'  }).catch(() => _empty),
+    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => _empty),
     UserAPI.getAll().catch(() => []),
-    TourListingAPI.getMine().catch(() => []),
   ])
-    .then(([listings, myReservations, allRequests, allUsers, myListings]) => {
+    .then(([juP, jpP, huP, hpP, ipP, idP, opP, odP, allUsers]) => {
       (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
-      const currentUsername = Auth.getUsername();
-      _myRequests = {};
-      (allRequests || [])
-        .filter(r => r.user?.username === currentUsername && r.tourListing?.id)
-        .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
-      const asGuest = myReservations?.asGuest ?? [];
-      const asHost  = myReservations?.asHost  ?? [];
-      renderListings(listings);
-      renderMeetups(asGuest);
-      renderHostMeetups(asHost);
-      renderMyListings(myListings ?? []);
-      initCountdownAndTakeover(asGuest);
-      if (_listingDeepLink) openListingModal(_listingDeepLink);
+      const toArr = r => Array.isArray(r) ? r : (r?.content ?? []);
+      _loadedData = {
+        joinedUpcoming:   toArr(juP),
+        joinedPast:       toArr(jpP),
+        hostedUpcoming:   toArr(huP),
+        hostedPast:       toArr(hpP),
+        incomingPending:  toArr(ipP),
+        incomingDeclined: toArr(idP),
+        outgoingPending:  toArr(opP),
+        outgoingDeclined: toArr(odP),
+      };
+      _pages = {
+        joinedUpcoming:   { page: 0, last: juP.last ?? true, loading: false },
+        joinedPast:       { page: 0, last: jpP.last ?? true, loading: false },
+        hostedUpcoming:   { page: 0, last: huP.last ?? true, loading: false },
+        hostedPast:       { page: 0, last: hpP.last ?? true, loading: false },
+        incomingPending:  { page: 0, last: ipP.last ?? true, loading: false },
+        incomingDeclined: { page: 0, last: idP.last ?? true, loading: false },
+        outgoingPending:  { page: 0, last: opP.last ?? true, loading: false },
+        outgoingDeclined: { page: 0, last: odP.last ?? true, loading: false },
+      };
+      renderMeetsPanel();
+      renderRequestsPanel();
+      initCountdownAndTakeover(_loadedData.joinedUpcoming);
     })
-    .catch(() => { renderListings([]); renderMeetups([]); showToast('Could not load tours — check your connection.', 'error'); });
+    .catch(() => showToast('Could not load data — check your connection.', 'error'));
 </script>
 </body>
 </html>
