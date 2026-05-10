@@ -164,7 +164,7 @@ function buildPopupContent(listing) {
   }
 
   const descHtml = listing.tourDescription
-    ? `<div class="popup-desc">${escapeHtml(listing.tourDescription.slice(0, 200))}${listing.tourDescription.length > 200 ? '…' : ''}</div>`
+    ? `<div class="popup-desc">${escapeHtml(listing.tourDescription)}</div>`
     : '';
 
   return `
