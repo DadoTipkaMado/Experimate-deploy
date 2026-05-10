@@ -51,6 +51,11 @@
       position: relative; z-index: 10; padding: 20px 24px 0; flex-shrink: 0;
       display: flex; align-items: center; gap: 14px;
     }
+    .q-instruction {
+      position: relative; z-index: 10; padding: 14px 28px 0; flex-shrink: 0;
+      font-size: 10px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
     .progress-bar {
       flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
     }
@@ -140,22 +145,14 @@
       letter-spacing: 0.06em; flex-shrink: 0;
     }
 
-    /* ── Next button ── */
-    .next-wrap {
-      position: relative; z-index: 10; padding: 16px 28px 32px; flex-shrink: 0;
+    /* ── Back button ── */
+    .back-btn {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: var(--text-3); display: flex; align-items: center; flex-shrink: 0;
+      transition: color var(--t);
     }
-    .btn-next {
-      width: 100%; height: 50px; border-radius: 25px;
-      background: var(--accent); border: none; color: #000;
-      font-family: var(--font-d); font-weight: 800; font-size: 13px;
-      letter-spacing: 0.06em; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: opacity var(--t), transform 0.14s;
-      opacity: 0; pointer-events: none;
-    }
-    .btn-next--ready { opacity: 1; pointer-events: all; }
-    .btn-next:hover  { opacity: 0.88; transform: translateY(-1px); }
-    .btn-next:active { transform: scale(0.98); }
+    .back-btn:hover { color: var(--text-2); }
+    .back-btn--hidden { visibility: hidden; pointer-events: none; }
 
     /* ── Analyzing screen ── */
     .analyzing {
@@ -196,7 +193,7 @@
     /* ── Result screen ── */
     .result {
       display: none; position: absolute; inset: 0; z-index: 20;
-      flex-direction: column; align-items: center; overflow-y: auto;
+      flex-direction: column; align-items: center; overflow: hidden;
       padding: 40px 28px 40px; background: var(--bg); text-align: center;
     }
     .result--visible { display: flex; animation: slideUp 0.55s cubic-bezier(0.32,0.72,0,1) both; }
@@ -271,6 +268,9 @@
 
   <!-- Progress -->
   <div class="progress-wrap" id="progress-wrap">
+    <button class="back-btn back-btn--hidden" id="back-btn" onclick="prevQuestion()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
     <div class="progress-bar">
       <div class="progress-fill" id="progress-fill" style="width:10%"></div>
     </div>
@@ -278,16 +278,10 @@
     <button class="skip-btn" onclick="skipQuiz()">Skip</button>
   </div>
 
+  <div class="q-instruction">How much does this sound like you?</div>
+
   <!-- Question stage -->
   <div class="stage" id="stage"></div>
-
-  <!-- Next button -->
-  <div class="next-wrap" id="next-wrap">
-    <button class="btn-next" id="btn-next" onclick="nextQuestion()">
-      Continue
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </button>
-  </div>
 
   <!-- Analyzing overlay -->
   <div class="analyzing" id="analyzing">
@@ -333,7 +327,7 @@
     <div class="result__traits" id="result-traits"></div>
     <p class="result__desc" id="result-desc"></p>
     <button class="btn-continue" onclick="finishOnboarding()">Find my Mates →</button>
-    <button class="btn-skip-result" onclick="skipQuiz()">Skip for now</button>
+    <button class="btn-skip-result" onclick="window.location.href='/map'">Skip for now</button>
     <p class="result__note">Your personality data is private and used only to rank who you see in Explore. You can delete it any time in Settings.</p>
   </div>
 
@@ -398,7 +392,6 @@
     const card = document.createElement('div');
     card.className = `q-card ${entered}`;
     card.innerHTML = `
-      <div class="q-prefix">How much does this sound like you?</div>
       <div class="q-text">${highlight(text)}</div>
       <div class="scale">
         ${SCALE.map(s => `
@@ -423,7 +416,6 @@
     });
 
     updateProgress(idx);
-    updateNextBtn(idx);
   }
 
   function highlight(text) {
@@ -434,14 +426,7 @@
     const pct = ((idx + 1) / QUESTIONS.length) * 100;
     document.getElementById('progress-fill').style.width = pct + '%';
     document.getElementById('progress-label').textContent = `${idx + 1} / ${QUESTIONS.length}`;
-  }
-
-  function updateNextBtn(idx) {
-    const btn   = document.getElementById('btn-next');
-    const ready = answers[idx] != null;
-    const arrow = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-    btn.innerHTML = (idx === QUESTIONS.length - 1 ? 'See my results ' : 'Continue ') + arrow;
-    btn.classList.toggle('btn-next--ready', ready);
+    document.getElementById('back-btn').classList.toggle('back-btn--hidden', idx === 0);
   }
 
   // ── Interactions ──────────────────────────────────────────────────
@@ -449,23 +434,28 @@
     answers[idx] = val;
     btn.closest('.scale').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('scale-btn--selected'));
     btn.classList.add('scale-btn--selected');
-    updateNextBtn(idx);
-    if (current < QUESTIONS.length - 1) {
+    if (current === QUESTIONS.length - 1) {
+      setTimeout(() => showAnalyzing(), 380);
+    } else {
       setTimeout(() => nextQuestion(), 280);
     }
   }
 
   function nextQuestion() {
     if (answers[current] == null) return;
-    if (current === QUESTIONS.length - 1) { showAnalyzing(); return; }
     current++;
     renderQuestion(current, 'next');
+  }
+
+  function prevQuestion() {
+    if (current === 0) return;
+    current--;
+    renderQuestion(current, 'back');
   }
 
   // ── Analyzing + API submit ────────────────────────────────────────
   async function showAnalyzing() {
     document.getElementById('progress-wrap').style.opacity = '0';
-    document.getElementById('next-wrap').style.opacity    = '0';
     document.getElementById('analyzing').classList.add('analyzing--visible');
 
     const startTime = Date.now();
@@ -475,7 +465,6 @@
     } catch (err) {
       document.getElementById('analyzing').classList.remove('analyzing--visible');
       document.getElementById('progress-wrap').style.opacity = '';
-      document.getElementById('next-wrap').style.opacity    = '';
       alert(err.message || 'Could not save results — please try again.');
       return;
     }
@@ -569,7 +558,7 @@
         <div class="q-card q-card--active" style="justify-content:center;text-align:center;gap:16px">
           <div class="q-prefix" style="color:var(--warm)">Could not load questions</div>
           <div style="font-size:12px;color:var(--text-2)">${err.message || 'Check your connection and try again.'}</div>
-          <button class="btn-next btn-next--ready" style="margin-top:16px" onclick="init()">Retry</button>
+          <button onclick="init()" style="margin-top:16px;width:100%;height:50px;border-radius:25px;background:var(--accent);border:none;color:#000;font-family:var(--font-d);font-weight:800;font-size:13px;letter-spacing:0.06em;cursor:pointer;">Retry</button>
         </div>`;
     }
   }

@@ -25,4 +25,8 @@ public class Constraints {
         public static final int LAST_NAME_MIN = 2;
         public static final int BIO_MAX = 2000;
     }
+
+    public static final class ReservationConstraints{
+        public static final int MINS_DIFF_TO_CHECK_IN_MIN = 30;
+    }
 }
