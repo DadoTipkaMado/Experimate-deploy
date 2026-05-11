@@ -83,6 +83,16 @@
     .feed-empty__icon { font-size: 36px; opacity: 0.35; }
     .feed-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
     .feed-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+
+    /* ── Light mode — flip hero from cinema-dark to warm-light ── */
+    body.light-mode .feed-card__hero { background: var(--surface-2); }
+    body.light-mode .feed-card__hero-bg { filter: blur(18px) brightness(1.1) saturate(0.5); opacity: 0.45; }
+    body.light-mode .feed-card__city { color: var(--text); }
+    body.light-mode .feed-card__host-name { color: var(--text-2); }
+    body.light-mode .feed-card__host-name:hover { color: var(--text); }
+    body.light-mode .feed-card__date { color: var(--text-2); }
+    body.light-mode .feed-card__time { color: var(--text-3); }
+    body.light-mode .feed-card__hero-avatar { border-color: rgba(0,0,0,0.12); }
   </style>
 </head>
 <body>
