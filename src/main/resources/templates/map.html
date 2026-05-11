@@ -129,6 +129,24 @@
       box-shadow: 0 0 8px rgba(255,107,53,0.3);
     }
     .map-pin--event::after { background: var(--warm); }
+    .map-pin--my-meet {
+      background: rgba(168,85,247,0.25);
+      border-color: #a855f7;
+      box-shadow: 0 0 8px rgba(168,85,247,0.35);
+    }
+    .map-pin--my-meet::after { background: #a855f7; }
+    @keyframes pin-pulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+      50%       { box-shadow: 0 0 18px rgba(245,158,11,0.85), 0 0 28px rgba(245,158,11,0.3); }
+    }
+    .map-pin--due-soon {
+      background: rgba(245,158,11,0.25);
+      border-color: #f59e0b;
+      animation: pin-pulse 1.4s ease-in-out infinite;
+    }
+    .map-pin--due-soon::after { background: #f59e0b; }
+    .map-legend__dot--my-meet  { background: #a855f7; opacity: 0.8; }
+    .map-legend__dot--due-soon { background: #f59e0b; opacity: 0.8; }
     .user-location-pin {
       width: 35px; height: 35px;
       border-radius: 50% 50% 50% 0;
@@ -266,6 +284,12 @@
           <circle cx="12" cy="12" r="1" fill="#00c9a7" stroke="none"/>
         </svg>
       </button>
+
+      <div class="map-legend map-overlay">
+        <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
+        <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Your meet</div>
+        <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
+      </div>
 
       <a href="/listings/new" class="map-fab">
         <span style="font-size:20px;line-height:1;">+</span>

@@ -6,9 +6,10 @@
 const MapState = {
   map: null,
   clusterGroup: null,
-  allMarkers: [],       // { marker, listing } — full list for filtering
+  allMarkers: [],       // { marker, listing, pinType } — full list for filtering
   availableOnly: false,
   userCache: {},        // username → UserResponse (for popup photos)
+  myMeetMap: {},        // listingId → 'my-meet' | 'due-soon'
   userLat: null,
   userLng: null,
 };
@@ -76,15 +77,35 @@ function initMap() {
    LOAD PINS
 ─────────────────────────────────────────────── */
 function loadPins() {
-  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll()])
-    .then(([listingsResult, usersResult]) => {
+  const myResPromise = Auth.getToken()
+    ? ReservationAPI.getMine({ filter: 'joined', timeframe: 'upcoming' }).catch(() => [])
+    : Promise.resolve([]);
+
+  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise])
+    .then(([listingsResult, usersResult, myResResult]) => {
       const listings = listingsResult.status === 'fulfilled' ? listingsResult.value : [];
       const users    = usersResult.status  === 'fulfilled' ? usersResult.value  : [];
+      const myRes    = myResResult.status  === 'fulfilled'
+        ? (Array.isArray(myResResult.value) ? myResResult.value : (myResResult.value?.content ?? []))
+        : [];
+
       (users || []).forEach(u => { if (u.username) MapState.userCache[u.username] = u; });
+
+      const now = new Date();
+      const ONE_HOUR = 60 * 60 * 1000;
+      myRes.filter(r => r.status !== 'CANCELLED').forEach(r => {
+        const lid = r.tourListing?.id;
+        if (!lid) return;
+        const diff = new Date(r.tourListing.meetingDate) - now;
+        if (diff <= 0) return;
+        MapState.myMeetMap[lid] = diff <= ONE_HOUR ? 'due-soon' : 'my-meet';
+      });
+
       (listings || []).forEach(listing => {
         if (listing.lat == null || listing.lng == null) return;
-        const marker = buildMarker(listing);
-        MapState.allMarkers.push({ marker, listing });
+        const pinType = MapState.myMeetMap[listing.id] ?? 'default';
+        const marker = buildMarker(listing, pinType);
+        MapState.allMarkers.push({ marker, listing, pinType });
         MapState.clusterGroup.addLayer(marker);
       });
 
@@ -97,22 +118,28 @@ function loadPins() {
 }
 
 
-function buildMarker(listing) {
+function buildMarker(listing, pinType = 'default') {
+  const pinClass = pinType === 'due-soon' ? 'map-pin--due-soon'
+                 : pinType === 'my-meet'  ? 'map-pin--my-meet'
+                 : 'map-pin--event';
+
   const icon = L.divIcon({
     className: '',
-    html: `<div class="map-pin map-pin--event"></div>`,
+    html: `<div class="map-pin ${pinClass}"></div>`,
     iconSize:   [14, 14],
     iconAnchor: [7, 14],
   });
 
   const marker = L.marker([listing.lat, listing.lng], { icon });
-  marker.on('click', () => openMapPopup(listing));
+  marker.on('click', () => openMapPopup(listing, pinType));
   return marker;
 }
 
-function openMapPopup(listing) {
-  document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing);
-  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action" href="/explore">See listing →</a>`;
+function openMapPopup(listing, pinType = 'default') {
+  document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType);
+  const hostHandle = listing.host?.username ?? '';
+  const href = hostHandle ? `/explore?q=${encodeURIComponent(hostHandle)}` : '/explore';
+  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action" href="${href}">See listing →</a>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
 
@@ -146,7 +173,7 @@ function centerOnUser() {
   );
 }
 
-function buildPopupContent(listing) {
+function buildPopupContent(listing, pinType = 'default') {
   const dateStr = `${fmtDate(listing.meetingDate)} ${new Date(listing.meetingDate).getFullYear()} · ${fmtTime(listing.meetingDate)}`;
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
@@ -165,8 +192,16 @@ function buildPopupContent(listing) {
     ? `<div class="popup-desc">${escapeHtml(listing.tourDescription.slice(0, 200))}${listing.tourDescription.length > 200 ? '…' : ''}</div>`
     : '';
 
+  let badgeHtml = '';
+  if (pinType === 'due-soon') {
+    badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,0.15);border:1px solid #f59e0b;border-radius:6px;padding:3px 8px;font-size:11px;color:#f59e0b;letter-spacing:0.08em;font-weight:700;">⏱ DUE SOON</div>`;
+  } else if (pinType === 'my-meet') {
+    badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(168,85,247,0.15);border:1px solid #a855f7;border-radius:6px;padding:3px 8px;font-size:11px;color:#a855f7;letter-spacing:0.08em;font-weight:700;">✓ YOUR MEET</div>`;
+  }
+
   return `
     <div class="popup-name">${escapeHtml(listing.city)}</div>
+    ${badgeHtml}
     ${hostHtml}
     <div class="popup-date">📅 ${dateStr}</div>
     <div class="popup-status">
