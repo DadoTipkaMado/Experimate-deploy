@@ -29,9 +29,14 @@ function initMap() {
     attributionControl: false,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-  }).addTo(MapState.map);
+  const tileUrl = () => document.body.classList.contains('light-mode')
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+  MapState.tileLayer = L.tileLayer(tileUrl(), { maxZoom: 19 }).addTo(MapState.map);
+
+  new MutationObserver(() => MapState.tileLayer.setUrl(tileUrl()))
+    .observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
   MapState.clusterGroup = L.markerClusterGroup({
     maxClusterRadius: 50,
