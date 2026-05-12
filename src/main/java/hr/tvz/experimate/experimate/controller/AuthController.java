@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,8 @@ public class AuthController {
     private final AuthService authService;
 
     private final String REFRESH_COOKIE = "refresh_token";
+    @Value("${refresh-token.expiration}")
+    private long refreshTokenExpirationMS;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
@@ -36,7 +39,7 @@ public class AuthController {
     ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         TokenResponse tokenResponse = authService.login(loginRequest.username(), loginRequest.password());
 
-        ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, tokenResponse.refreshToken());
+        ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, tokenResponse.refreshToken(), refreshTokenExpirationMS / 1000);
 
         log.debug("Returning new JWT.");
         return ResponseEntity.ok()
@@ -53,7 +56,7 @@ public class AuthController {
         String outgoingRefreshToken = tokenResponse.refreshToken();
         String outgoingAccessToken = tokenResponse.accessToken();
 
-        ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, outgoingRefreshToken);
+        ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, outgoingRefreshToken, refreshTokenExpirationMS/1000);
 
         log.debug("JWT refreshed: {}. New refresh token: {}",  outgoingAccessToken, outgoingRefreshToken);
         return ResponseEntity.ok()
@@ -61,6 +64,19 @@ public class AuthController {
                 .body(new AuthResponse(
                         outgoingAccessToken
                 ));
+    }
+
+    @PostMapping("/logout")
+    ResponseEntity<Void> logout(HttpServletRequest request) {
+        String refreshToken = extractRequestCookie(request, REFRESH_COOKIE);
+        authService.logout(refreshToken);
+
+        ResponseCookie clearedCookie = buildResponseCookie(REFRESH_COOKIE, "", 0);
+
+        log.info("User logged out.");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, clearedCookie.toString())
+                .build();
     }
 
     private String extractRequestCookie(HttpServletRequest request, String name) {
@@ -80,11 +96,12 @@ public class AuthController {
                     });
     }
 
-    private ResponseCookie buildResponseCookie(String name, String value) {
+    private ResponseCookie buildResponseCookie(String name, String value, long maxAge) {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(false)  //TODO dodaj HTTPS
                 .path("/api/auth")
+                .maxAge(maxAge)
                 .build();
     }
 }
