@@ -278,8 +278,8 @@
 <!-- ── CANCEL MODAL ── -->
 <div id="cancel-modal" class="modal-backdrop">
   <div class="modal-card">
-    <div class="modal-title">Cancel day?</div>
-    <div class="modal-sub">Let us know why you're cancelling. This is required before proceeding.</div>
+    <div class="modal-title">Cancel this meet?</div>
+    <div class="modal-sub" style="color:rgba(255,160,60,0.9);">⚠️ Cancelling wastes your Mate's time. Repeated cancellations will result in account sanctions. Please explain why you need to cancel:</div>
     <textarea id="cancel-reason" placeholder="Reason for cancellation..." maxlength="300"></textarea>
     <div class="modal-actions">
       <button onclick="closeCancelModal()" class="btn btn--ghost">Keep it</button>
@@ -496,10 +496,7 @@
       const hostName = res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?';
       const actionEl = isPast
         ? (alreadyRated ? `<div class="badge--rated">Rated ✓</div>` : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">Rate</button>`)
-        : `<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
-             <button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>
-             <button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>
-           </div>`;
+        : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>`;
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
           <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
@@ -524,7 +521,7 @@
             <div class="meet-card__where">${res.tourListing.city}</div>
             <div class="meet-card__booked">${fmtDate(res.tourListing.meetingDate)} · ${fmtTime(res.tourListing.meetingDate)}</div>
           </div>
-          ${!isPast ? `<button class="meet-card__here" data-res-id="${res.id}" onclick="checkIn(this)">I'm here</button>` : '<div class="badge--rated" style="opacity:0.5;">Past</div>'}
+          ${isPast ? '<div class="badge--rated" style="opacity:0.5;">Past</div>' : ''}
         </div>`;
     };
 
@@ -659,8 +656,16 @@
       if (remaining === 0) tabItem.textContent = 'Requests';
       else tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${remaining}</span>`;
     } catch(err) {
-      btn.disabled = false;
-      showToast(err.message || 'Could not process request.', 'error');
+      if (action === 'accept' && err.message && err.message.toLowerCase().includes('already booked')) {
+        // Guest has a conflicting booking — auto-decline and clean up the card
+        try { await BookingRequestAPI.decline(id); } catch(_) {}
+        const card = document.getElementById(`req-${id}`);
+        if (card) card.remove();
+        showToast('This Mate already has a meet on that date — request removed.', 'default');
+      } else {
+        btn.disabled = false;
+        showToast(err.message || 'Could not process request.', 'error');
+      }
     }
   }
 
