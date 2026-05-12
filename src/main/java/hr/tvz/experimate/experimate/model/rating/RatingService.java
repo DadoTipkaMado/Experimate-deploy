@@ -58,14 +58,14 @@ public class RatingService {
             throw new DuplicateRatingException(rater.getId(), rated.getId());
 
         Rating rating = new Rating(rater, rated, dto.score(), dto.review());
-        ratingRepo.save(rating);
+        Rating saved = ratingRepo.save(rating);
 
         log.info("Rating created with id {}", rating.getId());
 
         RatingResponse response = new RatingResponse(
-                rating.getId(),
-                rating.getScore(),
-                rating.getReview()
+                saved.getId(),
+                saved.getScore(),
+                saved.getReview()
         );
 
         publisher.publishEvent(new RatingCreatedEvent(
