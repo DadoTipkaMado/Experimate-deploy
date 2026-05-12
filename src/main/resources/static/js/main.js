@@ -443,6 +443,7 @@ function _ensureListingDetailOverlay() {
         <div id="ld-city" class="ld-city"></div>
         <div id="ld-host" class="ld-host"></div>
         <div id="ld-date" class="ld-date"></div>
+        <div id="ld-guests" class="ld-date" style="display:none;"></div>
         <div id="ld-status" class="ld-status"></div>
         <div id="ld-desc" class="ld-desc"></div>
       </div>
@@ -476,6 +477,18 @@ function openListingDetail(listing, opts) {
   const d = new Date(listing.meetingDate);
   const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   document.getElementById('ld-date').textContent = `📅 ${dateStr}`;
+
+  const maxG   = listing.maxGuests ?? 1;
+  const curG   = listing.currentGuestCount ?? (listing.reserved ? 1 : 0);
+  const guestInfoEl = document.getElementById('ld-guests');
+  if (guestInfoEl) {
+    if (maxG > 1) {
+      guestInfoEl.textContent = `👥 ${curG}/${maxG} joined`;
+      guestInfoEl.style.display = '';
+    } else {
+      guestInfoEl.style.display = 'none';
+    }
+  }
 
   if (reminder) {
     // Reminder mode: show live countdown, no status dot

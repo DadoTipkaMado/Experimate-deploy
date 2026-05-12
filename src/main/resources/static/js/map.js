@@ -205,10 +205,16 @@ function buildPopupContent(listing, pinType = 'default') {
   const dateStr = `${fmtDate(listing.meetingDate)} ${new Date(listing.meetingDate).getFullYear()} · ${fmtTime(listing.meetingDate)}`;
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
-  const available  = !listing.reserved;
-  const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
-  const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
-  const statusLabel = available ? 'Available' : 'Booked';
+  const maxG       = listing.maxGuests ?? 1;
+  const curG       = listing.currentGuestCount ?? (listing.reserved ? 1 : 0);
+  const isFull     = curG >= maxG;
+  const dotColor   = isFull ? 'rgba(239,239,239,0.3)' : '#00c9a7';
+  const dotGlow    = isFull ? '' : 'box-shadow:0 0 5px #00c9a7;';
+  const statusLabel = isFull
+    ? (maxG > 1 ? 'Full' : 'Booked')
+    : maxG > 1 ? `${maxG - curG} spot${maxG - curG !== 1 ? 's' : ''} left` : 'Available';
+  const guestHtml  = maxG > 1
+    ? `<div class="popup-date">👥 ${curG}/${maxG} joined</div>` : '';
 
   let hostHtml = '';
   if (hostName) {
@@ -236,6 +242,7 @@ function buildPopupContent(listing, pinType = 'default') {
     ${badgeHtml}
     ${hostHtml}
     <div class="popup-date">📅 ${dateStr}</div>
+    ${guestHtml}
     <div class="popup-status">
       <div class="popup-status__dot" style="background:${dotColor};${dotGlow}"></div>
       <div class="popup-status__label" style="color:${dotColor};">${statusLabel}</div>
