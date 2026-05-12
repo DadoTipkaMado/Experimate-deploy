@@ -180,12 +180,18 @@ public class ReservationService {
                             .formatted(Constraints.ReservationConstraints.MINS_DIFF_TO_CHECK_IN_MIN));
 
         // check in guest or host depending on which participant is calling
-        if (reservation.getGuest().getId().equals(userId)
-                && !reservation.isGuestCheckedIn()) {
+        if (reservation.getGuest().getId().equals(userId)) {
+            if(reservation.isGuestCheckedIn()) {
+                log.warn("Guest already checked in.");
+                throw new IllegalReservationStateException("Guest already checked in.");
+            }
             reservation.checkGuestIn();
             log.info("Guest with id {} checked in for reservation with id {}", userId, reservationId);
-        } else if (reservation.getTourListing().getHost().getId().equals(userId)
-                && !reservation.isHostCheckedIn()) {
+        } else if (reservation.getTourListing().getHost().getId().equals(userId)) {
+            if (reservation.isHostCheckedIn()) {
+                log.warn("Host already checked in.");
+                throw new IllegalReservationStateException("Host already checked in.");
+            }
             reservation.checkHostIn();
             log.info("Host with id {} checked in for reservation with id {}", userId, reservationId);
         } else {
