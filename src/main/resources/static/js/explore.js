@@ -161,13 +161,14 @@ function renderFeed(listings) {
           </div>
         </div>
         <div class="feed-card__body">
-          <div class="feed-card__desc">${escapeHtml(l.tourDescription)}</div>
+          <div class="feed-card__desc">${(function(){const MAX=120,d=l.tourDescription??'';return escapeHtml(d.slice(0,MAX))+(d.length>MAX?`<span style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="openListingDetailFromExplore(${l.id})"> …more</span>`:'');})()}</div>
           <div class="feed-card__foot">
             <div class="feed-card__status">
               <div class="feed-card__dot" style="background:${dotColor};${dotGlow}"></div>
               <div class="feed-card__label" style="color:${dotColor};">${statusLabel}</div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn btn--ghost" style="height:34px;font-size:10px;padding:0 10px;" onclick="openListingDetailFromExplore(${l.id})">Details</button>
               ${l.lat != null ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${l.lat}" data-lng="${l.lng}" onclick="goToMap(this)">📍 Map</button>` : ''}
               ${joinBtn}
             </div>
@@ -180,6 +181,22 @@ function renderFeed(listings) {
 function goToMap(btn) {
   sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
   window.location.href = '/map';
+}
+
+function openListingDetailFromExplore(listingId) {
+  const listing = _allListings.find(l => l.id === listingId);
+  if (!listing) return;
+  const myReq    = _myRequests[listingId];
+  const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
+  openListingDetail(listing, {
+    isOwn,
+    reserved:   !!listing.reserved,
+    reqStatus:  myReq?.status ?? null,
+    onJoinSuccess: (id) => {
+      _myRequests[id] = { status: 'PENDING' };
+      applyAndRender();
+    },
+  });
 }
 
 function joinListing(btn) {
