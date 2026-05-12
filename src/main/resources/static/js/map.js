@@ -120,6 +120,19 @@ function loadPins() {
         localStorage.setItem('map_tour_seen', '1');
         setTimeout(() => showToast(`${count} local experience${count !== 1 ? 's' : ''} nearby — tap any pin to explore`, 'success'), 1200);
       }
+
+      // Restore overlay if user navigated back from a profile page
+      const restoreRaw = sessionStorage.getItem('mapOverlayRestore');
+      if (restoreRaw) {
+        sessionStorage.removeItem('mapOverlayRestore');
+        try {
+          const { listing, lat, lng, zoom } = JSON.parse(restoreRaw);
+          if (lat != null && lng != null) MapState.map.setView([lat, lng], zoom || 14, { animate: false });
+          const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
+          const reserved = !!(MapState.myMeetMap[listing.id]);
+          openListingDetail(listing, { isOwn, reserved, reqStatus: null });
+        } catch (_) {}
+      }
     });
 }
 

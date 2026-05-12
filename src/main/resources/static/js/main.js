@@ -427,6 +427,7 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
 ─────────────────────────────────────────────── */
 let _listingDetailEl = null;
 let _listingDetailJoinCb = null;
+let _currentDetailListing = null;
 
 function _ensureListingDetailOverlay() {
   if (_listingDetailEl) return;
@@ -454,6 +455,7 @@ function openListingDetail(listing, opts) {
   opts = opts || {};
   const { isOwn, reserved, reqStatus, onJoinSuccess } = opts;
   _listingDetailJoinCb = onJoinSuccess || null;
+  _currentDetailListing = listing;
   _ensureListingDetailOverlay();
 
   const hostHandle = listing.host?.username ?? '';
@@ -501,7 +503,7 @@ function openListingDetail(listing, opts) {
   }
 
   document.getElementById('ld-footer').innerHTML = `
-    <a href="/profile/${encodeURIComponent(hostHandle)}" class="btn btn--ghost popup-action" onclick="closeListingDetail()">View profile</a>
+    <a href="/profile/${encodeURIComponent(hostHandle)}" class="btn btn--ghost popup-action" onclick="closeListingDetail();_saveMapOverlayState()">View profile</a>
     ${joinBtn}`;
 
   requestAnimationFrame(() => _listingDetailEl.classList.add('listing-detail-overlay--visible'));
@@ -512,6 +514,21 @@ function closeListingDetail() {
   if (!_listingDetailEl) return;
   _listingDetailEl.classList.remove('listing-detail-overlay--visible');
   document.body.style.overflow = '';
+}
+
+function _saveMapOverlayState() {
+  if (window.location.pathname !== '/map') return;
+  if (!_currentDetailListing) return;
+  try {
+    const center = typeof MapState !== 'undefined' ? MapState.map.getCenter() : null;
+    const zoom   = typeof MapState !== 'undefined' ? MapState.map.getZoom()   : null;
+    sessionStorage.setItem('mapOverlayRestore', JSON.stringify({
+      listing: _currentDetailListing,
+      lat: center?.lat,
+      lng: center?.lng,
+      zoom,
+    }));
+  } catch (_) {}
 }
 
 function _joinFromDetail(btn) {
