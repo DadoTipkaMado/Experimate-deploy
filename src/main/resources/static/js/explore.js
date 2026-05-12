@@ -16,17 +16,24 @@ let _searchQuery   = '';
 document.addEventListener('DOMContentLoaded', () => {
   initSearch();
 
+  const myRequestsPromise = Auth.getToken()
+    ? Promise.all([
+        BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'   }).catch(() => []),
+        BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'ACCEPTED'  }).catch(() => []),
+        BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED'  }).catch(() => []),
+      ]).then(([p, a, d]) => [...p, ...a, ...d])
+    : Promise.resolve([]);
+
   Promise.all([
     TourListingAPI.getAll(),
-    BookingRequestAPI.getAll().catch(() => []),
+    myRequestsPromise,
     UserAPI.getAll().catch(() => []),
-  ]).then(([listings, allRequests, allUsers]) => {
+  ]).then(([listings, myRequests, allUsers]) => {
     (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
 
-    const currentUsername = Auth.getUsername();
     _myRequests = {};
-    (allRequests || [])
-      .filter(r => r.user?.username === currentUsername && r.tourListing?.id)
+    (myRequests || [])
+      .filter(r => r.tourListing?.id)
       .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
 
     // Only future listings
@@ -178,6 +185,7 @@ function goToMap(btn) {
 function joinListing(btn) {
   const listingId = parseInt(btn.dataset.listingId, 10);
   if (!Auth.getToken()) { window.location.href = '/login'; return; }
+  if (_myRequests[listingId]) { applyAndRender(); return; }
   btn.disabled = true;
   btn.textContent = '...';
   BookingRequestAPI.create({ listingId })
