@@ -7,7 +7,10 @@ import hr.tvz.experimate.experimate.model.booking_request.CreateBookingRequestDt
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,15 +40,16 @@ public class BookingRequestController {
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<List<BookingRequestResponse>> getMyRequests(
+    public ResponseEntity<Page<BookingRequestResponse>> getMyRequests(
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestParam(required = false, defaultValue = "incoming") String flowDirection,
             @RequestParam(required = false, defaultValue = "PENDING") BookingRequestStatus status,
             @RequestParam(required = false, defaultValue = "DESC") Sort.Direction requestDateDirection,
-            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction meetingDateDirection) {
+            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction meetingDateDirection,
+            @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(
                 bookingRequestService.getMyRequests(
-                        userDetails.getId(), flowDirection, status, requestDateDirection, meetingDateDirection)
+                        userDetails.getId(), flowDirection, status, requestDateDirection, meetingDateDirection, pageable)
         );
     }
 

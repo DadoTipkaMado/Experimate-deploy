@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -86,9 +87,11 @@ public class TourListingService {
                 .toList();
     }
 
-    public List<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction) {
+    public Page<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction, Pageable pageable) {
         Sort sort = Sort.by(direction, "meetingDate");
-        return getListingsByHost(userId, sort);
+        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return listingRepo.findAllByHost_Id(userId, pageableWithSort)
+                .map(this::createListingResponse);
     }
 
     public Page<TourListingResponse> getAllListings(Integer resourceOwnerId, Pageable pageable) {

@@ -19,6 +19,7 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
     List<TourListing> findAllByReservedAndMeetingDateBefore(Boolean isReserved, LocalDateTime meetingDateTime);
 
     List<TourListing> findAllByHost_Id(Integer hostId, Sort sort);
+    Page<TourListing> findAllByHost_Id(Integer hostId, Pageable pageable);
 
     /**
      * Returns a paginated slice of listings whose host is not the given viewer.
