@@ -30,7 +30,9 @@
     .meet-card__info { flex: 1; min-width: 0; }
     .meet-card__who { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
     .meet-card__where { font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; }
-    .meet-card__booked { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 2px; }
+    .meet-card__booked { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .redo-btn { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); border-radius: var(--radius-pill); padding: 3px 10px; cursor: pointer; white-space: nowrap; transition: background var(--t-fast), color var(--t-fast); }
+    .redo-btn:hover { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
     .meet-card__cancel {
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
       min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill);
@@ -552,17 +554,36 @@
     el.innerHTML = items.map(l => {
       const d = new Date(l.meetingDate);
       const isPast = d < now;
+      const statusBadge = l.reserved
+        ? '<span style="font-size:9px;font-family:var(--font-mono);color:var(--accent);letter-spacing:0.06em;">BOOKED</span>'
+        : '<span style="font-size:9px;font-family:var(--font-mono);color:var(--text-3);letter-spacing:0.06em;">OPEN</span>';
+      const redoBtn = isPast
+        ? `<button class="redo-btn" onclick="_redoListing(${l.id})">Re-do</button>`
+        : statusBadge;
       return `
         <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
           <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
             <div class="meet-card__who">${l.city}</div>
             <div class="meet-card__where">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
-            <div class="meet-card__booked">${l.tourDescription ? l.tourDescription.slice(0, 60) + (l.tourDescription.length > 60 ? '…' : '') : ''}</div>
+            <div class="meet-card__booked">${l.tourDescription ? escapeHtml(l.tourDescription) : ''}</div>
           </div>
-          ${l.reserved ? '<span style="font-size:9px;font-family:var(--font-mono);color:var(--accent);letter-spacing:0.06em;">BOOKED</span>' : '<span style="font-size:9px;font-family:var(--font-mono);color:var(--text-3);letter-spacing:0.06em;">OPEN</span>'}
+          ${redoBtn}
         </div>`;
     }).join('');
+  }
+
+  function _redoListing(listingId) {
+    const l = (_loadedData.myListings || []).find(x => x.id === listingId);
+    if (!l) return;
+    sessionStorage.setItem('redo_listing', JSON.stringify({
+      city: l.city,
+      tourDescription: l.tourDescription || '',
+      lat: l.lat,
+      lng: l.lng,
+      maxGuests: l.maxGuests || 1,
+    }));
+    window.location.href = '/listings/new';
   }
 
   /* ── Render Requests ── */

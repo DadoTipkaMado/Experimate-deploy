@@ -459,6 +459,28 @@
       btn.disabled = false; btn.textContent = 'Publish';
     }
   });
+
+  /* ── PRE-FILL FROM RE-DO ── */
+  (function() {
+    const raw = sessionStorage.getItem('redo_listing');
+    if (!raw) return;
+    sessionStorage.removeItem('redo_listing');
+    try {
+      const d = JSON.parse(raw);
+      if (d.tourDescription) {
+        const ta = document.getElementById('tourDescription');
+        ta.value = d.tourDescription;
+        ta.dispatchEvent(new Event('input'));
+      }
+      if (d.maxGuests && d.maxGuests > 1) {
+        document.getElementById('maxGuests').value = d.maxGuests;
+        document.getElementById('maxGuestsDisplay').textContent = d.maxGuests;
+      }
+      if (d.lat && d.lng && d.city) {
+        setLocation(d.lat, d.lng, d.city);
+      }
+    } catch(e) {}
+  })();
 </script>
 </body>
 </html>
