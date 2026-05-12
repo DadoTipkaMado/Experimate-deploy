@@ -85,9 +85,7 @@ function loadPins() {
     .then(([listingsResult, usersResult, myResResult]) => {
       const listings = listingsResult.status === 'fulfilled' ? listingsResult.value : [];
       const users    = usersResult.status  === 'fulfilled' ? usersResult.value  : [];
-      const myRes    = myResResult.status  === 'fulfilled'
-        ? (Array.isArray(myResResult.value) ? myResResult.value : (myResResult.value?.content ?? []))
-        : [];
+      const myRes    = myResResult.status  === 'fulfilled' ? (myResResult.value || []) : [];
 
       (users || []).forEach(u => { if (u.username) MapState.userCache[u.username] = u; });
 
