@@ -68,69 +68,123 @@
   --shadow-lg:      0 8px 32px rgba(0,0,0,0.65);
   --shadow-glow:    0 0 0 3px rgba(0,201,167,0.14);
   --shadow-glow-warm: 0 0 0 3px rgba(255,107,53,0.14);
+
+  /* Semantic tokens — adaptable values for light/dark switching */
+  --surface-overlay:    rgba(10, 10, 10, 0.97);   /* bottom-sheet, floating surfaces */
+  --card-gradient-end:  rgba(2, 5, 5, 0.97);       /* explore card bottom fade */
+  --card-badge-bg:      rgba(10, 10, 10, 0.80);    /* explore card rating/match pill */
+  --btn-ghost-bg:       rgba(255, 255, 255, 0.05); /* ghost + icon buttons */
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.09);
+  --divider-subtle:     rgba(255, 255, 255, 0.04); /* settings-row separator */
+  --backdrop:           rgba(0, 0, 0, 0.55);        /* match-panel backdrop */
+  --side-action-bg:     rgba(255, 255, 255, 0.08); /* explore card side buttons */
+  --side-action-bg-hover: rgba(255, 255, 255, 0.14);
+  --focus-ring:         rgba(0, 201, 167, 0.50);   /* :focus-visible outline */
+  --accent-shadow:      rgba(0, 201, 167, 0.28);   /* btn--primary hover glow */
+  --search-focus-glow:  rgba(0, 201, 167, 0.08);  /* search bar focus ring */
 }
 
 /* ── Light mode overrides ── */
 body.light-mode {
-  --bg:             #f5f6fa;
-  --surface:        #ffffff;
-  --surface-2:      #eef0f5;
-  --surface-3:      #e4e6ed;
-  --border:         #e0e2ea;
-  --border-2:       #d0d3dd;
-  --border-3:       #bfc3d0;
-  --text:           #111218;
-  --text-2:         #555a70;
-  --text-3:         #8b90a6;
+  color-scheme: light;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
 
-  /* Darker accent for contrast on white — #00c9a7 is only ~2.5:1 on white */
-  --accent:         #007a65;
-  --accent-dim:     rgba(0, 122, 101, 0.10);
-  --accent-border:  rgba(0, 122, 101, 0.40);
-  --accent-glow:    rgba(0, 122, 101, 1);
+  /* Warm ivory palette — feels like the same brand in daylight, not sterile clinical white */
+  --bg:             #f6f4ef;
+  --surface:        #fdfcf8;
+  --surface-2:      #eeece6;
+  --surface-3:      #e4e2db;
+  --border:         #dddbd3;
+  --border-2:       #ccc9c0;
+  --border-3:       #b5b2a8;
 
-  /* Darker warm for same reason */
-  --warm:           #c94a00;
-  --warm-dim:       rgba(201, 74, 0, 0.10);
-  --warm-border:    rgba(201, 74, 0, 0.30);
+  --text:           #0f0e0c;
+  --text-2:         #3d3b36;
+  --text-3:         #6a6762;
 
-  --shadow-sm:      0 1px 4px rgba(0,0,0,0.10);
-  --shadow-md:      0 4px 16px rgba(0,0,0,0.12);
-  --shadow-lg:      0 8px 32px rgba(0,0,0,0.15);
-  --shadow-glow:    0 0 0 3px rgba(0,122,101,0.14);
-  --shadow-glow-warm: 0 0 0 3px rgba(201,74,0,0.12);
+  /* Teal darkened — #00c9a7 is only ~2.5:1 on light bg, fails WCAG AA */
+  --accent:         #006e58;
+  --accent-dim:     rgba(0, 110, 88, 0.10);
+  --accent-border:  rgba(0, 110, 88, 0.35);
+  --accent-glow:    rgba(0, 110, 88, 1);
+
+  /* Warm orange darkened for same contrast reason */
+  --warm:           #b84200;
+  --warm-dim:       rgba(184, 66, 0, 0.10);
+  --warm-border:    rgba(184, 66, 0, 0.28);
+
+  /* Warm-tinted shadows */
+  --shadow-sm:      0 1px 4px rgba(30, 20, 10, 0.08);
+  --shadow-md:      0 4px 16px rgba(30, 20, 10, 0.10);
+  --shadow-lg:      0 8px 32px rgba(30, 20, 10, 0.14);
+  --shadow-glow:    0 0 0 3px rgba(0, 110, 88, 0.14);
+  --shadow-glow-warm: 0 0 0 3px rgba(184, 66, 0, 0.12);
+
+  /* Semantic token overrides */
+  --surface-overlay:    rgba(253, 252, 248, 0.97);
+  --card-gradient-end:  rgba(246, 244, 239, 0.96);
+  --card-badge-bg:      rgba(255, 255, 255, 0.82);
+  --btn-ghost-bg:       rgba(0, 0, 0, 0.04);
+  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.07);
+  --divider-subtle:     rgba(0, 0, 0, 0.05);
+  --backdrop:           rgba(0, 0, 0, 0.38);
+  --side-action-bg:     rgba(255, 255, 255, 0.72);
+  --side-action-bg-hover: rgba(255, 255, 255, 0.90);
+  --focus-ring:         rgba(0, 110, 88, 0.50);
+  --accent-shadow:      rgba(0, 110, 88, 0.22);
+  --search-focus-glow:  rgba(0, 110, 88, 0.08);
 }
 
-body.light-mode .btn--ghost {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: var(--border-2);
+/* Light mode — explore card text stays legible over the dark photo gradient */
+body.light-mode .explore-card__name,
+body.light-mode .explore-card__handle,
+body.light-mode .explore-card__desc,
+body.light-mode .explore-card__why { color: rgba(240, 238, 234, 0.92); }
+
+/* Light mode — rating/match badge border on light card-badge-bg */
+body.light-mode .explore-card__rating,
+body.light-mode .explore-card__match-pct {
+  border-color: rgba(0, 110, 88, 0.30);
+  color: #006e58;
 }
-body.light-mode .btn--ghost:hover {
-  background: rgba(0, 0, 0, 0.07);
-  border-color: var(--border-3);
+
+/* Light mode — active filter pill: solid filled so on/off is instantly clear */
+body.light-mode .pill--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
-body.light-mode .btn--icon {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: var(--border-2);
+body.light-mode .pill--warm.pill--active {
+  background: var(--warm);
+  border-color: var(--warm);
+  color: #fff;
 }
-body.light-mode .btn--icon:hover {
-  background: rgba(0, 0, 0, 0.07);
+
+/* Light mode — personalized pill */
+body.light-mode .pill--personalized {
+  background: linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
+  border-color: rgba(0,110,88,0.38);
+  color: var(--accent);
 }
-body.light-mode .settings-row {
-  border-bottom-color: var(--border);
+
+/* Light mode — AI search badge */
+body.light-mode .search-ai-badge {
+  background: rgba(0,110,88,0.10);
+  border-color: rgba(0,110,88,0.22);
+  color: rgba(0,110,88,0.80);
 }
-body.light-mode .bottom-sheet {
-  background: var(--surface);
+
+/* Light mode — explore card traits (over dark gradient, keep them teal-tinted) */
+body.light-mode .explore-card__trait {
+  background: rgba(0,201,167,0.18);
+  border-color: rgba(0,201,167,0.32);
+  color: rgba(0,230,190,0.90);
 }
-body.light-mode .toast {
-  background: var(--surface);
-  border-color: var(--border-2);
-  color: var(--text);
-}
-body.light-mode .skeleton {
-  background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
-  background-size: 600px 100%;
-}
+
+/* Light mode — side action labels + scroll hint sit over dark photo gradient */
+body.light-mode .side-action__label,
+body.light-mode .scroll-hint__label { color: rgba(240, 238, 234, 0.80); }
 
 *, *::before, *::after {
   margin: 0;
@@ -145,7 +199,7 @@ body.light-mode .skeleton {
 }
 
 :focus-visible {
-  outline: 2px solid rgba(0, 201, 167, 0.5);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -265,6 +319,12 @@ svg { display: block; flex-shrink: 0; }
   margin-right: 2px;
 }
 .topbar__back:hover { color: var(--text); }
+
+#theme-toggle {
+  opacity: 0.65;
+  transition: opacity var(--t-base), color var(--t-base);
+}
+#theme-toggle:hover { opacity: 1; color: var(--text); }
 
 
 .topbar__avatar {
@@ -412,7 +472,7 @@ svg { display: block; flex-shrink: 0; }
 
 .search-bar:focus-within {
   border-color: var(--accent-border);
-  box-shadow: 0 0 0 3px rgba(0,201,167,0.08);
+  box-shadow: 0 0 0 3px var(--search-focus-glow);
 }
 
 .search-bar input {
@@ -532,11 +592,11 @@ svg { display: block; flex-shrink: 0; }
 .btn--primary:hover {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(0, 201, 167, 0.28);
+  box-shadow: 0 4px 20px var(--accent-shadow);
 }
 
 .btn--ghost {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--btn-ghost-bg);
   color: var(--text);
   border: 1px solid var(--border-2);
   height: 44px;
@@ -544,7 +604,7 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--btn-ghost-bg-hover);
   border-color: var(--border-3);
   transform: translateY(-1px);
 }
@@ -554,12 +614,12 @@ svg { display: block; flex-shrink: 0; }
   height: 40px;
   padding: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--btn-ghost-bg);
   border: 1px solid var(--border-2);
 }
 
 .btn--icon:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: var(--btn-ghost-bg-hover);
 }
 
 .btn--danger {
@@ -756,7 +816,7 @@ svg { display: block; flex-shrink: 0; }
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--divider-subtle);
 }
 
 .settings-row:last-child {
@@ -803,7 +863,7 @@ svg { display: block; flex-shrink: 0; }
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(10, 10, 10, 0.97);
+  background: var(--surface-overlay);
   border-top: 1px solid var(--border);
   border-radius: 20px 20px 0 0;
   backdrop-filter: blur(20px);
@@ -1343,19 +1403,19 @@ svg { display: block; flex-shrink: 0; }
 }
 .explore-card__gradient {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.0) 30%, rgba(10,10,10,0.5) 55%, rgba(10,10,10,0.97) 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.00) 28%, rgba(0,0,0,0.48) 55%, var(--card-gradient-end) 100%);
   pointer-events: none;
 }
 .explore-card__rating {
   position: absolute; top: 14px; left: 14px; z-index: 3;
-  background: rgba(10,10,10,0.80); border: 1px solid var(--border-2);
+  background: var(--card-badge-bg); border: 1px solid var(--border-2);
   border-radius: var(--radius-pill); padding: 4px 11px;
   font-size: 11px; color: var(--accent); letter-spacing: 0.05em;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
 .explore-card__match-pct {
   position: absolute; top: 14px; left: 14px; z-index: 3;
-  background: rgba(10,10,10,0.82); border: 1px solid rgba(0,201,167,0.4);
+  background: var(--card-badge-bg); border: 1px solid rgba(0,201,167,0.4);
   border-radius: var(--radius-pill); padding: 4px 11px;
   font-size: 11px; color: var(--accent); letter-spacing: 0.05em;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -1371,12 +1431,12 @@ svg { display: block; flex-shrink: 0; }
 .side-action { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
 .side-action__icon {
   width: 42px; height: 42px;
-  background: rgba(255,255,255,0.08); border: 1px solid var(--border-2);
+  background: var(--side-action-bg); border: 1px solid var(--border-2);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
   transition: background var(--t-fast), transform var(--t-fast);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
-.side-action:hover .side-action__icon { background: rgba(255,255,255,0.14); transform: scale(1.08); }
+.side-action:hover .side-action__icon { background: var(--side-action-bg-hover); transform: scale(1.08); }
 .side-action__label { font-size: 11px; color: var(--text-3); letter-spacing: 0.06em; }
 .side-action--saved .side-action__icon { background: rgba(255,107,53,0.18); border-color: rgba(255,107,53,0.35); }
 .side-action--saved .side-action__label { color: var(--warm); }
@@ -1454,71 +1514,93 @@ svg { display: block; flex-shrink: 0; }
   background: rgba(0,201,167,0.06);
 }
 /* ═══════════════════════════════════════════════
-   LIGHT MODE
-   Activates when OS/browser is in light mode.
-   Only affects app pages (uses CSS vars).
-   Auth pages have hardcoded colors — separate.
+   OS-LEVEL LIGHT MODE
+   Activates when OS/browser is in light mode AND
+   the user has not explicitly toggled dark via JS.
+   Mirrors the body.light-mode token set exactly.
 ═══════════════════════════════════════════════ */
 @media (prefers-color-scheme: light) {
   :root {
-    --bg:             #f4f4f0;
-    --surface:        #ffffff;
-    --surface-2:      #eeeee9;
-    --surface-3:      #e4e4de;
-    --border:         #ddddd6;
-    --border-2:       #ccccC4;
-    --border-3:       #b8b8b0;
+    color-scheme: light;
 
-    --text:           #111111;
-    --text-2:         #555555;
-    --text-3:         #888888;
+    --bg:             #f6f4ef;
+    --surface:        #fdfcf8;
+    --surface-2:      #eeece6;
+    --surface-3:      #e4e2db;
+    --border:         #dddbd3;
+    --border-2:       #ccc9c0;
+    --border-3:       #b5b2a8;
 
-    --accent-dim:     rgba(0, 201, 167, 0.12);
-    --accent-border:  rgba(0, 201, 167, 0.45);
+    --text:           #0f0e0c;
+    --text-2:         #3d3b36;
+    --text-3:         #6a6762;
 
-    --warm-dim:       rgba(255, 107, 53, 0.10);
-    --warm-border:    rgba(255, 107, 53, 0.3);
+    --accent:         #006e58;
+    --accent-dim:     rgba(0, 110, 88, 0.10);
+    --accent-border:  rgba(0, 110, 88, 0.35);
+    --accent-glow:    rgba(0, 110, 88, 1);
+
+    --warm:           #b84200;
+    --warm-dim:       rgba(184, 66, 0, 0.10);
+    --warm-border:    rgba(184, 66, 0, 0.28);
+
+    --shadow-sm:      0 1px 4px rgba(30, 20, 10, 0.08);
+    --shadow-md:      0 4px 16px rgba(30, 20, 10, 0.10);
+    --shadow-lg:      0 8px 32px rgba(30, 20, 10, 0.14);
+    --shadow-glow:    0 0 0 3px rgba(0, 110, 88, 0.14);
+    --shadow-glow-warm: 0 0 0 3px rgba(184, 66, 0, 0.12);
+
+    --surface-overlay:    rgba(253, 252, 248, 0.97);
+    --card-gradient-end:  rgba(246, 244, 239, 0.96);
+    --card-badge-bg:      rgba(255, 255, 255, 0.82);
+    --btn-ghost-bg:       rgba(0, 0, 0, 0.04);
+    --btn-ghost-bg-hover: rgba(0, 0, 0, 0.07);
+    --divider-subtle:     rgba(0, 0, 0, 0.05);
+    --backdrop:           rgba(0, 0, 0, 0.38);
+    --side-action-bg:     rgba(255, 255, 255, 0.72);
+    --side-action-bg-hover: rgba(255, 255, 255, 0.90);
+    --focus-ring:         rgba(0, 110, 88, 0.50);
+    --accent-shadow:      rgba(0, 110, 88, 0.22);
+    --search-focus-glow:  rgba(0, 110, 88, 0.08);
   }
 
-  /* App shell needs explicit bg to not show through */
-  .app-shell { background: var(--bg); }
-
-  /* Topbar / navbar */
-  .topbar { background: var(--surface); border-bottom-color: var(--border); }
-  .navbar { background: var(--surface); border-top-color: var(--border); }
-
-  /* Buttons */
-  .btn--ghost {
-    background: rgba(0,0,0,0.04);
-    color: var(--text);
-    border-color: var(--border-2);
-  }
-  .btn--ghost:hover {
-    background: rgba(0,0,0,0.07);
-    border-color: var(--border-3);
-  }
-  .btn--icon {
-    background: rgba(0,0,0,0.04);
-    border-color: var(--border-2);
+  body {
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
   }
 
-  /* Cards */
-  .card { background: var(--surface); }
+  /* Explore card text stays legible over the dark photo gradient */
+  .explore-card__name,
+  .explore-card__handle,
+  .explore-card__desc,
+  .explore-card__why { color: rgba(240, 238, 234, 0.92); }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar-thumb { background: var(--border-2); }
-
-  /* Skeleton */
-  .skeleton {
-    background: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-3) 50%, var(--surface-2) 100%);
-    background-size: 600px 100%;
+  .explore-card__rating,
+  .explore-card__match-pct {
+    border-color: rgba(0, 110, 88, 0.30);
+    color: #006e58;
   }
 
-  /* Toast */
-  .toast {
-    background: var(--surface);
-    border-color: var(--border-2);
-    color: var(--text);
+  .pill--active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .pill--warm.pill--active {
+    background: var(--warm);
+    border-color: var(--warm);
+    color: #fff;
+  }
+
+  .pill--personalized {
+    background: linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
+    border-color: rgba(0,110,88,0.38);
+  }
+
+  .search-ai-badge {
+    background: rgba(0,110,88,0.10);
+    border-color: rgba(0,110,88,0.22);
+    color: rgba(0,110,88,0.80);
   }
 }
 
@@ -1611,7 +1693,7 @@ svg { display: block; flex-shrink: 0; }
 }
 .match-panel-backdrop {
   position: fixed; inset: 0; z-index: 490;
-  background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none;
+  background: var(--backdrop); opacity: 0; pointer-events: none;
   transition: opacity 0.26s;
 }
 .match-panel-backdrop--visible { opacity: 1; pointer-events: all; }
