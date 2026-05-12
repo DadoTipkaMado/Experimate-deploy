@@ -115,6 +115,22 @@
     }
     .location-status--set .location-status__dot { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
     .location-status--set { color: var(--accent); }
+    .stepper { display: flex; align-items: center; gap: 0; }
+    .stepper__btn {
+      width: 44px; height: 46px; background: var(--surface); border: 1px solid var(--border-2);
+      color: var(--text-2); font-size: 20px; font-family: var(--font-mono);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: color var(--t-fast), background var(--t-fast); flex-shrink: 0;
+    }
+    .stepper__btn:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+    .stepper__btn:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .stepper__btn:hover { color: var(--text); background: var(--surface-2); }
+    .stepper__val {
+      flex: 1; height: 46px; background: var(--surface); border: 1px solid var(--border-2);
+      border-left: none; border-right: none; color: var(--text);
+      font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+      text-align: center; display: flex; align-items: center; justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -168,6 +184,17 @@
           <span class="form-field__hint">Min 200 characters — describe to Mates what they'll see, do, and experience</span>
           <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
         </div>
+      </div>
+
+      <div class="form-field">
+        <label>Max guests</label>
+        <div class="stepper">
+          <button type="button" class="stepper__btn" onclick="stepGuests(-1)">−</button>
+          <div class="stepper__val" id="maxGuestsDisplay">1</div>
+          <button type="button" class="stepper__btn" onclick="stepGuests(1)">+</button>
+        </div>
+        <span class="form-field__hint">How many Mates can join (1 – 20)</span>
+        <input type="hidden" id="maxGuests" value="1">
       </div>
 
       <!-- Location search picker -->
@@ -231,6 +258,14 @@
     meetingDateInput.classList.remove('input--error');
     dateError.classList.remove('form-field__error--visible');
   });
+
+  /* ── MAX GUESTS STEPPER ── */
+  function stepGuests(delta) {
+    const input = document.getElementById('maxGuests');
+    const v = Math.min(20, Math.max(1, parseInt(input.value, 10) + delta));
+    input.value = v;
+    document.getElementById('maxGuestsDisplay').textContent = v;
+  }
 
   /* ── TIME DRUM PICKER ── */
   (function() {
@@ -413,6 +448,7 @@
         tourDescription: document.getElementById('tourDescription').value,
         latitude:  parseFloat(latVal),
         longitude: parseFloat(lngVal),
+        maxGuests: parseInt(document.getElementById('maxGuests').value, 10),
       });
       btn.textContent = 'Published ✓';
       showToast('Tour published!');
