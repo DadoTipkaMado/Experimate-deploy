@@ -104,17 +104,23 @@ function renderFeed(listings) {
     const reqStatus = myReq?.status;
     const isOwn     = currentUsername && l.host?.username === currentUsername;
 
-    const dotColor = l.reserved        ? 'var(--text-3)'
+    const maxGuests   = l.maxGuests ?? 1;
+    const guestCount  = l.currentGuestCount ?? (l.reserved ? 1 : 0);
+    const spotsLeft   = Math.max(0, maxGuests - guestCount);
+    const isFull      = spotsLeft === 0;
+    const isGroup     = maxGuests > 1;
+
+    const dotColor = isFull             ? 'var(--text-3)'
       : reqStatus === 'PENDING'         ? '#ff9944'
       : reqStatus === 'ACCEPTED'        ? 'var(--accent)'
       : reqStatus === 'DECLINED'        ? 'rgba(255,80,80,0.7)'
       : 'var(--accent)';
-    const dotGlow   = (!l.reserved && !reqStatus) ? 'box-shadow:0 0 5px var(--accent);' : '';
-    const statusLabel = l.reserved     ? 'Joined'
+    const dotGlow   = (!isFull && !reqStatus) ? 'box-shadow:0 0 5px var(--accent);' : '';
+    const statusLabel = isFull          ? (isGroup ? 'Full' : 'Joined')
       : reqStatus === 'PENDING'         ? 'Pending'
       : reqStatus === 'ACCEPTED'        ? 'Accepted'
       : reqStatus === 'DECLINED'        ? 'Declined'
-      : 'Available';
+      : isGroup ? `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left` : 'Available';
 
     const cardClass = l.reserved       ? ' feed-card--reserved'
       : reqStatus === 'PENDING'         ? ' feed-card--pending'
@@ -122,8 +128,8 @@ function renderFeed(listings) {
       : ' feed-card--available';
 
     const joinBtn = isOwn ? `<span style="font-size:10px;color:var(--text-3);letter-spacing:0.06em;">Your listing</span>`
-      : l.reserved
-        ? `<button class="btn" style="height:34px;font-size:10px;border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`
+      : isFull
+        ? `<button class="btn" style="height:34px;font-size:10px;border-color:var(--border-2);color:var(--text-3);" disabled>${isGroup ? 'Full' : 'Joined'}</button>`
       : reqStatus === 'PENDING'
         ? `<button class="btn" style="height:34px;font-size:10px;border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`
       : reqStatus === 'ACCEPTED'
