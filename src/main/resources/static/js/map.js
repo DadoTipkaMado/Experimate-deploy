@@ -247,10 +247,6 @@ function buildPopupContent(listing, pinType = 'default') {
 /* ───────────────────────────────────────────────
    FILTERS
 ─────────────────────────────────────────────── */
-function mapFilterToggle(filterName) {
-  // Legacy gem/event filter — no-op for now (all pins are events)
-  // Kept for API compatibility with map.html pill buttons
-}
 
 function mapFilterAvailable() {
   MapState.availableOnly = !MapState.availableOnly;
@@ -324,13 +320,3 @@ window.MapAPI = {
   },
 };
 
-/* ───────────────────────────────────────────────
-   UTILS
-─────────────────────────────────────────────── */
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
