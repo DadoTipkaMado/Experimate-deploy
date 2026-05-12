@@ -418,3 +418,116 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
     setTimeout(() => bubble.remove(), 260);
   });
 });
+
+/* ───────────────────────────────────────────────
+   LISTING DETAIL OVERLAY
+   Opens a bottom-sheet with full listing info.
+   Called from map.js and explore.js.
+   opts: { isOwn, reserved, reqStatus, onJoinSuccess }
+─────────────────────────────────────────────── */
+let _listingDetailEl = null;
+let _listingDetailJoinCb = null;
+
+function _ensureListingDetailOverlay() {
+  if (_listingDetailEl) return;
+  const el = document.createElement('div');
+  el.id = 'listing-detail-overlay';
+  el.className = 'listing-detail-overlay';
+  el.innerHTML = `
+    <div class="listing-detail-card">
+      <button class="listing-detail-card__close" onclick="closeListingDetail()">✕</button>
+      <div class="listing-detail-card__body">
+        <div id="ld-city" class="ld-city"></div>
+        <div id="ld-host" class="ld-host"></div>
+        <div id="ld-date" class="ld-date"></div>
+        <div id="ld-status" class="ld-status"></div>
+        <div id="ld-desc" class="ld-desc"></div>
+      </div>
+      <div class="listing-detail-card__footer" id="ld-footer"></div>
+    </div>`;
+  el.addEventListener('click', e => { if (e.target === el) closeListingDetail(); });
+  document.body.appendChild(el);
+  _listingDetailEl = el;
+}
+
+function openListingDetail(listing, opts) {
+  opts = opts || {};
+  const { isOwn, reserved, reqStatus, onJoinSuccess } = opts;
+  _listingDetailJoinCb = onJoinSuccess || null;
+  _ensureListingDetailOverlay();
+
+  const hostHandle = listing.host?.username ?? '';
+  const hostName   = ((listing.host?.firstName ?? '') + ' ' + (listing.host?.lastName ?? '')).trim() || hostHandle;
+  const userObj    = (typeof _userCache !== 'undefined' && _userCache[hostHandle])
+                   || (typeof MapState  !== 'undefined' && MapState.userCache?.[hostHandle])
+                   || null;
+
+  document.getElementById('ld-city').textContent = listing.city ?? '';
+
+  const avatar = userAvatar(hostHandle, 28, userObj);
+  document.getElementById('ld-host').innerHTML = `${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:12px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span>`;
+
+  const d = new Date(listing.meetingDate);
+  const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('ld-date').textContent = `📅 ${dateStr}`;
+
+  const available  = !listing.reserved && !reserved;
+  const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
+  const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
+  const statusLabel = isOwn ? 'Your listing'
+    : reserved          ? 'Joined'
+    : reqStatus === 'PENDING'  ? 'Pending'
+    : reqStatus === 'ACCEPTED' ? 'Accepted'
+    : available ? 'Available' : 'Booked';
+  document.getElementById('ld-status').innerHTML = `
+    <div class="ld-status__dot" style="background:${dotColor};${dotGlow}"></div>
+    <div class="ld-status__label" style="color:${dotColor};">${statusLabel}</div>`;
+
+  document.getElementById('ld-desc').textContent = listing.tourDescription ?? '';
+
+  let joinBtn;
+  if (isOwn) {
+    joinBtn = '';
+  } else if (reserved) {
+    joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`;
+  } else if (reqStatus === 'PENDING') {
+    joinBtn = `<button class="btn" style="border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`;
+  } else if (reqStatus === 'ACCEPTED') {
+    joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`;
+  } else if (typeof Auth !== 'undefined' && Auth.getToken()) {
+    joinBtn = `<button class="btn btn--primary popup-action" data-listing-id="${listing.id}" onclick="_joinFromDetail(this)">Join</button>`;
+  } else {
+    joinBtn = `<a href="/login" class="btn btn--ghost popup-action">Sign in to join</a>`;
+  }
+
+  document.getElementById('ld-footer').innerHTML = `
+    <a href="/profile/${encodeURIComponent(hostHandle)}" class="btn btn--ghost popup-action" onclick="closeListingDetail()">View profile</a>
+    ${joinBtn}`;
+
+  requestAnimationFrame(() => _listingDetailEl.classList.add('listing-detail-overlay--visible'));
+  document.body.style.overflow = 'hidden';
+}
+
+function closeListingDetail() {
+  if (!_listingDetailEl) return;
+  _listingDetailEl.classList.remove('listing-detail-overlay--visible');
+  document.body.style.overflow = '';
+}
+
+function _joinFromDetail(btn) {
+  const listingId = parseInt(btn.dataset.listingId, 10);
+  btn.disabled = true;
+  btn.textContent = '...';
+  BookingRequestAPI.create({ listingId })
+    .then(() => {
+      btn.textContent = 'Pending';
+      btn.style.cssText = 'border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);';
+      showToast('Request sent!', 'success');
+      if (_listingDetailJoinCb) _listingDetailJoinCb(listingId);
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = 'Join';
+      showToast(err.message || 'Request failed — try again.', 'error');
+    });
+}

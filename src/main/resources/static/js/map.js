@@ -142,15 +142,24 @@ function buildMarker(listing, pinType = 'default') {
 }
 
 function openMapPopup(listing, pinType = 'default') {
+  MapState._popupListing = listing;
+  MapState._popupPinType = pinType;
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType);
-  const hostHandle = listing.host?.username ?? '';
-  const href = hostHandle ? `/explore?q=${encodeURIComponent(hostHandle)}` : '/explore';
-  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action" href="${href}">See listing →</a>`;
+  document.getElementById('map-popup-footer').innerHTML = `<button class="popup-action" onclick="openListingDetailFromMap()">See listing →</button>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
 
 function closeMapPopup() {
   document.getElementById('map-popup-overlay').style.display = 'none';
+}
+
+function openListingDetailFromMap() {
+  const listing = MapState._popupListing;
+  if (!listing) return;
+  const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
+  const reserved = !!(MapState.myMeetMap[listing.id]);
+  closeMapPopup();
+  openListingDetail(listing, { isOwn, reserved, reqStatus: null });
 }
 
 function centerOnUser() {
@@ -194,8 +203,12 @@ function buildPopupContent(listing, pinType = 'default') {
     hostHtml = `<div class="popup-host" style="display:flex;align-items:center;gap:7px;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:12px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></div>`;
   }
 
-  const descHtml = listing.tourDescription
-    ? `<div class="popup-desc">${escapeHtml(listing.tourDescription.slice(0, 200))}${listing.tourDescription.length > 200 ? '…' : ''}</div>`
+  const MAX_DESC = 160;
+  const fullDesc  = listing.tourDescription ?? '';
+  const descHtml  = fullDesc
+    ? `<div class="popup-desc">${escapeHtml(fullDesc.slice(0, MAX_DESC))}${fullDesc.length > MAX_DESC
+        ? `<span style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="openListingDetailFromMap()"> …more</span>`
+        : ''}</div>`
     : '';
 
   let badgeHtml = '';
