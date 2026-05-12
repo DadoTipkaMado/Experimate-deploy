@@ -4,7 +4,6 @@ import hr.tvz.experimate.experimate.model.onboarding.QuizResult;
 import hr.tvz.experimate.experimate.model.onboarding.QuizResultRepo;
 import hr.tvz.experimate.experimate.model.shared.FileStorageService;
 import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.model.user.exception.IdNumberTakenException;
@@ -227,10 +226,6 @@ public class UserService {
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     void handleRatingRecalculatedEvent(RatingRecalculatedEvent event) {
         User user = findEntityById(event.userId());
-
         user.setRating(event.ratingScore());
     }
-
-    //TODO dodaj handling za rating evente
-    //TODO dodaj metodue recalculate rating score
 }
