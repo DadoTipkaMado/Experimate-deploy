@@ -15,8 +15,7 @@
       display: flex; align-items: center; gap: 12px;
       padding: 14px 18px; position: relative; z-index: 2;
     }
-    .profile-nav__back { color: var(--text-3); text-decoration: none; font-size: 22px; line-height: 1; padding: 2px 4px; }
-    .profile-nav__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
+.profile-nav__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
     .profile-nav__edit { margin-left: auto; font-size: 10px; color: var(--accent); text-decoration: none; letter-spacing: 0.06em; padding: 5px 12px; border: 1px solid var(--accent-border); border-radius: var(--radius-pill); background: var(--accent-dim); }
 
     /* ── Cover ── */
@@ -117,7 +116,6 @@
   <main class="page-content" id="profile-main" style="overflow-y:auto;">
     <!-- Skeleton -->
     <div class="profile-nav">
-      <a href="/explore" class="profile-nav__back">‹</a>
       <div class="profile-nav__title">Profile</div>
     </div>
     <div style="height:110px;background:var(--surface-2);"></div>
@@ -222,7 +220,6 @@
       main.innerHTML = `
         <div class="profile-page">
           <div class="profile-nav">
-            <a href="javascript:history.back()" class="profile-nav__back">‹</a>
             <div class="profile-nav__title">@${user.username}</div>
             ${editLink}
           </div>
