@@ -1679,3 +1679,77 @@ svg { display: block; flex-shrink: 0; }
   .listing-detail-card__footer { justify-content: flex-end; }
   .listing-detail-card__footer .btn { min-width: 130px; height: 48px; font-size: 14px; }
 }
+
+/* ─── PRE-MEET LOCK SCREEN ─── */
+.premeet-screen {
+  position: fixed; inset: 0; z-index: 700;
+  background: var(--bg);
+  display: none; flex-direction: column;
+}
+.premeet-screen--visible { display: flex; }
+.premeet-screen__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.premeet-screen__title {
+  font-size: 11px; color: var(--text-3);
+  letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--font-mono);
+}
+.premeet-screen__badge {
+  font-size: 11px; font-family: var(--font-mono);
+  color: var(--text-3); letter-spacing: 0.04em;
+}
+.premeet-screen__badge-val { color: var(--accent); font-weight: 700; }
+.premeet-screen__body {
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 32px 24px 16px; gap: 4px; text-align: center;
+}
+.premeet-screen__avatar-link {
+  display: block; width: 80px; height: 80px; border-radius: 50%;
+  overflow: hidden; flex-shrink: 0;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 5px rgba(0,201,167,0.12), 0 0 20px rgba(0,201,167,0.2);
+  margin-bottom: 10px; text-decoration: none;
+}
+.premeet-screen__avatar-link img,
+.premeet-screen__avatar-link > div { width: 100%; height: 100%; }
+.premeet-screen__name {
+  font-size: 22px; font-weight: 800; color: var(--text);
+  font-family: var(--font-display); letter-spacing: -0.02em;
+  text-decoration: none; display: block;
+}
+.premeet-screen__name:hover { color: var(--accent); }
+.premeet-screen__handle { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); margin-top: 2px; }
+.premeet-screen__role {
+  display: inline-block; margin-top: 8px;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); font-family: var(--font-mono);
+  border: 1px solid rgba(0,201,167,0.35); border-radius: 20px; padding: 3px 10px;
+}
+.premeet-screen__details {
+  width: 100%; margin-top: 20px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 7px; text-align: left;
+}
+.premeet-screen__detail { font-size: 13px; color: var(--text-2); font-family: var(--font-mono); }
+.premeet-screen__desc {
+  width: 100%; margin-top: 12px;
+  font-size: 12px; color: var(--text-3); line-height: 1.7; text-align: left;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+.premeet-screen__footer {
+  padding: 14px 20px 36px; display: flex; gap: 10px; flex-shrink: 0;
+}
+.premeet-screen__footer .btn { flex: 1; height: 50px; font-size: 14px; }
+
+/* Cancel dialog — absolute inside premeet-screen so it covers the footer */
+.pms-cancel-dialog {
+  position: absolute; inset: 0; z-index: 10;
+  background: rgba(0,0,0,0.72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.pms-cancel-dialog--visible { opacity: 1; pointer-events: all; }
