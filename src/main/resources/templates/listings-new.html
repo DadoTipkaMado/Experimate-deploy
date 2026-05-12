@@ -41,6 +41,45 @@
     .form-actions { display: flex; gap: 10px; }
     .form-actions .btn { flex: 1; height: 46px; }
 
+    /* Time drum picker */
+    .time-picker {
+      position: relative; display: flex; align-items: center;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm); height: 108px; overflow: hidden;
+    }
+    .time-picker__col {
+      flex: 1; height: 100%;
+      overflow-y: scroll; overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none; -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .time-picker__col::-webkit-scrollbar { display: none; }
+    .time-picker__item {
+      height: 36px; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-family: var(--font-mono); font-weight: 600;
+      color: var(--text-3); scroll-snap-align: center; user-select: none;
+      transition: color 0.08s, font-size 0.08s;
+    }
+    .time-picker__sep {
+      font-size: 26px; font-family: var(--font-mono); font-weight: 700;
+      color: var(--text-2); padding: 0 2px; flex-shrink: 0; z-index: 3;
+    }
+    .time-picker__highlight {
+      position: absolute; left: 0; right: 0;
+      top: 50%; transform: translateY(-50%);
+      height: 36px; pointer-events: none; z-index: 1;
+      border-top: 1px solid rgba(0,201,167,0.4);
+      border-bottom: 1px solid rgba(0,201,167,0.4);
+      background: rgba(0,201,167,0.06);
+    }
+    .time-picker__fade {
+      position: absolute; left: 0; right: 0; height: 36px;
+      pointer-events: none; z-index: 2;
+    }
+    .time-picker__fade--top    { top: 0;    background: linear-gradient(to bottom, var(--surface) 10%, transparent); }
+    .time-picker__fade--bottom { bottom: 0; background: linear-gradient(to top,    var(--surface) 10%, transparent); }
+
     /* Location picker */
     .location-search-wrap { position: relative; }
     #location-search::placeholder { color: var(--text-3); }
@@ -95,21 +134,27 @@
 
       <input type="hidden" id="city" name="city">
 
-      <!-- Separate date and time inputs -->
-      <div class="form-row">
-        <div class="form-field">
-          <label for="meetingDateInput">Meeting date</label>
-          <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
-                 data-date-format="date" autocomplete="off" required>
-          <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
-          <span class="form-field__hint">Format: DD/MM/YYYY</span>
-        </div>
-        <div class="form-field">
-          <label for="meetingTimeInput">Meeting time</label>
-          <input type="text" id="meetingTimeInput" placeholder="HH:MM" autocomplete="off" required>
-          <span class="form-field__hint">24-hour clock</span>
-        </div>
+      <div class="form-field">
+        <label for="meetingDateInput">Meeting date</label>
+        <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
+               data-date-format="date" autocomplete="off" required>
+        <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
+        <span class="form-field__hint">Format: DD/MM/YYYY</span>
       </div>
+
+      <div class="form-field">
+        <label>Meeting time</label>
+        <div class="time-picker" id="timePicker">
+          <div class="time-picker__fade time-picker__fade--top"></div>
+          <div class="time-picker__col" id="tp-hours"></div>
+          <div class="time-picker__sep">:</div>
+          <div class="time-picker__col" id="tp-minutes"></div>
+          <div class="time-picker__highlight"></div>
+          <div class="time-picker__fade time-picker__fade--bottom"></div>
+        </div>
+        <input type="hidden" id="meetingTimeInput">
+      </div>
+
       <!-- Hidden combined field sent to server -->
       <input type="hidden" id="meetingDate" name="meetingDate">
 
@@ -187,18 +232,61 @@
     dateError.classList.remove('form-field__error--visible');
   });
 
-  /* ── TIME AUTO-FORMAT HH:MM ── */
-  meetingTimeInput.addEventListener('keydown', e => {
-    if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight'].includes(e.key)) return;
-    if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
-  });
-  meetingTimeInput.addEventListener('input', () => {
-    let digits = meetingTimeInput.value.replace(/\D/g, '');
-    if (digits.length > 4) digits = digits.slice(0, 4);
-    meetingTimeInput.value = digits.length > 2
-      ? digits.slice(0, 2) + ':' + digits.slice(2)
-      : digits;
-  });
+  /* ── TIME DRUM PICKER ── */
+  (function() {
+    const ITEM_H = 36, PAD = ITEM_H * 1;
+    const HOURS = Array.from({length: 24}, (_, i) => String(i).padStart(2, '0'));
+    const MINS  = Array.from({length: 12}, (_, i) => String(i * 5).padStart(2, '0'));
+
+    function buildCol(el, items) {
+      const top = document.createElement('div');
+      top.style.height = PAD + 'px';
+      el.appendChild(top);
+      items.forEach(val => {
+        const d = document.createElement('div');
+        d.className = 'time-picker__item';
+        d.textContent = val;
+        el.appendChild(d);
+      });
+      const bot = document.createElement('div');
+      bot.style.height = PAD + 'px';
+      el.appendChild(bot);
+    }
+
+    function getIdx(col) {
+      return Math.max(0, Math.round(col.scrollTop / ITEM_H));
+    }
+
+    function refreshActive(col, items) {
+      const idx = getIdx(col);
+      col.querySelectorAll('.time-picker__item').forEach((el, i) => {
+        const dist = Math.abs(i - idx);
+        el.style.color    = dist === 0 ? 'var(--text)' : dist === 1 ? 'var(--text-2)' : 'var(--text-3)';
+        el.style.fontSize = dist === 0 ? '22px' : dist === 1 ? '17px' : '14px';
+      });
+    }
+
+    function sync(hCol, mCol) {
+      const h = HOURS[Math.min(getIdx(hCol), HOURS.length - 1)];
+      const m = MINS[Math.min(getIdx(mCol),  MINS.length  - 1)];
+      meetingTimeInput.value = h + ':' + m;
+    }
+
+    const hCol = document.getElementById('tp-hours');
+    const mCol = document.getElementById('tp-minutes');
+    buildCol(hCol, HOURS);
+    buildCol(mCol, MINS);
+
+    // default 12:00
+    hCol.scrollTo({ top: 12 * ITEM_H, behavior: 'instant' });
+    mCol.scrollTo({ top: 0,           behavior: 'instant' });
+    refreshActive(hCol, HOURS);
+    refreshActive(mCol, MINS);
+    sync(hCol, mCol);
+
+    hCol.addEventListener('scroll', () => { refreshActive(hCol, HOURS); sync(hCol, mCol); });
+    mCol.addEventListener('scroll', () => { refreshActive(mCol, MINS);  sync(hCol, mCol); });
+  })();
 
   /* ── LOCATION SEARCH (Nominatim) ── */
   const locationSearch  = document.getElementById('location-search');
@@ -294,8 +382,7 @@
 
     const dateVal = meetingDateInput.value.trim();
     const timeVal = meetingTimeInput.value.trim();
-    if (!dateVal || !timeVal) { showToast('Please fill in both date and time.'); return; }
-    if (!/^\d{2}:\d{2}$/.test(timeVal)) { showToast('Time must be in HH:MM format.'); return; }
+    if (!dateVal || !timeVal) { showToast('Please fill in date and time.'); return; }
 
     const dateParts = dateVal.split('/');
     if (dateParts.length !== 3 || dateParts[2].length !== 4 || dateParts.some(p => !p)) {
