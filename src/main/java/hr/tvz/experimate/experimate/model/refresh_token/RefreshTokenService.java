@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -66,6 +67,18 @@ public class RefreshTokenService {
 
         log.info("Created refresh token for user {}", user.getUsername());
         return refreshTokenRepo.save(refreshToken).getToken();
+    }
+
+    /**
+     * Deletes the refresh token with the given value from the database.
+     * If the token does not exist, the operation completes silently (idempotent).
+     *
+     * @param token the raw refresh token string to invalidate
+     */
+    @Transactional
+    public void invalidateToken(String token) {
+        refreshTokenRepo.deleteByToken(token);
+        log.info("Refresh token invalidated.");
     }
 
     private boolean isValid(RefreshToken refreshToken) {

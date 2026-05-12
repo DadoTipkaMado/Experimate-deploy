@@ -50,4 +50,15 @@ public class AuthService {
         return refreshTokenService.rotateAccessToken(refreshToken);
     }
 
+    /**
+     * Invalidates the given refresh token, effectively logging the user out.
+     * If the token does not exist in the database, the operation completes silently.
+     *
+     * @param refreshToken the raw refresh token string extracted from the client cookie
+     */
+    public void logout(String refreshToken) {
+        refreshTokenService.invalidateToken(refreshToken);
+        log.info("User logged out.");
+    }
+
 }
