@@ -64,6 +64,7 @@
   }
 
   function renderTopbarAvatar() {
+    if (!document.getElementById('topbar-avatar')) return;
     const userId   = localStorage.getItem('userId');
     const initials = localStorage.getItem('user_initials');
     const hue      = localStorage.getItem('user_hue') || '0';

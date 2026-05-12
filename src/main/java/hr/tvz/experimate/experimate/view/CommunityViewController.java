@@ -1,15 +1,13 @@
 package hr.tvz.experimate.experimate.view;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class CommunityViewController {
 
     @GetMapping("/community")
-    public String community(Model model) {
-        model.addAttribute("currentPage", "community");
+    public String community() {
         return "community";
     }
 }
