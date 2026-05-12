@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.view;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.view.RedirectView;
 
 @Controller
 public class AccountViewController {
@@ -13,7 +14,7 @@ public class AccountViewController {
     public String accountEdit() { return "account-edit"; }
 
     @GetMapping("/requests")
-    public String requests() { return "requests"; }
+    public RedirectView requests() { return new RedirectView("/tours"); }
 
     @GetMapping("/ratings")
     public String ratings() { return "ratings"; }
