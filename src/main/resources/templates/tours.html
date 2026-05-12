@@ -315,11 +315,17 @@
   let _userCache = {};
   let _activeTab = 'meets';
   let _loadedData = {};
-  let _filterState = {
+  const _filterDefaults = {
     meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
     listings: { direction: 'ASC' },
     requests: { flowDirection: 'incoming', status: 'PENDING', reqDir: 'DESC', meetDir: 'ASC' }
   };
+  let _filterState = (function() {
+    try {
+      const saved = localStorage.getItem('tours_filter');
+      return saved ? { ..._filterDefaults, ...JSON.parse(saved) } : { ..._filterDefaults };
+    } catch(_) { return { ..._filterDefaults }; }
+  })();
   let _pendingFilter = {};
 
   /* ── Tab switcher ── */
@@ -751,18 +757,15 @@
 
   function applyFilter() {
     _filterState[_activeTab] = { ..._pendingFilter };
+    try { localStorage.setItem('tours_filter', JSON.stringify(_filterState)); } catch(_) {}
     closeFilterDialog();
     if (_activeTab === 'meets') renderMeetsPanel();
     else if (_activeTab === 'requests') renderRequestsPanel();
   }
 
   function resetFilter() {
-    const defaults = {
-      meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
-      listings: { direction: 'ASC' },
-      requests: { flowDirection: 'incoming', status: 'PENDING' }
-    };
-    _filterState[_activeTab] = { ...defaults[_activeTab] };
+    _filterState[_activeTab] = { ..._filterDefaults[_activeTab] };
+    try { localStorage.setItem('tours_filter', JSON.stringify(_filterState)); } catch(_) {}
     closeFilterDialog();
     if (_activeTab === 'meets') renderMeetsPanel();
     else if (_activeTab === 'requests') renderRequestsPanel();
