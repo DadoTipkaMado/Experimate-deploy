@@ -50,35 +50,42 @@
       -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 2px 12px rgba(0,0,0,0.3);
     }
+    /* Bottom-right control cluster: legend → [locate] [+FAB] */
+    .map-controls {
+      position: absolute; bottom: 10px; right: 14px; z-index: 10;
+      display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
+    }
+    .map-controls-row { display: flex; align-items: center; gap: 8px; }
     .map-legend {
-      bottom: 108px; right: 12px;
       background: rgba(10,10,10,0.90);
       border: 1px solid var(--border-2);
       border-radius: var(--radius-sm);
       padding: 8px 10px;
       display: flex; flex-direction: column; gap: 6px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     }
     .map-legend__row {
       display: flex; align-items: center; gap: 7px;
       font-size: 10px; color: var(--text-2);
       letter-spacing: 0.06em; white-space: nowrap;
     }
-    .map-legend__dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    .map-legend__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .map-legend__dot--event { background: var(--warm); opacity: 0.7; }
+    .map-locate {
+      width: 44px; height: 44px; flex-shrink: 0;
+      background: rgba(10,10,10,0.75); border: 1px solid var(--border-2);
+      border-radius: 12px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: opacity var(--t-fast);
     }
-    .map-legend__dot--event { background: var(--warm);   opacity: 0.7; }
+    .map-locate:hover { opacity: 0.75; }
+    .map-locate svg path { stroke: #07dcb8e0; fill: none; }
+    .map-locate svg circle { fill: #07dcb8e0; stroke: none; }
     .map-fab {
-      position: absolute;
-      bottom: 10px; right: 14px;
-      z-index: 10;
-      height: 44px;
-      background: var(--accent);
-      border-radius: 22px;
+      height: 44px; flex-shrink: 0;
+      background: var(--accent); border-radius: 22px;
       display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 0 16px 0 12px;
-      text-decoration: none;
+      padding: 0 16px 0 12px; text-decoration: none;
       font-size: 20px; font-weight: 700; line-height: 1; color: #000;
       box-shadow: 0 4px 20px rgba(0,201,167,0.35);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -88,19 +95,6 @@
     @media (max-width: 1024px) { .map-fab { padding: 0; width: 44px; border-radius: 12px; } }
     @media (min-width: 1025px) { .map-fab__label { display: inline; } }
     .map-fab:hover { transform: scale(1.04); box-shadow: 0 6px 28px rgba(0,201,167,0.5); }
-    .map-locate {
-      position: absolute;
-      bottom: calc(54px + 2.5%); right: 14px;
-      z-index: 10;
-      width: 44px; height: 44px;
-      background: none; border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      transition: opacity var(--t-fast);
-    }
-    .map-locate:hover { opacity: 0.75; }
-    .map-locate svg path { stroke: #07dcb8e0; fill: none; }
-    .map-locate svg circle { fill: #07dcb8e0; stroke: none; }
     .map-pin {
       width: 14px; height: 14px;
       border-radius: 50% 50% 50% 0;
@@ -269,23 +263,25 @@
         </div>
       </div>
 
-      <button class="map-locate" onclick="centerOnUser()" title="My location">
-        <svg width="44" height="44" viewBox="0 0 24 24" stroke="#07dcb8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 20C16.4183 20 20 16.4183 20 12M12 20C7.58172 20 4 16.4183 4 12M12 20V22M20 12C20 7.58172 16.4183 4 12 4M20 12H22M12 4C7.58172 4 4 7.58172 4 12M12 4V2M4 12H2M2 12H2M13 12C13 12.5523 12.5523 13 12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11C12.5523 11 13 11.4477 13 12Z" fill="none"/>
-          <circle cx="12" cy="12" r="1" fill="#00c9a7" stroke="none"/>
-        </svg>
-      </button>
-
-      <div class="map-legend map-overlay">
-        <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
-        <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Your meet</div>
-        <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
+      <div class="map-controls map-overlay--interactive">
+        <div class="map-legend">
+          <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
+          <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Your meet</div>
+          <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
+        </div>
+        <div class="map-controls-row">
+          <button class="map-locate" onclick="centerOnUser()" title="My location">
+            <svg width="22" height="22" viewBox="0 0 24 24" stroke="#07dcb8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20C16.4183 20 20 16.4183 20 12M12 20C7.58172 20 4 16.4183 4 12M12 20V22M20 12C20 7.58172 16.4183 4 12 4M20 12H22M12 4C7.58172 4 4 7.58172 4 12M12 4V2M4 12H2M13 12C13 12.5523 12.5523 13 12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11C12.5523 11 13 11.4477 13 12Z" fill="none"/>
+              <circle cx="12" cy="12" r="1" fill="#00c9a7" stroke="none"/>
+            </svg>
+          </button>
+          <a href="/listings/new" class="map-fab">
+            <span style="font-size:20px;line-height:1;">+</span>
+            <span class="map-fab__label">New Meet</span>
+          </a>
+        </div>
       </div>
-
-      <a href="/listings/new" class="map-fab">
-        <span style="font-size:20px;line-height:1;">+</span>
-        <span class="map-fab__label">New Meet</span>
-      </a>
 
     </div>
   </main>
