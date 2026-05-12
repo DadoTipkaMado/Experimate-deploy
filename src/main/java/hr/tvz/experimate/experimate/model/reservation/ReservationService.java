@@ -8,6 +8,7 @@ import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionExcept
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
@@ -395,6 +396,50 @@ public class ReservationService {
         expired.forEach(Reservation::expire);
         reservationRepo.saveAll(expired);
         log.info("Processed {} closed reservations.",  expired.size());
+    }
+
+    /**
+     * Returns presence information for all participants of a reservation.
+     *
+     * <p>Only the guest or host of the reservation may call this method.
+     *
+     * @param callerId      ID of the authenticated user making the request
+     * @param reservationId ID of the target reservation
+     * @return list of {@link PresenceResponse} for the guest and host
+     * @throws ReservationNotFoundException if no reservation exists with the given ID
+     * @throws ForbiddenActionException     if the caller is not a participant of the reservation
+     */
+    public List<PresenceResponse> getPresence(Integer callerId, Integer reservationId) {
+        Reservation reservation = reservationRepo.findById(reservationId)
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+
+        User guest = reservation.getGuest();
+        User host = reservation.getTourListing().getHost();
+
+        // only participants may view presence
+        boolean isParticipant = guest.getId().equals(callerId) || host.getId().equals(callerId);
+        if (!isParticipant)
+            throw new ForbiddenActionException("Only participants of the reservation can view presence.");
+
+        PresenceResponse guestPresence = new PresenceResponse(
+                guest.getUsername(),
+                guest.getFirstName(),
+                guest.getLastName(),
+                guest.getProfilePhotoFilename(),
+                reservation.isGuestCheckedIn(),
+                false
+        );
+
+        PresenceResponse hostPresence = new PresenceResponse(
+                host.getUsername(),
+                host.getFirstName(),
+                host.getLastName(),
+                host.getProfilePhotoFilename(),
+                reservation.isHostCheckedIn(),
+                true
+        );
+
+        return List.of(guestPresence, hostPresence);
     }
 
     private ReservationResponse createReservationResponse(Reservation reservation) {
