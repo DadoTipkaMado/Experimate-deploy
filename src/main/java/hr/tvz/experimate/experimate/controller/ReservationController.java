@@ -4,6 +4,7 @@ import hr.tvz.experimate.experimate.model.reservation.*;
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.constraints.Positive;
@@ -49,6 +50,12 @@ public class ReservationController {
         return reservationService.getReservationById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(value = "/{reservationId}/presence")
+    public ResponseEntity<List<PresenceResponse>> getPresence(@PathVariable @Positive Integer reservationId,
+                                                              @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(reservationService.getPresence(userDetails.getId(), reservationId));
     }
 
     @PatchMapping(value = "/check-in/{reservationId}")
