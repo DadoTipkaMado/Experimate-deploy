@@ -29,9 +29,14 @@ function initMap() {
     attributionControl: false,
   });
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-  }).addTo(MapState.map);
+  const tileUrl = () => document.body.classList.contains('light-mode')
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+  MapState.tileLayer = L.tileLayer(tileUrl(), { maxZoom: 19 }).addTo(MapState.map);
+
+  new MutationObserver(() => MapState.tileLayer.setUrl(tileUrl()))
+    .observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
   MapState.clusterGroup = L.markerClusterGroup({
     maxClusterRadius: 50,
@@ -112,7 +117,9 @@ function buildMarker(listing) {
 
 function openMapPopup(listing) {
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing);
-  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action">See listing →</a>`;
+  const hostHandle = listing.host?.username ?? '';
+  const href = hostHandle ? `/explore?q=${encodeURIComponent(hostHandle)}` : '/explore';
+  document.getElementById('map-popup-footer').innerHTML = `<a class="popup-action" href="${href}">See listing →</a>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
 
@@ -158,8 +165,12 @@ function buildPopupContent(listing) {
   let hostHtml = '';
   if (hostName) {
     const avatar = userAvatar(hostHandle, 28, MapState.userCache[hostHandle]);
-    hostHtml = `<div class="popup-host" style="display:flex;align-items:center;gap:7px;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:9px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></div>`;
+    hostHtml = `<div class="popup-host" style="display:flex;align-items:center;gap:7px;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:12px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></div>`;
   }
+
+  const descHtml = listing.tourDescription
+    ? `<div class="popup-desc">${escapeHtml(listing.tourDescription)}</div>`
+    : '';
 
   return `
     <div class="popup-name">${escapeHtml(listing.city)}</div>
@@ -169,6 +180,7 @@ function buildPopupContent(listing) {
       <div class="popup-status__dot" style="background:${dotColor};${dotGlow}"></div>
       <div class="popup-status__label" style="color:${dotColor};">${statusLabel}</div>
     </div>
+    ${descHtml}
   `;
 }
 

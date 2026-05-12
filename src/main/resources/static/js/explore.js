@@ -9,6 +9,9 @@ let _userCache     = {};
 let _sortMode      = 'soonest';
 let _availableOnly = false;
 let _searchQuery   = '';
+let _currentPage   = 0;
+let _isLastPage    = false;
+let _isLoadingPage = false;
 
 /* ───────────────────────────────────────────────
    INIT
@@ -17,10 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initSearch();
 
   Promise.all([
-    TourListingAPI.getAll(),
+    TourListingAPI.getPage(0),
     BookingRequestAPI.getAll().catch(() => []),
     UserAPI.getAll().catch(() => []),
-  ]).then(([listings, allRequests, allUsers]) => {
+  ]).then(([listingPage, allRequests, allUsers]) => {
     (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
 
     const currentUsername = Auth.getUsername();
@@ -29,13 +32,54 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(r => r.user?.username === currentUsername && r.tourListing?.id)
       .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
 
-    // Only future listings
     const now = new Date();
-    _allListings = (listings || []).filter(l => new Date(l.meetingDate) > now);
+    _allListings  = (listingPage.content || []).filter(l => new Date(l.meetingDate) > now);
+    _currentPage  = 0;
+    _isLastPage   = listingPage.last ?? true;
 
     applyAndRender();
   }).catch(() => renderFeed([]));
+
+  window.addEventListener('scroll', _onFeedScroll, { passive: true });
 });
+
+/* ───────────────────────────────────────────────
+   INFINITE SCROLL
+─────────────────────────────────────────────── */
+function _onFeedScroll() {
+  if (_isLoadingPage || _isLastPage) return;
+  if ((window.innerHeight + window.scrollY) < (document.body.scrollHeight - 300)) return;
+  _isLoadingPage = true;
+  _showFeedLoader();
+  TourListingAPI.getPage(_currentPage + 1)
+    .then(page => {
+      _currentPage++;
+      _isLastPage = page.last ?? true;
+      const now   = new Date();
+      const fresh = (page.content || []).filter(l => new Date(l.meetingDate) > now);
+      _allListings = [..._allListings, ...fresh];
+      applyAndRender();
+    })
+    .catch(() => {})
+    .finally(() => {
+      _isLoadingPage = false;
+      _hideFeedLoader();
+    });
+}
+
+function _showFeedLoader() {
+  const feed = document.getElementById('listing-feed');
+  if (!feed || document.getElementById('feed-loader')) return;
+  const el = document.createElement('div');
+  el.id = 'feed-loader';
+  el.style.cssText = 'display:flex;justify-content:center;padding:20px 0;';
+  el.innerHTML = '<div style="width:22px;height:22px;border:2px solid var(--border-2);border-top-color:var(--accent);border-radius:50%;animation:feedSpin 0.7s linear infinite;"></div>';
+  feed.appendChild(el);
+}
+
+function _hideFeedLoader() {
+  document.getElementById('feed-loader')?.remove();
+}
 
 /* ───────────────────────────────────────────────
    FILTERS + SORT
@@ -278,8 +322,8 @@ function renderMatchCard(m) {
        </div>`;
   const pctHtml    = m.compatibilityScore != null ? `<div class="match-card__pct">${m.compatibilityScore}% match</div>` : '';
   const cityHtml   = m.activeListing ? `<div class="match-card__city">📍 ${escapeHtml(m.activeListing.city)}</div>` : '';
-  const ctaHref    = m.activeListing ? `/tours?listing=${m.activeListing.id}` : `/profile/${m.username}`;
-  const ctaLabel   = m.activeListing ? 'View Day' : 'View Profile';
+  const ctaHref    = `/profile/${m.username}`;
+  const ctaLabel   = 'View Profile';
   const sparkle    = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   const explainBtn = m.compatibilityScore != null
     ? `<button class="match-card__explain-btn" onclick="toggleExplain(${m.userId},this)">${sparkle} Why we match</button>` : '';
