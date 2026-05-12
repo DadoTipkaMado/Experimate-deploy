@@ -531,3 +531,221 @@ function _joinFromDetail(btn) {
       showToast(err.message || 'Request failed — try again.', 'error');
     });
 }
+
+/* ───────────────────────────────────────────────
+   PRE-MEET LOCK SCREEN
+   Shown globally 45 min before any upcoming meet.
+   Skipped on profile/auth pages so user can check
+   the host's profile and navigate back freely.
+─────────────────────────────────────────────── */
+let _pmsResId    = null;
+let _pmsOther    = null;
+let _pmsMeetDate = null;
+let _pmsTimer    = null;
+
+document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
+  const path = window.location.pathname;
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/profile'];
+  if (skip.some(p => path.startsWith(p))) return;
+  if (typeof ReservationAPI === 'undefined' || typeof Auth === 'undefined') return;
+  if (!Auth.getToken()) return;
+
+  try {
+    const [joined, hosted] = await Promise.all([
+      ReservationAPI.getMine({ filter: 'joined', timeframe: 'upcoming', direction: 'ASC' }).catch(() => []),
+      ReservationAPI.getMine({ filter: 'hosted', timeframe: 'upcoming', direction: 'ASC' }).catch(() => []),
+    ]);
+    const now = new Date();
+    const WINDOW_MS = 45 * 60 * 1000;
+    const GRACE_MS  = 15 * 60 * 1000;
+
+    const due = [
+      ...(joined || []).map(r => ({ ...r, _isGuest: true  })),
+      ...(hosted || []).map(r => ({ ...r, _isGuest: false })),
+    ]
+    .filter(r => r.status !== 'CANCELLED')
+    .filter(r => { const d = new Date(r.tourListing.meetingDate) - now; return d <= WINDOW_MS && d > -GRACE_MS; })
+    .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
+
+    if (due.length) _showPreMeetScreen(due[0]);
+  } catch (_) {}
+});
+
+function _ensurePreMeetScreen() {
+  if (document.getElementById('premeet-screen')) return;
+
+  // Lock screen
+  const el = document.createElement('div');
+  el.id = 'premeet-screen';
+  el.className = 'premeet-screen';
+  el.innerHTML = `
+    <div class="premeet-screen__header">
+      <span class="premeet-screen__title">Upcoming Meet</span>
+      <span class="premeet-screen__badge">Meet in <span id="pms-countdown" class="premeet-screen__badge-val">--</span></span>
+    </div>
+    <div class="premeet-screen__body">
+      <a id="pms-avatar-link" class="premeet-screen__avatar-link" href="#">
+        <div id="pms-avatar" style="width:100%;height:100%;"></div>
+      </a>
+      <a id="pms-name" class="premeet-screen__name" href="#"></a>
+      <div id="pms-handle" class="premeet-screen__handle"></div>
+      <div id="pms-role" class="premeet-screen__role"></div>
+      <div class="premeet-screen__details">
+        <div id="pms-city" class="premeet-screen__detail"></div>
+        <div id="pms-datetime" class="premeet-screen__detail"></div>
+      </div>
+      <div id="pms-desc" class="premeet-screen__desc"></div>
+    </div>
+    <div class="premeet-screen__footer">
+      <button class="btn btn--ghost" onclick="_pmsCancelClick()">Cancel meet</button>
+      <button class="btn btn--primary" id="pms-checkin-btn" onclick="_pmsCheckIn()">I'm here ✓</button>
+    </div>`;
+  document.body.appendChild(el);
+
+  // Cancel dialog — separate fixed element, z-index above the lock screen
+  const dlg = document.createElement('div');
+  dlg.id = 'pms-cancel-dialog';
+  dlg.style.cssText = 'display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:800;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;padding:24px;box-sizing:border-box;';
+  dlg.addEventListener('click', e => { if (e.target === dlg) _pmsCloseCancelDlg(); });
+
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--surface);border:1px solid var(--border-2);border-radius:var(--radius);padding:24px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;box-sizing:border-box;';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);';
+  title.textContent = 'Cancel this meet?';
+
+  const warning = document.createElement('div');
+  warning.style.cssText = 'font-size:12px;line-height:1.65;color:rgba(255,160,60,0.95);';
+  warning.textContent = '⚠️ Cancelling wastes your Mate\'s time. Repeated cancellations will result in account sanctions. Please explain why you need to cancel:';
+
+  const ta = document.createElement('textarea');
+  ta.id = 'pms-cancel-reason';
+  ta.placeholder = 'Reason for cancellation...';
+  ta.maxLength = 300;
+  ta.style.cssText = 'background:var(--surface-2,#1a1a1a);border:1px solid var(--border-2);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:var(--font-mono);font-size:13px;resize:vertical;min-height:90px;width:100%;box-sizing:border-box;line-height:1.5;';
+
+  const actions = document.createElement('div');
+  actions.style.cssText = 'display:flex;gap:10px;';
+
+  const keepBtn = document.createElement('button');
+  keepBtn.className = 'btn btn--ghost';
+  keepBtn.style.cssText = 'flex:1;height:46px;font-size:13px;';
+  keepBtn.textContent = 'Keep it';
+  keepBtn.addEventListener('click', _pmsCloseCancelDlg);
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.id = 'pms-confirm-cancel-btn';
+  confirmBtn.className = 'btn btn--danger';
+  confirmBtn.style.cssText = 'flex:1;height:46px;font-size:13px;';
+  confirmBtn.textContent = 'Cancel meet';
+  confirmBtn.addEventListener('click', _pmsConfirmCancel);
+
+  actions.appendChild(keepBtn);
+  actions.appendChild(confirmBtn);
+  card.appendChild(title);
+  card.appendChild(warning);
+  card.appendChild(ta);
+  card.appendChild(actions);
+  dlg.appendChild(card);
+  document.body.appendChild(dlg);
+}
+
+function _showPreMeetScreen(res) {
+  _ensurePreMeetScreen();
+  _pmsResId    = res.id;
+  _pmsMeetDate = new Date(res.tourListing.meetingDate);
+  _pmsOther    = res._isGuest ? res.tourListing.host : res.guest;
+
+  const handle = _pmsOther?.username ?? '';
+  const name   = _pmsOther ? ((_pmsOther.firstName ?? '') + ' ' + (_pmsOther.lastName ?? '')).trim() || handle : handle;
+  const profileUrl = handle ? `/profile/${encodeURIComponent(handle)}` : '#';
+
+  document.getElementById('pms-avatar-link').href = profileUrl;
+  document.getElementById('pms-avatar').innerHTML  = userAvatar(handle, 80, _pmsOther);
+  const nameEl = document.getElementById('pms-name');
+  nameEl.textContent = name; nameEl.href = profileUrl;
+  document.getElementById('pms-handle').textContent = handle ? `@${handle}` : '';
+  document.getElementById('pms-role').textContent   = res._isGuest ? 'Your host' : 'Your Mate';
+
+  const l = res.tourListing;
+  document.getElementById('pms-city').textContent     = `📍 ${l.city ?? ''}`;
+  const d = _pmsMeetDate;
+  document.getElementById('pms-datetime').textContent =
+    `📅 ${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ` +
+    `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('pms-desc').textContent = l.tourDescription ?? '';
+
+  if (_pmsTimer) clearInterval(_pmsTimer);
+  function tick() {
+    const diff = _pmsMeetDate - new Date();
+    const el = document.getElementById('pms-countdown');
+    if (!el) return;
+    if (diff <= 0) { el.textContent = 'now'; return; }
+    const m = Math.ceil(diff / 60000);
+    el.textContent = m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
+  }
+  tick();
+  _pmsTimer = setInterval(tick, 30000);
+
+  document.getElementById('premeet-screen').classList.add('premeet-screen--visible');
+  document.body.style.overflow = 'hidden';
+  const toast = document.getElementById('toast');
+  if (toast) toast.style.bottom = '110px';
+}
+
+function _pmsCheckIn() {
+  const btn = document.getElementById('pms-checkin-btn');
+  btn.disabled = true; btn.textContent = '...';
+  ReservationAPI.checkIn(_pmsResId)
+    .then(res => {
+      if (res && res.guestCheckedIn && res.hostCheckedIn) {
+        const city     = document.getElementById('pms-city').textContent.replace('📍 ', '');
+        const hostName = document.getElementById('pms-name').textContent;
+        localStorage.setItem('activeTour', JSON.stringify({ resId: _pmsResId, city, hostName }));
+        _pmsClose();
+        showToast('Both checked in — meet is live!', 'success');
+        setTimeout(() => { window.location.href = '/tours'; }, 900);
+      } else {
+        btn.textContent = 'Waiting…';
+        showToast('Checked in! Waiting for your Mate.', 'success');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false; btn.textContent = "I'm here ✓";
+      showToast(err.message || 'Check-in failed — try again.', 'error');
+    });
+}
+
+function _pmsCancelClick() {
+  document.getElementById('pms-cancel-reason').value = '';
+  document.getElementById('pms-cancel-dialog').style.display = 'flex';
+}
+
+function _pmsCloseCancelDlg() {
+  document.getElementById('pms-cancel-dialog').style.display = 'none';
+}
+
+function _pmsConfirmCancel() {
+  if (!document.getElementById('pms-cancel-reason').value.trim()) {
+    showToast('Please provide a reason.'); return;
+  }
+  const btn = document.getElementById('pms-confirm-cancel-btn');
+  btn.disabled = true; btn.textContent = 'Cancelling...';
+  ReservationAPI.cancelTour(_pmsResId)
+    .then(() => { _pmsCloseCancelDlg(); _pmsClose(); showToast('Meet cancelled.', 'success'); })
+    .catch(err => {
+      btn.disabled = false; btn.textContent = 'Cancel meet';
+      showToast(err.message || 'Could not cancel — try again.', 'error');
+    });
+}
+
+function _pmsClose() {
+  const el = document.getElementById('premeet-screen');
+  if (el) el.classList.remove('premeet-screen--visible');
+  document.body.style.overflow = '';
+  const toast = document.getElementById('toast');
+  if (toast) toast.style.bottom = '';
+  if (_pmsTimer) { clearInterval(_pmsTimer); _pmsTimer = null; }
+  _pmsResId = _pmsOther = _pmsMeetDate = null;
+}
