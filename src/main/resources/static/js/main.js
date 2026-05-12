@@ -472,7 +472,8 @@ function openListingDetail(listing, opts) {
   document.getElementById('ld-city').textContent = listing.city ?? '';
 
   const avatar = userAvatar(hostHandle, 28, userObj);
-  document.getElementById('ld-host').innerHTML = `${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:12px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span>`;
+  const profileUrl = hostHandle ? `/profile/${encodeURIComponent(hostHandle)}` : '#';
+  document.getElementById('ld-host').innerHTML = `<a href="${profileUrl}" onclick="closeListingDetail();_saveMapOverlayState();" style="display:flex;align-items:center;gap:7px;text-decoration:none;color:inherit;">${avatar}<span>${escapeHtml(hostName)}<span style="color:var(--text-3);font-size:12px;margin-left:4px;">@${escapeHtml(hostHandle)}</span></span></a>`;
 
   const d = new Date(listing.meetingDate);
   const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
