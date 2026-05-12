@@ -18,6 +18,9 @@ import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,23 +93,26 @@ public class BookingRequestService {
         return createBookingRequestResponse(request);
     }
 
-    public List<BookingRequestResponse> getMyRequests(
+    public Page<BookingRequestResponse> getMyRequests(
             Integer userId,
             String flowDirection,
             BookingRequestStatus status,
             Sort.Direction requestDateDirection,
-            Sort.Direction meetingDateDirection) {
+            Sort.Direction meetingDateDirection,
+            Pageable pageable) {
 
         Sort sort = Sort.by(
                 Sort.Order.by("requestDate").with(requestDateDirection),
                 Sort.Order.by("listing.meetingDate").with(meetingDateDirection)
         );
+        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        List<BookingRequest> results = "outgoing".equalsIgnoreCase(flowDirection)
-                ? bookingRequestRepo.findAllByGuest_IdAndStatus(userId, status, sort)
-                : bookingRequestRepo.findAllByListing_Host_IdAndStatus(userId, status, sort);
+        // route to the correct query based on whether the user is acting as guest or host
+        Page<BookingRequest> results = "outgoing".equalsIgnoreCase(flowDirection)
+                ? bookingRequestRepo.findAllByGuest_IdAndStatus(userId, status, pageableWithSort)
+                : bookingRequestRepo.findAllByListing_Host_IdAndStatus(userId, status, pageableWithSort);
 
-        return results.stream().map(this::createBookingRequestResponse).toList();
+        return results.map(this::createBookingRequestResponse);
     }
 
     public List<BookingRequestResponse> getAllBookingRequests() {
