@@ -165,21 +165,6 @@
 
     <div class="acc-section" style="padding-bottom:14px;">
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <a href="/tours" id="requests-link" class="acc-link-card">
-          <div class="acc-link-card__left">
-            <div class="acc-link-card__icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-            </div>
-            <div>
-              <div style="font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--text);">Meet Requests</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px;">Manage in the Meets tab → Requests</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span id="requests-badge" style="display:none;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:var(--radius-pill);letter-spacing:0.06em;"></span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </div>
-        </a>
 
         <a href="/ratings" class="acc-link-card">
           <div class="acc-link-card__left">
@@ -294,23 +279,6 @@
 
 loadAccount();
 
-  async function loadRequestsBadge() {
-    try {
-      const username = Auth.getUsername();
-      const requests = await BookingRequestAPI.getAll();
-      const pending = (requests || []).filter(r =>
-        r.status === 'PENDING' && r.tourListing?.host?.username === username
-      );
-      localStorage.setItem('pending_requests', pending.length > 0 ? '1' : '0');
-      if (pending.length > 0) {
-        const badge = document.getElementById('requests-badge');
-        badge.textContent = pending.length;
-        badge.style.display = '';
-      }
-    } catch(e) { /* badge is optional, fail silently */ }
-  }
-
-  loadRequestsBadge();
 
   // Available to meet — reads from API if David has added the field (Issue #2), falls back to localStorage
   function initAvailToggle(apiValue) {
