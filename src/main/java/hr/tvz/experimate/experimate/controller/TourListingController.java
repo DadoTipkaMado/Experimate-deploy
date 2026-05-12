@@ -31,12 +31,13 @@ public class TourListingController {
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<List<TourListingResponse>> getMyListings(
+    public ResponseEntity<Page<TourListingResponse>> getMyListings(
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestParam(required = false) String filter,
-            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction direction) {
+            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction direction,
+            @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(
-                tourListingService.getMyListings(userDetails.getId(), filter, direction)
+                tourListingService.getMyListings(userDetails.getId(), filter, direction, pageable)
         );
     }
 

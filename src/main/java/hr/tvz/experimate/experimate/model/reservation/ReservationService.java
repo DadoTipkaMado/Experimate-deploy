@@ -8,6 +8,7 @@ import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionExcept
 import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
@@ -25,6 +26,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -95,22 +99,24 @@ public class ReservationService {
         return createReservationResponse(reservation);
     }
 
-    public List<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe) {
+    public Page<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe, Pageable pageable) {
         Sort sort = Sort.by(direction, "tourListing.meetingDate");
+        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         LocalDateTime now = LocalDateTime.now();
 
-        List<Reservation> results = switch (filter) {
+        // route to the correct query based on user role (guest/host) and timeframe (past/upcoming)
+        Page<Reservation> results = switch (filter) {
             case "hosted" -> switch (timeframe) {
-                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, sort);
-                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, pageableWithSort);
+                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, pageableWithSort);
             };
             default -> switch (timeframe) {
-                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, sort);
-                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, sort);
+                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, pageableWithSort);
+                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, pageableWithSort);
             };
         };
 
-        return results.stream().map(this::createReservationResponse).toList();
+        return results.map(this::createReservationResponse);
     }
 
     public List<ReservationResponse> getAllReservations() {
@@ -174,12 +180,18 @@ public class ReservationService {
                             .formatted(Constraints.ReservationConstraints.MINS_DIFF_TO_CHECK_IN_MIN));
 
         // check in guest or host depending on which participant is calling
-        if (reservation.getGuest().getId().equals(userId)
-                && !reservation.isGuestCheckedIn()) {
+        if (reservation.getGuest().getId().equals(userId)) {
+            if(reservation.isGuestCheckedIn()) {
+                log.warn("Guest already checked in.");
+                throw new IllegalReservationStateException("Guest already checked in.");
+            }
             reservation.checkGuestIn();
             log.info("Guest with id {} checked in for reservation with id {}", userId, reservationId);
-        } else if (reservation.getTourListing().getHost().getId().equals(userId)
-                && !reservation.isHostCheckedIn()) {
+        } else if (reservation.getTourListing().getHost().getId().equals(userId)) {
+            if (reservation.isHostCheckedIn()) {
+                log.warn("Host already checked in.");
+                throw new IllegalReservationStateException("Host already checked in.");
+            }
             reservation.checkHostIn();
             log.info("Host with id {} checked in for reservation with id {}", userId, reservationId);
         } else {
@@ -390,6 +402,50 @@ public class ReservationService {
         expired.forEach(Reservation::expire);
         reservationRepo.saveAll(expired);
         log.info("Processed {} closed reservations.",  expired.size());
+    }
+
+    /**
+     * Returns presence information for all participants of a reservation.
+     *
+     * <p>Only the guest or host of the reservation may call this method.
+     *
+     * @param callerId      ID of the authenticated user making the request
+     * @param reservationId ID of the target reservation
+     * @return list of {@link PresenceResponse} for the guest and host
+     * @throws ReservationNotFoundException if no reservation exists with the given ID
+     * @throws ForbiddenActionException     if the caller is not a participant of the reservation
+     */
+    public List<PresenceResponse> getPresence(Integer callerId, Integer reservationId) {
+        Reservation reservation = reservationRepo.findById(reservationId)
+                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
+
+        User guest = reservation.getGuest();
+        User host = reservation.getTourListing().getHost();
+
+        // only participants may view presence
+        boolean isParticipant = guest.getId().equals(callerId) || host.getId().equals(callerId);
+        if (!isParticipant)
+            throw new ForbiddenActionException("Only participants of the reservation can view presence.");
+
+        PresenceResponse guestPresence = new PresenceResponse(
+                guest.getUsername(),
+                guest.getFirstName(),
+                guest.getLastName(),
+                guest.getProfilePhotoFilename(),
+                reservation.isGuestCheckedIn(),
+                false
+        );
+
+        PresenceResponse hostPresence = new PresenceResponse(
+                host.getUsername(),
+                host.getFirstName(),
+                host.getLastName(),
+                host.getProfilePhotoFilename(),
+                reservation.isHostCheckedIn(),
+                true
+        );
+
+        return List.of(guestPresence, hostPresence);
     }
 
     private ReservationResponse createReservationResponse(Reservation reservation) {

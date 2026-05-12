@@ -155,7 +155,4 @@ public class RatingService {
         ratingRepo.deleteAllByRater_IdOrRated_Id(event.userId(), event.userId());
         log.info("Deleted all ratings for user with id {}", event.userId());
     }
-
-    //TODO popravi kaj si zdrko na poslu tu, provjeri logiku i flow ratinga sa userima
-
 }
