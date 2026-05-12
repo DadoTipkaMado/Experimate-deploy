@@ -427,6 +427,8 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
 ─────────────────────────────────────────────── */
 let _listingDetailEl = null;
 let _listingDetailJoinCb = null;
+let _listingDetailOnClose = null;
+let _listingDetailCountdownTimer = null;
 let _currentDetailListing = null;
 
 function _ensureListingDetailOverlay() {
@@ -453,9 +455,11 @@ function _ensureListingDetailOverlay() {
 
 function openListingDetail(listing, opts) {
   opts = opts || {};
-  const { isOwn, reserved, reqStatus, onJoinSuccess } = opts;
-  _listingDetailJoinCb = onJoinSuccess || null;
+  const { isOwn, reserved, reqStatus, onJoinSuccess, reminder, onClose } = opts;
+  _listingDetailJoinCb  = onJoinSuccess || null;
+  _listingDetailOnClose = onClose || null;
   _currentDetailListing = listing;
+  if (_listingDetailCountdownTimer) { clearInterval(_listingDetailCountdownTimer); _listingDetailCountdownTimer = null; }
   _ensureListingDetailOverlay();
 
   const hostHandle = listing.host?.username ?? '';
@@ -473,38 +477,56 @@ function openListingDetail(listing, opts) {
   const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   document.getElementById('ld-date').textContent = `📅 ${dateStr}`;
 
-  const available  = !listing.reserved && !reserved;
-  const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
-  const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
-  const statusLabel = isOwn ? 'Your listing'
-    : reserved          ? 'Joined'
-    : reqStatus === 'PENDING'  ? 'Pending'
-    : reqStatus === 'ACCEPTED' ? 'Accepted'
-    : available ? 'Available' : 'Booked';
-  document.getElementById('ld-status').innerHTML = `
-    <div class="ld-status__dot" style="background:${dotColor};${dotGlow}"></div>
-    <div class="ld-status__label" style="color:${dotColor};">${statusLabel}</div>`;
-
-  document.getElementById('ld-desc').textContent = listing.tourDescription ?? '';
-
-  let joinBtn;
-  if (isOwn) {
-    joinBtn = '';
-  } else if (reserved) {
-    joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`;
-  } else if (reqStatus === 'PENDING') {
-    joinBtn = `<button class="btn" style="border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`;
-  } else if (reqStatus === 'ACCEPTED') {
-    joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`;
-  } else if (typeof Auth !== 'undefined' && Auth.getToken()) {
-    joinBtn = `<button class="btn btn--primary popup-action" data-listing-id="${listing.id}" onclick="_joinFromDetail(this)">Join</button>`;
+  if (reminder) {
+    // Reminder mode: show live countdown, no status dot
+    function _fmtCountdown() {
+      const diff = new Date(listing.meetingDate) - new Date();
+      if (diff <= 0) return 'now';
+      const h = Math.floor(diff / 3600000);
+      const m = Math.ceil((diff % 3600000) / 60000);
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+    const statusEl = document.getElementById('ld-status');
+    statusEl.innerHTML = `<div style="font-size:13px;color:var(--accent);font-family:var(--font-mono);letter-spacing:0.06em;">⏰ Meet in <span id="ld-countdown">${_fmtCountdown()}</span></div>`;
+    _listingDetailCountdownTimer = setInterval(() => {
+      const el = document.getElementById('ld-countdown');
+      if (el) el.textContent = _fmtCountdown();
+    }, 30000);
+    document.getElementById('ld-footer').innerHTML =
+      `<button class="btn btn--primary popup-action" style="width:100%;" onclick="closeListingDetail()">Got it, remind me later</button>`;
   } else {
-    joinBtn = `<a href="/login" class="btn btn--ghost popup-action">Sign in to join</a>`;
+    const available  = !listing.reserved && !reserved;
+    const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
+    const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
+    const statusLabel = isOwn ? 'Your listing'
+      : reserved          ? 'Joined'
+      : reqStatus === 'PENDING'  ? 'Pending'
+      : reqStatus === 'ACCEPTED' ? 'Accepted'
+      : available ? 'Available' : 'Booked';
+    document.getElementById('ld-status').innerHTML = `
+      <div class="ld-status__dot" style="background:${dotColor};${dotGlow}"></div>
+      <div class="ld-status__label" style="color:${dotColor};">${statusLabel}</div>`;
+
+    let joinBtn;
+    if (isOwn) {
+      joinBtn = '';
+    } else if (reserved) {
+      joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Joined</button>`;
+    } else if (reqStatus === 'PENDING') {
+      joinBtn = `<button class="btn" style="border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`;
+    } else if (reqStatus === 'ACCEPTED') {
+      joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`;
+    } else if (typeof Auth !== 'undefined' && Auth.getToken()) {
+      joinBtn = `<button class="btn btn--primary popup-action" data-listing-id="${listing.id}" onclick="_joinFromDetail(this)">Join</button>`;
+    } else {
+      joinBtn = `<a href="/login" class="btn btn--ghost popup-action">Sign in to join</a>`;
+    }
+    document.getElementById('ld-footer').innerHTML = `
+      <a href="/profile/${encodeURIComponent(hostHandle)}" class="btn btn--ghost popup-action" onclick="closeListingDetail();_saveMapOverlayState()">View profile</a>
+      ${joinBtn}`;
   }
 
-  document.getElementById('ld-footer').innerHTML = `
-    <a href="/profile/${encodeURIComponent(hostHandle)}" class="btn btn--ghost popup-action" onclick="closeListingDetail();_saveMapOverlayState()">View profile</a>
-    ${joinBtn}`;
+  document.getElementById('ld-desc').textContent = listing.tourDescription ?? '';
 
   requestAnimationFrame(() => _listingDetailEl.classList.add('listing-detail-overlay--visible'));
   document.body.style.overflow = 'hidden';
@@ -514,6 +536,8 @@ function closeListingDetail() {
   if (!_listingDetailEl) return;
   _listingDetailEl.classList.remove('listing-detail-overlay--visible');
   document.body.style.overflow = '';
+  if (_listingDetailCountdownTimer) { clearInterval(_listingDetailCountdownTimer); _listingDetailCountdownTimer = null; }
+  if (_listingDetailOnClose) { const cb = _listingDetailOnClose; _listingDetailOnClose = null; cb(); }
 }
 
 function _saveMapOverlayState() {
@@ -572,19 +596,28 @@ document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
       ReservationAPI.getMine({ filter: 'joined', timeframe: 'upcoming', direction: 'ASC' }).catch(() => []),
       ReservationAPI.getMine({ filter: 'hosted', timeframe: 'upcoming', direction: 'ASC' }).catch(() => []),
     ]);
-    const now = new Date();
-    const WINDOW_MS = 45 * 60 * 1000;
-    const GRACE_MS  = 15 * 60 * 1000;
+    const now        = new Date();
+    const LOCK_MS    = 45 * 60 * 1000;
+    const REMIND_MS  = 3 * 60 * 60 * 1000;
+    const GRACE_MS   = 15 * 60 * 1000;
 
-    const due = [
+    const all = [
       ...(joined || []).map(r => ({ ...r, _isGuest: true  })),
       ...(hosted || []).map(r => ({ ...r, _isGuest: false })),
-    ]
-    .filter(r => r.status !== 'CANCELLED')
-    .filter(r => { const d = new Date(r.tourListing.meetingDate) - now; return d <= WINDOW_MS && d > -GRACE_MS; })
-    .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
+    ].filter(r => r.status !== 'CANCELLED');
 
-    if (due.length) _showPreMeetScreen(due[0]);
+    // Lock screen: ≤ 45 min
+    const lockDue = all
+      .filter(r => { const d = new Date(r.tourListing.meetingDate) - now; return d <= LOCK_MS && d > -GRACE_MS; })
+      .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate))[0];
+    if (lockDue) { _showPreMeetScreen(lockDue); return; }
+
+    // Reminder: ≤ 3 h (but > 45 min) — only on map and explore
+    if (!['/map', '/explore'].some(p => path.startsWith(p))) return;
+    const remindDue = all
+      .filter(r => { const d = new Date(r.tourListing.meetingDate) - now; return d <= REMIND_MS && d > LOCK_MS; })
+      .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate))[0];
+    if (remindDue && _reminderAllowed()) _showReminder(remindDue);
   } catch (_) {}
 });
 
@@ -765,4 +798,32 @@ function _pmsClose() {
   if (toast) toast.style.bottom = '';
   if (_pmsTimer) { clearInterval(_pmsTimer); _pmsTimer = null; }
   _pmsResId = _pmsOther = _pmsMeetDate = null;
+}
+
+/* ───────────────────────────────────────────────
+   REMINDER POPUP
+   Shows on /map and /explore, 3 h → 45 min before
+   a meet. Closes, then re-opens every 10 min.
+─────────────────────────────────────────────── */
+const _REMIND_SNOOZE_MS = 10 * 60 * 1000;
+
+function _reminderAllowed() {
+  const ts = sessionStorage.getItem('reminderDismissedAt');
+  if (!ts) return true;
+  return Date.now() - parseInt(ts, 10) > _REMIND_SNOOZE_MS;
+}
+
+function _showReminder(res) {
+  const listing = res.tourListing;
+  openListingDetail(listing, {
+    isOwn:    !res._isGuest,
+    reserved:  res._isGuest,
+    reminder:  true,
+    onClose: () => {
+      sessionStorage.setItem('reminderDismissedAt', Date.now().toString());
+      setTimeout(() => {
+        if (_reminderAllowed()) _showReminder(res);
+      }, _REMIND_SNOOZE_MS);
+    },
+  });
 }
