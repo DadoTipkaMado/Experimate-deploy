@@ -80,14 +80,16 @@ function loadPins() {
   const myResPromise = Auth.getToken()
     ? ReservationAPI.getMine({ filter: 'joined', timeframe: 'upcoming' }).catch(() => [])
     : Promise.resolve([]);
+  const myListingsPromise = Auth.getToken()
+    ? TourListingAPI.getMine().catch(() => [])
+    : Promise.resolve([]);
 
-  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise])
-    .then(([listingsResult, usersResult, myResResult]) => {
-      const listings = listingsResult.status === 'fulfilled' ? listingsResult.value : [];
-      const users    = usersResult.status  === 'fulfilled' ? usersResult.value  : [];
-      const myRes    = myResResult.status  === 'fulfilled'
-        ? (Array.isArray(myResResult.value) ? myResResult.value : (myResResult.value?.content ?? []))
-        : [];
+  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise])
+    .then(([listingsResult, usersResult, myResResult, myListingsResult]) => {
+      const listings    = listingsResult.status    === 'fulfilled' ? (listingsResult.value    || []) : [];
+      const users       = usersResult.status       === 'fulfilled' ? (usersResult.value       || []) : [];
+      const myRes       = myResResult.status       === 'fulfilled' ? (myResResult.value       || []) : [];
+      const myListings  = myListingsResult.status  === 'fulfilled' ? (myListingsResult.value  || []) : [];
 
       (users || []).forEach(u => { if (u.username) MapState.userCache[u.username] = u; });
 
@@ -101,8 +103,12 @@ function loadPins() {
         MapState.myMeetMap[lid] = diff <= ONE_HOUR ? 'due-soon' : 'my-meet';
       });
 
-      (listings || []).forEach(listing => {
+      const seenIds = new Set();
+      const allListings = [...listings, ...myListings];
+      allListings.forEach(listing => {
         if (listing.lat == null || listing.lng == null) return;
+        if (seenIds.has(listing.id)) return;
+        seenIds.add(listing.id);
         const pinType = MapState.myMeetMap[listing.id] ?? 'default';
         const marker = buildMarker(listing, pinType);
         MapState.allMarkers.push({ marker, listing, pinType });

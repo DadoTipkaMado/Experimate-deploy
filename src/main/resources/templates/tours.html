@@ -535,6 +535,37 @@
     el.innerHTML = items.length ? items.map(mkCard).join('') : `<div style="font-size:11px;color:var(--text-3);padding:4px 0;">${emptyMsg}</div>`;
   }
 
+  /* ── Render My Listings (host) ── */
+  function renderListingsPanel() {
+    const el = document.getElementById('tab-listings');
+    if (!Auth.getToken()) { el.innerHTML = `<div class="meet-empty"><div class="meet-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`; return; }
+    const items = _loadedData.myListings || [];
+    if (!items.length) {
+      el.innerHTML = `
+        <div class="meet-empty">
+          <div class="meet-empty__icon">📋</div>
+          <div class="meet-empty__title">No listings yet</div>
+          <div class="meet-empty__sub">Create a listing to host your own Meet Day.</div>
+        </div>`;
+      return;
+    }
+    const now = new Date();
+    el.innerHTML = items.map(l => {
+      const d = new Date(l.meetingDate);
+      const isPast = d < now;
+      return `
+        <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
+          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
+          <div class="meet-card__info">
+            <div class="meet-card__who">${l.city}</div>
+            <div class="meet-card__where">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
+            <div class="meet-card__booked">${l.tourDescription ? l.tourDescription.slice(0, 60) + (l.tourDescription.length > 60 ? '…' : '') : ''}</div>
+          </div>
+          ${l.reserved ? '<span style="font-size:9px;font-family:var(--font-mono);color:var(--accent);letter-spacing:0.06em;">BOOKED</span>' : '<span style="font-size:9px;font-family:var(--font-mono);color:var(--text-3);letter-spacing:0.06em;">OPEN</span>'}
+        </div>`;
+    }).join('');
+  }
+
   /* ── Render Requests ── */
   function renderRequestsPanel() {
     const el = document.getElementById('requests-panel');
@@ -753,11 +784,13 @@
     BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'  }).catch(() => []),
     BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => []),
     UserAPI.getAll().catch(() => []),
+    TourListingAPI.getMine().catch(() => []),
   ])
-    .then(([joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined, allUsers]) => {
+    .then(([joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined, allUsers, myListings]) => {
       (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
-      _loadedData = { joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined };
+      _loadedData = { joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined, myListings };
       renderMeetsPanel();
+      renderListingsPanel();
       renderRequestsPanel();
       initCountdownAndTakeover(joinedUpcoming);
     })
