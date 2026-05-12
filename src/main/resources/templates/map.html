@@ -68,7 +68,6 @@
     .map-legend__dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
-    .map-legend__dot--gem   { background: var(--accent); opacity: 0.7; }
     .map-legend__dot--event { background: var(--warm);   opacity: 0.7; }
     .map-fab {
       position: absolute;
@@ -117,12 +116,6 @@
       transform: translate(-50%, -50%);
       width: 5px; height: 5px; border-radius: 50%;
     }
-    .map-pin--gem {
-      background: rgba(0,201,167,0.25);
-      border-color: var(--accent);
-      box-shadow: 0 0 8px rgba(0,201,167,0.3);
-    }
-    .map-pin--gem::after { background: var(--accent); }
     .map-pin--event {
       background: rgba(255,107,53,0.25);
       border-color: var(--warm);
@@ -177,7 +170,6 @@
     .dark-popup .leaflet-popup-close-button:hover { color: var(--text); }
     .popup-name { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--text); margin-bottom: 4px; }
     .popup-type { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
-    .popup-type--gem   { color: var(--accent); }
     .popup-type--event { color: var(--warm); }
     .popup-host { font-size: 14px; color: var(--text-2); margin-top: 2px; }
     .popup-date { font-size: 13px; color: var(--text-3); margin-top: 1px; letter-spacing: 0.03em; }
@@ -264,8 +256,7 @@
       </div>
 
 <div class="map-overlay map-overlay--interactive map-filters">
-        <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('gems')">Gems</div>
-        <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('events')">Events</div>
+        <div class="pill pill--active" onclick="togglePill(this)">Events</div>
         <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available only</div>
       </div>
 
@@ -308,7 +299,6 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:src="@{/js/map.js}"></script>
-<script th:src="@{/js/websocket.js}"></script>
 <script th:src="@{/js/tour.js}"></script>
 </body>
 </html>

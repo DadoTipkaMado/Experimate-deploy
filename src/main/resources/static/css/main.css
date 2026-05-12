@@ -623,72 +623,6 @@ svg { display: block; flex-shrink: 0; }
   background: var(--accent);
 }
 
-/* — Local card (map bottom sheet + explore sidebar) — */
-.local-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background var(--t-fast);
-  text-decoration: none;
-  color: inherit;
-}
-
-.local-card:hover {
-  background: var(--surface-2);
-}
-
-.local-card__avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--surface-2);
-  border: 1.5px solid var(--border-2);
-  flex-shrink: 0;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.local-card__info {
-  flex: 1;
-  min-width: 0;
-}
-
-.local-card__name {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.local-card__meta {
-  font-size: 10px;
-  color: var(--text-2);
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.local-card__rating {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-border);
-  border-radius: var(--radius-xs);
-  padding: 3px 8px;
-  flex-shrink: 0;
-}
 
 /* — Section label — */
 .section-label {
@@ -912,10 +846,6 @@ svg { display: block; flex-shrink: 0; }
 .app-shell {
   /* transition removed */
 }
-@keyframes pageIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
 .app-shell--exit {
   opacity: 0 !important;
   transform: translateY(-4px) !important;
@@ -950,12 +880,6 @@ svg { display: block; flex-shrink: 0; }
   animation: fadeIn 0.3s ease both;
 }
 
-/* Staggered children */
-.anim-stagger > *:nth-child(1) { animation-delay: 0.04s; }
-.anim-stagger > *:nth-child(2) { animation-delay: 0.08s; }
-.anim-stagger > *:nth-child(3) { animation-delay: 0.12s; }
-.anim-stagger > *:nth-child(4) { animation-delay: 0.16s; }
-.anim-stagger > *:nth-child(5) { animation-delay: 0.20s; }
 
 /* ── Skeleton shimmer ── */
 .skeleton {
@@ -971,15 +895,6 @@ svg { display: block; flex-shrink: 0; }
   will-change: background-position;
 }
 
-.skeleton-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
 .skeleton-line { height: 12px; }
 .skeleton-line--lg { height: 18px; }
@@ -1163,20 +1078,6 @@ svg { display: block; flex-shrink: 0; }
     transform: translateX(-50%) translateY(0);
   }
 
-  /* ───────────────────────────────────────────
-     LISTINGS PAGE — 2 column card grid
-  ─────────────────────────────────────────── */
-  .listings-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    padding: 20px 28px 40px;
-    max-width: 1100px;
-  }
-
-  .listings-header {
-    padding: 28px 28px 20px;
-  }
 
   /* ───────────────────────────────────────────
      MEET PAGE — wider cards
@@ -1202,11 +1103,6 @@ svg { display: block; flex-shrink: 0; }
     padding: 28px 28px 0;
   }
 
-  .comm-grid {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 16px 28px;
-    max-width: 1100px;
-  }
 
   /* ───────────────────────────────────────────
      ACCOUNT PAGE — centered, max width
@@ -1292,13 +1188,6 @@ svg { display: block; flex-shrink: 0; }
     width: 220px;
   }
 
-  .listings-list {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .comm-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -1306,8 +1195,6 @@ svg { display: block; flex-shrink: 0; }
    TikTok snap-scroll feed styles.
 ═══════════════════════════════════════════════ */
 .page-content--explore { overflow: hidden; display: flex; flex-direction: column; }
-.explore-header { padding: 14px 16px 10px; background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 5; }
-.explore-header .search-bar { margin-bottom: 10px; }
 .explore-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .explore-filters::-webkit-scrollbar { display: none; }
 
