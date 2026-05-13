@@ -36,7 +36,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody LoginRequest loginRequest) {
         TokenResponse tokenResponse = authService.login(loginRequest.username(), loginRequest.password());
 
         ResponseCookie cookie = buildResponseCookie(REFRESH_COOKIE, tokenResponse.refreshToken(), refreshTokenExpirationMS / 1000);
@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    ResponseEntity<AuthResponse> refresh(HttpServletRequest request) {
+    public ResponseEntity<AuthResponse> refresh(HttpServletRequest request) {
         log.debug("Attempting to refresh token.");
         String incomingRefreshToken = extractRequestCookie(request, REFRESH_COOKIE);
 
@@ -67,7 +67,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    ResponseEntity<Void> logout(HttpServletRequest request) {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
         String refreshToken = extractRequestCookie(request, REFRESH_COOKIE);
         authService.logout(refreshToken);
 

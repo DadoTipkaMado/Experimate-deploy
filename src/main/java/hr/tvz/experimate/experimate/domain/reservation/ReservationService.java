@@ -62,7 +62,7 @@ public class ReservationService {
     }
 
     @Transactional
-    protected ReservationResponse createReservation(Integer guestId, Integer listingId) {
+    public ReservationResponse createReservation(Integer guestId, Integer listingId) {
         User guest = userRepo.findById(guestId)
                 .orElseThrow(() -> {
                     log.warn("User not found with id {}", guestId);
