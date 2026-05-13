@@ -2,6 +2,8 @@ package hr.tvz.experimate.experimate.model.booking_request;
 
 import hr.tvz.experimate.experimate.model.booking_request.exception.BookingAlreadyRequestedException;
 import hr.tvz.experimate.experimate.model.booking_request.exception.BookingRequestNotFoundException;
+import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.model.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
 import hr.tvz.experimate.experimate.model.shared.UserDetails;
@@ -9,6 +11,7 @@ import hr.tvz.experimate.experimate.model.shared.event.BookingRequestAcceptedEve
 import hr.tvz.experimate.experimate.model.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.TourListingsDeletedEvent;
 import hr.tvz.experimate.experimate.model.tour_listing.*;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.HostAlreadyTakenException;
 import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingAlreadyReservedException;
 import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingExpiredException;
 import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingNotFoundException;
@@ -39,15 +42,18 @@ public class BookingRequestService {
     private final BookingRequestRepo bookingRequestRepo;
     private final UserRepo userRepo;
     private final TourListingRepo tourListingRepo;
+    private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
 
     public BookingRequestService(BookingRequestRepo bookingRequestRepo,
                                  UserRepo userRepo,
                                  TourListingRepo tourListingRepo,
+                                 ReservationRepo reservationRepo,
                                  ApplicationEventPublisher publisher) {
         this.bookingRequestRepo = bookingRequestRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
+        this.reservationRepo = reservationRepo;
         this.publisher = publisher;
     }
 
@@ -62,6 +68,27 @@ public class BookingRequestService {
 
         User guest = userRepo.findById(guestId)
                 .orElseThrow(() -> new UserNotFoundException(guestId));
+
+        LocalDateTime windowStart = listing.getMeetingDate().minusHours(12);
+        LocalDateTime windowEnd = listing.getMeetingDate().plusHours(12);
+        boolean isGuestAlreadyReserved = reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetween(
+                guest.getId(),
+                windowStart,
+                windowEnd
+        );
+        boolean isHostAlreadyReserved = reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetween(
+                listing.getHost().getId(),
+                windowStart,
+                windowEnd
+        );
+        if(isGuestAlreadyReserved){
+            log.warn("Guest with id {} already reserved for date {}", guest.getId(), listing.getMeetingDate());
+            throw new GuestAlreadyBookedException(guest.getId());
+        }
+        if(isHostAlreadyReserved){
+            log.warn("Host with id {} already reserved for date {}", listing.getHost().getId(), listing.getMeetingDate());
+            throw new HostAlreadyTakenException(listing.getHost().getId());
+        }
 
         if(listing.getMeetingDate().isBefore(LocalDateTime.now())) {
             log.warn("Listing with id {} has been expired", listingId);
