@@ -4,6 +4,7 @@ import hr.tvz.experimate.experimate.model.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 
 @Entity
 @Table(name="tour_listing")
@@ -26,7 +27,7 @@ public class TourListing {
     private Double latitude;
     private LocalDateTime postDate;
     private LocalDateTime meetingDate;
-    @Lob        //unlimited VARCHAR length
+    @Column(columnDefinition = "TEXT")
     private String tourDescription;
     private boolean reserved;
 

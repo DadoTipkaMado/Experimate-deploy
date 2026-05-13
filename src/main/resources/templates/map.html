@@ -27,22 +27,23 @@
     }
     .leaflet-container { background: #0a0a0a; }
     .leaflet-control-attribution { display: none; }
+    .leaflet-control-zoom { display: none; }
     .map-overlay {
       position: absolute;
       z-index: 10;
       pointer-events: none;
     }
     .map-overlay--interactive { pointer-events: all; }
-    .map-search { top: 12px; left: 12px; right: 12px; }
-    .map-search .search-bar {
-      background: rgba(10,10,10,0.92);
+    .map-geo-search { top: 12px; left: 12px; right: 12px; }
+    .map-filters { top: 62px; left: 12px; display: flex; gap: 6px; }
+    .map-geo-search .search-bar {
+      background: rgba(10,10,10,0.88);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border-color: var(--border-2);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
     }
-    .map-search .search-bar:focus-within { border-color: var(--accent-border); }
-    .map-filters { top: 62px; left: 12px; display: flex; gap: 6px; }
+    .map-geo-search .search-bar:focus-within { border-color: rgba(255,255,255,0.18); }
     .map-filters .pill {
       background: rgba(10,10,10,0.88);
       backdrop-filter: blur(10px);
@@ -84,8 +85,23 @@
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       white-space: nowrap;
     }
-    .map-fab__label { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .map-fab__label { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; display: none; }
+    @media (max-width: 1024px) { .map-fab { padding: 0; width: 44px; border-radius: 12px; } }
+    @media (min-width: 1025px) { .map-fab__label { display: inline; } }
     .map-fab:hover { transform: scale(1.04); box-shadow: 0 6px 28px rgba(0,201,167,0.5); }
+    .map-locate {
+      position: absolute;
+      bottom: calc(54px + 2.5%); right: 14px;
+      z-index: 10;
+      width: 44px; height: 44px;
+      background: none; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: opacity var(--t-fast);
+    }
+    .map-locate:hover { opacity: 0.75; }
+    .map-locate svg path { stroke: #07dcb8e0; fill: none; }
+    .map-locate svg circle { fill: #07dcb8e0; stroke: none; }
     .map-pin {
       width: 14px; height: 14px;
       border-radius: 50% 50% 50% 0;
@@ -113,6 +129,22 @@
       box-shadow: 0 0 8px rgba(255,107,53,0.3);
     }
     .map-pin--event::after { background: var(--warm); }
+    .user-location-pin {
+      width: 35px; height: 35px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      background: rgba(0,201,167,0.25);
+      border: 2px solid #00c9a7;
+      box-shadow: 0 0 0 5px rgba(0,201,167,0.12), 0 0 20px rgba(0,201,167,0.7);
+      position: relative; cursor: pointer;
+    }
+    .user-location-pin::after {
+      content: ''; position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 13px; height: 13px; border-radius: 50%;
+      background: #00c9a7;
+    }
     .dark-popup .leaflet-popup-content-wrapper {
       background: var(--surface);
       border: 1px solid var(--border-2);
@@ -125,122 +157,74 @@
     .dark-popup .leaflet-popup-tip-container { display: none; }
     .dark-popup .leaflet-popup-close-button { color: var(--text-3); font-size: 16px; padding: 4px 8px; }
     .dark-popup .leaflet-popup-close-button:hover { color: var(--text); }
-    .popup-name { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text); margin-bottom: 4px; }
-    .popup-type { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+    .popup-name { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--text); margin-bottom: 4px; }
+    .popup-type { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
     .popup-type--gem   { color: var(--accent); }
     .popup-type--event { color: var(--warm); }
-    .popup-host { font-size: 10px; color: var(--text-2); margin-top: 2px; }
-    .popup-date { font-size: 9px; color: var(--text-3); margin-top: 1px; letter-spacing: 0.03em; }
-    .popup-status { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
-    .popup-status__dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    .popup-status__label { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .popup-action { display: block; margin-top: 10px; padding: 6px 12px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-decoration: none; text-align: center; transition: background var(--t-fast), color var(--t-fast); }
-    .popup-action:hover { background: var(--accent); color: #000; }
+    .popup-host { font-size: 14px; color: var(--text-2); margin-top: 2px; }
+    .popup-date { font-size: 13px; color: var(--text-3); margin-top: 1px; letter-spacing: 0.03em; }
+    .popup-desc { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-top: 4px; word-break: break-word; overflow-wrap: break-word; }
+    .popup-status { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    .popup-status__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .popup-status__label { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .popup-action { display: flex; align-items: center; justify-content: center; height: 48px; border-radius: var(--radius-pill); border: none; background: var(--accent); color: #000; font-family: var(--font-mono); font-size: 14px; font-weight: 700; letter-spacing: 0.06em; text-decoration: none; text-align: center; box-shadow: 0 0 14px rgba(0,201,167,0.35), 0 2px 8px rgba(0,0,0,0.3); transition: opacity var(--t-fast); }
+    .popup-action:hover { opacity: 0.85; }
+    @media (max-width: 1024px) {
+      .map-popup-card__footer { justify-content: center; padding: 16px 24px 24px; }
+      .popup-action { width: 85%; }
+    }
+    @media (min-width: 1025px) {
+      .map-popup-card__footer { justify-content: flex-end; }
+      .popup-action { width: 160px; }
+    }
     /* Cluster styling */
     .marker-cluster { background: rgba(0,201,167,0.15) !important; border: 1px solid rgba(0,201,167,0.4) !important; }
     .marker-cluster div { background: rgba(0,201,167,0.85) !important; color: #000 !important; font-family: var(--font-display) !important; font-weight: 700 !important; font-size: 12px !important; }
     .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background: rgba(0,201,167,0.15) !important; }
 
-    /* ── Match results panel ── */
-    .match-panel {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-      background: var(--bg); border-top: 1px solid var(--border-2);
-      border-radius: 16px 16px 0 0;
-      max-height: 68vh; display: flex; flex-direction: column;
-      transform: translateY(100%);
-      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-      will-change: transform;
+    /* Centered map popup overlay */
+    .map-popup-overlay {
+      position: absolute; inset: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(1.3px);
+      -webkit-backdrop-filter: blur(1.3px);
+      background: rgba(0,0,0,0.5);
     }
-    .match-panel--open { transform: translateY(0); }
-    .match-panel__grip {
-      width: 36px; height: 4px; border-radius: 2px;
-      background: var(--border-2); margin: 10px auto 0; flex-shrink: 0; cursor: pointer;
+    .map-popup-card {
+      width: 85%; max-width: 420px; height: auto; max-height: 85vh;
+      background: var(--bg);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
     }
-    .match-panel__header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px 10px; flex-shrink: 0;
-      border-bottom: 1px solid var(--border);
+    .map-popup-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit; padding: 1.5px;
+      background: linear-gradient(to bottom, #00c9a7 0%, rgba(0,201,167,0) 90%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none; z-index: 2;
     }
-    .match-panel__title {
-      font-family: var(--font-display); font-weight: 700;
-      font-size: 13px; color: var(--text);
+    .map-popup-card::after {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: inherit;
+      background: linear-gradient(to bottom, rgba(0,201,167,0.35) 0%, rgba(0,201,167,0) 85%);
+      filter: blur(10px);
+      pointer-events: none; z-index: -1;
     }
-    .match-panel__close {
-      background: none; border: none; color: var(--text-3);
-      font-size: 20px; line-height: 1; cursor: pointer; padding: 0 2px;
-      transition: color 0.15s;
+    .map-popup-card__close {
+      position: absolute; top: 10px; right: 16px;
+      background: none; border: none;
+      color: #fff; font-size: 18px; cursor: pointer; z-index: 1;
     }
-    .match-panel__close:hover { color: var(--text); }
-    .match-panel__list {
-      overflow-y: auto; flex: 1;
-      padding: 10px 12px 90px;
-      display: flex; flex-direction: column; gap: 10px;
-    }
+    .map-popup-card__close:hover { color: rgba(255,255,255,0.6); }
+    .map-popup-card__body { padding: 24px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+    .map-popup-card__footer { padding: 0 24px 24px; display: flex; align-items: center; }
 
-    /* ── Match card ── */
-    .match-card {
-      display: flex; gap: 12px; padding: 12px 12px 10px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-    }
-    .match-card__avatar {
-      width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
-      object-fit: cover;
-    }
-    .match-card__body { flex: 1; min-width: 0; }
-    .match-card__top {
-      display: flex; align-items: flex-start; justify-content: space-between;
-      gap: 8px; margin-bottom: 2px;
-    }
-    .match-card__name {
-      font-family: var(--font-display); font-weight: 700;
-      font-size: 13px; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .match-card__handle { font-size: 10px; color: var(--text-3); margin-bottom: 5px; }
-    .match-card__pct {
-      font-size: 10px; color: var(--accent);
-      background: var(--accent-dim); border: 1px solid var(--accent-border);
-      border-radius: var(--radius-pill); padding: 2px 8px;
-      white-space: nowrap; flex-shrink: 0; letter-spacing: 0.04em;
-    }
-    .match-card__city { font-size: 10px; color: var(--text-2); margin-bottom: 5px; letter-spacing: 0.02em; }
-    .match-card__bio {
-      font-size: 11px; color: var(--text-2); line-height: 1.55; margin-bottom: 10px;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .match-card__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .match-card__explain-btn {
-      background: none; border: 1px solid var(--border-2);
-      border-radius: var(--radius-pill); padding: 5px 12px;
-      font-size: 10px; color: var(--text-2); cursor: pointer;
-      font-family: var(--font-mono); letter-spacing: 0.04em;
-      transition: border-color 0.15s, color 0.15s; white-space: nowrap;
-    }
-    .match-card__explain-btn:hover { border-color: var(--accent-border); color: var(--accent); }
-    .match-card__explain-area {
-      overflow: hidden; max-height: 0; opacity: 0;
-      transition: max-height 0.28s ease, opacity 0.2s ease, margin-top 0.2s ease;
-      margin-top: 0;
-    }
-    .match-card__explain-area--open { max-height: 240px; opacity: 1; margin-top: 10px; }
-    .match-card__explain-text {
-      font-size: 11px; color: var(--text-2); line-height: 1.8;
-      padding: 10px 12px; background: var(--surface-2);
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-    }
-
-    /* ── Backdrop ── */
-    .match-panel-backdrop {
-      position: fixed; inset: 0; z-index: 490;
-      background: rgba(0,0,0,0.55); opacity: 0; pointer-events: none;
-      transition: opacity 0.26s;
-    }
-    .match-panel-backdrop--visible { opacity: 1; pointer-events: all; }
-
-    /* ── Search bar AI badge ── */
-    .map-search .search-ai-badge { margin-left: 4px; }
   </style>
 </head>
 <body>
@@ -253,20 +237,35 @@
 
       <div id="map"></div>
 
-      <div class="map-overlay map-overlay--interactive map-search">
-        <div class="search-bar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input type="text" id="map-search-input" placeholder="Find someone curious, or search a city..." autocomplete="off">
+      <div id="map-popup-overlay" class="map-popup-overlay map-overlay--interactive" style="display:none;" onclick="if(event.target===this) closeMapPopup()">
+        <div class="map-popup-card">
+          <button class="map-popup-card__close" onclick="closeMapPopup()">✕</button>
+          <div class="map-popup-card__body" id="map-popup-body"></div>
+          <div class="map-popup-card__footer" id="map-popup-footer"></div>
         </div>
       </div>
 
-      <div class="map-overlay map-overlay--interactive map-filters">
+<div class="map-overlay map-overlay--interactive map-filters">
         <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('gems')">Gems</div>
         <div class="pill pill--active" onclick="togglePill(this); mapFilterToggle('events')">Events</div>
         <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available only</div>
       </div>
+
+      <div class="map-overlay map-overlay--interactive map-geo-search">
+        <div class="search-bar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <input type="text" id="map-geo-input" placeholder="Fly to a city..." autocomplete="off">
+        </div>
+      </div>
+
+      <button class="map-locate" onclick="centerOnUser()" title="My location">
+        <svg width="44" height="44" viewBox="0 0 24 24" stroke="#07dcb8e0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20C16.4183 20 20 16.4183 20 12M12 20C7.58172 20 4 16.4183 4 12M12 20V22M20 12C20 7.58172 16.4183 4 12 4M20 12H22M12 4C7.58172 4 4 7.58172 4 12M12 4V2M4 12H2M2 12H2M13 12C13 12.5523 12.5523 13 12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11C12.5523 11 13 11.4477 13 12Z" fill="none"/>
+          <circle cx="12" cy="12" r="1" fill="#00c9a7" stroke="none"/>
+        </svg>
+      </button>
 
       <a href="/listings/new" class="map-fab">
         <span style="font-size:20px;line-height:1;">+</span>
@@ -278,16 +277,6 @@
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <!-- Match results panel (slides up on AI search) -->
-  <div class="match-panel" id="match-panel">
-    <div class="match-panel__grip" onclick="closeMatchPanel()"></div>
-    <div class="match-panel__header">
-      <div class="match-panel__title" id="match-panel-title">Matches</div>
-      <button class="match-panel__close" onclick="closeMatchPanel()" aria-label="Close">&#x2715;</button>
-    </div>
-    <div class="match-panel__list" id="match-panel-list"></div>
-  </div>
-  <div class="match-panel-backdrop" id="match-panel-backdrop" onclick="closeMatchPanel()"></div>
 
 </div>
 
