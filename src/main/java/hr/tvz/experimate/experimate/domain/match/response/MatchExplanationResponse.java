@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.match;
+package hr.tvz.experimate.experimate.domain.match.response;
 
 /**
  * Response DTO for the compatibility explanation between two matched users.

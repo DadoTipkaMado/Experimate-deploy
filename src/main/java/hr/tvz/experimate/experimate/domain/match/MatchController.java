@@ -1,7 +1,7 @@
-package hr.tvz.experimate.experimate.controller;
+package hr.tvz.experimate.experimate.domain.match;
 
-import hr.tvz.experimate.experimate.domain.match.MatchExplanationResponse;
-import hr.tvz.experimate.experimate.domain.match.MatchResponse;
+import hr.tvz.experimate.experimate.domain.match.response.MatchExplanationResponse;
+import hr.tvz.experimate.experimate.domain.match.response.MatchResponse;
 import hr.tvz.experimate.experimate.domain.match.MatchService;
 import hr.tvz.experimate.experimate.shared.RateLimitOperation;
 import hr.tvz.experimate.experimate.shared.RateLimiterService;

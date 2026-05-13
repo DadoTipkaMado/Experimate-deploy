@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.domain.match;
 
+import hr.tvz.experimate.experimate.domain.match.response.*;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hr.tvz.experimate.experimate.domain.ai.AiMatchingService;
