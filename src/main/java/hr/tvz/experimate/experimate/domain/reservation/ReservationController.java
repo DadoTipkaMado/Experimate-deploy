@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.controller;
+package hr.tvz.experimate.experimate.domain.reservation;
 
 import hr.tvz.experimate.experimate.domain.reservation.*;
 import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;

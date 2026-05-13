@@ -1,9 +1,9 @@
-package hr.tvz.experimate.experimate.controller;
+package hr.tvz.experimate.experimate.domain.tour_listing;
 
-import hr.tvz.experimate.experimate.domain.tour_listing.CreateTourListingDto;
-import hr.tvz.experimate.experimate.domain.tour_listing.TourListingResponse;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
+import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListingService;
-import hr.tvz.experimate.experimate.domain.tour_listing.UpdateTourListingDto;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.UpdateTourListingDto;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

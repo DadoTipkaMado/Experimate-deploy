@@ -15,6 +15,7 @@ import hr.tvz.experimate.experimate.shared.UserDetails;
 import hr.tvz.experimate.experimate.shared.event.*;
 import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.domain.tour_listing.*;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
 import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;

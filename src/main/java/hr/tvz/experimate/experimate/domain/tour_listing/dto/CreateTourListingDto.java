@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.tour_listing;
+package hr.tvz.experimate.experimate.domain.tour_listing.dto;
 
 import hr.tvz.experimate.experimate.shared.Constraints;
 import jakarta.validation.constraints.*;

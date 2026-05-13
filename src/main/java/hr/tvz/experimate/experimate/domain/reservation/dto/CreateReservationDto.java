@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.reservation;
+package hr.tvz.experimate.experimate.domain.reservation.dto;
 
 import jakarta.validation.constraints.Positive;
 

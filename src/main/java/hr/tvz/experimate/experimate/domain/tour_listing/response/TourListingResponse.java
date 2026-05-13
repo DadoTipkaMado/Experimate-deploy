@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.tour_listing;
+package hr.tvz.experimate.experimate.domain.tour_listing.response;
 
 import hr.tvz.experimate.experimate.shared.UserDetails;
 

@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.controller;
+package hr.tvz.experimate.experimate.security;
 
 import hr.tvz.experimate.experimate.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.security.AuthResponse;
