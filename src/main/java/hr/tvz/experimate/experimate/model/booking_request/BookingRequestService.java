@@ -18,6 +18,7 @@ import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
@@ -87,6 +88,25 @@ public class BookingRequestService {
         log.info("Created booking request with id {}", request.getId());
 
         return createBookingRequestResponse(request);
+    }
+
+    public List<BookingRequestResponse> getMyRequests(
+            Integer userId,
+            String flowDirection,
+            BookingRequestStatus status,
+            Sort.Direction requestDateDirection,
+            Sort.Direction meetingDateDirection) {
+
+        Sort sort = Sort.by(
+                Sort.Order.by("requestDate").with(requestDateDirection),
+                Sort.Order.by("listing.meetingDate").with(meetingDateDirection)
+        );
+
+        List<BookingRequest> results = "outgoing".equalsIgnoreCase(flowDirection)
+                ? bookingRequestRepo.findAllByGuest_IdAndStatus(userId, status, sort)
+                : bookingRequestRepo.findAllByListing_Host_IdAndStatus(userId, status, sort);
+
+        return results.stream().map(this::createBookingRequestResponse).toList();
     }
 
     public List<BookingRequestResponse> getAllBookingRequests() {
@@ -212,6 +232,7 @@ public class BookingRequestService {
         );
 
         TourListingDetails listingDetails = new TourListingDetails(
+                request.getListing().getId(),
                 request.getListing().getMeetingDate(),
                 request.getListing().getCity(),
                 hostDetails

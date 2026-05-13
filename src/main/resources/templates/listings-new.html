@@ -93,11 +93,7 @@
 
       <div id="form-error" class="form-error" style="display:none;"></div>
 
-      <div class="form-field">
-        <label for="city">City</label>
-        <input type="text" id="city" name="city" placeholder="e.g. Zagreb" required>
-        <span class="form-field__error" id="city-error">Please enter a city name.</span>
-      </div>
+      <input type="hidden" id="city" name="city">
 
       <!-- Separate date and time inputs -->
       <div class="form-row">
@@ -163,23 +159,6 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  /* ── CITY VALIDATION ── */
-  const cityInput = document.getElementById('city');
-  const cityError = document.getElementById('city-error');
-  cityInput.addEventListener('blur', () => {
-    if (!cityInput.value.trim()) {
-      cityInput.classList.add('input--error');
-      cityError.classList.add('form-field__error--visible');
-    } else {
-      cityInput.classList.remove('input--error');
-      cityError.classList.remove('form-field__error--visible');
-    }
-  });
-  cityInput.addEventListener('input', () => {
-    cityInput.classList.remove('input--error');
-    cityError.classList.remove('form-field__error--visible');
-  });
-
   /* ── DATE VALIDATION ── */
   const meetingDateInput = document.getElementById('meetingDateInput');
   const meetingTimeInput = document.getElementById('meetingTimeInput');
@@ -253,11 +232,8 @@
         radius: 8, color: '#00c9a7', fillColor: '#00c9a7', fillOpacity: 0.7, weight: 2,
       }).addTo(locationMap);
     }
-    // Auto-fill city if blank
-    const cityField = document.getElementById('city');
-    if (!cityField.value.trim() && label) {
-      const firstPart = label.split(',')[0].trim();
-      cityField.value = firstPart;
+    if (label) {
+      document.getElementById('city').value = label.split(',')[0].trim();
     }
   }
 

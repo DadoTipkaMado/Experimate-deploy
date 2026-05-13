@@ -13,6 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,22 +76,24 @@ public class TourListingService {
 
     public Optional<TourListingResponse> getListingById(Integer id) {
         return listingRepo.findById(id)
-                .map(listing -> createListingResponse(listing));
+                .map(this::createListingResponse);
     }
 
-    public List<TourListingResponse> getListingsByHost(Integer hostId) {
-        return listingRepo.findAllByHost_Id(hostId)
+    private List<TourListingResponse> getListingsByHost(Integer hostId, Sort sort) {
+        return listingRepo.findAllByHost_Id(hostId, sort)
                 .stream()
                 .map(this::createListingResponse)
                 .toList();
     }
 
-    public List<TourListingResponse> getAllListings(Integer resourceOwnerId) {
-        return listingRepo.findAll()
-                .stream()
-                .filter(listing -> (!listing.getHost().getId().equals(resourceOwnerId)))
-                .map(this::createListingResponse)
-                .toList();
+    public List<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction) {
+        Sort sort = Sort.by(direction, "meetingDate");
+        return getListingsByHost(userId, sort);
+    }
+
+    public Page<TourListingResponse> getAllListings(Integer resourceOwnerId, Pageable pageable) {
+        return listingRepo.findAllByHost_IdNot(resourceOwnerId, pageable)
+                .map(this::createListingResponse);
     }
 
     public TourListingResponse updateListing(Integer id, UpdateTourListingDto dto, Integer callerId) {

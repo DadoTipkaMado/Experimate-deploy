@@ -1,6 +1,4 @@
 package hr.tvz.experimate.experimate.controller;
-
-import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

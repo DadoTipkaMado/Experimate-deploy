@@ -30,6 +30,14 @@ const Auth = {
   },
 };
 
+function buildQuery(params = {}) {
+  const q = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+  return q ? '?' + q : '';
+}
+
 // Shared refresh promise — prevents parallel calls from each triggering /refresh separately
 let _refreshPromise = null;
 
@@ -57,6 +65,10 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   }
 
   if (res.status === 401 && !_isRetry) {
+    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register'].some(p => path.startsWith(p));
+    if (isAuthEndpoint) {
+      throw new Error('Incorrect username or password.');
+    }
     if (!_refreshPromise) {
       _refreshPromise = fetch(API_BASE + '/api/auth/refresh', {
         method: 'POST',
@@ -127,8 +139,9 @@ const UserAPI = {
    TOUR LISTINGS  /api/tour-listing
 ─────────────────────────────────────────────── */
 const TourListingAPI = {
-  getAll: ()           => apiFetch('/api/tour-listing'),
-  getMine: ()          => apiFetch('/api/tour-listing/mine'),
+  getPage: (page = 0, params = {}) => apiFetch('/api/tour-listing' + buildQuery({ page, ...params })),
+  getAll: (params = {})  => apiFetch('/api/tour-listing' + buildQuery({ size: 1000, ...params })).then(p => p?.content ?? []),
+  getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
@@ -140,7 +153,7 @@ const TourListingAPI = {
 ─────────────────────────────────────────────── */
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
-  getMine: ()          => apiFetch('/api/reservation/mine'),   // returns { asGuest: [], asHost: [] }
+  getMine: (params = {}) => apiFetch('/api/reservation/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
@@ -153,6 +166,7 @@ const ReservationAPI = {
 ─────────────────────────────────────────────── */
 const BookingRequestAPI = {
   getAll: ()           => apiFetch('/api/booking-request'),
+  getMine: (params = {}) => apiFetch('/api/booking-request/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/booking-request/${id}`),
   create: (dto)        => apiFetch('/api/booking-request',             { method: 'POST',   body: JSON.stringify(dto) }),
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
