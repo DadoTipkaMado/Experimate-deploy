@@ -1,5 +1,8 @@
 package hr.tvz.experimate.experimate.domain.rating;
 
+import hr.tvz.experimate.experimate.domain.rating.dto.CreateRatingDto;
+import hr.tvz.experimate.experimate.domain.rating.response.RatingResponse;
+
 import hr.tvz.experimate.experimate.domain.reservation.Reservation;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;

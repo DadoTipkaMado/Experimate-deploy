@@ -1,5 +1,8 @@
 package hr.tvz.experimate.experimate.domain.rating;
 
+import hr.tvz.experimate.experimate.domain.rating.dto.*;
+import hr.tvz.experimate.experimate.domain.rating.response.*;
+
 import hr.tvz.experimate.experimate.domain.rating.exception.DuplicateRatingException;
 import hr.tvz.experimate.experimate.domain.rating.exception.RatingNotFoundException;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
