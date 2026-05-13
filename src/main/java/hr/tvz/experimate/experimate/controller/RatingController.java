@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.rating.*;
+import hr.tvz.experimate.experimate.domain.rating.*;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

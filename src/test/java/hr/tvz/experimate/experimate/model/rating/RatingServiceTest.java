@@ -1,10 +1,10 @@
-package hr.tvz.experimate.experimate.model.rating;
+package hr.tvz.experimate.experimate.domain.rating;
 
-import hr.tvz.experimate.experimate.model.reservation.Reservation;
-import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
-import hr.tvz.experimate.experimate.model.reservation.ReservationStatus;
-import hr.tvz.experimate.experimate.user.User;
-import hr.tvz.experimate.experimate.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.reservation.Reservation;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

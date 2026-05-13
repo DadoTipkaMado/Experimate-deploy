@@ -1,11 +1,11 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.reservation.*;
-import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
-import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
-import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
-import hr.tvz.experimate.experimate.model.reservation.response.PresenceResponse;
-import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
+import hr.tvz.experimate.experimate.domain.reservation.*;
+import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
+import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
+import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
+import hr.tvz.experimate.experimate.domain.reservation.response.ReservationResponse;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.constraints.Positive;
 import org.springframework.data.domain.Page;

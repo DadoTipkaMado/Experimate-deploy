@@ -1,10 +1,10 @@
 package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.model.match.MatchExplanationResponse;
-import hr.tvz.experimate.experimate.model.match.MatchResponse;
-import hr.tvz.experimate.experimate.model.match.MatchService;
-import hr.tvz.experimate.experimate.model.shared.RateLimitOperation;
-import hr.tvz.experimate.experimate.model.shared.RateLimiterService;
+import hr.tvz.experimate.experimate.domain.match.MatchExplanationResponse;
+import hr.tvz.experimate.experimate.domain.match.MatchResponse;
+import hr.tvz.experimate.experimate.domain.match.MatchService;
+import hr.tvz.experimate.experimate.shared.RateLimitOperation;
+import hr.tvz.experimate.experimate.shared.RateLimiterService;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

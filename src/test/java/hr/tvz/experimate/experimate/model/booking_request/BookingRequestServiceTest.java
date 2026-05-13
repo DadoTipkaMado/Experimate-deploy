@@ -1,14 +1,14 @@
-package hr.tvz.experimate.experimate.model.booking_request;
+package hr.tvz.experimate.experimate.domain.booking_request;
 
-import hr.tvz.experimate.experimate.model.booking_request.CreateBookingRequestDto;
-import hr.tvz.experimate.experimate.model.reservation.ReservationRepo;
-import hr.tvz.experimate.experimate.model.reservation.exception.GuestAlreadyBookedException;
-import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
-import hr.tvz.experimate.experimate.model.tour_listing.TourListingRepo;
-import hr.tvz.experimate.experimate.model.tour_listing.exception.HostAlreadyTakenException;
-import hr.tvz.experimate.experimate.user.User;
-import hr.tvz.experimate.experimate.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.booking_request.CreateBookingRequestDto;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
+import hr.tvz.experimate.experimate.domain.tour_listing.exception.HostAlreadyTakenException;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

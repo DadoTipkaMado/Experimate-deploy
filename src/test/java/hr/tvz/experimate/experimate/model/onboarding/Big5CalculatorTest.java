@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.onboarding;
+package hr.tvz.experimate.experimate.domain.onboarding;
 
 import org.junit.jupiter.api.Test;
 
