@@ -1,9 +1,9 @@
-package hr.tvz.experimate.experimate.controller;
+package hr.tvz.experimate.experimate.domain.booking_request;
 
-import hr.tvz.experimate.experimate.domain.booking_request.BookingRequestResponse;
+import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
 import hr.tvz.experimate.experimate.domain.booking_request.BookingRequestService;
 import hr.tvz.experimate.experimate.domain.booking_request.BookingRequestStatus;
-import hr.tvz.experimate.experimate.domain.booking_request.CreateBookingRequestDto;
+import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;

@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.domain.booking_request;
 
-import hr.tvz.experimate.experimate.domain.booking_request.CreateBookingRequestDto;
+import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;

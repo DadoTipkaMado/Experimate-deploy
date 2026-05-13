@@ -1,5 +1,8 @@
 package hr.tvz.experimate.experimate.domain.booking_request;
 
+import hr.tvz.experimate.experimate.domain.booking_request.dto.*;
+import hr.tvz.experimate.experimate.domain.booking_request.response.*;
+
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingAlreadyRequestedException;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingRequestNotFoundException;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
