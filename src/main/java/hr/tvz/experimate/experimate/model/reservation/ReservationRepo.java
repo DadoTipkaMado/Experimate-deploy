@@ -1,7 +1,6 @@
 package hr.tvz.experimate.experimate.model.reservation;
 
 import hr.tvz.experimate.experimate.model.user.User;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -44,8 +43,11 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     Page<Reservation> findAllByGuest_IdAndTourListing_MeetingDateBefore(Integer guestId, LocalDateTime now, Pageable pageable);
     Page<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(Integer hostId, LocalDateTime now, Pageable pageable);
     Page<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(Integer hostId, LocalDateTime now, Pageable pageable);
+<<<<<<< david/backend
 
 
     Boolean existsByGuest_IdAndTourListing_MeetingDateBetween(Integer id, LocalDateTime start, LocalDateTime end);
     Boolean existsByTourListing_Host_IdAndTourListing_MeetingDateBetween(Integer id, LocalDateTime start, LocalDateTime end);
+=======
+>>>>>>> develop
 }
