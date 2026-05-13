@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.onboarding.dto;
+package hr.tvz.experimate.experimate.domain.onboarding.response;
 
 /**
  * Response DTO returned when a user successfully completes the onboarding quiz.

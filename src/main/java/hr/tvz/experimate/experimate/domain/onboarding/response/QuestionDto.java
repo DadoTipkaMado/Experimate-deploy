@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.onboarding.dto;
+package hr.tvz.experimate.experimate.domain.onboarding.response;
 
 /**
  * Response DTO representing a single BFI-10 quiz question shown to the user.

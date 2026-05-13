@@ -1,7 +1,7 @@
-package hr.tvz.experimate.experimate.controller;
+package hr.tvz.experimate.experimate.domain.onboarding;
 
-import hr.tvz.experimate.experimate.domain.onboarding.OnboardingService;
 import hr.tvz.experimate.experimate.domain.onboarding.dto.*;
+import hr.tvz.experimate.experimate.domain.onboarding.response.*;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

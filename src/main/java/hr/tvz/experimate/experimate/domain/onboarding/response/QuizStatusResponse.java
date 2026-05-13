@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.onboarding.dto;
+package hr.tvz.experimate.experimate.domain.onboarding.response;
 
 import hr.tvz.experimate.experimate.domain.onboarding.QuizStatus;
 
