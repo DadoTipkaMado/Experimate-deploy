@@ -125,7 +125,6 @@
         </dependency>
 
         <dependency>
-<<<<<<< david/backend
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>4.1.0-RC1</version>
@@ -140,8 +139,6 @@
         </dependency>
 
         <dependency>
-=======
->>>>>>> develop
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>12.6.0</version>

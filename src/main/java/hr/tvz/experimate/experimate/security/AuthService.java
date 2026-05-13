@@ -2,9 +2,9 @@ package hr.tvz.experimate.experimate.security;
 
 import hr.tvz.experimate.experimate.model.refresh_token.RefreshTokenService;
 import hr.tvz.experimate.experimate.model.shared.response.TokenResponse;
-import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.model.user.UserRepo;
+import hr.tvz.experimate.experimate.user.User;
+import hr.tvz.experimate.experimate.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;

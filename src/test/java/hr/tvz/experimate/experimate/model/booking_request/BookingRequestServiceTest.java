@@ -7,8 +7,8 @@ import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionExcept
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.model.tour_listing.TourListingRepo;
 import hr.tvz.experimate.experimate.model.tour_listing.exception.HostAlreadyTakenException;
-import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserRepo;
+import hr.tvz.experimate.experimate.user.User;
+import hr.tvz.experimate.experimate.user.UserRepo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

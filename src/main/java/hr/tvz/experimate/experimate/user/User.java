@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.user;
 
 import hr.tvz.experimate.experimate.model.onboarding.Big5Vector;
 import jakarta.persistence.Column;

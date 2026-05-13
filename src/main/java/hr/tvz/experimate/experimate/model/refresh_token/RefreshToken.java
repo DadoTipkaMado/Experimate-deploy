@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.refresh_token;
 
-import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

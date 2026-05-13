@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.user.dto;
 
 import hr.tvz.experimate.experimate.model.shared.Constraints;
 import jakarta.validation.constraints.Size;

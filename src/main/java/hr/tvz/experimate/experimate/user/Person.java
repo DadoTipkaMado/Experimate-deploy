@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.user;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.user;
 
 import hr.tvz.experimate.experimate.model.onboarding.QuizResult;
 import hr.tvz.experimate.experimate.model.onboarding.QuizResultRepo;
@@ -6,11 +6,13 @@ import hr.tvz.experimate.experimate.model.shared.FileStorageService;
 import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
-import hr.tvz.experimate.experimate.model.user.exception.IdNumberTakenException;
-import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.model.user.exception.UsernameTakenException;
-import hr.tvz.experimate.experimate.model.user.response.UserResponse;
-import hr.tvz.experimate.experimate.model.user.response.UserSearchResponse;
+import hr.tvz.experimate.experimate.user.dto.CreateUserDto;
+import hr.tvz.experimate.experimate.user.dto.UpdateUserDto;
+import hr.tvz.experimate.experimate.user.exception.IdNumberTakenException;
+import hr.tvz.experimate.experimate.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.user.exception.UsernameTakenException;
+import hr.tvz.experimate.experimate.user.response.UserResponse;
+import hr.tvz.experimate.experimate.user.response.UserSearchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;

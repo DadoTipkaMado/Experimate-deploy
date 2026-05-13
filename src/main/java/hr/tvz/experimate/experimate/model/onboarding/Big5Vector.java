@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.onboarding;
 
-import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.user.User;
 
 /**
  * Immutable value object holding a user's Big Five personality scores.

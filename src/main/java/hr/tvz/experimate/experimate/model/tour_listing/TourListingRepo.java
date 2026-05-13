@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.model.tour_listing;
 
-import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

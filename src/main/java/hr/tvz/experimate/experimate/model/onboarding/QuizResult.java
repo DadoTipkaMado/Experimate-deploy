@@ -2,7 +2,7 @@ package hr.tvz.experimate.experimate.model.onboarding;
 
 import hr.tvz.experimate.experimate.model.onboarding.exception.QuizAlreadyCompletedException;
 import hr.tvz.experimate.experimate.model.onboarding.exception.QuizCannotBeCancelledException;
-import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

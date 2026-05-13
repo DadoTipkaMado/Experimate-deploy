@@ -1,7 +1,7 @@
 package hr.tvz.experimate.experimate.model.booking_request;
 
 import hr.tvz.experimate.experimate.model.tour_listing.TourListing;
-import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;

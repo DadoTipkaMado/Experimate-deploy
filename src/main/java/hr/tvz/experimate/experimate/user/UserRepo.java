@@ -1,6 +1,6 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.user;
 
-import hr.tvz.experimate.experimate.model.user.response.UserResponse;
+import hr.tvz.experimate.experimate.user.response.UserResponse;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

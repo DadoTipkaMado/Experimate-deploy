@@ -8,9 +8,9 @@ import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionExcept
 import hr.tvz.experimate.experimate.model.shared.event.RatingCreatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.model.shared.event.UserDeletedEvent;
-import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.model.user.UserRepo;
+import hr.tvz.experimate.experimate.user.User;
+import hr.tvz.experimate.experimate.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
