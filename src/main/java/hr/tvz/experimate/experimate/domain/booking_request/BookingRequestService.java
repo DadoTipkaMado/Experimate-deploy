@@ -8,8 +8,7 @@ import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingRequ
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.shared.TourListingDetails;
-import hr.tvz.experimate.experimate.shared.UserDetails;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedEvent;
@@ -47,17 +46,20 @@ public class BookingRequestService {
     private final TourListingRepo tourListingRepo;
     private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
+    private final DetailsMapper detailsMapper;
 
     public BookingRequestService(BookingRequestRepo bookingRequestRepo,
                                  UserRepo userRepo,
                                  TourListingRepo tourListingRepo,
                                  ReservationRepo reservationRepo,
-                                 ApplicationEventPublisher publisher) {
+                                 ApplicationEventPublisher publisher,
+                                 DetailsMapper detailsMapper) {
         this.bookingRequestRepo = bookingRequestRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
         this.reservationRepo = reservationRepo;
         this.publisher = publisher;
+        this.detailsMapper = detailsMapper;
     }
 
     public BookingRequestResponse createBookingRequest(CreateBookingRequestDto dto, Integer guestId) {
@@ -255,31 +257,12 @@ public class BookingRequestService {
     }
 
     private BookingRequestResponse createBookingRequestResponse(BookingRequest request){
-        UserDetails hostDetails = new UserDetails(
-                request.getListing().getHost().getFirstName(),
-                request.getListing().getHost().getLastName(),
-                request.getListing().getHost().getUsername()
-        );
-
-        UserDetails guestDetails = new UserDetails(
-                request.getGuest().getFirstName(),
-                request.getGuest().getLastName(),
-                request.getGuest().getUsername()
-        );
-
-        TourListingDetails listingDetails = new TourListingDetails(
-                request.getListing().getId(),
-                request.getListing().getMeetingDate(),
-                request.getListing().getCity(),
-                hostDetails
-        );
-
         return new BookingRequestResponse(
                 request.getId(),
                 request.getStatus(),
                 request.getRequestDate(),
-                listingDetails,
-                guestDetails
+                detailsMapper.mapListingDetails(request.getListing()),
+                detailsMapper.mapUserDetails(request.getGuest())
         );
     }
 }
