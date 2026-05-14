@@ -3,7 +3,7 @@ package hr.tvz.experimate.experimate.domain.tour_listing;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.*;
 
-import hr.tvz.experimate.experimate.shared.UserDetails;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.*;
 import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
@@ -41,13 +41,16 @@ public class TourListingService {
     private final TourListingRepo listingRepo;
     private final UserRepo userRepo;
     private final ApplicationEventPublisher publisher;
+    private final DetailsMapper detailsMapper;
 
     public TourListingService(TourListingRepo repo,
                               UserRepo userRepo,
-                              ApplicationEventPublisher publisher) {
+                              ApplicationEventPublisher publisher,
+                              DetailsMapper detailsMapper) {
         this.listingRepo = repo;
         this.userRepo = userRepo;
         this.publisher = publisher;
+        this.detailsMapper = detailsMapper;
     }
 
     //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
@@ -225,13 +228,6 @@ public class TourListingService {
     }
 
     private TourListingResponse createListingResponse(TourListing listing){
-        User host = listing.getHost();
-        UserDetails hostDetails = new UserDetails(
-                host.getFirstName(),
-                host.getLastName(),
-                host.getUsername()
-        );
-
         return new TourListingResponse(
                 listing.getId(),
                 listing.getCity(),
@@ -241,7 +237,7 @@ public class TourListingService {
                 listing.getPostDate(),
                 listing.getTourDescription(),
                 listing.isReserved(),
-                hostDetails
+                detailsMapper.mapUserDetails(listing.getHost())
         );
     }
 
