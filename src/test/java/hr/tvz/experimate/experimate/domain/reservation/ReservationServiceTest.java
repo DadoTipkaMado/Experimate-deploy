@@ -1,0 +1,421 @@
+package hr.tvz.experimate.experimate.domain.reservation;
+
+import hr.tvz.experimate.experimate.domain.reservation.exception.IllegalReservationStateException;
+import hr.tvz.experimate.experimate.domain.reservation.exception.ReservationNotFoundException;
+import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
+import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
+import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ReservationServiceTest {
+
+    @Mock private ReservationRepo reservationRepo;
+    @Mock private UserRepo userRepo;
+    @Mock private TourListingRepo tourListingRepo;
+    @Mock private ApplicationEventPublisher publisher;
+    @Mock private DetailsMapper detailsMapper;
+
+    @InjectMocks private ReservationService service;
+
+    // ──────────────── checkUserIn ────────────────
+
+    @Test
+    void checkUserIn_throwsIfReservationNotFound() {
+        when(reservationRepo.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(ReservationNotFoundException.class,
+                () -> service.checkUserIn(10, 1));
+    }
+
+    @Test
+    void checkUserIn_throwsIfStatusNotConfirmed() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.ACTIVE);
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.checkUserIn(10, 1));
+    }
+
+    @Test
+    void checkUserIn_throwsIfMeetingTooFarAway() {
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        // 60 minutes is well outside the 30-minute check-in window
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(60));
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.checkUserIn(10, 1));
+    }
+
+    @Test
+    void checkUserIn_guestHappyPath_checksGuestInAndKeepsStatusConfirmed() {
+        Integer guestId = 10;
+        Integer hostId = 99;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+        User host = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(reservation.isGuestCheckedIn()).thenReturn(false);
+        when(reservation.bothCheckedIn()).thenReturn(false);
+
+        CheckInResponse response = service.checkUserIn(guestId, 1);
+
+        verify(reservation).checkGuestIn();
+        verify(reservation, never()).checkHostIn();
+        verify(reservation, never()).activate();
+        verify(reservationRepo).save(reservation);
+    }
+
+    @Test
+    void checkUserIn_hostHappyPath_checksHostInAndKeepsStatusConfirmed() {
+        Integer guestId = 10;
+        Integer hostId = 99;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+        User host = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(hostId);
+        when(reservation.isHostCheckedIn()).thenReturn(false);
+        when(reservation.bothCheckedIn()).thenReturn(false);
+
+        service.checkUserIn(hostId, 1);
+
+        verify(reservation).checkHostIn();
+        verify(reservation, never()).checkGuestIn();
+        verify(reservation, never()).activate();
+        verify(reservationRepo).save(reservation);
+    }
+
+    @Test
+    void checkUserIn_bothCheckedIn_activatesReservation() {
+        Integer guestId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(reservation.isGuestCheckedIn()).thenReturn(false);
+        // host already in → after this check-in, both are in → reservation activates
+        when(reservation.bothCheckedIn()).thenReturn(true);
+
+        service.checkUserIn(guestId, 1);
+
+        verify(reservation).checkGuestIn();
+        verify(reservation).activate();
+        verify(reservationRepo).save(reservation);
+    }
+
+    @Test
+    void checkUserIn_throwsIfGuestAlreadyCheckedIn() {
+        Integer guestId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(reservation.isGuestCheckedIn()).thenReturn(true);
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.checkUserIn(guestId, 1));
+
+        verify(reservation, never()).checkGuestIn();
+        verify(reservationRepo, never()).save(reservation);
+    }
+
+    @Test
+    void checkUserIn_throwsIfHostAlreadyCheckedIn() {
+        Integer guestId = 10;
+        Integer hostId = 99;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+        User host = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(hostId);
+        when(reservation.isHostCheckedIn()).thenReturn(true);
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.checkUserIn(hostId, 1));
+
+        verify(reservation, never()).checkHostIn();
+        verify(reservationRepo, never()).save(reservation);
+    }
+
+    @Test
+    void checkUserIn_throwsIfCallerNotParticipant() {
+        Integer outsiderId = 42;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+        User host = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(10);
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.checkUserIn(outsiderId, 1));
+
+        verify(reservation, never()).checkGuestIn();
+        verify(reservation, never()).checkHostIn();
+    }
+
+    // ──────────────── endTour ────────────────
+
+    @Test
+    void endTour_throwsIfUserNotFound() {
+        when(userRepo.findById(10)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class,
+                () -> service.endTour(10, 1));
+    }
+
+    @Test
+    void endTour_throwsIfReservationNotFound() {
+        when(userRepo.findById(10)).thenReturn(Optional.of(mock(User.class)));
+        when(reservationRepo.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(ReservationNotFoundException.class,
+                () -> service.endTour(10, 1));
+    }
+
+    @Test
+    void endTour_throwsIfStatusNotActive() {
+        Reservation reservation = mock(Reservation.class);
+
+        when(userRepo.findById(10)).thenReturn(Optional.of(mock(User.class)));
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.endTour(10, 1));
+
+        verify(reservation, never()).endBy(any());
+    }
+
+    @Test
+    void endTour_throwsIfCallerNotParticipant() {
+        Integer outsiderId = 42;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User outsider = mock(User.class);
+        User guest = mock(User.class);
+        User host = mock(User.class);
+
+        when(userRepo.findById(outsiderId)).thenReturn(Optional.of(outsider));
+        when(outsider.getId()).thenReturn(outsiderId);
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.ACTIVE);
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(10);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.endTour(outsiderId, 1));
+
+        verify(reservation, never()).endBy(any());
+    }
+
+    @Test
+    void endTour_happyPath_closesReservation() {
+        Integer userId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        User caller = mock(User.class);
+        User guest = mock(User.class);
+
+        when(userRepo.findById(userId)).thenReturn(Optional.of(caller));
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.ACTIVE);
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(userId);
+        // response builder reads the resulting endedBy
+        when(reservation.getEndedBy()).thenReturn(caller);
+        when(caller.getUsername()).thenReturn("david");
+
+        EndTourResponse response = service.endTour(userId, 1);
+
+        verify(reservation).endBy(caller);
+        verify(reservationRepo).save(reservation);
+        assertEquals("david", response.endedByUsername());
+    }
+
+    // ──────────────── cancelTour ────────────────
+
+    @Test
+    void cancelTour_throwsIfReservationNotFound() {
+        when(reservationRepo.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(ReservationNotFoundException.class,
+                () -> service.cancelTour(10, 1));
+    }
+
+    @Test
+    void cancelTour_throwsIfUserNotFound() {
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(mock(Reservation.class)));
+        when(userRepo.findById(10)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class,
+                () -> service.cancelTour(10, 1));
+    }
+
+    @Test
+    void cancelTour_throwsIfStatusNotCancellable() {
+        Reservation reservation = mock(Reservation.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(userRepo.findById(10)).thenReturn(Optional.of(mock(User.class)));
+        // only CONFIRMED and ACTIVE allow cancel — CLOSED must throw
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CLOSED);
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.cancelTour(10, 1));
+
+        verify(reservation, never()).cancel();
+    }
+
+    @Test
+    void cancelTour_throwsIfCallerNotParticipant() {
+        Integer outsiderId = 42;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User outsider = mock(User.class);
+        User guest = mock(User.class);
+        User host = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(userRepo.findById(outsiderId)).thenReturn(Optional.of(outsider));
+        when(outsider.getId()).thenReturn(outsiderId);
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(10);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.cancelTour(outsiderId, 1));
+
+        verify(reservation, never()).cancel();
+    }
+
+    @Test
+    void cancelTour_confirmedHappyPath_cancelsReservation() {
+        Integer userId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        User caller = mock(User.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(userRepo.findById(userId)).thenReturn(Optional.of(caller));
+        when(caller.getId()).thenReturn(userId);
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(userId);
+        when(caller.getUsername()).thenReturn("david");
+
+        CancelTourResponse response = service.cancelTour(userId, 1);
+
+        verify(reservation).cancel();
+        verify(reservationRepo).save(reservation);
+        assertEquals("david", response.cancelledByUsername());
+    }
+
+    @Test
+    void cancelTour_activeHappyPath_cancelsReservation() {
+        Integer userId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        User caller = mock(User.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(userRepo.findById(userId)).thenReturn(Optional.of(caller));
+        when(caller.getId()).thenReturn(userId);
+        // ACTIVE is also a valid pre-cancel state
+        when(reservation.getStatus()).thenReturn(ReservationStatus.ACTIVE);
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(userId);
+
+        service.cancelTour(userId, 1);
+
+        verify(reservation).cancel();
+        verify(reservationRepo).save(reservation);
+    }
+}
