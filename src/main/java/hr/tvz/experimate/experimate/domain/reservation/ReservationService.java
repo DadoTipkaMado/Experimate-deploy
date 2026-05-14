@@ -10,8 +10,7 @@ import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.ReservationResponse;
-import hr.tvz.experimate.experimate.shared.TourListingDetails;
-import hr.tvz.experimate.experimate.shared.UserDetails;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.*;
 import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
 import hr.tvz.experimate.experimate.domain.tour_listing.*;
@@ -50,15 +49,18 @@ public class ReservationService {
     private final UserRepo userRepo;
     private final TourListingRepo tourListingRepo;
     private final ApplicationEventPublisher publisher;
+    private final DetailsMapper detailsMapper;
 
     public ReservationService(ReservationRepo reservationRepo,
                               UserRepo userRepo,
                               TourListingRepo tourListingRepo,
-                              ApplicationEventPublisher publisher) {
+                              ApplicationEventPublisher publisher,
+                              DetailsMapper detailsMapper) {
         this.reservationRepo = reservationRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
         this.publisher = publisher;
+        this.detailsMapper = detailsMapper;
     }
 
     @Transactional
@@ -450,34 +452,11 @@ public class ReservationService {
     }
 
     private ReservationResponse createReservationResponse(Reservation reservation) {
-        TourListing tourListing = reservation.getTourListing();
-        User host = tourListing.getHost();
-        User guest = reservation.getGuest();
-
-        UserDetails hostDetails = new UserDetails(
-                host.getFirstName(),
-                host.getLastName(),
-                host.getUsername()
-        );
-
-        TourListingDetails listingDetails = new TourListingDetails(
-                tourListing.getId(),
-                tourListing.getMeetingDate(),
-                tourListing.getCity(),
-                hostDetails
-        );
-
-        UserDetails guestDetails = new UserDetails(
-                guest.getFirstName(),
-                guest.getLastName(),
-                guest.getUsername()
-        );
-
         return new ReservationResponse(
                 reservation.getId(),
                 reservation.getDateOfReservation(),
-                listingDetails,
-                guestDetails,
+                detailsMapper.mapListingDetails(reservation.getTourListing()),
+                detailsMapper.mapUserDetails(reservation.getGuest()),
                 reservation.getStatus()
         );
     }
