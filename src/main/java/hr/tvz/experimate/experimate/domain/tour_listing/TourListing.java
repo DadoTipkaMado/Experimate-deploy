@@ -29,7 +29,7 @@ public class TourListing {
     private LocalDateTime meetingDate;
     @Column(columnDefinition = "TEXT")
     private String tourDescription;
-    private boolean reserved;
+    private Boolean reserved;
 
     //For hibernate
     protected TourListing() {
