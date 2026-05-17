@@ -1,6 +1,5 @@
 package hr.tvz.experimate.experimate.domain.tour_listing;
 
-import hr.tvz.experimate.experimate.domain.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
-    boolean existsByHostAndMeetingDateBetween(User user, LocalDateTime start, LocalDateTime end);
     boolean existsByHost_Id(Integer id);
     int deleteAllByHost_Id(Integer id);
 

@@ -6,6 +6,7 @@ import hr.tvz.experimate.experimate.domain.booking_request.response.*;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingAlreadyRequestedException;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingRequestNotFoundException;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
@@ -76,15 +77,18 @@ public class BookingRequestService {
 
         LocalDateTime windowStart = listing.getMeetingDate().minusHours(12);
         LocalDateTime windowEnd = listing.getMeetingDate().plusHours(12);
-        boolean isGuestAlreadyReserved = reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetween(
+        List<ReservationStatus> blockingStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
+        boolean isGuestAlreadyReserved = reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetweenAndStatusIn(
                 guest.getId(),
                 windowStart,
-                windowEnd
+                windowEnd,
+                blockingStatuses
         );
-        boolean isHostAlreadyReserved = reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetween(
+        boolean isHostAlreadyReserved = reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
                 listing.getHost().getId(),
                 windowStart,
-                windowEnd
+                windowEnd,
+                blockingStatuses
         );
         if(isGuestAlreadyReserved){
             log.warn("Guest with id {} already reserved for date {}", guest.getId(), listing.getMeetingDate());

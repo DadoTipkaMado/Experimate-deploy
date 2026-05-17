@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -300,10 +299,11 @@ public class ReservationService {
     }
 
     private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
-        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(
+        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetweenAndStatusIn(
                 guest,
                 DateTimeUtil.getStartOfDay(meetingDate),
-                DateTimeUtil.getEndOfDay(meetingDate)
+                DateTimeUtil.getEndOfDay(meetingDate),
+                List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE)
         );
     }
 
@@ -400,7 +400,7 @@ public class ReservationService {
         log.debug("Attempting to proccess expired reservations.");
         List<Reservation> expired = reservationRepo.findAllByStatusAndEndTimestampBefore(
                 ReservationStatus.CLOSED,
-                LocalDateTime.now().minusHours(48)
+                LocalDateTime.now().minusHours(Constraints.ReservationConstraints.RATING_WINDOW_HOURS)
         );
         expired.forEach(Reservation::expire);
         reservationRepo.saveAll(expired);

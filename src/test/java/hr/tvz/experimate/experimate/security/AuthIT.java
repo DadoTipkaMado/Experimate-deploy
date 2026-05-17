@@ -119,6 +119,18 @@ class AuthIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void refreshAccessToken_reusedOldToken_returns403() {
+        Map<String, String> tokens = loginAndGetTokens("dtopic");
+        String oldRefreshToken = tokens.get("refreshToken");
+
+        sendRefreshRequest(oldRefreshToken);
+
+        ResponseEntity<AuthResponse> response = sendRefreshRequest(oldRefreshToken);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
     void refreshAccessToken_validToken_rotatesRefreshCookie() {
         Map<String, String> tokens = loginAndGetTokens("dtopic");
 
