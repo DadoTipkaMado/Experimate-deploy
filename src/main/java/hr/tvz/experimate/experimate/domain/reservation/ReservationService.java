@@ -395,6 +395,20 @@ public class ReservationService {
         log.info("Deleted {} reservations due to expired tour listings.", count);
     }
 
+    @Scheduled(fixedRate = 300000)
+    public void expireConfirmedReservations() {
+        log.debug("Attempting to expire confirmed reservations past check-in window.");
+        List<Reservation> expired = reservationRepo.findAllByStatusAndTourListing_MeetingDateBefore(
+                ReservationStatus.CONFIRMED,
+                LocalDateTime.now().minusHours(Constraints.ReservationConstraints.CONFIRMED_EXPIRY_HOURS)
+        );
+        if(expired.isEmpty()) return;
+
+        expired.forEach(Reservation::expire);
+        reservationRepo.saveAll(expired);
+        log.info("Expired {} confirmed reservations.", expired.size());
+    }
+
     @Scheduled(fixedRate = 1800000)
     public void expireClosedReservations() {
         log.debug("Attempting to proccess expired reservations.");
@@ -406,6 +420,8 @@ public class ReservationService {
         reservationRepo.saveAll(expired);
         log.info("Processed {} closed reservations.",  expired.size());
     }
+
+
 
     /**
      * Returns presence information for all participants of a reservation.
