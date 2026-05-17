@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
-    boolean existsByGuestAndTourListing_MeetingDateBetween(User guest, LocalDateTime start, LocalDateTime end);
+    boolean existsByGuestAndTourListing_MeetingDateBetweenAndStatusIn(User guest, LocalDateTime start, LocalDateTime end, Collection<ReservationStatus> statuses);
     boolean existsByTourListing_Host_Id(Integer hostId);
     boolean existsByGuest_Id(Integer userId);
 
@@ -43,6 +43,6 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     Page<Reservation> findAllByGuest_IdAndTourListing_MeetingDateBefore(Integer guestId, LocalDateTime now, Pageable pageable);
     Page<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(Integer hostId, LocalDateTime now, Pageable pageable);
     Page<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(Integer hostId, LocalDateTime now, Pageable pageable);
-    Boolean existsByGuest_IdAndTourListing_MeetingDateBetween(Integer id, LocalDateTime start, LocalDateTime end);
-    Boolean existsByTourListing_Host_IdAndTourListing_MeetingDateBetween(Integer id, LocalDateTime start, LocalDateTime end);
+    Boolean existsByGuest_IdAndTourListing_MeetingDateBetweenAndStatusIn(Integer id, LocalDateTime start, LocalDateTime end, Collection<ReservationStatus> statuses);
+    Boolean existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(Integer id, LocalDateTime start, LocalDateTime end, Collection<ReservationStatus> statuses);
 }

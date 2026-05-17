@@ -3,6 +3,8 @@ package hr.tvz.experimate.experimate.domain.tour_listing;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.*;
 
+import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.*;
 import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
@@ -40,15 +42,18 @@ public class TourListingService {
 
     private final TourListingRepo listingRepo;
     private final UserRepo userRepo;
+    private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
     private final DetailsMapper detailsMapper;
 
     public TourListingService(TourListingRepo repo,
                               UserRepo userRepo,
+                              ReservationRepo reservationRepo,
                               ApplicationEventPublisher publisher,
                               DetailsMapper detailsMapper) {
         this.listingRepo = repo;
         this.userRepo = userRepo;
+        this.reservationRepo = reservationRepo;
         this.publisher = publisher;
         this.detailsMapper = detailsMapper;
     }
@@ -158,11 +163,18 @@ public class TourListingService {
         log.info("Deleted TourListing with id {}", id);
     }
 
+    /**
+     * Returns true if the host has no CONFIRMED or ACTIVE reservation on the given date.
+     * A host may create a new listing even if they have an unreserved or already-closed
+     * listing on the same day — only a live reservation blocks them.
+     */
     private boolean hostAvailableAtDate(User host, LocalDate meetingDate) {
-        return !listingRepo.existsByHostAndMeetingDateBetween(
-                host,
+        List<ReservationStatus> blockingStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
+        return !reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
+                host.getId(),
                 DateTimeUtil.getStartOfDay(meetingDate),
-                DateTimeUtil.getEndOfDay(meetingDate)
+                DateTimeUtil.getEndOfDay(meetingDate),
+                blockingStatuses
         );
     }
 

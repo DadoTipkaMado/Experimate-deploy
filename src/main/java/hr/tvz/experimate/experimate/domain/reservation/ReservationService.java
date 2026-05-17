@@ -299,10 +299,11 @@ public class ReservationService {
     }
 
     private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
-        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(
+        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetweenAndStatusIn(
                 guest,
                 DateTimeUtil.getStartOfDay(meetingDate),
-                DateTimeUtil.getEndOfDay(meetingDate)
+                DateTimeUtil.getEndOfDay(meetingDate),
+                List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE)
         );
     }
 
