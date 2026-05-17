@@ -63,8 +63,8 @@ class BookingRequestServiceTest {
         when(listing.getHost()).thenReturn(host);
         when(host.getId()).thenReturn(hostId);
 
-        when(reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetween(
-                any(), any(), any())).thenReturn(true);
+        when(reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetweenAndStatusIn(
+                any(), any(), any(), any())).thenReturn(true);
 
         assertThrows(GuestAlreadyBookedException.class, () -> service.createBookingRequest(dto, guestId));
     }
@@ -87,8 +87,8 @@ class BookingRequestServiceTest {
         when(listing.getHost()).thenReturn(host);
         when(host.getId()).thenReturn(hostId);
 
-        when(reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetween(
-                any(), any(), any())).thenReturn(true);
+        when(reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
+                any(), any(), any(), any())).thenReturn(true);
 
         assertThrows(HostAlreadyTakenException.class, () -> service.createBookingRequest(dto, guestId));
     }
