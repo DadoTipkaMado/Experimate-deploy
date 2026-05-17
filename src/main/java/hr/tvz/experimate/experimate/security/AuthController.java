@@ -99,7 +99,7 @@ public class AuthController {
     private ResponseCookie buildResponseCookie(String name, String value, long maxAge) {
         return ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .secure(false)  //TODO dodaj HTTPS
+                .secure(true)
                 .path("/api/auth")
                 .maxAge(maxAge)
                 .build();

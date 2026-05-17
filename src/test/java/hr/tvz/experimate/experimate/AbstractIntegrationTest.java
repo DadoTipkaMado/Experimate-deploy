@@ -1,5 +1,11 @@
 package hr.tvz.experimate.experimate;
 
+import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
+import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
+import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import hr.tvz.experimate.experimate.domain.user.UserService;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.security.AuthResponse;
@@ -11,7 +17,7 @@ import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRe
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -23,6 +29,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +42,8 @@ import java.util.Map;
  *   <li>a real PostgreSQL instance via Testcontainers (shared across the test class),</li>
  *   <li>a {@link TestRestTemplate} pre-wired to the random server port,</li>
  *   <li>a Mockito-replaced {@link ChatClient} so Spring AI calls never hit the network,</li>
- *   <li>a {@code @BeforeEach} hook that truncates every table so each test starts clean.</li>
+ *   <li>a {@code @BeforeEach} hook that truncates every table so each test starts clean,</li>
+ *   <li>shared setup helpers for the reservation flow used across integration test classes.</li>
  * </ul>
  * Concrete integration tests must end in {@code IT} so Maven Failsafe picks them up.
  */
@@ -56,10 +65,18 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    protected ReservationRepo reservationRepo;
+
     @MockitoBean
     protected ChatClient chatClient;
 
-    private static final String LOGIN_URL = "/api/auth/login";
+    protected static final String LISTING_URL     = "/api/tour-listing";
+    protected static final String BOOKING_URL     = "/api/booking-request";
+    protected static final String RESERVATION_URL = "/api/reservation";
+    protected static final String DESCRIPTION     = "A".repeat(20);
+
+    private static final String LOGIN_URL  = "/api/auth/login";
     private static final String LOGIN_PASS = "123123123123";
 
     @Autowired
@@ -109,5 +126,71 @@ public abstract class AbstractIntegrationTest {
         tokens.put("accessToken", response.getBody().jwt());
 
         return tokens;
+    }
+
+    /**
+     * Builds HTTP headers with a Bearer token and JSON content type.
+     */
+    protected HttpHeaders bearerHeaders(String jwt) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwt);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
+    /**
+     * Creates a tour listing with meetingDate {@code amount} {@code unit} from now.
+     * Use {@code 25, ChronoUnit.MINUTES} for check-in tests (window opens 30 min before meeting).
+     */
+    protected Integer createListing(String hostJwt, long amount, TemporalUnit unit) {
+        CreateTourListingDto dto = new CreateTourListingDto(
+                "Zagreb", 15.966568, 45.815399,
+                LocalDateTime.now().plus(amount, unit),
+                DESCRIPTION.repeat(20)
+        );
+        return restTemplate.exchange(
+                LISTING_URL, HttpMethod.POST,
+                new HttpEntity<>(dto, bearerHeaders(hostJwt)),
+                TourListingResponse.class
+        ).getBody().id();
+    }
+
+    /**
+     * Runs the full flow: create listing → send booking request → host accepts.
+     * Returns the ID of the resulting reservation.
+     */
+    protected Integer createReservation(String hostJwt, String guestJwt) {
+        Integer listingId = createListing(hostJwt, 25, java.time.temporal.ChronoUnit.MINUTES);
+        Integer requestId = restTemplate.exchange(
+                BOOKING_URL, HttpMethod.POST,
+                new HttpEntity<>(new CreateBookingRequestDto(listingId), bearerHeaders(guestJwt)),
+                BookingRequestResponse.class
+        ).getBody().id();
+        restTemplate.exchange(
+                BOOKING_URL + "/accept/" + requestId, HttpMethod.PATCH,
+                new HttpEntity<>(bearerHeaders(hostJwt)), Void.class
+        );
+        return reservationRepo.findByTourListing_Id(listingId).orElseThrow().getId();
+    }
+
+    /**
+     * Sends a check-in request for the given reservation as the authenticated user.
+     */
+    protected void checkIn(String jwt, Integer reservationId) {
+        restTemplate.exchange(
+                RESERVATION_URL + "/check-in/" + reservationId, HttpMethod.PATCH,
+                new HttpEntity<>(bearerHeaders(jwt)), Void.class
+        );
+    }
+
+    /**
+     * Ends the tour for the given reservation as the authenticated user.
+     */
+    protected ResponseEntity<EndTourResponse> endTour(String jwt, Integer reservationId) {
+        return restTemplate.exchange(
+                RESERVATION_URL + "/end-tour/" + reservationId, HttpMethod.PATCH,
+                new HttpEntity<>(bearerHeaders(jwt)),
+                EndTourResponse.class
+        );
     }
 }

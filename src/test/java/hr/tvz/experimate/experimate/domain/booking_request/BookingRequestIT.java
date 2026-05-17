@@ -3,51 +3,22 @@ package hr.tvz.experimate.experimate.domain.booking_request;
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
 import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
-import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
-import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 
-import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BookingRequestIT extends AbstractIntegrationTest {
 
-    private static final String LISTING_URL = "/api/tour-listing";
-    private static final String BOOKING_URL = "/api/booking-request";
-
-    // Minimum length required by CreateTourListingDto validation
-    private static final String DESCRIPTION = "A".repeat(20);
-
     @Autowired private BookingRequestRepo bookingRequestRepo;
-    @Autowired private ReservationRepo reservationRepo;
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private String createUserAndLogin(String username) {
         return loginAndGetTokens(username).get("accessToken");
-    }
-
-    private HttpHeaders bearerHeaders(String jwt) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(jwt);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
-    }
-
-    private Integer createListing(String hostJwt) {
-        CreateTourListingDto dto = new CreateTourListingDto(
-                "Zagreb", 15.966568, 45.815399,
-                LocalDateTime.now().plusDays(7), DESCRIPTION.repeat(20)
-        );
-        return restTemplate.exchange(
-                LISTING_URL, HttpMethod.POST,
-                new HttpEntity<>(dto, bearerHeaders(hostJwt)),
-                TourListingResponse.class
-        ).getBody().id();
     }
 
     private Integer sendBookingRequest(String guestJwt, Integer listingId) {
@@ -64,7 +35,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void createBookingRequest_authenticatedGuest_returns201WithPendingStatus() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
 
         ResponseEntity<BookingRequestResponse> response = restTemplate.exchange(
                 BOOKING_URL, HttpMethod.POST,
@@ -101,7 +72,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     @Test
     void createBookingRequest_guestIsHost_returns4xxClientError() {
         String hostJwt = createUserAndLogin("host");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
 
         ResponseEntity<Void> response = restTemplate.exchange(
                 BOOKING_URL, HttpMethod.POST,
@@ -116,7 +87,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void createBookingRequest_duplicatePendingRequest_returns409() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -134,7 +105,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void acceptBookingRequest_host_returns200WithAcceptedStatus() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<BookingRequestResponse> response = restTemplate.exchange(
@@ -156,7 +127,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
         String hostJwt   = createUserAndLogin("host");
         String guest1Jwt = createUserAndLogin("guest1");
         String guest2Jwt = createUserAndLogin("guest2");
-        Integer listingId  = createListing(hostJwt);
+        Integer listingId  = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer acceptedId = sendBookingRequest(guest1Jwt, listingId);
         Integer declinedId = sendBookingRequest(guest2Jwt, listingId);
 
@@ -177,7 +148,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void acceptBookingRequest_createsReservationViaEvent() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         restTemplate.exchange(
@@ -192,7 +163,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void acceptBookingRequest_nonHost_returns403() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -210,7 +181,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void declineBookingRequest_host_returns200WithDeclinedStatus() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<BookingRequestResponse> response = restTemplate.exchange(
@@ -227,7 +198,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void declineBookingRequest_nonHost_returns403() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -245,7 +216,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void deleteBookingRequest_guest_returns204AndRemovedFromDatabase() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<Void> response = restTemplate.exchange(
@@ -261,7 +232,7 @@ class BookingRequestIT extends AbstractIntegrationTest {
     void deleteBookingRequest_nonGuest_returns403() {
         String hostJwt  = createUserAndLogin("host");
         String guestJwt = createUserAndLogin("guest");
-        Integer listingId = createListing(hostJwt);
+        Integer listingId = createListing(hostJwt, 7, ChronoUnit.DAYS);
         Integer requestId = sendBookingRequest(guestJwt, listingId);
 
         ResponseEntity<Void> response = restTemplate.exchange(
