@@ -19,11 +19,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -61,6 +65,16 @@ class ReservationServiceTest {
     }
 
     @Test
+    void checkUserIn_throwsIfStatusIsExpired() {
+        Reservation reservation = mock(Reservation.class);
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.EXPIRED);
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.checkUserIn(10, 1));
+    }
+
+    @Test
     void checkUserIn_throwsIfMeetingTooFarAway() {
         Reservation reservation = mock(Reservation.class);
         TourListing listing = mock(TourListing.class);
@@ -73,6 +87,49 @@ class ReservationServiceTest {
 
         assertThrows(IllegalReservationStateException.class,
                 () -> service.checkUserIn(10, 1));
+    }
+
+    @Test
+    void checkUserIn_throwsIfJustOutsideCheckInWindow() {
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        // safely outside the 30-minute window — avoids truncation issues with ChronoUnit.MINUTES.between
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(45));
+
+        assertThrows(IllegalReservationStateException.class,
+                () -> service.checkUserIn(10, 1));
+    }
+
+    @Test
+    void checkUserIn_guestSucceeds_59MinutesAfterMeetingStart() {
+        Integer guestId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        // meeting was 59 minutes ago — minutesUntilMeeting = -59, so the window check passes
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().minusMinutes(59));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        // first call: guard check (not yet checked in); second call: building the response (now checked in)
+        when(reservation.isGuestCheckedIn()).thenReturn(false, true);
+        when(reservation.isHostCheckedIn()).thenReturn(false);
+        when(reservation.bothCheckedIn()).thenReturn(false);
+
+        CheckInResponse response = service.checkUserIn(guestId, 1);
+
+        verify(reservation).checkGuestIn();
+        verify(reservationRepo).save(reservation);
+        assertTrue(response.guestCheckedIn());
+        assertFalse(response.hostCheckedIn());
     }
 
     @Test
@@ -417,5 +474,48 @@ class ReservationServiceTest {
 
         verify(reservation).cancel();
         verify(reservationRepo).save(reservation);
+    }
+
+    // ──────────────── expireConfirmedReservations ────────────────
+
+    @Test
+    void expireConfirmedReservations_doesNothingWhenNoExpiredReservationsFound() {
+        when(reservationRepo.findAllByStatusAndTourListing_MeetingDateBefore(
+                eq(ReservationStatus.CONFIRMED), any(LocalDateTime.class)))
+                .thenReturn(List.of());
+
+        service.expireConfirmedReservations();
+
+        verify(reservationRepo, never()).saveAll(any());
+    }
+
+    @Test
+    void expireConfirmedReservations_expiresOneReservation() {
+        Reservation reservation = mock(Reservation.class);
+
+        when(reservationRepo.findAllByStatusAndTourListing_MeetingDateBefore(
+                eq(ReservationStatus.CONFIRMED), any(LocalDateTime.class)))
+                .thenReturn(List.of(reservation));
+
+        service.expireConfirmedReservations();
+
+        verify(reservation).expire();
+        verify(reservationRepo).saveAll(List.of(reservation));
+    }
+
+    @Test
+    void expireConfirmedReservations_expiresAllExpiredReservations() {
+        Reservation r1 = mock(Reservation.class);
+        Reservation r2 = mock(Reservation.class);
+
+        when(reservationRepo.findAllByStatusAndTourListing_MeetingDateBefore(
+                eq(ReservationStatus.CONFIRMED), any(LocalDateTime.class)))
+                .thenReturn(List.of(r1, r2));
+
+        service.expireConfirmedReservations();
+
+        verify(r1).expire();
+        verify(r2).expire();
+        verify(reservationRepo).saveAll(List.of(r1, r2));
     }
 }
