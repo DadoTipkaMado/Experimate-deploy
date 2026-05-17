@@ -26,6 +26,7 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     int deleteAllByTourListing_IdIn(Collection<Integer> tourListingIds);
 
     List<Reservation> findAllByStatusAndEndTimestampBefore(ReservationStatus status, LocalDateTime endTimestampBefore);
+    List<Reservation> findAllByStatusAndTourListing_MeetingDateBefore(ReservationStatus status, LocalDateTime meetingDateBefore);
 
     Optional<Reservation> findByGuest_IdAndTourListing_Host_IdAndStatus(Integer guestId, Integer tourListingHostId, ReservationStatus status);
 
