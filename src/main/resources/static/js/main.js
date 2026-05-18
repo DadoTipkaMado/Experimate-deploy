@@ -4,6 +4,19 @@
    No frameworks, no build step.
 ═══════════════════════════════════════════════ */
 
+function friendlyBookingError(err) {
+  const msg = (err?.message ?? '').toLowerCase();
+  if (msg.includes('already booked a listing on the same date'))
+    return 'You already have a meet on this date.';
+  if (msg.includes('already listed a tour on the same date'))
+    return 'The host already has another meet on this date.';
+  if (msg.includes('is already reserved'))
+    return 'This meet is already full.';
+  if (msg.includes('already has a pending booking request'))
+    return 'You\'ve already sent a request for this meet.';
+  return err?.message || 'Request failed — try again.';
+}
+
 /* ───────────────────────────────────────────────
    ROTATING PLACEHOLDERS
 ─────────────────────────────────────────────── */
@@ -586,7 +599,7 @@ function _joinFromDetail(btn) {
     .catch(err => {
       btn.disabled = false;
       btn.textContent = 'Join';
-      showToast(err.message || 'Request failed — try again.', 'error');
+      showToast(friendlyBookingError(err), 'error');
     });
 }
 

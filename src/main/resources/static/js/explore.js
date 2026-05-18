@@ -270,7 +270,7 @@ function joinListing(btn) {
     .catch(err => {
       btn.disabled = false;
       btn.textContent = 'Join';
-      showToast(err.message || 'Request failed — try again.', 'error');
+      showToast(friendlyBookingError(err), 'error');
     });
 }
 
