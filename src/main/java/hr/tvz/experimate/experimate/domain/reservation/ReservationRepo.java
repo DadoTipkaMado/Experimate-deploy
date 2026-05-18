@@ -46,4 +46,15 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     Page<Reservation> findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(Integer hostId, LocalDateTime now, Pageable pageable);
     Boolean existsByGuest_IdAndTourListing_MeetingDateBetweenAndStatusIn(Integer id, LocalDateTime start, LocalDateTime end, Collection<ReservationStatus> statuses);
     Boolean existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(Integer id, LocalDateTime start, LocalDateTime end, Collection<ReservationStatus> statuses);
+
+    long countByTourListing_IdAndStatusIn(Integer listingId, Collection<ReservationStatus> statuses);
+
+    List<Reservation> findAllByTourListing_Id(Integer listingId);
+
+    long countByTourListing_IdAndStatus(Integer listingId, ReservationStatus status);
+
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.tourListing.id = :listingId AND r.status = :status AND r.guestCheckedIn = :guestCheckedIn")
+    long countByListingIdAndStatusAndGuestCheckedIn(@Param("listingId") Integer listingId,
+                                                    @Param("status") ReservationStatus status,
+                                                    @Param("guestCheckedIn") Boolean guestCheckedIn);
 }
