@@ -12,6 +12,5 @@ public record UpdateTourListingDto(
         @NotBlank @Size(
                 min = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN,
                 max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
-        String tourDescription,
-        boolean isReserved
+        String tourDescription
 ) {}

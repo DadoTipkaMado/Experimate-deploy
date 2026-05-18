@@ -143,10 +143,15 @@ public abstract class AbstractIntegrationTest {
      * Use {@code 25, ChronoUnit.MINUTES} for check-in tests (window opens 30 min before meeting).
      */
     protected Integer createListing(String hostJwt, long amount, TemporalUnit unit) {
+        return createListing(hostJwt, amount, unit, 2);
+    }
+
+    protected Integer createListing(String hostJwt, long amount, TemporalUnit unit, int maxGuests) {
         CreateTourListingDto dto = new CreateTourListingDto(
                 "Zagreb", 15.966568, 45.815399,
                 LocalDateTime.now().plus(amount, unit),
-                DESCRIPTION.repeat(20)
+                DESCRIPTION.repeat(20),
+                maxGuests
         );
         return restTemplate.exchange(
                 LISTING_URL, HttpMethod.POST,

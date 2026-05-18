@@ -11,6 +11,8 @@ public class Constraints {
     public static final class TourListingConstraints{
         public static final int TOUR_DESCRIPTION_MAX = 5000;
         public static final int TOUR_DESCRIPTION_MIN = 20;
+        public static final int MAX_GUESTS = 18;
+        public static final int MIN_GUESTS = 1;
     }
 
     public static final class UserConstraints{

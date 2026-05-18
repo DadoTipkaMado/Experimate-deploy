@@ -28,8 +28,6 @@ public class Reservation {
     @Column(columnDefinition = "VARCHAR(20)")
     private ReservationStatus status;
 
-    @Column(name="hostCheckedIn")
-    private Boolean hostCheckedIn;
     @Column(name="hostRated")
     private Boolean hostRated;
     @Column(name="guestCheckedIn")
@@ -41,7 +39,6 @@ public class Reservation {
     @JoinColumn(name="endedByUser_id")
     private User endedBy;
 
-    private LocalDateTime hostCheckInTimestamp;
     private LocalDateTime guestCheckInTimestamp;
 
     private LocalDateTime startTimestamp;
@@ -59,7 +56,6 @@ public class Reservation {
         this.dateOfReservation = LocalDateTime.now();
 
         status = ReservationStatus.CONFIRMED;
-        hostCheckedIn = false;
         guestCheckedIn = false;
         hostRated = false;
         guestRated = false;
@@ -79,10 +75,6 @@ public class Reservation {
 
     public Integer getId(){
         return id;
-    }
-
-    public LocalDateTime getHostCheckInTimestamp() {
-        return hostCheckInTimestamp;
     }
 
     public LocalDateTime getGuestCheckInTimestamp() {
@@ -113,16 +105,8 @@ public class Reservation {
         return guestRated;
     }
 
-    public Boolean isHostCheckedIn(){
-        return hostCheckedIn;
-    }
-
     public Boolean hostRated(){
         return hostRated;
-    }
-
-    public Boolean bothCheckedIn(){
-        return hostCheckedIn && guestCheckedIn;
     }
 
     public ReservationStatus getStatus() {
@@ -136,11 +120,6 @@ public class Reservation {
     public void checkGuestIn(){
         guestCheckedIn = true;
         guestCheckInTimestamp = LocalDateTime.now();
-    }
-
-    public void checkHostIn(){
-        hostCheckedIn = true;
-        hostCheckInTimestamp = LocalDateTime.now();
     }
 
     public void setGuestRated(Boolean value){
