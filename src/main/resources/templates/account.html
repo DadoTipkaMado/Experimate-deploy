@@ -341,9 +341,9 @@ loadAccount();
         </div>
       </div>`).join('')}</div>`;
 
-    ReservationAPI.getMine().then(({ asGuest }) => {
+    ReservationAPI.getMine({ filter: 'joined', timeframe: 'past', size: 100 }).then(page => {
       const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      const past = (asGuest || [])
+      const past = (page.content || [])
         .filter(r => r.status === 'COMPLETED' || r.status === 'CLOSED')
         .sort((a, b) => new Date(b.tourListing?.meetingDate) - new Date(a.tourListing?.meetingDate));
 
