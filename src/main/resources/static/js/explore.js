@@ -196,13 +196,19 @@ function renderFeed(listings) {
       ? `<img src="${photoUrl}" alt="">`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,22%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
 
+    const locationUnlocked = isOwn || reqStatus === 'ACCEPTED';
+    const cityLabel = locationUnlocked ? escapeHtml(l.city) : `Near ${escapeHtml(l.city)}`;
+    const mapBtn = l.lat != null && locationUnlocked
+      ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${l.lat}" data-lng="${l.lng}" onclick="goToMap(this)">📍 Map</button>`
+      : '';
+
     return `
       <div class="feed-card anim-fade-up${cardClass}" style="animation-delay:${i * 0.03}s;">
         <div class="feed-card__hero">
           <div class="feed-card__hero-bg" ${heroBg}></div>
           <div class="feed-card__hero-avatar">${avatarInner}</div>
           <div class="feed-card__hero-info">
-            <div class="feed-card__city">${escapeHtml(l.city)}</div>
+            <div class="feed-card__city">${cityLabel}</div>
             <a href="/profile/${hostHandle}" class="feed-card__host-name" onclick="event.stopPropagation()">${escapeHtml(hostName)}</a>
           </div>
           <div class="feed-card__hero-date">
@@ -219,7 +225,7 @@ function renderFeed(listings) {
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
               <button class="btn btn--ghost" style="height:34px;font-size:10px;padding:0 10px;" onclick="openListingDetailFromExplore(${l.id})">Details</button>
-              ${l.lat != null ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${l.lat}" data-lng="${l.lng}" onclick="goToMap(this)">📍 Map</button>` : ''}
+              ${mapBtn}
               ${joinBtn}
             </div>
           </div>

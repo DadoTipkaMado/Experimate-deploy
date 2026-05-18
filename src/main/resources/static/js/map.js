@@ -10,6 +10,7 @@ const MapState = {
   availableOnly: false,
   userCache: {},        // username → UserResponse (for popup photos)
   myMeetMap: {},        // listingId → 'my-meet' | 'due-soon'
+  unlockedIds: new Set(), // listingIds where exact location is visible (own or accepted)
   userLat: null,
   userLng: null,
 };
@@ -88,13 +89,17 @@ function loadPins() {
   const myListingsPromise = Auth.getToken()
     ? TourListingAPI.getMine().catch(() => [])
     : Promise.resolve([]);
+  const myAcceptedPromise = Auth.getToken()
+    ? BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'ACCEPTED' }).catch(() => [])
+    : Promise.resolve([]);
 
-  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise])
-    .then(([listingsResult, usersResult, myResResult, myListingsResult]) => {
+  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise, myAcceptedPromise])
+    .then(([listingsResult, usersResult, myResResult, myListingsResult, myAcceptedResult]) => {
       const listings    = listingsResult.status    === 'fulfilled' ? (listingsResult.value    || []) : [];
       const users       = usersResult.status       === 'fulfilled' ? (usersResult.value       || []) : [];
       const myRes       = myResResult.status       === 'fulfilled' ? (myResResult.value       || []) : [];
       const myListings  = myListingsResult.status  === 'fulfilled' ? (myListingsResult.value  || []) : [];
+      const myAccepted  = myAcceptedResult.status  === 'fulfilled' ? (myAcceptedResult.value  || []) : [];
 
       (users || []).forEach(u => { if (u.username) MapState.userCache[u.username] = u; });
 
@@ -106,7 +111,10 @@ function loadPins() {
         const diff = new Date(r.tourListing.meetingDate) - now;
         if (diff <= 0) return;
         MapState.myMeetMap[lid] = diff <= ONE_HOUR ? 'due-soon' : 'my-meet';
+        MapState.unlockedIds.add(lid);
       });
+      myListings.forEach(l => MapState.unlockedIds.add(l.id));
+      myAccepted.forEach(r => { if (r.tourListing?.id) MapState.unlockedIds.add(r.tourListing.id); });
 
       const seenIds = new Set();
       const allListings = [...listings, ...myListings];
@@ -142,7 +150,19 @@ function loadPins() {
 }
 
 
+function _approxCoords(lat, lng, id) {
+  // ~300m deterministic offset for listings where exact location is not yet unlocked
+  const dlat = ((id * 17) % 11 - 5) * 0.0015;
+  const dlng = ((id * 13) % 9  - 4) * 0.0015;
+  return [lat + dlat, lng + dlng];
+}
+
 function buildMarker(listing, pinType = 'default') {
+  const unlocked = MapState.unlockedIds.has(listing.id);
+  const [markerLat, markerLng] = unlocked
+    ? [listing.lat, listing.lng]
+    : _approxCoords(listing.lat, listing.lng, listing.id);
+
   const pinClass = pinType === 'due-soon' ? 'map-pin--due-soon'
                  : pinType === 'my-meet'  ? 'map-pin--my-meet'
                  : 'map-pin--event';
@@ -154,15 +174,16 @@ function buildMarker(listing, pinType = 'default') {
     iconAnchor: [7, 14],
   });
 
-  const marker = L.marker([listing.lat, listing.lng], { icon });
-  marker.on('click', () => openMapPopup(listing, pinType));
+  const marker = L.marker([markerLat, markerLng], { icon });
+  marker.on('click', () => openMapPopup(listing, pinType, unlocked));
   return marker;
 }
 
 function openMapPopup(listing, pinType = 'default') {
-  MapState._popupListing = listing;
-  MapState._popupPinType = pinType;
-  document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType);
+  MapState._popupListing  = listing;
+  MapState._popupPinType  = pinType;
+  MapState._popupUnlocked = unlocked ?? MapState.unlockedIds.has(listing.id);
+  document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType, MapState._popupUnlocked);
   document.getElementById('map-popup-footer').innerHTML = `<button class="popup-action" onclick="openListingDetailFromMap()">See listing →</button>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
 }
@@ -174,10 +195,12 @@ function closeMapPopup() {
 function openListingDetailFromMap() {
   const listing = MapState._popupListing;
   if (!listing) return;
-  const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
-  const reserved = !!(MapState.myMeetMap[listing.id]);
+  const isOwn     = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
+  const reserved  = !!(MapState.myMeetMap[listing.id]);
+  const unlocked  = MapState.unlockedIds.has(listing.id);
+  const reqStatus = unlocked && !reserved && !isOwn ? 'ACCEPTED' : null;
   closeMapPopup();
-  openListingDetail(listing, { isOwn, reserved, reqStatus: null });
+  openListingDetail(listing, { isOwn, reserved, reqStatus });
 }
 
 function centerOnUser() {
@@ -206,7 +229,7 @@ function centerOnUser() {
   );
 }
 
-function buildPopupContent(listing, pinType = 'default') {
+function buildPopupContent(listing, pinType = 'default', unlocked = false) {
   const dateStr = `${fmtDate(listing.meetingDate)} ${new Date(listing.meetingDate).getFullYear()} · ${fmtTime(listing.meetingDate)}`;
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
@@ -242,8 +265,10 @@ function buildPopupContent(listing, pinType = 'default') {
     badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(168,85,247,0.15);border:1px solid #a855f7;border-radius:6px;padding:3px 8px;font-size:11px;color:#a855f7;letter-spacing:0.08em;font-weight:700;">✓ YOUR MEET</div>`;
   }
 
+  const cityLabel = unlocked ? escapeHtml(listing.city) : `Near ${escapeHtml(listing.city)}`;
+
   return `
-    <div class="popup-name">${escapeHtml(listing.city)}</div>
+    <div class="popup-name">${cityLabel}</div>
     ${badgeHtml}
     ${hostHtml}
     <div class="popup-date">📅 ${dateStr}</div>

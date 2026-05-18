@@ -469,7 +469,10 @@ function openListingDetail(listing, opts) {
                    || (typeof MapState  !== 'undefined' && MapState.userCache?.[hostHandle])
                    || null;
 
-  document.getElementById('ld-city').textContent = listing.city ?? '';
+  const locationUnlocked = isOwn || reserved || reqStatus === 'ACCEPTED';
+  document.getElementById('ld-city').textContent = locationUnlocked
+    ? (listing.city ?? '')
+    : `Near ${listing.city ?? ''}`;
 
   const avatar = userAvatar(hostHandle, 28, userObj);
   const profileUrl = hostHandle ? `/profile/${encodeURIComponent(hostHandle)}` : '#';
