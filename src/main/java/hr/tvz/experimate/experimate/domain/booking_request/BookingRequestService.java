@@ -109,8 +109,9 @@ public class BookingRequestService {
             throw new IllegalArgumentException("Guest cannot send a booking request to themselves.");
         }
 
-        if(listing.isReserved()) {
-            log.warn("TourListing with id {} is already reserved. Cannot create new BookingRequests for it.", listingId);
+        // listing is full when all guest slots are confirmed or active
+        if (reservationRepo.countByTourListing_IdAndStatusIn(listingId, blockingStatuses) >= listing.getMaxGuests()) {
+            log.warn("TourListing with id {} is full. Cannot create new BookingRequests for it.", listingId);
             throw new TourListingAlreadyReservedException(listing.getId());
         }
 
@@ -205,17 +206,18 @@ public class BookingRequestService {
                 acceptedRequest.getListing().getId()
         ));
 
-        //Updating status of the accepted acceptedRequest
         updateBookingRequest(acceptedId, BookingRequestStatus.ACCEPTED);
 
-        //Updating the rest (automatically decline)
-        List<Integer> declinedIds =
-                bookingRequestRepo
-                        .findBookingRequestIdsByTourListingId(acceptedRequest.getListing().getId())
-                        .stream()
-                        .filter(declinedId -> !declinedId.equals(acceptedId))
-                        .toList();
-        updateBookingRequests(declinedIds, BookingRequestStatus.DECLINED);
+        long confirmedCount = reservationRepo.countByTourListing_IdAndStatusIn(
+                acceptedRequest.getListing().getId(), List.of(ReservationStatus.CONFIRMED));
+
+        // listing just became full — auto-decline all remaining pending requests
+        if (confirmedCount == acceptedRequest.getListing().getMaxGuests()) {
+            List<Integer> declinedIds = bookingRequestRepo
+                    .findBookingRequestIdsByTourListingIdAndStatus(
+                            acceptedRequest.getListing().getId(), BookingRequestStatus.PENDING);
+            updateBookingRequests(declinedIds, BookingRequestStatus.DECLINED);
+        }
 
         log.info("Booking request accepted with id {}", acceptedId);
 
@@ -237,15 +239,8 @@ public class BookingRequestService {
 
     @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
     void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
-        Optional<BookingRequest> request = bookingRequestRepo.findByListing_Id(event.listingId());
-
-        if(request.isEmpty()) {
-            log.debug("No booking requests for given event parameters");
-            return;
-        }
-
-        bookingRequestRepo.deleteById(request.get().getId());
-        log.info("Booking request deleted with id {}", request.get().getId());
+        int count = bookingRequestRepo.deleteAllByListing_IdIn(List.of(event.listingId()));
+        log.info("Deleted {} booking request(s) for listing with id {}", count, event.listingId());
     }
 
     @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)

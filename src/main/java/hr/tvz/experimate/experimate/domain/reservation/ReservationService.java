@@ -91,11 +91,6 @@ public class ReservationService {
                         guest,
                         listing
                 ));
-        publisher.publishEvent(new TourListingReservedEvent(
-                listingId,
-                new UpdateTourListingDto(null, null, true)
-        ));
-
         log.info("Created reservation with id {}", reservation.getId());
 
         return createReservationResponse(reservation);
@@ -162,6 +157,7 @@ public class ReservationService {
      * @throws IllegalReservationStateException if the reservation is not CONFIRMED or the check-in window has not opened yet
      * @throws IllegalArgumentException         if the user is not a participant of the reservation
      */
+    @Transactional
     public CheckInResponse checkUserIn(Integer userId, Integer reservationId) {
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> {
@@ -181,42 +177,52 @@ public class ReservationService {
                     "Check-in opens %d minutes before the meeting"
                             .formatted(Constraints.ReservationConstraints.MINS_DIFF_TO_CHECK_IN_MIN));
 
+        TourListing listing = reservation.getTourListing();
+
         // check in guest or host depending on which participant is calling
         if (reservation.getGuest().getId().equals(userId)) {
-            if(reservation.isGuestCheckedIn()) {
+            if (reservation.isGuestCheckedIn()) {
                 log.warn("Guest already checked in.");
                 throw new IllegalReservationStateException("Guest already checked in.");
             }
             reservation.checkGuestIn();
             log.info("Guest with id {} checked in for reservation with id {}", userId, reservationId);
-        } else if (reservation.getTourListing().getHost().getId().equals(userId)) {
-            if (reservation.isHostCheckedIn()) {
+            // late arrival: host already started the tour manually — activate immediately
+            if (listing.isTourStarted()) {
+                reservation.activate();
+                log.info("Late-arriving guest {} activated immediately (tour already started).", userId);
+            }
+        } else if (listing.getHost().getId().equals(userId)) {
+            if (listing.isHostCheckedIn()) {
                 log.warn("Host already checked in.");
                 throw new IllegalReservationStateException("Host already checked in.");
             }
-            reservation.checkHostIn();
-            log.info("Host with id {} checked in for reservation with id {}", userId, reservationId);
+            listing.checkHostIn();
+            tourListingRepo.save(listing);
+            log.info("Host with id {} checked in for listing with id {}", userId, listing.getId());
         } else {
             log.warn("Not a participant, cannot check in.");
             throw new IllegalArgumentException("User with id %d is not a participant of reservation with id %d"
                     .formatted(userId, reservationId));
         }
 
-        if (reservation.bothCheckedIn()) {
-            reservation.activate();
-            log.info("Reservation with id {} activated.", reservationId);
-        }
-
         reservationRepo.save(reservation);
+
+        // auto-start: tour begins when host + every confirmed guest is checked in
+        tryAutoStartTour(listing);
+
+        // re-fetch to pick up any status change applied by the handleTourStartedEvent handler
+        reservation = reservationRepo.findById(reservationId).orElseThrow();
+
         log.info("User with id {} checked in for reservation with id {}", userId, reservation.getId());
 
         return new CheckInResponse(
                 reservation.getId(),
                 reservation.getStatus(),
                 reservation.isGuestCheckedIn(),
-                reservation.isHostCheckedIn(),
+                listing.isHostCheckedIn(),
                 reservation.getGuestCheckInTimestamp(),
-                reservation.getHostCheckInTimestamp(),
+                listing.getHostCheckInTimestamp(),
                 reservation.getStartTimestamp()
         );
     }
@@ -335,10 +341,7 @@ public class ReservationService {
             log.warn("Could not find a single reservation for guest with id {}", guestId);
             return;
         }
-        List<Integer> tourListingIds = reservationRepo.findTourListingIdsByGuestId(guestId);
         deleteReservationsByGuestId(guestId);
-
-        publisher.publishEvent(new ReservationsDeletedEvent(tourListingIds));
     }
 
     @EventListener
@@ -378,15 +381,8 @@ public class ReservationService {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
-        Optional<Reservation> reservation = reservationRepo.findByTourListing_Id(event.listingId());
-
-        if(reservation.isEmpty()) {
-            log.debug("No reservation found for given event parameters.");
-            return;
-        }
-
-        reservationRepo.deleteById(reservation.get().getId());
-        log.info("Reservation deleted by id {}", reservation.get().getId());
+        int count = reservationRepo.deleteAllByTourListing_IdIn(List.of(event.listingId()));
+        log.info("Deleted {} reservation(s) for listing with id {}", count, event.listingId());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -460,11 +456,57 @@ public class ReservationService {
                 host.getFirstName(),
                 host.getLastName(),
                 host.getProfilePhotoFilename(),
-                reservation.isHostCheckedIn(),
+                reservation.getTourListing().isHostCheckedIn(),
                 true
         );
 
         return List.of(guestPresence, hostPresence);
+    }
+
+    /**
+     * Fires when a tour starts (either auto or via manual killswitch).
+     * Activates every reservation where the guest is already checked in and status is CONFIRMED.
+     */
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    void handleTourStartedEvent(TourStartedEvent event) {
+        reservationRepo.findAllByTourListing_Id(event.listingId()).stream()
+                .filter(r -> r.isGuestCheckedIn() && r.getStatus() == ReservationStatus.CONFIRMED)
+                .forEach(r -> {
+                    r.activate();
+                    reservationRepo.save(r);
+                });
+        log.info("Activated checked-in reservations for started tour on listing {}", event.listingId());
+    }
+
+    /**
+     * Evaluates whether the auto-start condition is met: host checked in + every CONFIRMED guest checked in.
+     * Short-circuits immediately if the tour has already started.
+     */
+    private void tryAutoStartTour(TourListing listing) {
+        if (listing.isTourStarted()) return;
+        if (!listing.isHostCheckedIn()) return;
+
+        long confirmedTotal = reservationRepo.countByTourListing_IdAndStatus(
+                listing.getId(), ReservationStatus.CONFIRMED);
+        // no confirmed guests → cannot auto-start
+        if (confirmedTotal == 0) return;
+
+        long confirmedCheckedIn = reservationRepo.countByListingIdAndStatusAndGuestCheckedIn(
+                listing.getId(), ReservationStatus.CONFIRMED, true);
+        if (confirmedCheckedIn != confirmedTotal) return;
+
+        startTourAndPublishEvent(listing);
+    }
+
+    /**
+     * Marks the tour as started, persists the listing, and publishes {@link TourStartedEvent}
+     * so that {@link #handleTourStartedEvent} can activate all checked-in reservations.
+     */
+    private void startTourAndPublishEvent(TourListing listing) {
+        listing.startTour();
+        tourListingRepo.save(listing);
+        publisher.publishEvent(new TourStartedEvent(listing.getId()));
+        log.info("Tour started for listing {}", listing.getId());
     }
 
     private ReservationResponse createReservationResponse(Reservation reservation) {
