@@ -3,6 +3,7 @@ package hr.tvz.experimate.experimate.domain.booking_request;
 import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingRequestNotFoundException;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
@@ -122,9 +123,12 @@ class BookingRequestServiceTest {
         when(listing.getId()).thenReturn(listingId);
         when(host.getId()).thenReturn(hostId);
         when(guest.getId()).thenReturn(guestId);
-        // only the accepted request exists for this listing — declined list is empty
-        when(bookingRequestRepo.findBookingRequestIdsByTourListingId(listingId))
-                .thenReturn(List.of(acceptedId));
+        // listing has 1 slot, now filled — triggers auto-decline check
+        when(reservationRepo.countByTourListing_IdAndStatusIn(eq(listingId), eq(List.of(ReservationStatus.CONFIRMED)))).thenReturn(1L);
+        when(listing.getMaxGuests()).thenReturn(1);
+        // only the accepted request exists — no other pending requests to decline
+        when(bookingRequestRepo.findBookingRequestIdsByTourListingIdAndStatus(listingId, BookingRequestStatus.PENDING))
+                .thenReturn(List.of());
 
         service.acceptBookingRequest(acceptedId, hostId);
 
@@ -161,9 +165,12 @@ class BookingRequestServiceTest {
         when(listing.getId()).thenReturn(listingId);
         when(host.getId()).thenReturn(hostId);
         when(guest.getId()).thenReturn(11);
-        // three requests exist for the listing — IDs 2 and 3 must be auto-declined
-        when(bookingRequestRepo.findBookingRequestIdsByTourListingId(listingId))
-                .thenReturn(List.of(acceptedId, 2, 3));
+        // listing has 1 slot, now filled — auto-decline is triggered
+        when(reservationRepo.countByTourListing_IdAndStatusIn(eq(listingId), eq(List.of(ReservationStatus.CONFIRMED)))).thenReturn(1L);
+        when(listing.getMaxGuests()).thenReturn(1);
+        // IDs 2 and 3 are still PENDING — they must be auto-declined
+        when(bookingRequestRepo.findBookingRequestIdsByTourListingIdAndStatus(listingId, BookingRequestStatus.PENDING))
+                .thenReturn(List.of(2, 3));
 
         service.acceptBookingRequest(acceptedId, hostId);
 
@@ -187,6 +194,35 @@ class BookingRequestServiceTest {
         // no event fired, no status change, no batch decline
         verify(publisher, never()).publishEvent(any());
         verify(request, never()).setStatus(any());
+        verify(bookingRequestRepo, never()).updateStatusByIds(any(), any());
+    }
+
+    @Test
+    void acceptBookingRequest_listingNotYetFull_doesNotDeclinePendingRequests() {
+        Integer acceptedId = 1;
+        Integer hostId = 7;
+        Integer listingId = 5;
+
+        BookingRequest request = mock(BookingRequest.class);
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+        User guest = mock(User.class);
+
+        when(bookingRequestRepo.findById(acceptedId)).thenReturn(Optional.of(request));
+        when(request.getListing()).thenReturn(listing);
+        when(request.getGuest()).thenReturn(guest);
+        when(listing.getHost()).thenReturn(host);
+        when(listing.getId()).thenReturn(listingId);
+        when(host.getId()).thenReturn(hostId);
+        when(guest.getId()).thenReturn(11);
+        // 1 of 3 slots filled — listing is not yet full
+        when(reservationRepo.countByTourListing_IdAndStatusIn(eq(listingId), eq(List.of(ReservationStatus.CONFIRMED)))).thenReturn(1L);
+        when(listing.getMaxGuests()).thenReturn(3);
+
+        service.acceptBookingRequest(acceptedId, hostId);
+
+        // remaining pending requests must not be touched — spots are still available
+        verify(bookingRequestRepo, never()).findBookingRequestIdsByTourListingIdAndStatus(any(), any());
         verify(bookingRequestRepo, never()).updateStatusByIds(any(), any());
     }
 

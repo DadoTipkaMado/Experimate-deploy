@@ -119,15 +119,16 @@ class BookingRequestIT extends AbstractIntegrationTest {
     }
 
     /**
-     * When the host accepts one request, all other pending requests for the same listing
-     * must be automatically declined in the database.
+     * When the host accepts a request and the listing becomes full (maxGuests=1),
+     * all remaining pending requests must be automatically declined in the database.
      */
     @Test
     void acceptBookingRequest_competingRequests_areDeclinedInDatabase() {
         String hostJwt   = createUserAndLogin("host");
         String guest1Jwt = createUserAndLogin("guest1");
         String guest2Jwt = createUserAndLogin("guest2");
-        Integer listingId  = createListing(hostJwt, 7, ChronoUnit.DAYS);
+        // maxGuests=1 so accepting guest1 fills the listing and triggers auto-decline of guest2
+        Integer listingId  = createListing(hostJwt, 7, ChronoUnit.DAYS, 1);
         Integer acceptedId = sendBookingRequest(guest1Jwt, listingId);
         Integer declinedId = sendBookingRequest(guest2Jwt, listingId);
 

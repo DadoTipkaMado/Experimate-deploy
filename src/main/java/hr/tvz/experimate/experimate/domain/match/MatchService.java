@@ -10,6 +10,7 @@ import hr.tvz.experimate.experimate.domain.onboarding.Big5Calculator;
 import hr.tvz.experimate.experimate.domain.onboarding.Big5Vector;
 import hr.tvz.experimate.experimate.domain.onboarding.PersonalityDimension;
 import hr.tvz.experimate.experimate.domain.onboarding.exception.IllegalOnboardingStateException;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
 import hr.tvz.experimate.experimate.domain.user.User;
@@ -90,7 +91,8 @@ public class MatchService {
     @Transactional(readOnly = true)
     public List<MatchResponse> findMatches(Integer viewerId, String query) {
         User viewer = userRepo.findById(viewerId).orElseThrow(() -> new UserNotFoundException(viewerId));
-        List<TourListing> candidates = tourListingRepo.findMatchCandidateListings(viewerId, LocalDateTime.now());
+        List<TourListing> candidates = tourListingRepo.findMatchCandidateListings(
+                viewerId, LocalDateTime.now(), List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE));
         log.debug("findMatches — viewerId={}, candidateListings={}, query=\"{}\"", viewerId, candidates.size(), query);
 
         List<String> bioKeywords = Collections.emptyList();

@@ -78,4 +78,11 @@ public class TourListingController {
         tourListingService.deleteListing(id, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping(value="/{id}/start-tour")
+    public ResponseEntity<Void> startTour(@PathVariable @Positive Integer id,
+                                          @AuthenticationPrincipal AppUserDetails userDetails) {
+        tourListingService.startTour(id, userDetails.getId());
+        return ResponseEntity.noContent().build();
+    }
 }
