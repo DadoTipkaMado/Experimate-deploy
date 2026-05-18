@@ -629,7 +629,7 @@ document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
     const now        = new Date();
     const LOCK_MS    = 45 * 60 * 1000;
     const REMIND_MS  = 3 * 60 * 60 * 1000;
-    const GRACE_MS   = 15 * 60 * 1000;
+    const GRACE_MS   = 55 * 60 * 1000; // backend expires CONFIRMED reservations after 60 min
 
     const all = [
       ...(joined || []).map(r => ({ ...r, _isGuest: true  })),
