@@ -4,6 +4,10 @@
    No frameworks, no build step.
 ═══════════════════════════════════════════════ */
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}
+
 function friendlyBookingError(err) {
   const msg = (err?.message ?? '').toLowerCase();
   if (msg.includes('already booked a listing on the same date'))
