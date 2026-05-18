@@ -194,6 +194,24 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(0,201,167,0.4); }
       50% { box-shadow: 0 0 0 14px rgba(0,201,167,0); }
     }
+
+    /* ── Light mode overrides ── */
+    body.light-mode .meet-card__here {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+    }
+    body.light-mode .meet-card__here:hover { background: #005544; color: #fff; }
+    body.light-mode .meet-card__cancel {
+      border-color: rgba(185,28,28,0.32); color: rgba(185,28,28,0.78);
+    }
+    body.light-mode .meet-card__cancel:hover {
+      border-color: rgba(185,28,28,0.55); color: #b91c1c;
+    }
+    body.light-mode .req-status-badge--declined {
+      background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80);
+    }
+    body.light-mode .req-btn--decline:hover {
+      border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78);
+    }
   </style>
 </head>
 <body>
@@ -231,9 +249,13 @@
       <div id="requests-panel" style="display:flex;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
     </div>
 
-    <div style="padding:0 18px 32px;">
+    <div style="padding:0 18px 32px;display:flex;flex-direction:column;gap:10px;">
       <a href="/listings/new" class="btn btn--primary" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
         <span style="font-size:18px;line-height:1;">+</span> New Meet
+      </a>
+      <a href="/map" class="btn btn--ghost" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        Browse Available Meets
       </a>
     </div>
 
@@ -313,6 +335,7 @@
   let _userCache = {};
   let _activeTab = 'meets';
   let _loadedData = {};
+  let _pages = {};
   const _filterDefaults = {
     meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
     listings: { direction: 'ASC' },
@@ -798,26 +821,94 @@
     }
   })();
 
+  /* ── Scroll pagination helpers ── */
+  function _pageKey() {
+    if (_activeTab === 'meets') {
+      const { role, timeframe } = _filterState.meets;
+      return (role === 'joined' ? 'joined' : 'hosted') + (timeframe === 'upcoming' ? 'Upcoming' : 'Past');
+    }
+    if (_activeTab === 'requests') {
+      const { flowDirection, status } = _filterState.requests;
+      return (flowDirection === 'incoming' ? 'incoming' : 'outgoing') + (status === 'PENDING' ? 'Pending' : 'Declined');
+    }
+    return null;
+  }
+
+  function _loadMoreCurrentTab() {
+    const key   = _pageKey();
+    const state = key ? _pages[key] : null;
+    if (!state || state.loading || state.last) return;
+    state.loading = true;
+
+    let promise;
+    if (_activeTab === 'meets') {
+      const { role, timeframe, direction } = _filterState.meets;
+      promise = ReservationAPI.getMine({ filter: role === 'joined' ? 'joined' : 'hosted', timeframe, direction, page: state.page + 1 });
+    } else if (_activeTab === 'requests') {
+      const { flowDirection, status, reqDir, meetDir } = _filterState.requests;
+      promise = BookingRequestAPI.getMine({ flowDirection, status, requestDateDirection: reqDir || 'DESC', meetingDateDirection: meetDir || 'ASC', page: state.page + 1 });
+    }
+
+    if (!promise) { state.loading = false; return; }
+    promise
+      .then(page => {
+        state.page++;
+        state.last = page.last ?? true;
+        _loadedData[key] = [...(_loadedData[key] || []), ...(page.content || [])];
+        if (_activeTab === 'meets') renderMeetsPanel();
+        else if (_activeTab === 'requests') renderRequestsPanel();
+      })
+      .catch(() => {})
+      .finally(() => { state.loading = false; });
+  }
+
+  window.addEventListener('scroll', () => {
+    if ((window.innerHeight + window.scrollY) < (document.body.scrollHeight - 200)) return;
+    _loadMoreCurrentTab();
+  }, { passive: true });
+
   /* ── Load data ── */
+  const _empty = { content: [], last: true };
   Promise.all([
-    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'upcoming' }).catch(() => []),
-    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'past'     }).catch(() => []),
-    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'upcoming' }).catch(() => []),
-    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'past'     }).catch(() => []),
-    BookingRequestAPI.getMine({ status: 'PENDING'  }).catch(() => []),
-    BookingRequestAPI.getMine({ status: 'DECLINED' }).catch(() => []),
-    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'  }).catch(() => []),
-    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => []),
+    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'upcoming' }).catch(() => _empty),
+    ReservationAPI.getMine({ filter: 'joined',  timeframe: 'past'     }).catch(() => _empty),
+    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'upcoming' }).catch(() => _empty),
+    ReservationAPI.getMine({ filter: 'hosted',  timeframe: 'past'     }).catch(() => _empty),
+    BookingRequestAPI.getMine({ status: 'PENDING'  }).catch(() => _empty),
+    BookingRequestAPI.getMine({ status: 'DECLINED' }).catch(() => _empty),
+    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'  }).catch(() => _empty),
+    BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => _empty),
     UserAPI.getAll().catch(() => []),
     TourListingAPI.getMine().catch(() => []),
   ])
-    .then(([joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined, allUsers, myListings]) => {
+    .then(([juP, jpP, huP, hpP, ipP, idP, opP, odP, allUsers, myListings]) => {
       (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
-      _loadedData = { joinedUpcoming, joinedPast, hostedUpcoming, hostedPast, incomingPending, incomingDeclined, outgoingPending, outgoingDeclined, myListings };
+      const toArr = r => Array.isArray(r) ? r : (r?.content ?? []);
+      _loadedData = {
+        joinedUpcoming:   toArr(juP),
+        joinedPast:       toArr(jpP),
+        hostedUpcoming:   toArr(huP),
+        hostedPast:       toArr(hpP),
+        incomingPending:  toArr(ipP),
+        incomingDeclined: toArr(idP),
+        outgoingPending:  toArr(opP),
+        outgoingDeclined: toArr(odP),
+        myListings:       toArr(myListings),
+      };
+      _pages = {
+        joinedUpcoming:   { page: 0, last: juP.last ?? true, loading: false },
+        joinedPast:       { page: 0, last: jpP.last ?? true, loading: false },
+        hostedUpcoming:   { page: 0, last: huP.last ?? true, loading: false },
+        hostedPast:       { page: 0, last: hpP.last ?? true, loading: false },
+        incomingPending:  { page: 0, last: ipP.last ?? true, loading: false },
+        incomingDeclined: { page: 0, last: idP.last ?? true, loading: false },
+        outgoingPending:  { page: 0, last: opP.last ?? true, loading: false },
+        outgoingDeclined: { page: 0, last: odP.last ?? true, loading: false },
+      };
       renderMeetsPanel();
       renderListingsPanel();
       renderRequestsPanel();
-      initCountdownAndTakeover(joinedUpcoming);
+      initCountdownAndTakeover(_loadedData.joinedUpcoming);
     })
     .catch(() => showToast('Could not load data — check your connection.', 'error'));
 </script>

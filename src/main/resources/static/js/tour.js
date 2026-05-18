@@ -13,16 +13,22 @@
       body: 'Home base. Every pin is a real experience hosted by a local. Tap one to see who\'s behind it.'
     },
     {
-      sel: '.navbar__item[href="/tours"]',
-      icon: '⭐',
-      title: 'Days',
-      body: 'Browse available Days, manage your bookings, and host your own experiences.'
+      sel: '.navbar__item[href="/community"]',
+      icon: '👥',
+      title: 'Community',
+      body: 'Discover local communities and connect with people who share your interests.'
     },
     {
       sel: '.navbar__item[href="/explore"]',
       icon: '🔍',
-      title: 'Explore',
+      title: 'Discover',
       body: 'Find people you\'d click with. Take the personality quiz to unlock match scoring.'
+    },
+    {
+      sel: '.navbar__item[href="/tours"]',
+      icon: '📅',
+      title: 'Meets',
+      body: 'Browse available Meets, manage your bookings, and host your own experiences.'
     },
     {
       sel: '.navbar__item[href="/account"]',
@@ -33,8 +39,8 @@
     {
       sel: '.map-fab',
       icon: '✦',
-      title: 'List a Day',
-      body: 'Ready to host? Tap here to put your own experience on the map.'
+      title: 'New Meet',
+      body: 'Ready to host? Tap here to create a Meet and put your experience on the map.'
     },
   ];
 

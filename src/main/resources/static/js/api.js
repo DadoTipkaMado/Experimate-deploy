@@ -139,7 +139,8 @@ const UserAPI = {
    TOUR LISTINGS  /api/tour-listing
 ─────────────────────────────────────────────── */
 const TourListingAPI = {
-  getAll: ()           => apiFetch('/api/tour-listing'),
+  getPage: (page = 0, params = {}) => apiFetch('/api/tour-listing' + buildQuery({ page, ...params })),
+  getAll: (params = {})  => apiFetch('/api/tour-listing' + buildQuery({ size: 1000, ...params })).then(p => p?.content ?? []),
   getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
