@@ -11,6 +11,7 @@ import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
+import hr.tvz.experimate.experimate.shared.event.TourStartedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -121,8 +122,8 @@ class ReservationServiceTest {
         when(guest.getId()).thenReturn(guestId);
         // first call: guard check (not yet checked in); second call: building the response (now checked in)
         when(reservation.isGuestCheckedIn()).thenReturn(false, true);
-        when(reservation.isHostCheckedIn()).thenReturn(false);
-        when(reservation.bothCheckedIn()).thenReturn(false);
+        // host not yet in → tryAutoStartTour short-circuits; response sources host check-in from listing
+        when(listing.isHostCheckedIn()).thenReturn(false);
 
         CheckInResponse response = service.checkUserIn(guestId, 1);
 
@@ -149,12 +150,13 @@ class ReservationServiceTest {
         when(reservation.getGuest()).thenReturn(guest);
         when(guest.getId()).thenReturn(guestId);
         when(reservation.isGuestCheckedIn()).thenReturn(false);
-        when(reservation.bothCheckedIn()).thenReturn(false);
+        // host not yet in → tryAutoStartTour short-circuits
+        when(listing.isHostCheckedIn()).thenReturn(false);
 
         CheckInResponse response = service.checkUserIn(guestId, 1);
 
         verify(reservation).checkGuestIn();
-        verify(reservation, never()).checkHostIn();
+        verify(listing, never()).checkHostIn();
         verify(reservation, never()).activate();
         verify(reservationRepo).save(reservation);
     }
@@ -177,20 +179,21 @@ class ReservationServiceTest {
         when(guest.getId()).thenReturn(guestId);
         when(listing.getHost()).thenReturn(host);
         when(host.getId()).thenReturn(hostId);
-        when(reservation.isHostCheckedIn()).thenReturn(false);
-        when(reservation.bothCheckedIn()).thenReturn(false);
+        // host not yet checked in → guard passes, then after checkHostIn no guests in → no auto-start
+        when(listing.isHostCheckedIn()).thenReturn(false);
 
         service.checkUserIn(hostId, 1);
 
-        verify(reservation).checkHostIn();
+        verify(listing).checkHostIn();
         verify(reservation, never()).checkGuestIn();
         verify(reservation, never()).activate();
         verify(reservationRepo).save(reservation);
     }
 
     @Test
-    void checkUserIn_bothCheckedIn_activatesReservation() {
+    void checkUserIn_lastGuestTriggersAutoStart() {
         Integer guestId = 10;
+        Integer listingId = 5;
 
         Reservation reservation = mock(Reservation.class);
         TourListing listing = mock(TourListing.class);
@@ -203,14 +206,20 @@ class ReservationServiceTest {
         when(reservation.getGuest()).thenReturn(guest);
         when(guest.getId()).thenReturn(guestId);
         when(reservation.isGuestCheckedIn()).thenReturn(false);
-        // host already in → after this check-in, both are in → reservation activates
-        when(reservation.bothCheckedIn()).thenReturn(true);
+        // tour not yet started, host already in
+        when(listing.isTourStarted()).thenReturn(false);
+        when(listing.isHostCheckedIn()).thenReturn(true);
+        when(listing.getId()).thenReturn(listingId);
+        // all 1 confirmed guest is now checked in → auto-start condition met
+        when(reservationRepo.countByTourListing_IdAndStatus(listingId, ReservationStatus.CONFIRMED)).thenReturn(1L);
+        when(reservationRepo.countByListingIdAndStatusAndGuestCheckedIn(listingId, ReservationStatus.CONFIRMED, true)).thenReturn(1L);
 
         service.checkUserIn(guestId, 1);
 
         verify(reservation).checkGuestIn();
-        verify(reservation).activate();
-        verify(reservationRepo).save(reservation);
+        verify(listing).startTour();
+        verify(tourListingRepo).save(listing);
+        verify(publisher).publishEvent(any(TourStartedEvent.class));
     }
 
     @Test
@@ -254,12 +263,13 @@ class ReservationServiceTest {
         when(guest.getId()).thenReturn(guestId);
         when(listing.getHost()).thenReturn(host);
         when(host.getId()).thenReturn(hostId);
-        when(reservation.isHostCheckedIn()).thenReturn(true);
+        // host already checked in → guard throws
+        when(listing.isHostCheckedIn()).thenReturn(true);
 
         assertThrows(IllegalReservationStateException.class,
                 () -> service.checkUserIn(hostId, 1));
 
-        verify(reservation, never()).checkHostIn();
+        verify(listing, never()).checkHostIn();
         verify(reservationRepo, never()).save(reservation);
     }
 
@@ -285,7 +295,115 @@ class ReservationServiceTest {
                 () -> service.checkUserIn(outsiderId, 1));
 
         verify(reservation, never()).checkGuestIn();
-        verify(reservation, never()).checkHostIn();
+        verify(listing, never()).checkHostIn();
+    }
+
+    @Test
+    void checkUserIn_hostNotCheckedIn_doesNotAutoStart() {
+        Integer guestId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(reservation.isGuestCheckedIn()).thenReturn(false);
+        when(listing.isTourStarted()).thenReturn(false);
+        // host not yet checked in → tryAutoStartTour short-circuits before querying counts
+        when(listing.isHostCheckedIn()).thenReturn(false);
+
+        service.checkUserIn(guestId, 1);
+
+        verify(listing, never()).startTour();
+        verify(publisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void checkUserIn_someGuestsNotCheckedIn_doesNotAutoStart() {
+        Integer guestId = 10;
+        Integer listingId = 5;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(reservation.isGuestCheckedIn()).thenReturn(false);
+        when(listing.isTourStarted()).thenReturn(false);
+        when(listing.isHostCheckedIn()).thenReturn(true);
+        when(listing.getId()).thenReturn(listingId);
+        // 3 confirmed guests, only 1 checked in → condition not met
+        when(reservationRepo.countByTourListing_IdAndStatus(listingId, ReservationStatus.CONFIRMED)).thenReturn(3L);
+        when(reservationRepo.countByListingIdAndStatusAndGuestCheckedIn(listingId, ReservationStatus.CONFIRMED, true)).thenReturn(1L);
+
+        service.checkUserIn(guestId, 1);
+
+        verify(listing, never()).startTour();
+        verify(publisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void checkUserIn_lateGuestAfterManualStart_activatesImmediately() {
+        Integer guestId = 10;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusMinutes(10));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
+        when(reservation.isGuestCheckedIn()).thenReturn(false);
+        // tour already started by host killswitch → late guest activates immediately
+        when(listing.isTourStarted()).thenReturn(true);
+
+        service.checkUserIn(guestId, 1);
+
+        verify(reservation).checkGuestIn();
+        verify(reservation).activate();
+        // tryAutoStartTour short-circuits because tour is already started
+        verify(listing, never()).startTour();
+    }
+
+    @Test
+    void handleTourStartedEvent_activatesCheckedInConfirmedReservations() {
+        Integer listingId = 5;
+
+        Reservation checkedInConfirmed = mock(Reservation.class);
+        Reservation notCheckedIn = mock(Reservation.class);
+        Reservation alreadyActive = mock(Reservation.class);
+
+        when(reservationRepo.findAllByTourListing_Id(listingId))
+                .thenReturn(List.of(checkedInConfirmed, notCheckedIn, alreadyActive));
+
+        // only this one meets the condition
+        when(checkedInConfirmed.isGuestCheckedIn()).thenReturn(true);
+        when(checkedInConfirmed.getStatus()).thenReturn(ReservationStatus.CONFIRMED);
+
+        when(notCheckedIn.isGuestCheckedIn()).thenReturn(false);
+
+        when(alreadyActive.isGuestCheckedIn()).thenReturn(true);
+        when(alreadyActive.getStatus()).thenReturn(ReservationStatus.ACTIVE);
+
+        service.handleTourStartedEvent(new TourStartedEvent(listingId));
+
+        verify(checkedInConfirmed).activate();
+        verify(reservationRepo).save(checkedInConfirmed);
+        verify(notCheckedIn, never()).activate();
+        verify(alreadyActive, never()).activate();
     }
 
     // ──────────────── endTour ────────────────
