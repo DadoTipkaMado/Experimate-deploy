@@ -13,5 +13,7 @@ public record CreateTourListingDto(
         @NotBlank @Size(
                 min = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN,
                 max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
-        String tourDescription
+        String tourDescription,
+        @NotNull @Min(Constraints.TourListingConstraints.MIN_GUESTS) @Max(Constraints.TourListingConstraints.MAX_GUESTS)
+        Integer maxGuests
 ) {}
