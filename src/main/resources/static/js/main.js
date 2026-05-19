@@ -766,13 +766,11 @@ function _showPreMeetScreen(res) {
     const diff = _pmsMeetDate - new Date();
     const el = document.getElementById('pms-countdown');
     if (!el) return;
-    if (diff <= 0) { el.textContent = 'now'; }
-    else {
-      const m = Math.ceil(diff / 60000);
-      el.textContent = m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
-    }
+    if (diff <= 0) { el.textContent = 'now'; return; }
+    const m = Math.ceil(diff / 60000);
+    el.textContent = m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
     const btn = document.getElementById('pms-checkin-btn');
-    if (!btn || btn.textContent === '...' || btn.textContent === 'Waiting…') return;
+    if (!btn || btn.textContent === '...' || btn.textContent === 'Waiting…' || btn.textContent === 'Unavailable') return;
     if (diff > CHECKIN_OPEN_MS) {
       btn.disabled = true;
       const mLeft = Math.ceil((diff - CHECKIN_OPEN_MS) / 60000);
