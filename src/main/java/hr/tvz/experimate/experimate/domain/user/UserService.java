@@ -8,6 +8,7 @@ import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.dto.UpdateUserDto;
+import hr.tvz.experimate.experimate.domain.user.exception.EmailTakenException;
 import hr.tvz.experimate.experimate.domain.user.exception.IdNumberTakenException;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.exception.UsernameTakenException;
@@ -58,12 +59,9 @@ public class UserService {
                 createUserDto.firstName(),
                 createUserDto.lastName(),
                 createUserDto.dateOfBirth(),
-                validateIdNumber(
-                        createUserDto.idNumber()
-                ),
-                validateUsername(
-                        createUserDto.username()
-                ),
+                validateIdNumber(createUserDto.idNumber()),
+                validateEmail(createUserDto.email()),
+                validateUsername(createUserDto.username()),
                 encoder.encode(createUserDto.password())
         )
                 .bio(createUserDto.bio())
@@ -200,6 +198,15 @@ public class UserService {
             throw new UsernameTakenException(username);
         }
         return username;
+    }
+
+    private String validateEmail(String email) {
+        String normalized = email.toLowerCase();
+        if (userRepo.existsByEmail(normalized)) {
+            log.warn("User with email {} already exists", normalized);
+            throw new EmailTakenException(email);
+        }
+        return normalized;
     }
 
     private String validateIdNumber(String idNumber) {
