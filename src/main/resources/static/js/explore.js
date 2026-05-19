@@ -6,7 +6,6 @@
 let _allListings   = [];
 let _myRequests    = {};   // listingId → { status, id }
 let _userCache     = {};
-let _sortMode      = 'soonest';
 let _availableOnly = false;
 let _searchQuery   = '';
 let _currentPage   = 0;
@@ -91,12 +90,6 @@ function _hideFeedLoader() {
 /* ───────────────────────────────────────────────
    FILTERS + SORT
 ─────────────────────────────────────────────── */
-function setSort(mode) {
-  _sortMode = mode;
-  document.getElementById('pill-soonest')?.classList.toggle('pill--active', mode === 'soonest');
-  applyAndRender();
-}
-
 function toggleAvailable(pill) {
   _availableOnly = !_availableOnly;
   pill.classList.toggle('pill--active', _availableOnly);
@@ -104,7 +97,8 @@ function toggleAvailable(pill) {
 }
 
 function applyAndRender() {
-  let items = _allListings.slice();
+  const now = new Date();
+  let items = _allListings.filter(l => new Date(l.meetingDate) > now);
 
   if (_searchQuery) {
     const q = _searchQuery.toLowerCase();

@@ -314,11 +314,12 @@
     if (topbarBtn) topbarBtn.innerHTML = isLight ? MOON_ICON : SUN_ICON;
   });
 
-  // Available to meet (localStorage only until David adds the field)
   const availToggle = document.getElementById('available-toggle');
-  availToggle.checked = localStorage.getItem('availableToMeet') === 'true';
+  const _availUserId = Auth.getUserId();
+  const _availKey = _availUserId ? 'availableToMeet_' + _availUserId : 'availableToMeet';
+  availToggle.checked = localStorage.getItem(_availKey) === 'true';
   availToggle.addEventListener('change', () => {
-    localStorage.setItem('availableToMeet', availToggle.checked ? 'true' : 'false');
+    localStorage.setItem(_availKey, availToggle.checked ? 'true' : 'false');
   });
 
   // Personality — quiz status

@@ -1,4 +1,4 @@
-const CACHE = 'experimate-v5';
+const CACHE = 'experimate-v6';
 
 const STATIC = [
   '/css/main.css',
@@ -7,6 +7,7 @@ const STATIC = [
   '/js/explore.js',
   '/js/map.js',
   '/js/tour.js',
+  '/js/community.js',
   '/favicon.svg',
   '/icons/icon.svg',
   '/manifest.json',

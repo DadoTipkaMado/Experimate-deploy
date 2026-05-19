@@ -390,10 +390,14 @@ loadAccount();
       `background:linear-gradient(135deg,hsl(${hue},28%,14%) 0%,hsl(${hue},18%,22%) 100%);display:flex;align-items:center;justify-content:center;`;
     document.getElementById('memory-modal-photo').innerHTML =
       `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="hsl(${hue},50%,55%)" stroke-width="1" stroke-linecap="round" opacity="0.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
-    document.getElementById('memory-modal-body').innerHTML = `
-      <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);letter-spacing:-0.01em;margin-bottom:4px;">${data.city}</div>
-      <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;">${data.dateStr}</div>
-      <div style="font-size:12px;color:var(--text-2);">with <span style="color:var(--text);font-weight:600;">${data.hostName}</span></div>`;
+    const bodyEl = document.getElementById('memory-modal-body');
+    bodyEl.innerHTML = `
+      <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);letter-spacing:-0.01em;margin-bottom:4px;"></div>
+      <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;"></div>
+      <div style="font-size:12px;color:var(--text-2);">with <span style="color:var(--text);font-weight:600;"></span></div>`;
+    bodyEl.children[0].textContent = data.city;
+    bodyEl.children[1].textContent = data.dateStr;
+    bodyEl.children[2].querySelector('span').textContent = data.hostName;
     modal.classList.add('memory-modal--visible');
   }
 
