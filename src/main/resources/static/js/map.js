@@ -120,6 +120,7 @@ function loadPins() {
       const allListings = [...listings, ...myListings];
       allListings.forEach(listing => {
         if (listing.lat == null || listing.lng == null) return;
+        if (new Date(listing.meetingDate) < now) return;
         if (seenIds.has(listing.id)) return;
         seenIds.add(listing.id);
         const pinType = MapState.myMeetMap[listing.id] ?? 'default';
