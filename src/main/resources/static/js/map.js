@@ -182,7 +182,7 @@ function buildMarker(listing, pinType = 'default') {
 function openMapPopup(listing, pinType = 'default') {
   MapState._popupListing  = listing;
   MapState._popupPinType  = pinType;
-  MapState._popupUnlocked = unlocked ?? MapState.unlockedIds.has(listing.id);
+  MapState._popupUnlocked = MapState.unlockedIds.has(listing.id);
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType, MapState._popupUnlocked);
   document.getElementById('map-popup-footer').innerHTML = `<button class="popup-action" onclick="openListingDetailFromMap()">See listing →</button>`;
   document.getElementById('map-popup-overlay').style.display = 'flex';
