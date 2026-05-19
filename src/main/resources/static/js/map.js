@@ -13,6 +13,7 @@ const MapState = {
   unlockedIds: new Set(), // listingIds where exact location is visible (own or accepted)
   userLat: null,
   userLng: null,
+  locationMarker: null,
 };
 
 /* ───────────────────────────────────────────────
@@ -64,7 +65,8 @@ function initMap() {
         MapState.userLat = latitude;
         MapState.userLng = longitude;
         MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
-        L.marker([latitude, longitude], {
+        if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
+        MapState.locationMarker = L.marker([latitude, longitude], {
           icon: L.divIcon({
             className: '',
             html: `<div class="user-location-pin"></div>`,
@@ -176,7 +178,7 @@ function buildMarker(listing, pinType = 'default') {
   });
 
   const marker = L.marker([markerLat, markerLng], { icon });
-  marker.on('click', () => openMapPopup(listing, pinType, unlocked));
+  marker.on('click', () => openMapPopup(listing, pinType));
   return marker;
 }
 
@@ -216,7 +218,8 @@ function centerOnUser() {
       MapState.userLat = latitude;
       MapState.userLng = longitude;
       MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
-      L.marker([latitude, longitude], {
+      if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
+      MapState.locationMarker = L.marker([latitude, longitude], {
         icon: L.divIcon({
           className: '',
           html: `<div class="user-location-pin"></div>`,

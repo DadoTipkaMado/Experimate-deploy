@@ -287,7 +287,7 @@
               <div class="profile-listing-card__city">${listing.city}</div>
               <div class="profile-listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
             </div>
-            <div class="profile-listing-card__desc">${listing.tourDescription}</div>
+            <div class="profile-listing-card__desc">${escapeHtml(listing.tourDescription)}</div>
             <div class="profile-listing-card__foot">
               <div style="display:flex;align-items:center;gap:6px;">
                 <div class="profile-listing-card__dot"></div>

@@ -902,10 +902,6 @@ svg { display: block; flex-shrink: 0; }
    7. ANIMATIONS
 ─────────────────────────────────────────────── */
 
-/* Page-level enter/exit transitions */
-.app-shell {
-  /* transition removed */
-}
 .app-shell--exit {
   opacity: 0 !important;
   transform: translateY(-4px) !important;
@@ -998,10 +994,6 @@ svg { display: block; flex-shrink: 0; }
     align-items: unset;
     justify-content: unset;
     overflow: auto;
-  }
-
-  body::before {
-    display: none;
   }
 
   /* ───────────────────────────────────────────
@@ -1216,7 +1208,6 @@ svg { display: block; flex-shrink: 0; }
     max-width: 420px;
     left: unset;
     right: 20px;
-    border-radius: 20px 20px 0 0;
   }
 
   /* ───────────────────────────────────────────
@@ -1391,8 +1382,8 @@ svg { display: block; flex-shrink: 0; }
 .auth-register-link {
   display: flex; align-items: center; justify-content: center;
   height: 44px; border-radius: 12px;
-  border: 1px solid var(--border-2, #2e2e2e);
-  color: var(--text, #efefef);
+  border: 1px solid var(--border-2);
+  color: var(--text);
   text-decoration: none; font-size: 13px; letter-spacing: 0.02em;
   transition: border-color 0.14s, background 0.14s;
 }
@@ -1482,6 +1473,7 @@ svg { display: block; flex-shrink: 0; }
   .pill--personalized {
     background: linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
     border-color: rgba(0,110,88,0.38);
+    color: var(--accent);
   }
 
   .search-ai-badge {
@@ -1618,9 +1610,9 @@ svg { display: block; flex-shrink: 0; }
 .listing-detail-card__close {
   position: absolute; top: 10px; right: 16px;
   background: none; border: none;
-  color: #fff; font-size: 18px; cursor: pointer; z-index: 3;
+  color: var(--text); font-size: 18px; cursor: pointer; z-index: 3;
 }
-.listing-detail-card__close:hover { color: rgba(255,255,255,0.6); }
+.listing-detail-card__close:hover { color: var(--text-3); }
 .listing-detail-card__body {
   padding: 24px; display: flex; flex-direction: column; gap: 12px;
   overflow-y: auto; overflow-x: hidden;

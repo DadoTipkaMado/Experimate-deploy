@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const shell = document.querySelector('.app-shell');
     if (shell) {
       shell.classList.add('app-shell--exit');
-      window.location.href = href;
+      setTimeout(() => { window.location.href = href; }, 250);
     } else {
       window.location.href = href;
     }
@@ -352,6 +352,7 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   if (!document.querySelector('.topbar')) return;
   const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
   if (!userId) return;
+  if (sessionStorage.getItem('bubble_dismissed')) return;
 
   let user = null;
   try { user = await UserAPI.getById(userId); } catch(e) { return; }
@@ -427,7 +428,8 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
     bubble.style.padding   = '8px 16px';
   });
 
-  document.getElementById('bubble-close').addEventListener('click', () => {
+  document.getElementById('bubble-close')?.addEventListener('click', () => {
+    sessionStorage.setItem('bubble_dismissed', '1');
     bubble.style.transition = 'max-height 0.25s ease,opacity 0.2s ease,padding 0.25s ease';
     bubble.style.maxHeight  = '0';
     bubble.style.opacity    = '0';

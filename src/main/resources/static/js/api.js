@@ -65,7 +65,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   }
 
   if (res.status === 401 && !_isRetry) {
-    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register'].some(p => path.startsWith(p));
+    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'].some(p => path.startsWith(p));
     if (isAuthEndpoint) {
       throw new Error('Incorrect username or password.');
     }
@@ -86,11 +86,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
         Auth.saveToken(newToken);
       }).finally(() => { _refreshPromise = null; });
     }
-    try {
-      await _refreshPromise;
-    } catch (e) {
-      throw e;
-    }
+    await _refreshPromise;
     return apiFetch(path, options, true);
   }
 
