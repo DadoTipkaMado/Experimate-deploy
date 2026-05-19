@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
     const all = [
       ...(joined || []).map(r => ({ ...r, _isGuest: true  })),
       ...(hosted || []).map(r => ({ ...r, _isGuest: false })),
-    ].filter(r => r.status !== 'CANCELLED');
+    ].filter(r => r.status === 'CONFIRMED');
 
     // Lock screen: ≤ 45 min
     const lockDue = all
@@ -761,13 +761,28 @@ function _showPreMeetScreen(res) {
   document.getElementById('pms-desc').textContent = l.tourDescription ?? '';
 
   if (_pmsTimer) clearInterval(_pmsTimer);
+  const CHECKIN_OPEN_MS = 30 * 60 * 1000; // matches backend MINS_DIFF_TO_CHECK_IN_MIN
   function tick() {
     const diff = _pmsMeetDate - new Date();
     const el = document.getElementById('pms-countdown');
     if (!el) return;
-    if (diff <= 0) { el.textContent = 'now'; return; }
-    const m = Math.ceil(diff / 60000);
-    el.textContent = m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
+    if (diff <= 0) { el.textContent = 'now'; }
+    else {
+      const m = Math.ceil(diff / 60000);
+      el.textContent = m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
+    }
+    const btn = document.getElementById('pms-checkin-btn');
+    if (!btn || btn.textContent === '...' || btn.textContent === 'Waiting…') return;
+    if (diff > CHECKIN_OPEN_MS) {
+      btn.disabled = true;
+      const mLeft = Math.ceil((diff - CHECKIN_OPEN_MS) / 60000);
+      btn.textContent = `Opens in ${mLeft}m`;
+    } else {
+      if (btn.disabled && btn.textContent.startsWith('Opens')) {
+        btn.disabled = false;
+        btn.textContent = "I'm here ✓";
+      }
+    }
   }
   tick();
   _pmsTimer = setInterval(tick, 30000);
@@ -796,8 +811,16 @@ function _pmsCheckIn() {
       }
     })
     .catch(err => {
-      btn.disabled = false; btn.textContent = "I'm here ✓";
-      showToast(err.message || 'Check-in failed — try again.', 'error');
+      const msg = err.message || '';
+      const permanent = msg.includes('CONFIRMED') || msg.includes('already checked in');
+      if (permanent) {
+        btn.textContent = 'Unavailable';
+        showToast(msg, 'error');
+      } else {
+        btn.disabled = false;
+        btn.textContent = "I'm here ✓";
+        showToast(msg || 'Check-in failed — try again.', 'error');
+      }
     });
 }
 
