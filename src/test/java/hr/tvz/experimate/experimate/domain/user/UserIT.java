@@ -28,6 +28,7 @@ class UserIT extends AbstractIntegrationTest {
                 "Topić",
                 LocalDate.of(2005, 4, 28),
                 "123123123123",
+                "MarKoPetrovic.HorVAT@gmaIL.com",
                 "dtopic",
                 "12312312111212",
                 null
@@ -44,5 +45,68 @@ class UserIT extends AbstractIntegrationTest {
         assertThat(postResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(user).isPresent();
         assertThat(encoder.matches(password, user.get().getPassword())).isTrue();
+    }
+
+    @Test
+    void createUser_validEmail_persistsInLowerCase() {
+        CreateUserDto dto = new CreateUserDto(
+                "David",
+                "Topić",
+                LocalDate.of(2005, 4, 28),
+                "123123123123",
+                "MarKoPetrovic.HorVAT@gmaIL.com",
+                "dtopic",
+                "12312312111212",
+                null
+        );
+
+        restTemplate.postForEntity(
+                "/api/user",
+                dto,
+                UserResponse.class
+        );
+        Optional<User> found = userRepo.findByEmail("markopetrovic.horvat@gmail.com");
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getEmail()).isEqualTo("markopetrovic.horvat@gmail.com");
+    }
+
+    @Test
+    void createUser_existingMail_returns409() {
+        CreateUserDto dto1 = new CreateUserDto(
+                "David",
+                "Topić",
+                LocalDate.of(2005, 4, 28),
+                "99999999999999999999",
+                "MarKoPetrovic.HorVAT@gmaIL.com",
+                "utest2",
+                "12312312111212",
+                null
+        );
+
+        CreateUserDto dto2 = new CreateUserDto(
+                "David",
+                "Topić",
+                LocalDate.of(2005, 4, 28),
+                "4444444444444444444444",
+                "MarKoPetrovic.HorVAT@gmaIL.com",
+                "utest1",
+                "12312312111212",
+                null
+        );
+
+        restTemplate.postForEntity(
+                "/api/user",
+                dto1,
+                UserResponse.class
+        );
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/api/user",
+                dto2,
+                String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
 }

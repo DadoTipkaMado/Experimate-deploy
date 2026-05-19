@@ -108,7 +108,7 @@ public abstract class AbstractIntegrationTest {
         long idNum = Math.abs((long) username.hashCode());
         userService.createUser(new CreateUserDto(
                 "Test", "User", LocalDate.of(2000, 1, 1),
-                String.format("%020d", idNum), username, LOGIN_PASS, null
+                String.format("%020d", idNum), username + "@test.com", username, LOGIN_PASS, null
         ));
     }
 
