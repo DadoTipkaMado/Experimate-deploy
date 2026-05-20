@@ -879,7 +879,7 @@
     BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'PENDING'  }).catch(() => _empty),
     BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => _empty),
     UserAPI.getAll().catch(() => []),
-    TourListingAPI.getMine().catch(() => []),
+    TourListingAPI.getMine({ size: 1000, direction: 'DESC' }).catch(() => []),
   ])
     .then(([juP, jpP, huP, hpP, ipP, idP, opP, odP, allUsers, myListings]) => {
       (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
