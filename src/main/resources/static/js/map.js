@@ -238,7 +238,7 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
   const hostName   = listing.host ? listing.host.firstName + ' ' + listing.host.lastName : '';
   const hostHandle = listing.host?.username ?? '';
   const maxG       = listing.maxGuests ?? 1;
-  const curG       = listing.currentGuestCount ?? (listing.reserved ? 1 : 0);
+  const curG       = listing.currentGuestCount ?? 0;
   const isFull     = curG >= maxG;
   const dotColor   = isFull ? 'rgba(239,239,239,0.3)' : '#00c9a7';
   const dotGlow    = isFull ? '' : 'box-shadow:0 0 5px #00c9a7;';
@@ -297,7 +297,7 @@ function mapFilterAvailable() {
 function applyMarkerFilter() {
   MapState.clusterGroup.clearLayers();
   MapState.allMarkers.forEach(({ marker, listing }) => {
-    if (MapState.availableOnly && listing.reserved) return;
+    if (MapState.availableOnly && (listing.currentGuestCount ?? 0) >= (listing.maxGuests ?? 1)) return;
     MapState.clusterGroup.addLayer(marker);
   });
 }
@@ -311,7 +311,7 @@ if (searchInput) {
     const lower = e.target.value.trim().toLowerCase();
     MapState.clusterGroup.clearLayers();
     MapState.allMarkers.forEach(({ marker, listing }) => {
-      if (MapState.availableOnly && listing.reserved) return;
+      if (MapState.availableOnly && (listing.currentGuestCount ?? 0) >= (listing.maxGuests ?? 1)) return;
       if (!lower) { MapState.clusterGroup.addLayer(marker); return; }
       const text = [listing.city, listing.host?.firstName, listing.host?.lastName, listing.host?.username]
         .filter(Boolean).join(' ').toLowerCase();
