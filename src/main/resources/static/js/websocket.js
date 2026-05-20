@@ -2,13 +2,18 @@
    EXPERIMATE — websocket.js
    Live map pin updates via WebSocket.
    Depends on: map.js (window.MapAPI must exist)
-   Endpoint /ws/map not yet implemented — connect
-   attempt is made but onclose does not retry.
+   Endpoint /ws/map — backend not yet implemented.
+   Client reconnects with exponential backoff until
+   the endpoint exists.
 ═══════════════════════════════════════════════ */
 
-const WS_URL = '/ws/map';
+const WS_URL      = '/ws/map';
+const BACKOFF_MAX = 30000;
 
-let _ws = null;
+let _ws           = null;
+let _retryDelay   = 2000;
+let _retryTimer   = null;
+let _intentional  = false;
 
 function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -17,12 +22,26 @@ function connectWebSocket() {
   try {
     _ws = new WebSocket(fullUrl);
   } catch (e) {
+    scheduleReconnect();
     return;
   }
 
+  _ws.onopen    = () => { _retryDelay = 2000; };
   _ws.onmessage = (event) => { handleMessage(event.data); };
   _ws.onerror   = () => {};
-  _ws.onclose   = () => { /* endpoint not yet implemented — don't retry */ };
+  _ws.onclose   = () => { if (!_intentional) scheduleReconnect(); };
+}
+
+function scheduleReconnect() {
+  clearTimeout(_retryTimer);
+  _retryTimer  = setTimeout(connectWebSocket, _retryDelay);
+  _retryDelay  = Math.min(_retryDelay * 2, BACKOFF_MAX);
+}
+
+function disconnectWebSocket() {
+  _intentional = true;
+  clearTimeout(_retryTimer);
+  if (_ws) { _ws.close(); _ws = null; }
 }
 
 function handleMessage(raw) {
@@ -41,4 +60,13 @@ function handleMessage(raw) {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('map')) connectWebSocket();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    disconnectWebSocket();
+  } else {
+    _intentional = false;
+    connectWebSocket();
+  }
 });
