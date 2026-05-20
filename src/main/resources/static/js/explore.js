@@ -357,7 +357,7 @@ function renderMatchCard(m) {
   const ctaLabel   = 'View Profile';
   const sparkle    = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   const explainBtn = m.compatibilityScore != null
-    ? `<button class="match-card__explain-btn" onclick="toggleExplain(${m.userId},this)">${sparkle} Why we match</button>` : '';
+    ? `<button class="match-card__explain-btn" data-user-id="${m.userId}" onclick="toggleExplain(this)">${sparkle} Why we match</button>` : '';
   return `
     <div class="match-card">
       ${avatarHtml}
@@ -375,16 +375,18 @@ function renderMatchCard(m) {
           ${explainBtn}
           <a href="${ctaHref}" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;">${ctaLabel}</a>
         </div>
-        <div class="match-card__explain-area" id="explain-area-${m.userId}">
-          <div class="match-card__explain-text" id="explain-text-${m.userId}"></div>
+        <div class="match-card__explain-area">
+          <div class="match-card__explain-text"></div>
         </div>
       </div>
     </div>`;
 }
 
-async function toggleExplain(userId, btn) {
-  const area   = document.getElementById(`explain-area-${userId}`);
-  const textEl = document.getElementById(`explain-text-${userId}`);
+async function toggleExplain(btn) {
+  const userId = parseInt(btn.dataset.userId);
+  const card   = btn.closest('.match-card');
+  const area   = card.querySelector('.match-card__explain-area');
+  const textEl = card.querySelector('.match-card__explain-text');
   const isOpen = area.classList.toggle('match-card__explain-area--open');
   const sparkle = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   btn.innerHTML = isOpen ? `${sparkle} Hide` : `${sparkle} Why we match`;
