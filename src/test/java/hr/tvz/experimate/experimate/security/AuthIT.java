@@ -151,6 +151,7 @@ class AuthIT extends AbstractIntegrationTest {
                 "Topić",
                 LocalDate.of(2005, 4, 28),
                 "12312312312312312312",
+                "MarKoPetrovic.HorVAT@gmaIL.com",
                 "dtopic",
                 "123123123123",
                 null

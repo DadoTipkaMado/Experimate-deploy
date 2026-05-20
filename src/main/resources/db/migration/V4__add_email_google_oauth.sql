@@ -1,0 +1,3 @@
+ALTER TABLE app_user ADD COLUMN email          VARCHAR(255) NOT NULL UNIQUE;
+ALTER TABLE app_user ADD COLUMN email_verified BOOLEAN      NOT NULL DEFAULT FALSE;
+ALTER TABLE app_user ADD COLUMN google_sub     VARCHAR(255)          UNIQUE;

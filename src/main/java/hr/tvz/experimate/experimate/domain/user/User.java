@@ -30,6 +30,8 @@ public class User extends Person {
     private String username;
     private String password;
     private String bio;
+    @Column(unique = true)
+    private String googleSub;
     private double rating = 0.0;
     private String profilePhotoFilename;
 
@@ -52,7 +54,8 @@ public class User extends Person {
                 builder.firstName,
                 builder.lastName,
                 builder.dateOfBirth,
-                builder.idNumber
+                builder.idNumber,
+                builder.email
         );
         this.username = validateUsername(builder.username);
         this.password = validatePassword(builder.password);
@@ -65,6 +68,7 @@ public class User extends Person {
         private final String lastName;
         private final LocalDate dateOfBirth;
         private final String idNumber;
+        private final String email;
 
         //user part (mandatory)
         private final String username;
@@ -77,12 +81,14 @@ public class User extends Person {
                             String lastName,
                             LocalDate dateOfBirth,
                             String idNumber,
+                            String email,
                             String username,
                             String password) {
             this.firstName = firstName;
             this.lastName = lastName;
             this.dateOfBirth = dateOfBirth;
             this.idNumber = idNumber;
+            this.email = email;
             this.username = username;
             this.password = password;
         }
@@ -111,6 +117,14 @@ public class User extends Person {
 
     public void setPassword(String hashedPassword) {
         this.password = hashedPassword;
+    }
+
+    public String getGoogleSub() {
+        return googleSub;
+    }
+
+    public void setGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
     }
 
     public String getBio() {
