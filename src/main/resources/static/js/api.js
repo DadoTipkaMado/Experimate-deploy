@@ -22,6 +22,14 @@ const Auth = {
       return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub;
     } catch { return null; }
   },
+  isExpired: () => {
+    const token = localStorage.getItem('jwt');
+    if (!token) return true;
+    try {
+      const { exp } = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return exp * 1000 < Date.now();
+    } catch { return true; }
+  },
   logout: () => {
     sessionStorage.setItem('explicit_logout', '1');
     fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
@@ -43,6 +51,29 @@ function buildQuery(params = {}) {
 let _refreshPromise = null;
 
 async function apiFetch(path, options = {}, _isRetry = false) {
+  // Proactively refresh if JWT is expired before making the call.
+  // Avoids a guaranteed 401 round-trip and catches the browser-reopen case
+  // where the JWT expired while the tab was closed but the refresh cookie is still valid.
+  const isAuthPath = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'].some(p => path.startsWith(p));
+  if (!_isRetry && !isAuthPath && Auth.getToken() && Auth.isExpired()) {
+    if (!_refreshPromise) {
+      _refreshPromise = fetch(API_BASE + '/api/auth/refresh', { method: 'POST', credentials: 'include' })
+        .then(async (r) => {
+          if (!r.ok) {
+            sessionStorage.setItem('explicit_logout', '1');
+            Auth.clearToken();
+            localStorage.removeItem('userId');
+            const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
+            if (!onAuthPage) window.location.href = '/login';
+            throw new Error('Session expired. Please sign in.');
+          }
+          const { token: newToken } = await r.json();
+          Auth.saveToken(newToken);
+        }).finally(() => { _refreshPromise = null; });
+    }
+    await _refreshPromise;
+  }
+
   const token = Auth.getToken();
   const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
