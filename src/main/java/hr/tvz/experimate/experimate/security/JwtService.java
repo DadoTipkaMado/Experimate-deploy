@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
-import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -26,7 +25,6 @@ public class JwtService {
     public String generateToken(String username) {
         return Jwts.builder()
                 .subject(username)
-                .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusMillis(expirationMs)))
                 .signWith(getSigningKey())

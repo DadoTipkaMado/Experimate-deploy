@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.security;
 
-import hr.tvz.experimate.experimate.shared.exception.RefreshTokenException;
+import hr.tvz.experimate.experimate.model.shared.exception.RefreshTokenException;
 
 public class MissingCookieException extends RefreshTokenException {
     public MissingCookieException(String name) {
