@@ -134,6 +134,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
       403: 'You don\'t have permission to do this.',
       404: 'Not found.',
       409: 'Already exists.',
+      429: 'Too many requests — slow down and try again shortly.',
       500: 'Server error — try again shortly.',
     };
     throw new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
