@@ -85,6 +85,11 @@
     .profile-bio__text { font-size: 12px; line-height: 1.8; color: var(--text-2); }
     .profile-bio__empty { font-size: 12px; color: var(--text-3); font-style: italic; }
 
+    .profile-personality { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .profile-personality__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .profile-personality__text { font-size: 12px; line-height: 1.8; color: var(--text-2); }
+    .profile-personality__empty { font-size: 12px; color: var(--text-3); font-style: italic; }
+
     /* ── Listings ── */
     .profile-section-label { padding: 18px 20px 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
     .profile-listings { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 40px; }
@@ -210,6 +215,18 @@
           }
         </div>`;
 
+      const personalitySection = user.personalitySummary
+        ? `<div class="profile-personality">
+             <div class="profile-personality__label">Personality</div>
+             <div class="profile-personality__text">${user.personalitySummary}</div>
+           </div>`
+        : isOwnProfile
+          ? `<div class="profile-personality">
+               <div class="profile-personality__label">Personality</div>
+               <div class="profile-personality__empty">No personality summary yet. <a href="/onboarding" style="color:var(--accent);text-decoration:none;">Take the quiz →</a></div>
+             </div>`
+          : '';
+
       const actionRow = (!isOwnProfile && userListings.length > 0) ? `
         <div class="profile-actions">
           <a href="/tours?host=${user.username}" class="btn btn--primary" style="flex:1;height:42px;font-size:12px;">
@@ -257,6 +274,7 @@
           </div>
 
           ${bioSection}
+          ${personalitySection}
 
           <div class="profile-section-label">Upcoming Days</div>
           <div class="profile-listings" id="profile-listings"></div>
