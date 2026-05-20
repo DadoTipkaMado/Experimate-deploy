@@ -443,6 +443,7 @@
   }
 
   /* ── Cancel modal ── */
+  let _cardListings = {};
   let _cancelResId = null, _cancelBtn = null;
 
   function openCancelModal(btn) {
@@ -507,6 +508,12 @@
   }
   document.getElementById('rating-modal').addEventListener('click', function(e) { if (e.target === this) closeRatingModal(); });
 
+  function openMeetCard(resId) {
+    const d = _cardListings[resId];
+    if (!d || typeof openListingDetail === 'undefined') return;
+    openListingDetail(d.listing, { isOwn: d.isOwn, reserved: d.reserved });
+  }
+
   /* ── Render My Meets (guest) ── */
   function renderMeetsPanel() {
     const el = document.getElementById('meets-panel');
@@ -526,11 +533,12 @@
       const alreadyRated = !!localStorage.getItem('rated_' + res.id);
       const hostUsername = res.tourListing.host?.username ?? '';
       const hostName = res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?';
+      _cardListings[res.id] = { listing: res.tourListing, isOwn: false, reserved: true };
       const actionEl = isPast
-        ? (alreadyRated ? `<div class="badge--rated">Rated ✓</div>` : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">Rate</button>`)
-        : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button>`;
+        ? (alreadyRated ? `<div class="badge--rated">Rated ✓</div>` : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="event.stopPropagation();openRatingModal(this)">Rate</button>`)
+        : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="event.stopPropagation();openCancelModal(this)">Cancel</button>`;
       return `
-        <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
+        <div class="meet-card anim-fade-up" style="${isPast ? 'opacity:0.55;' : ''}cursor:pointer;" onclick="openMeetCard(${res.id})">
           <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
             <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span>${hostName}</span></div>
@@ -545,8 +553,9 @@
       const d = new Date(res.tourListing.meetingDate);
       const guestName   = res.guest ? res.guest.firstName + ' ' + res.guest.lastName : '?';
       const guestHandle = res.guest?.username ?? '';
+      _cardListings[res.id] = { listing: res.tourListing, isOwn: true };
       return `
-        <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
+        <div class="meet-card anim-fade-up" style="${isPast ? 'opacity:0.55;' : ''}cursor:pointer;" onclick="openMeetCard(${res.id})">
           <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
           <div class="meet-card__info">
             <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(guestHandle, 26, _userCache[guestHandle])}<span>${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
