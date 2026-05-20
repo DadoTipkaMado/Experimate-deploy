@@ -351,12 +351,13 @@ if (geoInput) {
 ─────────────────────────────────────────────── */
 window.MapAPI = {
   addPin: (pin) => {
-    // Legacy compat: minimal listing-like object
-    const marker = buildMarker({
+    const listing = {
       lat: pin.lat, lng: pin.lng, city: pin.name,
-      meetingDate: new Date().toISOString(), reserved: false, host: null,
-    });
-    MapState.allMarkers.push({ marker, listing: { reserved: false } });
+      meetingDate: new Date().toISOString(), host: null,
+      currentGuestCount: 0, maxGuests: 1,
+    };
+    const marker = buildMarker(listing);
+    MapState.allMarkers.push({ marker, listing });
     MapState.clusterGroup.addLayer(marker);
   },
 };

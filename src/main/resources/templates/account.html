@@ -228,7 +228,7 @@
     const userId = Auth.getUserId();
     if (!userId) { window.location.href = '/login'; return; }
 
-    Promise.all([UserAPI.getById(userId), TourListingAPI.getAll()]).then(([user, listings]) => {
+    Promise.all([UserAPI.getById(userId), TourListingAPI.getMine({ size: 1000 })]).then(([user, listings]) => {
       // Swap skeletons for real data
       ['account-name-sk','account-handle-sk','account-rating-sk'].forEach(id => {
         const el = document.getElementById(id);
@@ -254,8 +254,8 @@
       localStorage.setItem('user_hue', hue);
 
       // Host stats
-      const myListings = (listings || []).filter(l => l.host && l.host.username === user.username);
-      const activeCount = myListings.filter(l => !l.reserved).length;
+      const myListings = listings || [];
+      const activeCount = myListings.filter(l => (l.currentGuestCount ?? 0) < (l.maxGuests ?? 1)).length;
       document.getElementById('stat-total').textContent  = myListings.length;
       document.getElementById('stat-active').textContent = activeCount;
       document.getElementById('account-stats').style.display = '';
