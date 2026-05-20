@@ -392,13 +392,18 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
   if (!userId) return;
   if (sessionStorage.getItem('bubble_dismissed')) return;
 
-  let user = null;
-  try { user = await UserAPI.getById(userId); } catch(e) { return; }
+  let user = null, quizStatus = null;
+  try {
+    [user, quizStatus] = await Promise.all([
+      UserAPI.getById(userId),
+      OnboardingAPI.getStatus().catch(() => null),
+    ]);
+  } catch(e) { return; }
   if (!user) return;
 
   const hasPhoto = !!(user.profilePhotoUrl || localStorage.getItem('photo_' + userId));
   const hasBio   = !!user.bio;
-  const hasQuiz  = !!localStorage.getItem('personality_done');
+  const hasQuiz  = quizStatus?.status === 'COMPLETED' || !!localStorage.getItem('personality_done');
   const pct = (hasPhoto ? 40 : 0) + (hasBio ? 35 : 0) + (hasQuiz ? 25 : 0);
   if (pct >= 100) return;
 
