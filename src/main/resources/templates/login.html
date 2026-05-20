@@ -200,25 +200,20 @@
       background: var(--border, #222);
     }
 
-    /* ── Google button ── */
-    .btn-google {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      height: 46px;
-      border-radius: var(--radius-pill, 999px);
+    /* ── Method chooser ── */
+    .auth-methods { display: flex; flex-direction: column; gap: 10px; }
+    .btn-method {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      height: 46px; border-radius: var(--radius-pill, 999px);
       border: 1px solid var(--border-2, #2e2e2e);
-      background: var(--surface, #1c1c1c);
-      color: var(--text-2, #ccc);
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      cursor: not-allowed;
-      opacity: 0.5;
-      transition: opacity 0.14s;
-      width: 100%;
+      background: var(--surface, #1c1c1c); color: var(--text-2, #ccc);
+      font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 0.04em;
+      cursor: pointer; transition: border-color 0.14s, opacity 0.14s; width: 100%;
     }
+    .btn-method:hover { border-color: var(--accent, #00c9a7); }
+    .btn-method:disabled { cursor: not-allowed; opacity: 0.4; }
+    .btn-method--primary { background: var(--accent, #00c9a7) !important; color: #000 !important; border-color: transparent !important; }
+    .btn-method--primary:hover { opacity: 0.88; }
   </style>
 </head>
 <body>
@@ -240,14 +235,23 @@
 
     <div id="auth-error" class="auth-error" style="display:none;"></div>
 
-    <form id="login-form" style="display: flex; flex-direction: column; gap: 14px;">
+    <!-- Method chooser (default view) -->
+    <div class="auth-methods" id="method-chooser">
+      <button class="btn-method btn-method--primary" onclick="showEmailForm()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        Continue with email
+      </button>
+      <button class="btn-method" id="google-btn" onclick="signInWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <!-- Email/password form (hidden until user picks email) -->
+    <form id="login-form" style="display:none; flex-direction: column; gap: 14px;">
       <div class="auth-field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" autocomplete="username" required>
-      </div>
-      <div class="auth-field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" autocomplete="email" placeholder="your@email.com">
       </div>
       <div class="auth-field">
         <label for="password">Password</label>
@@ -259,14 +263,8 @@
         </div>
       </div>
       <button type="submit" id="signin-btn" class="btn btn--primary btn-signin">Sign in</button>
+      <button type="button" onclick="showMethodChooser()" style="background:none;border:none;color:var(--text-3);font-size:12px;cursor:pointer;text-align:center;padding:0;">← Other sign-in options</button>
     </form>
-
-    <div class="auth-divider">or</div>
-
-    <button class="btn-google" disabled title="Coming soon">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Sign in with Google
-    </button>
 
     <div class="auth-footer">
       <a href="/forgot-password">Forgot password?</a>
@@ -276,8 +274,76 @@
     </a>
   </div>
 
+  <script src="https://accounts.google.com/gsi/client" async></script>
   <script src="/js/api.js"></script>
   <script>
+    // David: set google.client-id in application properties — this is fetched at runtime
+    let _googleClientId = null;
+    fetch('/api/auth/google-client-id').then(r => r.ok ? r.text() : null).then(id => {
+      _googleClientId = id ? id.trim().replace(/"/g, '') : null;
+      if (!_googleClientId) document.getElementById('google-btn').disabled = true;
+    }).catch(() => { document.getElementById('google-btn').disabled = true; });
+
+    function showEmailForm() {
+      document.getElementById('method-chooser').style.display = 'none';
+      const form = document.getElementById('login-form');
+      form.style.display = 'flex';
+      form.querySelector('input').focus();
+    }
+
+    function showMethodChooser() {
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('method-chooser').style.display = 'flex';
+      document.getElementById('auth-error').style.display = 'none';
+    }
+
+    function signInWithGoogle() {
+      if (!_googleClientId) return;
+      const btn = document.getElementById('google-btn');
+      btn.disabled = true;
+      btn.textContent = 'Opening Google…';
+      google.accounts.id.initialize({
+        client_id: _googleClientId,
+        callback: _handleGoogleCredential,
+        auto_select: false,
+      });
+      google.accounts.id.prompt(notification => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          google.accounts.id.renderButton(btn, { type: 'standard', theme: 'filled_black', size: 'large', width: 320 });
+        }
+      });
+    }
+
+    async function _handleGoogleCredential(response) {
+      const errorEl = document.getElementById('auth-error');
+      errorEl.style.display = 'none';
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: response.credential }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Google sign-in failed.');
+        if (data.status === 'LOGGED_IN') {
+          Auth.saveToken(data.accessToken);
+          window.location.href = '/map';
+        } else if (data.status === 'REGISTRATION_REQUIRED') {
+          sessionStorage.setItem('google_profile', JSON.stringify({
+            ...data.googleProfile,
+            idToken: response.credential,
+          }));
+          window.location.href = '/register?google=1';
+        }
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+        const btn = document.getElementById('google-btn');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 48 48">…</svg> Continue with Google`;
+      }
+    }
+
     function togglePw() {
       const input = document.getElementById('password');
       input.type = input.type === 'password' ? 'text' : 'password';
