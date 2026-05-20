@@ -806,6 +806,7 @@
     try { localStorage.setItem('tours_filter', JSON.stringify(_filterState)); } catch(_) {}
     closeFilterDialog();
     if (_activeTab === 'meets') renderMeetsPanel();
+    else if (_activeTab === 'listings') renderListingsPanel();
     else if (_activeTab === 'requests') renderRequestsPanel();
   }
 
@@ -814,6 +815,7 @@
     try { localStorage.setItem('tours_filter', JSON.stringify(_filterState)); } catch(_) {}
     closeFilterDialog();
     if (_activeTab === 'meets') renderMeetsPanel();
+    else if (_activeTab === 'listings') renderListingsPanel();
     else if (_activeTab === 'requests') renderRequestsPanel();
   }
 
