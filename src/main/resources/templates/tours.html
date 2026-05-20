@@ -430,8 +430,13 @@
           showTakeover(active);
           showToast('Both checked in — day is live!', 'success');
         } else {
-          btn.textContent = 'Waiting for your Mate…';
-          showToast('Checked in! Waiting for your Mate.', 'success');
+          const checkedIn = res.checkedInGuestCount ?? null;
+          const total     = res.totalGuestCount ?? null;
+          const waiting   = (checkedIn !== null && total !== null)
+            ? `${checkedIn}/${total} guests checked in`
+            : 'your Mate';
+          btn.textContent = `${checkedIn !== null && total !== null ? `${checkedIn}/${total} ✓` : 'Waiting…'}`;
+          showToast(`Checked in! Waiting for ${waiting}.`, 'success');
         }
       })
       .catch(err => { btn.disabled = false; btn.textContent = "I'm here"; showToast(err.message || 'Check-in failed — try again.', 'error'); });
