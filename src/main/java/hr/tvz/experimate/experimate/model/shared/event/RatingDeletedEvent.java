@@ -1,5 +1,0 @@
-package hr.tvz.experimate.experimate.model.shared.event;
-
-public record RatingDeletedEvent(Integer ratedId,
-                                Double score) {
-}

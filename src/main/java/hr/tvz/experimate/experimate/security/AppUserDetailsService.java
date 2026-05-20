@@ -1,7 +1,7 @@
 package hr.tvz.experimate.experimate.security;
 
-import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
