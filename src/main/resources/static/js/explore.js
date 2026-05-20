@@ -109,7 +109,7 @@ function applyAndRender() {
     });
   }
 
-  if (_availableOnly) items = items.filter(l => !l.reserved);
+  if (_availableOnly) items = items.filter(l => (l.currentGuestCount ?? 0) < (l.maxGuests ?? 1));
 
   items.sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
 
@@ -143,7 +143,7 @@ function renderFeed(listings) {
     const isOwn     = currentUsername && l.host?.username === currentUsername;
 
     const maxGuests   = l.maxGuests ?? 1;
-    const guestCount  = l.currentGuestCount ?? (l.reserved ? 1 : 0);
+    const guestCount  = l.currentGuestCount ?? 0;
     const spotsLeft   = Math.max(0, maxGuests - guestCount);
     const isFull      = spotsLeft === 0;
     const isGroup     = maxGuests > 1;
@@ -160,7 +160,7 @@ function renderFeed(listings) {
       : reqStatus === 'DECLINED'        ? 'Declined'
       : isGroup ? `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left` : 'Available';
 
-    const cardClass = l.reserved       ? ' feed-card--reserved'
+    const cardClass = isFull            ? ' feed-card--reserved'
       : reqStatus === 'PENDING'         ? ' feed-card--pending'
       : reqStatus === 'DECLINED'        ? ''
       : ' feed-card--available';
@@ -240,7 +240,7 @@ function openListingDetailFromExplore(listingId) {
   const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
   openListingDetail(listing, {
     isOwn,
-    reserved:   !!listing.reserved,
+    reserved:   (listing.currentGuestCount ?? 0) >= (listing.maxGuests ?? 1),
     reqStatus:  myReq?.status ?? null,
     onJoinSuccess: (id) => {
       _myRequests[id] = { status: 'PENDING' };
