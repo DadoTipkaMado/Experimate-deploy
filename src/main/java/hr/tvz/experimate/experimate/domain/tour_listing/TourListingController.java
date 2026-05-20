@@ -1,9 +1,9 @@
-package hr.tvz.experimate.experimate.domain.tour_listing;
+package hr.tvz.experimate.experimate.controller;
 
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
-import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
-import hr.tvz.experimate.experimate.domain.tour_listing.TourListingService;
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.UpdateTourListingDto;
+import hr.tvz.experimate.experimate.model.tour_listing.CreateTourListingDto;
+import hr.tvz.experimate.experimate.model.tour_listing.TourListingResponse;
+import hr.tvz.experimate.experimate.model.tour_listing.TourListingService;
+import hr.tvz.experimate.experimate.model.tour_listing.UpdateTourListingDto;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -31,13 +31,12 @@ public class TourListingController {
     }
 
     @GetMapping("/mine")
-    public ResponseEntity<Page<TourListingResponse>> getMyListings(
+    public ResponseEntity<List<TourListingResponse>> getMyListings(
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestParam(required = false) String filter,
-            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction direction,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @RequestParam(required = false, defaultValue = "ASC") Sort.Direction direction) {
         return ResponseEntity.ok(
-                tourListingService.getMyListings(userDetails.getId(), filter, direction, pageable)
+                tourListingService.getMyListings(userDetails.getId(), filter, direction)
         );
     }
 
@@ -76,13 +75,6 @@ public class TourListingController {
     public ResponseEntity<Void> deleteTourListing(@PathVariable @Positive Integer id,
                                                    @AuthenticationPrincipal AppUserDetails userDetails) {
         tourListingService.deleteListing(id, userDetails.getId());
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping(value="/{id}/start-tour")
-    public ResponseEntity<Void> startTour(@PathVariable @Positive Integer id,
-                                          @AuthenticationPrincipal AppUserDetails userDetails) {
-        tourListingService.startTour(id, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 }

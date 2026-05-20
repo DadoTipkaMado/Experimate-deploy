@@ -1,36 +1,33 @@
-package hr.tvz.experimate.experimate.domain.tour_listing;
+package hr.tvz.experimate.experimate.model.tour_listing;
 
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
-import hr.tvz.experimate.experimate.domain.tour_listing.response.*;
-
-import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
-import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
-import hr.tvz.experimate.experimate.shared.DetailsMapper;
-import hr.tvz.experimate.experimate.shared.event.*;
-import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.domain.reservation.exception.IllegalReservationStateException;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.HostAlreadyTakenException;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.model.shared.UserDetails;
+import hr.tvz.experimate.experimate.model.shared.event.*;
+import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.HostAlreadyTakenException;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingNotFoundException;
+import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class TourListingService {
@@ -39,20 +36,14 @@ public class TourListingService {
 
     private final TourListingRepo listingRepo;
     private final UserRepo userRepo;
-    private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
-    private final DetailsMapper detailsMapper;
 
     public TourListingService(TourListingRepo repo,
                               UserRepo userRepo,
-                              ReservationRepo reservationRepo,
-                              ApplicationEventPublisher publisher,
-                              DetailsMapper detailsMapper) {
+                              ApplicationEventPublisher publisher) {
         this.listingRepo = repo;
         this.userRepo = userRepo;
-        this.reservationRepo = reservationRepo;
         this.publisher = publisher;
-        this.detailsMapper = detailsMapper;
     }
 
     //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
@@ -75,8 +66,7 @@ public class TourListingService {
                         dto.longitude(),
                         dto.latitude(),
                         dto.meetingDate(),
-                        dto.tourDescription(),
-                        dto.maxGuests()
+                        dto.tourDescription()
                 )
         );
         log.info("Created TourListing with id {}", saved.getId());
@@ -96,11 +86,9 @@ public class TourListingService {
                 .toList();
     }
 
-    public Page<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction, Pageable pageable) {
+    public List<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction) {
         Sort sort = Sort.by(direction, "meetingDate");
-        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        return listingRepo.findAllByHost_Id(userId, pageableWithSort)
-                .map(this::createListingResponse);
+        return getListingsByHost(userId, sort);
     }
 
     public Page<TourListingResponse> getAllListings(Integer resourceOwnerId, Pageable pageable) {
@@ -141,6 +129,7 @@ public class TourListingService {
     private void applyListingUpdate(TourListing listing, UpdateTourListingDto dto) {
         if (dto.meetingDate() != null) listing.setMeetingDate(dto.meetingDate());
         if (dto.tourDescription() != null) listing.setTourDescription(dto.tourDescription());
+        listing.setReserved(dto.isReserved());
     }
 
     @Transactional
@@ -160,18 +149,11 @@ public class TourListingService {
         log.info("Deleted TourListing with id {}", id);
     }
 
-    /**
-     * Returns true if the host has no CONFIRMED or ACTIVE reservation on the given date.
-     * A host may create a new listing even if they have an unreserved or already-closed
-     * listing on the same day — only a live reservation blocks them.
-     */
     private boolean hostAvailableAtDate(User host, LocalDate meetingDate) {
-        List<ReservationStatus> blockingStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
-        return !reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
-                host.getId(),
+        return !listingRepo.existsByHostAndMeetingDateBetween(
+                host,
                 DateTimeUtil.getStartOfDay(meetingDate),
-                DateTimeUtil.getEndOfDay(meetingDate),
-                blockingStatuses
+                DateTimeUtil.getEndOfDay(meetingDate)
         );
     }
 
@@ -179,10 +161,9 @@ public class TourListingService {
     @Scheduled(fixedRate = 1800000)
     public void cleanUpExpiredListings(){
         log.debug("Attempting to clean up expired listings");
-        List<ReservationStatus> activeStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
-        List<Integer> listingIds = listingRepo.findExpiredListingsWithNoActiveReservations(
-                LocalDateTime.now(),
-                activeStatuses
+        List<Integer> listingIds = listingRepo.findAllByReservedAndMeetingDateBefore(
+                false,
+                LocalDateTime.now()
         ).stream()
                 .map(TourListing::getId)
                 .toList();
@@ -204,6 +185,31 @@ public class TourListingService {
         deleteListingsByHostId(hostId);
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    void handleReservationsDeletedEvent(ReservationsDeletedEvent event) {
+        log.info("IDS SENT BY EVENT {} ", event.tourListingIds());
+        AtomicInteger count = new AtomicInteger(0);
+        UpdateTourListingDto updateDto = new UpdateTourListingDto(
+                null,
+                null,
+                false
+        );
+        //update reserved attribute to false for each listing
+        event.tourListingIds()
+                .forEach(id -> {
+                    updateListing(id, updateDto);
+                    count.getAndIncrement();
+                });
+
+        log.info("{} listings flagged as not reserved.", count);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    void handleTourListingReservedEvent(TourListingReservedEvent event) {
+        updateListing(event.listingId(), event.updateDetails());
+        log.info("Tour listing with id {} is now reserved.", event.listingId());
+    }
+
     private void deleteListingsByHostId(Integer hostId) {
         publisher.publishEvent(
                 new TourListingsDeletedForHostEvent(hostId)
@@ -212,40 +218,14 @@ public class TourListingService {
         log.info("Deleted {} TourListing/s with by host id {}", count, hostId);
     }
 
-    /**
-     * Host killswitch to manually start the tour.
-     * Requires the host to be checked in; ignores guest check-in state so the host
-     * is never held hostage by no-shows. Publishes {@link TourStartedEvent} which
-     * activates all already-checked-in reservations via {@code ReservationService}.
-     *
-     * @param listingId ID of the listing whose tour to start
-     * @param hostId    ID of the authenticated caller (must be the listing host)
-     * @throws TourListingNotFoundException     if the listing does not exist
-     * @throws ForbiddenActionException         if the caller is not the host
-     * @throws IllegalReservationStateException if the tour already started or the host has not checked in
-     */
-    @Transactional
-    public void startTour(Integer listingId, Integer hostId) {
-        TourListing listing = listingRepo.findById(listingId)
-                .orElseThrow(() -> new TourListingNotFoundException(listingId));
-
-        if (!listing.getHost().getId().equals(hostId))
-            throw new ForbiddenActionException("Only the host can start the tour.");
-
-        if (listing.isTourStarted())
-            throw new IllegalReservationStateException("Tour already started.");
-
-        // host must be present before manually starting
-        if (!listing.isHostCheckedIn())
-            throw new IllegalReservationStateException("Host must check in before starting the tour.");
-
-        listing.startTour();
-        listingRepo.save(listing);
-        publisher.publishEvent(new TourStartedEvent(listingId));
-        log.info("Tour manually started for listing {}", listingId);
-    }
-
     private TourListingResponse createListingResponse(TourListing listing){
+        User host = listing.getHost();
+        UserDetails hostDetails = new UserDetails(
+                host.getFirstName(),
+                host.getLastName(),
+                host.getUsername()
+        );
+
         return new TourListingResponse(
                 listing.getId(),
                 listing.getCity(),
@@ -254,8 +234,8 @@ public class TourListingService {
                 listing.getMeetingDate(),
                 listing.getPostDate(),
                 listing.getTourDescription(),
-                listing.getMaxGuests(),
-                detailsMapper.mapUserDetails(listing.getHost())
+                listing.isReserved(),
+                hostDetails
         );
     }
 

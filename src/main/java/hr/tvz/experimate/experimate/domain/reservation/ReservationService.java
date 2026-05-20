@@ -1,24 +1,23 @@
-package hr.tvz.experimate.experimate.domain.reservation;
+package hr.tvz.experimate.experimate.model.reservation;
 
-import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
-import hr.tvz.experimate.experimate.domain.reservation.exception.IllegalReservationStateException;
-import hr.tvz.experimate.experimate.domain.reservation.exception.ReservationNotFoundException;
-import hr.tvz.experimate.experimate.shared.Constraints;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
-import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
-import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
-import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
-import hr.tvz.experimate.experimate.domain.reservation.response.ReservationResponse;
-import hr.tvz.experimate.experimate.shared.DetailsMapper;
-import hr.tvz.experimate.experimate.shared.event.*;
-import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
-import hr.tvz.experimate.experimate.domain.tour_listing.*;
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.model.reservation.exception.GuestAlreadyBookedException;
+import hr.tvz.experimate.experimate.model.reservation.exception.IllegalReservationStateException;
+import hr.tvz.experimate.experimate.model.reservation.exception.ReservationNotFoundException;
+import hr.tvz.experimate.experimate.model.shared.Constraints;
+import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.model.reservation.response.CancelTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.CheckInResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.model.reservation.response.ReservationResponse;
+import hr.tvz.experimate.experimate.model.shared.TourListingDetails;
+import hr.tvz.experimate.experimate.model.shared.UserDetails;
+import hr.tvz.experimate.experimate.model.shared.event.*;
+import hr.tvz.experimate.experimate.model.shared.util.DateTimeUtil;
+import hr.tvz.experimate.experimate.model.tour_listing.*;
+import hr.tvz.experimate.experimate.model.tour_listing.exception.TourListingNotFoundException;
+import hr.tvz.experimate.experimate.model.user.User;
+import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.model.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,13 +25,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -48,22 +45,19 @@ public class ReservationService {
     private final UserRepo userRepo;
     private final TourListingRepo tourListingRepo;
     private final ApplicationEventPublisher publisher;
-    private final DetailsMapper detailsMapper;
 
     public ReservationService(ReservationRepo reservationRepo,
                               UserRepo userRepo,
                               TourListingRepo tourListingRepo,
-                              ApplicationEventPublisher publisher,
-                              DetailsMapper detailsMapper) {
+                              ApplicationEventPublisher publisher) {
         this.reservationRepo = reservationRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
         this.publisher = publisher;
-        this.detailsMapper = detailsMapper;
     }
 
     @Transactional
-    public ReservationResponse createReservation(Integer guestId, Integer listingId) {
+    protected ReservationResponse createReservation(Integer guestId, Integer listingId) {
         User guest = userRepo.findById(guestId)
                 .orElseThrow(() -> {
                     log.warn("User not found with id {}", guestId);
@@ -91,29 +85,32 @@ public class ReservationService {
                         guest,
                         listing
                 ));
+        publisher.publishEvent(new TourListingReservedEvent(
+                listingId,
+                new UpdateTourListingDto(null, null, true)
+        ));
+
         log.info("Created reservation with id {}", reservation.getId());
 
         return createReservationResponse(reservation);
     }
 
-    public Page<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe, Pageable pageable) {
+    public List<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe) {
         Sort sort = Sort.by(direction, "tourListing.meetingDate");
-        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         LocalDateTime now = LocalDateTime.now();
 
-        // route to the correct query based on user role (guest/host) and timeframe (past/upcoming)
-        Page<Reservation> results = switch (filter) {
+        List<Reservation> results = switch (filter) {
             case "hosted" -> switch (timeframe) {
-                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, pageableWithSort);
-                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, pageableWithSort);
+                case "past" -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateBefore(userId, now, sort);
+                default     -> reservationRepo.findAllByTourListing_Host_IdAndTourListing_MeetingDateAfter(userId, now, sort);
             };
             default -> switch (timeframe) {
-                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, pageableWithSort);
-                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, pageableWithSort);
+                case "past" -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateBefore(userId, now, sort);
+                default     -> reservationRepo.findAllByGuest_IdAndTourListing_MeetingDateAfter(userId, now, sort);
             };
         };
 
-        return results.map(this::createReservationResponse);
+        return results.stream().map(this::createReservationResponse).toList();
     }
 
     public List<ReservationResponse> getAllReservations() {
@@ -157,7 +154,6 @@ public class ReservationService {
      * @throws IllegalReservationStateException if the reservation is not CONFIRMED or the check-in window has not opened yet
      * @throws IllegalArgumentException         if the user is not a participant of the reservation
      */
-    @Transactional
     public CheckInResponse checkUserIn(Integer userId, Integer reservationId) {
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> {
@@ -177,52 +173,36 @@ public class ReservationService {
                     "Check-in opens %d minutes before the meeting"
                             .formatted(Constraints.ReservationConstraints.MINS_DIFF_TO_CHECK_IN_MIN));
 
-        TourListing listing = reservation.getTourListing();
-
         // check in guest or host depending on which participant is calling
-        if (reservation.getGuest().getId().equals(userId)) {
-            if (reservation.isGuestCheckedIn()) {
-                log.warn("Guest already checked in.");
-                throw new IllegalReservationStateException("Guest already checked in.");
-            }
+        if (reservation.getGuest().getId().equals(userId)
+                && !reservation.isGuestCheckedIn()) {
             reservation.checkGuestIn();
             log.info("Guest with id {} checked in for reservation with id {}", userId, reservationId);
-            // late arrival: host already started the tour manually — activate immediately
-            if (listing.isTourStarted()) {
-                reservation.activate();
-                log.info("Late-arriving guest {} activated immediately (tour already started).", userId);
-            }
-        } else if (listing.getHost().getId().equals(userId)) {
-            if (listing.isHostCheckedIn()) {
-                log.warn("Host already checked in.");
-                throw new IllegalReservationStateException("Host already checked in.");
-            }
-            listing.checkHostIn();
-            tourListingRepo.save(listing);
-            log.info("Host with id {} checked in for listing with id {}", userId, listing.getId());
+        } else if (reservation.getTourListing().getHost().getId().equals(userId)
+                && !reservation.isHostCheckedIn()) {
+            reservation.checkHostIn();
+            log.info("Host with id {} checked in for reservation with id {}", userId, reservationId);
         } else {
             log.warn("Not a participant, cannot check in.");
             throw new IllegalArgumentException("User with id %d is not a participant of reservation with id %d"
                     .formatted(userId, reservationId));
         }
 
+        if (reservation.bothCheckedIn()) {
+            reservation.activate();
+            log.info("Reservation with id {} activated.", reservationId);
+        }
+
         reservationRepo.save(reservation);
-
-        // auto-start: tour begins when host + every confirmed guest is checked in
-        tryAutoStartTour(listing);
-
-        // re-fetch to pick up any status change applied by the handleTourStartedEvent handler
-        reservation = reservationRepo.findById(reservationId).orElseThrow();
-
         log.info("User with id {} checked in for reservation with id {}", userId, reservation.getId());
 
         return new CheckInResponse(
                 reservation.getId(),
                 reservation.getStatus(),
                 reservation.isGuestCheckedIn(),
-                listing.isHostCheckedIn(),
+                reservation.isHostCheckedIn(),
                 reservation.getGuestCheckInTimestamp(),
-                listing.getHostCheckInTimestamp(),
+                reservation.getHostCheckInTimestamp(),
                 reservation.getStartTimestamp()
         );
     }
@@ -305,11 +285,10 @@ public class ReservationService {
     }
 
     private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
-        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetweenAndStatusIn(
+        return !reservationRepo.existsByGuestAndTourListing_MeetingDateBetween(
                 guest,
                 DateTimeUtil.getStartOfDay(meetingDate),
-                DateTimeUtil.getEndOfDay(meetingDate),
-                List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE)
+                DateTimeUtil.getEndOfDay(meetingDate)
         );
     }
 
@@ -341,7 +320,10 @@ public class ReservationService {
             log.warn("Could not find a single reservation for guest with id {}", guestId);
             return;
         }
+        List<Integer> tourListingIds = reservationRepo.findTourListingIdsByGuestId(guestId);
         deleteReservationsByGuestId(guestId);
+
+        publisher.publishEvent(new ReservationsDeletedEvent(tourListingIds));
     }
 
     @EventListener
@@ -381,8 +363,15 @@ public class ReservationService {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
-        int count = reservationRepo.deleteAllByTourListing_IdIn(List.of(event.listingId()));
-        log.info("Deleted {} reservation(s) for listing with id {}", count, event.listingId());
+        Optional<Reservation> reservation = reservationRepo.findByTourListing_Id(event.listingId());
+
+        if(reservation.isEmpty()) {
+            log.debug("No reservation found for given event parameters.");
+            return;
+        }
+
+        reservationRepo.deleteById(reservation.get().getId());
+        log.info("Reservation deleted by id {}", reservation.get().getId());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -391,130 +380,47 @@ public class ReservationService {
         log.info("Deleted {} reservations due to expired tour listings.", count);
     }
 
-    @Scheduled(fixedRate = 300000)
-    public void expireConfirmedReservations() {
-        log.debug("Attempting to expire confirmed reservations past check-in window.");
-        List<Reservation> expired = reservationRepo.findAllByStatusAndTourListing_MeetingDateBefore(
-                ReservationStatus.CONFIRMED,
-                LocalDateTime.now().minusHours(Constraints.ReservationConstraints.CONFIRMED_EXPIRY_HOURS)
-        );
-        if(expired.isEmpty()) return;
-
-        expired.forEach(Reservation::expire);
-        reservationRepo.saveAll(expired);
-        log.info("Expired {} confirmed reservations.", expired.size());
-    }
-
     @Scheduled(fixedRate = 1800000)
     public void expireClosedReservations() {
         log.debug("Attempting to proccess expired reservations.");
         List<Reservation> expired = reservationRepo.findAllByStatusAndEndTimestampBefore(
                 ReservationStatus.CLOSED,
-                LocalDateTime.now().minusHours(Constraints.ReservationConstraints.RATING_WINDOW_HOURS)
+                LocalDateTime.now().minusHours(48)
         );
         expired.forEach(Reservation::expire);
         reservationRepo.saveAll(expired);
         log.info("Processed {} closed reservations.",  expired.size());
     }
 
-
-
-    /**
-     * Returns presence information for all participants of a reservation.
-     *
-     * <p>Only the guest or host of the reservation may call this method.
-     *
-     * @param callerId      ID of the authenticated user making the request
-     * @param reservationId ID of the target reservation
-     * @return list of {@link PresenceResponse} for the guest and host
-     * @throws ReservationNotFoundException if no reservation exists with the given ID
-     * @throws ForbiddenActionException     if the caller is not a participant of the reservation
-     */
-    public List<PresenceResponse> getPresence(Integer callerId, Integer reservationId) {
-        Reservation reservation = reservationRepo.findById(reservationId)
-                .orElseThrow(() -> new ReservationNotFoundException(reservationId));
-
+    private ReservationResponse createReservationResponse(Reservation reservation) {
+        TourListing tourListing = reservation.getTourListing();
+        User host = tourListing.getHost();
         User guest = reservation.getGuest();
-        User host = reservation.getTourListing().getHost();
 
-        // only participants may view presence
-        boolean isParticipant = guest.getId().equals(callerId) || host.getId().equals(callerId);
-        if (!isParticipant)
-            throw new ForbiddenActionException("Only participants of the reservation can view presence.");
-
-        PresenceResponse guestPresence = new PresenceResponse(
-                guest.getUsername(),
-                guest.getFirstName(),
-                guest.getLastName(),
-                guest.getProfilePhotoFilename(),
-                reservation.isGuestCheckedIn(),
-                false
-        );
-
-        PresenceResponse hostPresence = new PresenceResponse(
-                host.getUsername(),
+        UserDetails hostDetails = new UserDetails(
                 host.getFirstName(),
                 host.getLastName(),
-                host.getProfilePhotoFilename(),
-                reservation.getTourListing().isHostCheckedIn(),
-                true
+                host.getUsername()
         );
 
-        return List.of(guestPresence, hostPresence);
-    }
+        TourListingDetails listingDetails = new TourListingDetails(
+                tourListing.getId(),
+                tourListing.getMeetingDate(),
+                tourListing.getCity(),
+                hostDetails
+        );
 
-    /**
-     * Fires when a tour starts (either auto or via manual killswitch).
-     * Activates every reservation where the guest is already checked in and status is CONFIRMED.
-     */
-    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    void handleTourStartedEvent(TourStartedEvent event) {
-        reservationRepo.findAllByTourListing_Id(event.listingId()).stream()
-                .filter(r -> r.isGuestCheckedIn() && r.getStatus() == ReservationStatus.CONFIRMED)
-                .forEach(r -> {
-                    r.activate();
-                    reservationRepo.save(r);
-                });
-        log.info("Activated checked-in reservations for started tour on listing {}", event.listingId());
-    }
+        UserDetails guestDetails = new UserDetails(
+                guest.getFirstName(),
+                guest.getLastName(),
+                guest.getUsername()
+        );
 
-    /**
-     * Evaluates whether the auto-start condition is met: host checked in + every CONFIRMED guest checked in.
-     * Short-circuits immediately if the tour has already started.
-     */
-    private void tryAutoStartTour(TourListing listing) {
-        if (listing.isTourStarted()) return;
-        if (!listing.isHostCheckedIn()) return;
-
-        long confirmedTotal = reservationRepo.countByTourListing_IdAndStatus(
-                listing.getId(), ReservationStatus.CONFIRMED);
-        // no confirmed guests → cannot auto-start
-        if (confirmedTotal == 0) return;
-
-        long confirmedCheckedIn = reservationRepo.countByListingIdAndStatusAndGuestCheckedIn(
-                listing.getId(), ReservationStatus.CONFIRMED, true);
-        if (confirmedCheckedIn != confirmedTotal) return;
-
-        startTourAndPublishEvent(listing);
-    }
-
-    /**
-     * Marks the tour as started, persists the listing, and publishes {@link TourStartedEvent}
-     * so that {@link #handleTourStartedEvent} can activate all checked-in reservations.
-     */
-    private void startTourAndPublishEvent(TourListing listing) {
-        listing.startTour();
-        tourListingRepo.save(listing);
-        publisher.publishEvent(new TourStartedEvent(listing.getId()));
-        log.info("Tour started for listing {}", listing.getId());
-    }
-
-    private ReservationResponse createReservationResponse(Reservation reservation) {
         return new ReservationResponse(
                 reservation.getId(),
                 reservation.getDateOfReservation(),
-                detailsMapper.mapListingDetails(reservation.getTourListing()),
-                detailsMapper.mapUserDetails(reservation.getGuest()),
+                listingDetails,
+                guestDetails,
                 reservation.getStatus()
         );
     }
