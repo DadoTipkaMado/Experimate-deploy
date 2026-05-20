@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Booking Requests — ExperiMate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .requests-header {
+      padding: 22px 18px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-divider {
+      display: flex; align-items: center; gap: 10px;
+      padding: 20px 18px 10px;
+      font-family: var(--font-display); font-weight: 700; font-size: 13px;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .req-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      margin: 0 18px 10px;
+    }
+    .req-card--pending { box-shadow: inset 3px 0 0 var(--accent); }
+    .req-empty__icon { width: 52px; height: 52px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
+    .req-card__name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
+    .req-card__meta { font-size: 11px; color: var(--text-2); }
+    .req-card__actions { display: flex; gap: 8px; margin-top: 4px; }
+    .req-btn { flex: 1; height: 42px; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border: 1px solid; transition: background var(--t-base), color var(--t-base); }
+    .req-btn--accept { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .req-btn--accept:hover { background: var(--accent); color: #000; }
+    .req-btn--decline { background: transparent; border-color: var(--border-2); color: var(--text-3); }
+    .req-btn--decline:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
+    .req-status-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 10px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+    .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
+    .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
+    .req-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 60px 24px; gap: 10px; text-align: center;
+    }
+    .req-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
+    .req-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="requests-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <a href="/account" style="color:var(--text-3);text-decoration:none;font-size:36px;line-height:1;">‹</a>
+        <div>
+          <div class="page-title">Meet Requests</div>
+          <div class="page-subtitle">Manage incoming requests for your meets</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider">Pending</div>
+    <div id="pending-list"></div>
+
+    <div class="section-divider" style="margin-top:8px;">Past</div>
+    <div id="recent-list"></div>
+
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function fmtDate(iso) {
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function mkCard(r) {
+    const guestName = r.user ? `${r.user.firstName} ${r.user.lastName}` : `Request #${r.id}`;
+    const guestHandle = r.user?.username ? `@${r.user.username}` : '';
+    const city = r.tourListing?.city ?? '';
+    const date = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
+    const meta = [city, date].filter(Boolean).join(' · ');
+
+    const actionEl = r.status === 'PENDING'
+      ? `<div class="req-card__actions">
+           <button class="req-btn req-btn--accept" onclick="handleRequest('accept', ${r.id}, this)">Accept</button>
+           <button class="req-btn req-btn--decline" onclick="handleRequest('decline', ${r.id}, this)">Decline</button>
+         </div>`
+      : `<div><span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status.charAt(0) + r.status.slice(1).toLowerCase()}</span></div>`;
+
+    const hue = (r.user?.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const initials = ((r.user?.firstName?.[0] ?? '') + (r.user?.lastName?.[0] ?? '')).toUpperCase() || '?';
+    const avatarHtml = `<div style="width:38px;height:38px;border-radius:50%;background:hsl(${hue},35%,22%);border:1px solid hsl(${hue},40%,35%);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-display);font-weight:800;font-size:14px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+
+    return `
+      <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-${r.id}">
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${avatarHtml}
+          <div style="flex:1;min-width:0;">
+            <div class="req-card__name">${guestName} ${guestHandle ? `<span style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);">${guestHandle}</span>` : ''}</div>
+            ${meta ? `<div class="req-card__meta" style="margin-top:2px;">${meta}</div>` : ''}
+          </div>
+        </div>
+        ${actionEl}
+      </div>`;
+  }
+
+  async function handleRequest(action, id, btn) {
+    const card = document.getElementById('req-' + id);
+    card.querySelectorAll('.req-btn').forEach(b => b.disabled = true);
+    try {
+      if (action === 'accept') {
+        await BookingRequestAPI.accept(id);
+        card.querySelector('.req-card__actions').innerHTML =
+          '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
+        showToast('Request accepted!', 'success');
+      } else {
+        await BookingRequestAPI.decline(id);
+        card.querySelector('.req-card__actions').innerHTML =
+          '<span class="req-status-badge req-status-badge--declined">Declined</span>';
+        showToast('Request declined.', 'default');
+      }
+      // Move card to recent section
+      document.getElementById('recent-list').prepend(card);
+      updatePendingBadge();
+    } catch(e) {
+      card.querySelectorAll('.req-btn').forEach(b => b.disabled = false);
+      showToast(e.message || 'Something went wrong — please try again.', 'error');
+    }
+  }
+
+  function updatePendingBadge() {
+    const remaining = document.querySelectorAll('#pending-list .req-btn--accept').length;
+    if (remaining === 0) {
+      const pendingList = document.getElementById('pending-list');
+      if (!pendingList.querySelector('.req-card')) {
+        pendingList.innerHTML = `<div style="padding:12px 18px;font-size:11px;color:var(--text-3);">No pending requests.</div>`;
+      }
+    }
+  }
+
+  async function loadRequests() {
+    const username = Auth.getUsername();
+    const pendingEl = document.getElementById('pending-list');
+    const recentEl  = document.getElementById('recent-list');
+
+    if (!username) {
+      pendingEl.innerHTML = `<div class="req-empty"><div class="req-empty__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="req-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`;
+      return;
+    }
+
+    // Skeleton
+    pendingEl.innerHTML = `
+      <div class="req-card"><div class="skeleton skeleton-line" style="width:60%;height:14px;"></div><div class="skeleton skeleton-line skeleton-line--sm" style="width:40%;margin-top:6px;"></div><div class="skeleton skeleton-line" style="width:100%;height:36px;border-radius:20px;margin-top:8px;"></div></div>
+      <div class="req-card"><div class="skeleton skeleton-line" style="width:55%;height:14px;"></div><div class="skeleton skeleton-line skeleton-line--sm" style="width:35%;margin-top:6px;"></div><div class="skeleton skeleton-line" style="width:100%;height:36px;border-radius:20px;margin-top:8px;"></div></div>`;
+
+    try {
+      const [pending, accepted, declined] = await Promise.all([
+        BookingRequestAPI.getMine({ flowDirection: 'incoming', status: 'PENDING' }),
+        BookingRequestAPI.getMine({ flowDirection: 'incoming', status: 'ACCEPTED' }),
+        BookingRequestAPI.getMine({ flowDirection: 'incoming', status: 'DECLINED' }),
+      ]);
+      const recent = [...(accepted || []), ...(declined || [])]
+        .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+        .slice(0, 10);
+
+      pendingEl.innerHTML = (pending || []).length
+        ? (pending || []).map(mkCard).join('')
+        : `<div class="req-empty"><div class="req-empty__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><div class="req-empty__title">No pending requests</div><div class="req-empty__sub">When Mates request your meets, they'll appear here.</div></div>`;
+
+      recentEl.innerHTML = recent.length
+        ? recent.map(mkCard).join('')
+        : `<div style="padding:4px 18px 16px;font-size:11px;color:var(--text-3);">No recent requests yet.</div>`;
+    } catch(e) {
+      pendingEl.innerHTML = `<div style="padding:16px 18px;font-size:11px;color:rgba(255,100,100,0.6);">Could not load requests — check your connection.</div>`;
+      recentEl.innerHTML = '';
+    }
+  }
+
+  loadRequests();
+</script>
+</body>
+</html>

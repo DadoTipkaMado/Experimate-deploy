@@ -5,6 +5,7 @@ import hr.tvz.experimate.experimate.shared.Constraints;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
 
 @Entity
 @Table(name="tour_listing")

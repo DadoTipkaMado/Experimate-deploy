@@ -97,7 +97,11 @@ async function apiFetch(path, options = {}, _isRetry = false) {
   }
 
   if (res.status === 401 && !_isRetry) {
-    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'].some(p => path.startsWith(p));
+<<<<<<< HEAD
+    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register'].some(p => path.startsWith(p));
+=======
+    const isAuthEndpoint = ['/api/auth/login', '/api/auth/register'].some(p => path.startsWith(p));
+>>>>>>> origin/main
     if (isAuthEndpoint) {
       throw new Error('Incorrect username or password.');
     }
@@ -169,7 +173,11 @@ const UserAPI = {
 const TourListingAPI = {
   getPage: (page = 0, params = {}) => apiFetch('/api/tour-listing' + buildQuery({ page, ...params })),
   getAll: (params = {})  => apiFetch('/api/tour-listing' + buildQuery({ size: 1000, ...params })).then(p => p?.content ?? []),
+<<<<<<< HEAD
   getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)).then(p => p?.content ?? []),
+=======
+  getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)),
+>>>>>>> origin/main
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
@@ -181,7 +189,11 @@ const TourListingAPI = {
 ─────────────────────────────────────────────── */
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
+<<<<<<< HEAD
   getMine: (params = {}) => apiFetch('/api/reservation/mine' + buildQuery(params)).then(p => p?.content ?? []),
+=======
+  getMine: (params = {}) => apiFetch('/api/reservation/mine' + buildQuery(params)),
+>>>>>>> origin/main
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
@@ -194,7 +206,11 @@ const ReservationAPI = {
 ─────────────────────────────────────────────── */
 const BookingRequestAPI = {
   getAll: ()           => apiFetch('/api/booking-request'),
+<<<<<<< HEAD
   getMine: (params = {}) => apiFetch('/api/booking-request/mine' + buildQuery(params)).then(p => p?.content ?? []),
+=======
+  getMine: (params = {}) => apiFetch('/api/booking-request/mine' + buildQuery(params)),
+>>>>>>> origin/main
   getById: (id)        => apiFetch(`/api/booking-request/${id}`),
   create: (dto)        => apiFetch('/api/booking-request',             { method: 'POST',   body: JSON.stringify(dto) }),
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
