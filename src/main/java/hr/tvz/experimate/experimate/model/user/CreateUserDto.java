@@ -1,6 +1,7 @@
-package hr.tvz.experimate.experimate.model.user;
+package hr.tvz.experimate.experimate.domain.user.dto;
 
-import hr.tvz.experimate.experimate.model.shared.Constraints;
+import hr.tvz.experimate.experimate.shared.Constraints;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
@@ -16,6 +17,8 @@ public record CreateUserDto(
         @NotNull @Past LocalDate dateOfBirth,
         @NotBlank
         String idNumber,
+        @NotBlank @Email
+        String email,
         @NotBlank @Size(min = Constraints.UserConstraints.USERNAME_MIN, max = Constraints.UserConstraints.USERNAME_MAX)
         String username,
         @NotBlank @Size(min = Constraints.UserConstraints.PASSWORD_MIN, max = Constraints.UserConstraints.PASSWORD_MAX)
