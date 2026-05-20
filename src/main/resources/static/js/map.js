@@ -76,7 +76,7 @@ function initMap() {
           zIndexOffset: 1000,
         }).addTo(MapState.map);
       },
-      () => { /* denied or unavailable — keep Zagreb default */ }
+      () => showToast('Location access denied — showing Zagreb by default.', 'default')
     );
   }
 }
