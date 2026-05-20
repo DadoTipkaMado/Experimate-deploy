@@ -156,6 +156,9 @@
 <script th:src="@{/js/api.js}"></script>
 <script th:inline="none">
   const _profileUsername = window.location.pathname.split('/').filter(Boolean).pop();
+  // Show username in nav immediately from URL, before API response arrives
+  const _navTitleEl = document.querySelector('.profile-nav__title');
+  if (_navTitleEl && _profileUsername) _navTitleEl.textContent = '@' + decodeURIComponent(_profileUsername);
 
   function goToMap(btn) {
     sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
