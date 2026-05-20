@@ -24,6 +24,7 @@ const Auth = {
   },
   logout: () => {
     sessionStorage.setItem('explicit_logout', '1');
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
     window.location.href = '/login';
