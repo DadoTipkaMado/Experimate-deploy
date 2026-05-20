@@ -582,7 +582,8 @@
     el.innerHTML = items.map(l => {
       const d = new Date(l.meetingDate);
       const isPast = d < now;
-      const statusBadge = l.reserved
+      const isFull = (l.currentGuestCount ?? 0) >= (l.maxGuests ?? 1);
+      const statusBadge = isFull
         ? '<span style="font-size:9px;font-family:var(--font-mono);color:var(--accent);letter-spacing:0.06em;">BOOKED</span>'
         : '<span style="font-size:9px;font-family:var(--font-mono);color:var(--text-3);letter-spacing:0.06em;">OPEN</span>';
       const redoBtn = isPast
