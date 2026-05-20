@@ -9,6 +9,7 @@
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Profile — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     /* ── Nav ── */
     .profile-nav {
@@ -90,6 +91,20 @@
     .profile-personality__text { font-size: 12px; line-height: 1.8; color: var(--text-2); }
     .profile-personality__empty { font-size: 12px; color: var(--text-3); font-style: italic; }
 
+    /* ── Memories map ── */
+    .profile-memories { border-bottom: 1px solid var(--border); }
+    .profile-memories__header { padding: 18px 20px 12px; display: flex; align-items: center; justify-content: space-between; }
+    .profile-memories__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+    .profile-memories__count { font-family: var(--font-mono); font-size: 9px; color: var(--accent); letter-spacing: 0.08em; }
+    #memories-map { height: 200px; width: 100%; background: #0d0d0d; }
+    .memories-empty { padding: 28px 20px; font-size: 12px; color: var(--text-3); font-style: italic; text-align: center; }
+    .leaflet-container { background: #0d0d0d !important; }
+    .leaflet-control-attribution { display: none !important; }
+    .mem-popup .leaflet-popup-content-wrapper { background: var(--surface); border: 1px solid var(--border-2); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); color: var(--text); }
+    .mem-popup .leaflet-popup-tip { background: var(--surface); }
+    .mem-popup .leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.6; }
+    .mem-popup .leaflet-popup-close-button { color: var(--text-3); }
+
     /* ── Listings ── */
     .profile-section-label { padding: 18px 20px 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
     .profile-listings { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 40px; }
@@ -137,6 +152,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:inline="none">
   const _profileUsername = window.location.pathname.split('/').filter(Boolean).pop();
@@ -276,10 +292,54 @@
           ${bioSection}
           ${personalitySection}
 
+          <div class="profile-memories">
+            <div class="profile-memories__header">
+              <div class="profile-memories__label">Memories</div>
+              <div class="profile-memories__count" id="memories-count"></div>
+            </div>
+            <div id="memories-map-wrap">
+              <div class="memories-empty">Loading memories…</div>
+            </div>
+          </div>
+
           <div class="profile-section-label">Upcoming Days</div>
           <div class="profile-listings" id="profile-listings"></div>
         </div>
       `;
+
+      // ── Memories map ─────────────────────────────────────────────
+      fetch(`/api/user/${user.id}/world-map`, {
+        headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+      })
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+        .then(locations => {
+          const wrap = document.getElementById('memories-map-wrap');
+          if (!wrap) return;
+          if (!locations.length) {
+            wrap.innerHTML = `<div class="memories-empty">${isOwnProfile ? 'No completed meets yet — your memories will appear here.' : 'No completed meets yet.'}</div>`;
+            return;
+          }
+          document.getElementById('memories-count').textContent = `${locations.length} meet${locations.length !== 1 ? 's' : ''}`;
+          wrap.innerHTML = '<div id="memories-map"></div>';
+          const memMap = L.map('memories-map', { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(memMap);
+          const bounds = [];
+          locations.forEach(loc => {
+            if (!loc.lat || !loc.lng) return;
+            const icon = L.divIcon({
+              className: '',
+              html: `<div style="width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 6px var(--accent);"></div>`,
+              iconSize: [10, 10],
+              iconAnchor: [5, 5],
+            });
+            const date = loc.date ? new Date(loc.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const popup = `<div><strong style="color:var(--text)">${loc.city || ''}${loc.country ? ', ' + loc.country : ''}</strong><br><span style="color:var(--text-3);font-size:11px;">${date}</span></div>`;
+            L.marker([loc.lat, loc.lng], { icon }).bindPopup(popup, { className: 'mem-popup', maxWidth: 180 }).addTo(memMap);
+            bounds.push([loc.lat, loc.lng]);
+          });
+          if (bounds.length) memMap.fitBounds(bounds, { padding: [24, 24], maxZoom: 10 });
+        });
 
       const listingsEl = document.getElementById('profile-listings');
       if (!userListings.length) {
