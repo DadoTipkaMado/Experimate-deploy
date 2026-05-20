@@ -540,7 +540,7 @@ function openListingDetail(listing, opts) {
   document.getElementById('ld-date').textContent = `📅 ${dateStr}`;
 
   const maxG   = listing.maxGuests ?? 1;
-  const curG   = listing.currentGuestCount ?? (listing.reserved ? 1 : 0);
+  const curG   = listing.currentGuestCount ?? 0;
   const guestInfoEl = document.getElementById('ld-guests');
   if (guestInfoEl) {
     if (maxG > 1) {
@@ -569,7 +569,7 @@ function openListingDetail(listing, opts) {
     document.getElementById('ld-footer').innerHTML =
       `<button class="btn btn--primary popup-action" style="width:100%;" onclick="closeListingDetail()">Got it, remind me later</button>`;
   } else {
-    const available  = !listing.reserved && !reserved;
+    const available  = !reserved;
     const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
     const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
     const statusLabel = isOwn ? 'Your listing'
