@@ -1,10 +1,12 @@
-package hr.tvz.experimate.experimate.model.shared;
-import hr.tvz.experimate.experimate.model.shared.exception.ConflictException;
-import hr.tvz.experimate.experimate.model.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.model.shared.exception.InternalServerException;
-import hr.tvz.experimate.experimate.model.shared.exception.NotFoundException;
-import hr.tvz.experimate.experimate.model.shared.exception.RateLimitException;
-import hr.tvz.experimate.experimate.model.shared.exception.RefreshTokenException;
+package hr.tvz.experimate.experimate.shared;
+import hr.tvz.experimate.experimate.security.google.exception.IncompleteGoogleProfileException;
+import hr.tvz.experimate.experimate.shared.exception.AppAuthException;
+import hr.tvz.experimate.experimate.shared.exception.ConflictException;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.exception.InternalServerException;
+import hr.tvz.experimate.experimate.shared.exception.NotFoundException;
+import hr.tvz.experimate.experimate.shared.exception.RateLimitException;
+import hr.tvz.experimate.experimate.shared.exception.RefreshTokenException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
@@ -41,6 +43,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(conflict, HttpStatus.CONFLICT);
     }
 
+    // Missing email/given_name/family_name claims in the Google payload
+    @ExceptionHandler(IncompleteGoogleProfileException.class)
+    public ResponseEntity<ErrorResponse> handleIncompleteGoogleProfileException(IncompleteGoogleProfileException ex) {
+        ErrorResponse incompleteProfile = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
+        return new ResponseEntity<>(incompleteProfile, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponse illegalArg = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
@@ -65,8 +74,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(forbidden, HttpStatus.FORBIDDEN);
     }
 
+    // AppAuthException base → 401; RefreshTokenException (subclass) overrides to 403 below
+    @ExceptionHandler(AppAuthException.class)
+    public ResponseEntity<ErrorResponse> handleAppAuthException(AppAuthException ex) {
+        ErrorResponse auth = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);
+        return new ResponseEntity<>(auth, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(RefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> handleAppAuthException(RefreshTokenException ex) {
+    public ResponseEntity<ErrorResponse> handleRefreshTokenException(RefreshTokenException ex) {
         ErrorResponse auth = createErrorResponse(HttpStatus.FORBIDDEN, ex);
         return new ResponseEntity<>(auth, HttpStatus.FORBIDDEN);
     }
