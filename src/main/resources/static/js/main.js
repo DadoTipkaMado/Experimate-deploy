@@ -60,44 +60,6 @@ function escapeHtml(str) {
 }
 
 /* ───────────────────────────────────────────────
-   ROTATING PLACEHOLDERS
-─────────────────────────────────────────────── */
-(function() {
-  const PLACEHOLDERS = {
-    'explore-search-input': [
-      'Search by city or host...',
-      'Find someone in Zagreb...',
-      'Looking for a guide in Split?',
-      'Try "coffee in Dubrovnik"...',
-      'Find a local in your city...',
-      'Who\'s hosting near you?',
-    ],
-    'map-search-input': [
-      'Search by name or host...',
-      'Find locals on the map...',
-      'Filter by host name...',
-      'Who\'s near you?',
-      'Search by city...',
-    ],
-  };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    Object.entries(PLACEHOLDERS).forEach(([id, list]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.placeholder = list[Math.floor(Math.random() * list.length)];
-    });
-  });
-})();
-
-/* ───────────────────────────────────────────────
-   HTML ESCAPE
-─────────────────────────────────────────────── */
-function escapeHtml(str) {
-  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ───────────────────────────────────────────────
    TOAST
    Usage: showToast('Saved!') or showToast('Error', 'warn')
 ─────────────────────────────────────────────── */
