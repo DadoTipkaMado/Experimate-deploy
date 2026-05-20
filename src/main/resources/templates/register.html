@@ -155,6 +155,13 @@
       </div>
 
       <div class="auth-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="your@email.com" required>
+        <span class="auth-field__hint">Used for account verification and recovery</span>
+        <span class="field-error" id="err-email"></span>
+      </div>
+
+      <div class="auth-field">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" minlength="4" maxlength="15" autocomplete="username" required>
         <span class="auth-field__hint">4–15 characters</span>
@@ -344,6 +351,7 @@
             idNumber: crypto.randomUUID(), // TODO: remove when backend makes idNumber optional or generates it server-side
             username,
             password,
+            email: document.getElementById('email').value.trim(),
           });
           const loginRes = await AuthAPI.login(username, password);
           Auth.saveToken(loginRes.token);
@@ -367,6 +375,17 @@
           btn.textContent = 'Create account';
         }
       });
+
+      // Pre-fill from Google profile if coming from Google sign-in flow
+      const googleProfile = sessionStorage.getItem('google_profile');
+      if (googleProfile) {
+        try {
+          const p = JSON.parse(googleProfile);
+          if (p.firstName) document.getElementById('firstName').value = p.firstName;
+          if (p.lastName)  document.getElementById('lastName').value  = p.lastName;
+          if (p.email)     document.getElementById('email').value     = p.email;
+        } catch (_) {}
+      }
     });
   </script>
 </body>
