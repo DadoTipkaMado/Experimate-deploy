@@ -45,12 +45,13 @@ public class SecurityConfig {
                                 response.sendError(HttpStatus.UNAUTHORIZED.value())))
 
                 .authorizeHttpRequests(req -> req
-                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/user").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/user/profile-photo/*").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll())
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                    /*    .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/google/**").permitAll()*/
+                        .requestMatchers(HttpMethod.POST, "/api/user").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/user/profile-photo/*").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll())
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
