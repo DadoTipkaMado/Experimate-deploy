@@ -1772,3 +1772,20 @@ svg { display: block; flex-shrink: 0; }
 .dp-cell--selected { background: var(--accent) !important; color: #000 !important; font-weight: 700; }
 .dp-cell--disabled { color: var(--text-3); opacity: 0.3; cursor: default; }
 .dp-cell--empty { cursor: default; }
+
+/* ── Cross-document View Transitions ──────────────────────────────────── */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: _vt-out 0.22s cubic-bezier(0.4,0,1,1) both; }
+::view-transition-new(root) { animation: _vt-in  0.22s cubic-bezier(0,0,0.2,1)  both; }
+@keyframes _vt-out { to   { opacity: 0; transform: scale(0.985) translateY(5px); } }
+@keyframes _vt-in  { from { opacity: 0; transform: scale(0.985) translateY(5px); } }
+
+/* ── Navigation progress bar ──────────────────────────────────────────── */
+#np {
+  position: fixed; top: 0; left: 0; z-index: 99999;
+  height: 2px; width: 0;
+  background: var(--accent, #00c9a7);
+  box-shadow: 0 0 8px var(--accent, #00c9a7);
+  pointer-events: none;
+  will-change: width, opacity;
+}

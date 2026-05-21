@@ -1009,3 +1009,54 @@ const DatePicker = (() => {
   return { open, close };
 })();
 window.DatePicker = DatePicker;
+
+/* ── Navigation progress bar + hover prefetch ─────────────────────────── */
+(function () {
+  let _bar, _t;
+
+  function bar() {
+    if (!_bar) { _bar = document.createElement('div'); _bar.id = 'np'; document.body.prepend(_bar); }
+    return _bar;
+  }
+
+  function npStart() {
+    const b = bar(); clearTimeout(_t);
+    b.style.cssText = 'width:0;opacity:1;transition:none';
+    void b.offsetWidth;
+    b.style.cssText = 'width:82%;opacity:1;transition:width 0.5s cubic-bezier(0.1,0.5,0.5,1)';
+    sessionStorage.setItem('_np', '1');
+  }
+
+  function npDone() {
+    const b = bar();
+    b.style.cssText = 'width:100%;opacity:1;transition:width 0.15s ease';
+    _t = setTimeout(() => {
+      b.style.cssText = 'width:100%;opacity:0;transition:opacity 0.3s ease';
+      setTimeout(() => { b.style.cssText = 'width:0;opacity:0'; }, 350);
+    }, 150);
+  }
+
+  // Complete bar on new page load (non-View-Transition fallback)
+  if (sessionStorage.getItem('_np')) {
+    sessionStorage.removeItem('_np');
+    requestAnimationFrame(() => requestAnimationFrame(npDone));
+  }
+
+  // Start on any internal nav click
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || !a.href.startsWith(location.origin) || a.href === location.href) return;
+    npStart();
+  }, true);
+
+  // Prefetch on hover
+  const _seen = new Set();
+  document.addEventListener('mouseover', e => {
+    const a = e.target.closest('a[href]');
+    if (!a || !a.href.startsWith(location.origin) || _seen.has(a.href)) return;
+    _seen.add(a.href);
+    const lnk = document.createElement('link');
+    lnk.rel = 'prefetch'; lnk.href = a.href;
+    document.head.appendChild(lnk);
+  });
+})();
