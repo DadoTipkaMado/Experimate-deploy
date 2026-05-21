@@ -191,6 +191,43 @@
     .tab-panel { display: none; flex-direction: column; gap: 10px; padding: 14px 16px 100px; }
     .tab-panel--active { display: flex; }
 
+    /* ── Meet detail sheet ── */
+    .detail-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    .detail-backdrop--open { display: block; }
+    .detail-sheet {
+      position: fixed; bottom: -100%; left: 0; right: 0; z-index: 401;
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border-2); border-bottom: none;
+      max-height: 85dvh; overflow-y: auto;
+      transition: bottom 0.3s cubic-bezier(0.32,0.72,0,1);
+      padding-bottom: calc(var(--navbar-h) + 16px);
+    }
+    .detail-sheet--open { bottom: 0; }
+    .detail-sheet__handle { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
+    .detail-sheet__hero {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px 20px 16px; gap: 10px; border-bottom: 1px solid var(--border);
+    }
+    .detail-sheet__avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--surface-2); overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 800;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+    }
+    .detail-sheet__avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); }
+    .detail-sheet__handle { font-size: 12px; color: var(--text-3); margin-top: -4px; }
+    .detail-sheet__body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .detail-row { display: flex; align-items: flex-start; gap: 12px; }
+    .detail-row__icon { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+    .detail-row__label { font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+    .detail-row__value { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .detail-sheet__foot { padding: 12px 20px 0; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); }
+
     /* ── Countdown bar ── */
     .countdown-bar {
       display: none; position: fixed; bottom: calc(var(--navbar-h)); left: 0; right: 0; z-index: 90;
@@ -323,6 +360,32 @@
 
 </div>
 
+<!-- ── MEET DETAIL SHEET ── -->
+<div class="detail-backdrop" id="detail-backdrop" onclick="closeMeetDetail()"></div>
+<div class="detail-sheet" id="detail-sheet">
+  <div class="detail-sheet__handle"></div>
+  <div class="detail-sheet__hero">
+    <div class="detail-sheet__avatar" id="ds-avatar"></div>
+    <div class="detail-sheet__name" id="ds-name"></div>
+    <div class="detail-sheet__handle" id="ds-handle"></div>
+  </div>
+  <div class="detail-sheet__body">
+    <div class="detail-row">
+      <div class="detail-row__icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+      <div><div class="detail-row__label">Location</div><div class="detail-row__value" id="ds-city"></div></div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row__icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div><div class="detail-row__label">Date &amp; time</div><div class="detail-row__value" id="ds-date"></div></div>
+    </div>
+    <div class="detail-row" id="ds-desc-row" style="display:none;">
+      <div class="detail-row__icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+      <div><div class="detail-row__label">Description</div><div class="detail-row__value" id="ds-desc" style="font-size:13px;color:var(--text-2);"></div></div>
+    </div>
+  </div>
+  <div class="detail-sheet__foot" id="ds-foot"></div>
+</div>
+
 <!-- ── COUNTDOWN BAR ── -->
 <div id="countdown-bar" class="countdown-bar">
   <span id="countdown-label"></span>
@@ -381,6 +444,7 @@
   let _activeTab = 'meets';
   let _loadedData = {};
   let _pages = {};
+  let _meetDetails = {};
 
   let _meetFilter    = { role: 'joined', timeframe: 'upcoming' };
   let _reqFilter     = { flowDirection: 'incoming', status: 'PENDING' };
@@ -433,6 +497,74 @@
     return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;background:hsl(${hue},35%,22%);border-color:hsl(${hue},40%,32%);font-size:${Math.round(sz*0.37)}px;color:hsl(${hue},60%,72%);">${initials}</div>`;
   }
 
+  /* ── Meet detail sheet ── */
+  function openMeetDetail(id) {
+    const d = _meetDetails[id];
+    if (!d) return;
+    const { res, isJoined, isPast } = d;
+    const listing = res.tourListing;
+    const person  = isJoined ? listing.host : res.guest;
+    const username = person?.username ?? '';
+    const name     = person ? person.firstName + ' ' + person.lastName : '?';
+    const user     = _userCache[username];
+    const date     = new Date(listing.meetingDate);
+    const dateStr  = `${String(date.getDate()).padStart(2,'0')} ${_M[date.getMonth()]} ${date.getFullYear()} · ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+
+    const avatarEl = document.getElementById('ds-avatar');
+    const photoUrl = user?.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
+    const initials = ((person?.firstName?.[0] ?? '') + (person?.lastName?.[0] ?? '')).toUpperCase() || '?';
+    const hue = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    if (photoUrl) {
+      avatarEl.innerHTML = `<img src="${photoUrl}" alt="${initials}">`;
+      avatarEl.style.cssText = '';
+    } else {
+      avatarEl.innerHTML = `<span style="font-size:26px;color:hsl(${hue},60%,72%);">${initials}</span>`;
+      avatarEl.style.background = `hsl(${hue},35%,22%)`;
+      avatarEl.style.boxShadow  = `0 0 0 2px var(--bg), 0 0 0 4px hsl(${hue},50%,45%)`;
+    }
+
+    document.getElementById('ds-name').textContent   = name;
+    document.getElementById('ds-handle').textContent = '@' + username;
+    document.getElementById('ds-city').textContent   = listing.city ?? '—';
+    document.getElementById('ds-date').textContent   = dateStr;
+
+    const descRow = document.getElementById('ds-desc-row');
+    if (listing.tourDescription) {
+      document.getElementById('ds-desc').textContent = listing.tourDescription;
+      descRow.style.display = '';
+    } else {
+      descRow.style.display = 'none';
+    }
+
+    const foot = document.getElementById('ds-foot');
+    if (isPast && isJoined) {
+      const alreadyRated = !!localStorage.getItem('rated_' + res.id);
+      foot.innerHTML = alreadyRated
+        ? `<div class="badge--rated" style="align-self:center;margin:4px 0 8px;">Rated ✓</div>`
+        : `<button class="meet-card__btn meet-card__btn--primary" style="height:46px;font-size:11px;"
+             data-res-id="${res.id}" data-host-username="${username}" data-host-name="${name}"
+             onclick="closeMeetDetail();openRatingModal(this)">★ Rate your Mate</button>`;
+    } else if (!isPast && isJoined) {
+      foot.innerHTML = `<button class="meet-card__btn meet-card__btn--danger" style="height:46px;font-size:11px;"
+        data-res-id="${res.id}" onclick="closeMeetDetail();openCancelModal(this)">Cancel meet</button>`;
+    } else if (!isPast && !isJoined) {
+      foot.innerHTML = `<button class="meet-card__btn meet-card__btn--primary" style="height:46px;font-size:11px;"
+        data-res-id="${res.id}" onclick="checkIn(this)">I'm here ✓</button>`;
+    } else {
+      foot.innerHTML = '';
+    }
+
+    document.getElementById('detail-backdrop').classList.add('detail-backdrop--open');
+    document.getElementById('detail-sheet').classList.add('detail-sheet--open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMeetDetail() {
+    document.getElementById('detail-backdrop').classList.remove('detail-backdrop--open');
+    document.getElementById('detail-sheet').classList.remove('detail-sheet--open');
+    document.body.style.overflow = '';
+  }
+
   /* ── Empty state ── */
   function emptyState(icon, title, sub, cta) {
     return `<div class="meet-empty">
@@ -473,6 +605,7 @@
       const d = new Date(res.tourListing.meetingDate);
       const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_M[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       _cardListings[res.id] = { listing: res.tourListing, isOwn: !isJoined, reserved: true };
+      _meetDetails[res.id]  = { res, isJoined, isPast };
 
       if (isJoined) {
         const host = res.tourListing.host;
@@ -486,7 +619,7 @@
           : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--danger" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button></div>`;
         return `
           <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'} anim-fade-up" style="animation-delay:${i*0.04}s">
-            <div class="meet-card__body">
+            <div class="meet-card__body" style="cursor:pointer;" onclick="openMeetDetail(${res.id})">
               ${mkAvatar(hostUsername, _userCache[hostUsername])}
               <div class="meet-card__info">
                 <div class="meet-card__name">${hostName}</div>
@@ -506,7 +639,7 @@
         const guestName = guest ? guest.firstName + ' ' + guest.lastName : '?';
         return `
           <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'} anim-fade-up" style="animation-delay:${i*0.04}s">
-            <div class="meet-card__body">
+            <div class="meet-card__body" style="cursor:pointer;" onclick="openMeetDetail(${res.id})">
               ${mkAvatar(guestUsername, _userCache[guestUsername])}
               <div class="meet-card__info">
                 <div class="meet-card__name">${guestName}</div>
