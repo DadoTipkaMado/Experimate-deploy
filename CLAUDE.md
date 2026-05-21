@@ -80,8 +80,9 @@
 - **Account** — profil, Memories tab, edit/settings linkovi
 
 ### Lokalni dev setup (samo na Vitovom računalu)
-- `application-local.properties` — gitignoriran, koristi H2 + placeholder JWT/AI key
-- `pom.xml` ima H2 dependency lokalno, zaštićen s `git update-index --skip-worktree pom.xml` — nikad se ne pusha
+- `application-local.properties` — gitignoriran, koristi PostgreSQL + placeholder JWT/AI key
+- DB: `jdbc:postgresql://localhost:5432/experimateDb`, user `xpmate`, pass `123`
+- PostgreSQL mora biti pokrenut: `sudo systemctl start postgresql`
 - Pokretanje: `mvn spring-boot:run`
 
 ### Sljedeće (polufinale i dalje)

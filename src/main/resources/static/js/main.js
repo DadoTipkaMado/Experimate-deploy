@@ -347,26 +347,39 @@ function userAvatar(username, size, userObj) {
 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async function _completionBubble() {
   const path = window.location.pathname;
-  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit'];
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/account/edit', '/explore'];
   if (skip.some(p => path.startsWith(p))) return;
   if (!document.querySelector('.topbar')) return;
   const userId = typeof Auth !== 'undefined' ? Auth.getUserId() : null;
   if (!userId) return;
   if (sessionStorage.getItem('bubble_dismissed')) return;
 
-  let user = null, quizStatus = null;
-  try {
-    [user, quizStatus] = await Promise.all([
-      UserAPI.getById(userId),
-      OnboardingAPI.getStatus().catch(() => null),
-    ]);
-  } catch(e) { return; }
-  if (!user) return;
-
-  const hasPhoto = !!(user.profilePhotoUrl || localStorage.getItem('photo_' + userId));
-  const hasBio   = !!user.bio;
-  const hasQuiz  = quizStatus?.status === 'COMPLETED' || !!localStorage.getItem('personality_done');
-  const pct = (hasPhoto ? 40 : 0) + (hasBio ? 35 : 0) + (hasQuiz ? 25 : 0);
+  // Cache derived fields for 5 min to avoid 2 API calls on every page navigation
+  const CACHE_TTL = 5 * 60 * 1000;
+  let hasPhoto, hasBio, hasQuiz, pct;
+  const cachedRaw = sessionStorage.getItem('bubble_state');
+  const cachedAt  = parseInt(sessionStorage.getItem('bubble_state_ts') || '0', 10);
+  if (cachedRaw && Date.now() - cachedAt < CACHE_TTL) {
+    try {
+      ({ hasPhoto, hasBio, hasQuiz, pct } = JSON.parse(cachedRaw));
+    } catch (_) {}
+  }
+  if (pct == null) {
+    let user = null, quizStatus = null;
+    try {
+      [user, quizStatus] = await Promise.all([
+        UserAPI.getById(userId),
+        OnboardingAPI.getStatus().catch(() => null),
+      ]);
+    } catch(e) { return; }
+    if (!user) return;
+    hasPhoto = !!(user.profilePhotoUrl || localStorage.getItem('photo_' + userId));
+    hasBio   = !!user.bio;
+    hasQuiz  = quizStatus?.status === 'COMPLETED' || !!localStorage.getItem('personality_done');
+    pct      = (hasPhoto ? 40 : 0) + (hasBio ? 35 : 0) + (hasQuiz ? 25 : 0);
+    sessionStorage.setItem('bubble_state',    JSON.stringify({ hasPhoto, hasBio, hasQuiz, pct }));
+    sessionStorage.setItem('bubble_state_ts', String(Date.now()));
+  }
   if (pct >= 100) return;
 
   let actionText, actionHref = '/account/edit', detailText, ctaLabel;
