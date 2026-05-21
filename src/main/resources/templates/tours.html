@@ -10,172 +10,199 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    .tours-header {
-      padding: 22px 18px 0;
+
+    /* ── Segmented tab bar ── */
+    .seg-tabs {
+      display: flex; padding: 12px 16px;
       border-bottom: 1px solid var(--border);
+      gap: 6px; background: var(--bg); position: sticky; top: 0; z-index: 10;
+    }
+    .seg-tab {
+      flex: 1; height: 36px; border-radius: var(--radius-pill);
+      border: 1px solid var(--border-2); background: transparent;
+      color: var(--text-3); font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer;
+      transition: all var(--t-fast); position: relative;
+    }
+    .seg-tab--active {
+      background: var(--surface-2); border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .seg-tab__badge {
+      position: absolute; top: -4px; right: -4px;
+      background: var(--accent); color: #000;
+      border-radius: 10px; padding: 1px 5px;
+      font-size: 8px; font-weight: 800; letter-spacing: 0;
     }
 
-    /* ── MY MEETUPS ── */
+    /* ── Inline filter chips ── */
+    .filter-chips-row {
+      display: flex; gap: 6px; padding: 10px 16px 2px; flex-wrap: wrap;
+    }
+    .fchip {
+      height: 28px; padding: 0 12px;
+      border: 1px solid var(--border-2); border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-3);
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.07em;
+      text-transform: uppercase; cursor: pointer;
+      transition: all var(--t-fast);
+    }
+    .fchip--active {
+      background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent);
+    }
+    .fchip-divider {
+      width: 1px; background: var(--border-2); margin: 4px 2px; align-self: stretch;
+    }
+
+    /* ── Meet card (redesigned) ── */
     .meet-card {
-      display: flex; align-items: center; gap: 12px; padding: 14px;
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      transition: border-color var(--t-fast);
     }
-    .meet-card__date {
-      width: 44px; height: 48px; background: var(--surface-2);
-      border: 1px solid var(--border-2); border-radius: var(--radius-sm);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+    .meet-card--upcoming { border-left: 3px solid var(--accent); }
+    .meet-card--past { opacity: 0.6; }
+    .meet-card__body {
+      display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px;
     }
-    .meet-card__day { font-family: var(--font-display); font-weight: 800; font-size: 19px; line-height: 1; color: var(--text); }
-    .meet-card__month { font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-2); margin-top: 2px; }
+    .meet-card__avatar {
+      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; font-family: var(--font-display); font-weight: 800;
+    }
+    .meet-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
     .meet-card__info { flex: 1; min-width: 0; }
-    .meet-card__who { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
-    .meet-card__where { font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; }
-    .meet-card__booked { font-size: 9px; color: var(--text-3); letter-spacing: 0.04em; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .redo-btn { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); border-radius: var(--radius-pill); padding: 3px 10px; cursor: pointer; white-space: nowrap; transition: background var(--t-fast), color var(--t-fast); }
-    .redo-btn:hover { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
-    .meet-card__cancel {
-      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-      min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill);
-      display: inline-flex; align-items: center; justify-content: center;
-      border: 1px solid rgba(255,80,80,0.2); background: transparent;
-      color: rgba(255,100,100,0.6); cursor: pointer; flex-shrink: 0;
-      transition: border-color var(--t-fast), color var(--t-fast);
+    .meet-card__name {
+      font-family: var(--font-display); font-weight: 700; font-size: 14px;
+      color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .meet-card__cancel:hover { border-color: rgba(255,80,80,0.5); color: rgba(255,100,100,0.9); }
-    .meet-empty { display: flex; flex-direction: column; align-items: center; padding: 48px 24px; gap: 12px; text-align: center; }
-    .meet-empty__icon { font-size: 36px; opacity: 0.25; }
-    .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
-    .meet-empty__sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; line-height: 1.6; max-width: 220px; }
-    .meet-card__rate {
-      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-      min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill);
-      display: inline-flex; align-items: center; justify-content: center;
+    .meet-card__handle { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+    .meet-card__meta {
+      display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+    }
+    .meet-card__city {
+      font-size: 11px; color: var(--text-2); display: flex; align-items: center; gap: 4px;
+    }
+    .meet-card__dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border-2); }
+    .meet-card__date { font-size: 11px; color: var(--text-3); }
+    .meet-card__foot {
+      display: flex; gap: 8px; padding: 0 14px 13px;
+    }
+    .meet-card__btn {
+      flex: 1; height: 36px; border-radius: var(--radius-pill);
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.07em;
+      text-transform: uppercase; cursor: pointer; border: 1px solid;
+      transition: all var(--t-fast);
+    }
+    .meet-card__btn--primary { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .meet-card__btn--primary:hover { background: var(--accent); color: #000; }
+    .meet-card__btn--ghost { background: transparent; border-color: var(--border-2); color: var(--text-3); }
+    .meet-card__btn--ghost:hover { border-color: var(--border-3); color: var(--text-2); }
+    .meet-card__btn--danger { background: transparent; border-color: rgba(255,80,80,0.2); color: rgba(255,100,100,0.7); }
+    .meet-card__btn--danger:hover { border-color: rgba(255,80,80,0.5); color: rgba(255,100,100,1); }
+    .meet-card__btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .badge--rated {
+      font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent); padding: 0 12px; height: 36px; border-radius: var(--radius-pill);
       border: 1px solid var(--accent-border); background: var(--accent-dim);
-      color: var(--accent); cursor: pointer; flex-shrink: 0;
-      transition: background var(--t-fast), color var(--t-fast);
+      display: inline-flex; align-items: center;
     }
-    .meet-card__rate:hover { background: var(--accent); color: #000; }
-    .badge--rated { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--accent-border); background: var(--accent-dim); flex-shrink: 0; }
-    .meet-card__here { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; min-height: 44px; padding: 0 14px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent-border); background: var(--accent-dim); color: var(--accent); flex-shrink: 0; cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
-    .meet-card__here:hover { background: var(--accent); color: #000; }
-    .meet-card__here:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── MY LISTINGS ── */
+    /* ── Listing card ── */
     .listing-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px;
-      display: flex; flex-direction: column; gap: 10px;
+      border-radius: var(--radius); overflow: hidden;
     }
+    .listing-card--past { opacity: 0.6; }
+    .listing-card__body { padding: 14px; }
+    .listing-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .listing-card__city {
+      font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text);
+    }
+    .listing-card__badge {
+      font-size: 9px; font-family: var(--font-mono); letter-spacing: 0.07em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: var(--radius-pill);
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .listing-card__badge--open { color: var(--text-3); border: 1px solid var(--border-2); background: transparent; }
+    .listing-card__badge--booked { color: var(--accent); border: 1px solid var(--accent-border); background: var(--accent-dim); }
+    .listing-card__date { font-size: 11px; color: var(--text-2); margin-top: 4px; }
+    .listing-card__desc {
+      font-size: 11px; color: var(--text-3); margin-top: 8px; line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .listing-card__foot { display: flex; gap: 8px; padding: 0 14px 13px; }
 
-    /* ── REQUESTS ── */
+    /* ── Request card ── */
     .req-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px;
-      display: flex; flex-direction: column; gap: 10px;
+      border-radius: var(--radius); overflow: hidden;
     }
     .req-card--pending { border-left: 3px solid #ff9944; }
-    .req-card__who { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--text); }
-    .req-card__meta { font-size: 10px; color: var(--text-2); letter-spacing: 0.04em; }
-    .req-card__actions { display: flex; gap: 8px; }
+    .req-card__body { display: flex; align-items: center; gap: 12px; padding: 14px; }
+    .req-card__info { flex: 1; min-width: 0; }
+    .req-card__name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
+    .req-card__meta { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .req-card__foot { display: flex; gap: 8px; padding: 0 14px 13px; }
     .req-btn {
-      flex: 1; height: 36px; border-radius: var(--radius-pill);
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
-      border: 1px solid; cursor: pointer; transition: background var(--t-fast), color var(--t-fast);
+      flex: 1; height: 38px; border-radius: var(--radius-pill);
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+      border: 1px solid; cursor: pointer; transition: all var(--t-fast);
     }
     .req-btn--accept { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
     .req-btn--accept:hover { background: var(--accent); color: #000; }
     .req-btn--decline { background: transparent; border-color: var(--border-2); color: var(--text-3); }
     .req-btn--decline:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
-    .req-status-badge { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); }
+    .req-status-badge {
+      font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: var(--radius-pill);
+    }
     .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
     .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
 
-    /* ── CANCEL MODAL ── */
-    .modal-backdrop {
-      display: none; position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.75); align-items: center; justify-content: center;
-      padding: 24px;
+    /* ── Empty state ── */
+    .meet-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 56px 24px; gap: 12px; text-align: center;
     }
-    .modal-backdrop--visible { display: flex; }
-    .modal-card {
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius); padding: 24px 20px;
-      width: min(360px, 100%); display: flex; flex-direction: column; gap: 14px;
+    .meet-empty__icon {
+      width: 60px; height: 60px; border-radius: 18px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center; color: var(--text-3);
     }
-    .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text); }
-    .modal-sub { font-size: 11px; color: var(--text-3); line-height: 1.6; margin-top: -6px; }
-    .modal-card textarea {
-      background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: var(--radius-sm); padding: 13px 16px;
-      color: var(--text); font-family: var(--font-mono); font-size: 13px;
-      width: 100%; box-sizing: border-box; resize: vertical; min-height: 90px; line-height: 1.65;
-      transition: border-color var(--t-fast), box-shadow var(--t-fast);
-    }
-    .modal-card textarea:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(0,201,167,0.08); }
-    .modal-actions { display: flex; gap: 10px; }
-    .modal-actions .btn { flex: 1; height: 44px; }
+    .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
+    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.65; max-width: 220px; }
 
-    /* ── RATING MODAL ── */
-    .star-picker { display: flex; gap: 6px; justify-content: center; padding: 8px 0; }
-    .star-picker__star { font-size: 28px; cursor: pointer; opacity: 0.25; transition: opacity var(--t-fast), transform var(--t-fast); user-select: none; }
-    .star-picker__star--active { opacity: 1; }
-    .star-picker__star:hover { transform: scale(1.15); }
-
-    /* ── FILTER ── */
-    .tab-bar__filter {
-      flex-shrink: 0;
-      width: 36px; height: 36px;
+    /* ── FAB ── */
+    .fab {
+      position: fixed; bottom: calc(var(--navbar-h) + 16px); right: 18px; z-index: 80;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); border: none; color: #000;
+      font-size: 26px; line-height: 1; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      border-radius: var(--radius-sm); cursor: pointer;
-      background: var(--bg); border: none;
-      color: var(--accent); transition: opacity var(--t-fast);
+      box-shadow: 0 4px 20px rgba(0,201,167,0.35);
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
     }
-    .tab-bar__filter:hover { opacity: 0.7; }
-    .tab-bar__filter--active { opacity: 1; }
-    .filter-backdrop {
-      display: none; position: fixed; inset: 0; z-index: 290;
-      background: rgba(0,0,0,0.5);
-    }
-    .filter-backdrop--visible { display: block; }
-    .filter-sheet {
-      position: fixed; bottom: -100%; left: 0; right: 0; z-index: 300;
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: 20px 20px 0 0;
-      padding-bottom: calc(var(--navbar-h) + 12px);
-      transition: bottom 0.25s ease;
-      max-height: 80vh; overflow-y: auto;
-    }
-    .filter-sheet--visible { bottom: 0; }
-    .filter-sheet__handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
-    .filter-sheet__header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px; }
-    .filter-sheet__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); }
-    .filter-sheet__close { font-size: 20px; color: var(--text-3); cursor: pointer; line-height: 1; background: none; border: none; padding: 4px; }
-    .filter-group { padding: 12px 20px; border-top: 1px solid var(--border); }
-    .filter-group__label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
-    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-    .filter-chip {
-      height: 32px; padding: 0 14px;
-      border: 1px solid var(--border-2); border-radius: var(--radius-pill);
-      background: transparent; color: var(--text-2);
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em;
-      cursor: pointer; transition: all var(--t-fast);
-    }
-    .filter-chip--active { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
-    .filter-sheet__actions { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
-    .filter-sheet__actions .btn { flex: 1; height: 44px; }
+    .fab:hover { transform: scale(1.06); box-shadow: 0 6px 24px rgba(0,201,167,0.45); }
+    .fab:active { transform: scale(0.96); }
 
-    /* ── COUNTDOWN BAR ── */
+    /* ── Tab content panels ── */
+    .tab-panel { display: none; flex-direction: column; gap: 10px; padding: 14px 16px 100px; }
+    .tab-panel--active { display: flex; }
+
+    /* ── Countdown bar ── */
     .countdown-bar {
-      display: none; position: fixed; bottom: calc(var(--navbar-h) + 0px); left: 0; right: 0; z-index: 90;
+      display: none; position: fixed; bottom: calc(var(--navbar-h)); left: 0; right: 0; z-index: 90;
       background: var(--accent); color: #000;
-      padding: 9px 18px; gap: 8px;
+      padding: 10px 18px; gap: 8px;
       align-items: center; justify-content: space-between;
       font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em;
     }
     .countdown-bar--visible { display: flex; }
-    .countdown-bar__timer { font-weight: 700; font-size: 14px; letter-spacing: 0.08em; flex-shrink: 0; }
+    .countdown-bar__timer { font-weight: 700; font-size: 15px; letter-spacing: 0.08em; flex-shrink: 0; }
 
-    /* ── ACTIVE TOUR TAKEOVER ── */
+    /* ── Active tour takeover ── */
     .tour-takeover {
       display: none; position: fixed; inset: 0; z-index: 600;
       background: var(--bg);
@@ -184,34 +211,52 @@
     }
     .tour-takeover--visible { display: flex; }
     .tour-takeover__pulse {
-      width: 80px; height: 80px; border-radius: 50%;
+      width: 88px; height: 88px; border-radius: 50%;
       background: var(--accent-dim); border: 2px solid var(--accent);
       display: flex; align-items: center; justify-content: center;
-      font-size: 32px; margin: 8px 0;
+      font-size: 36px; margin: 8px 0;
       animation: pulse 2s ease-in-out infinite;
     }
     @keyframes pulse {
       0%, 100% { box-shadow: 0 0 0 0 rgba(0,201,167,0.4); }
-      50% { box-shadow: 0 0 0 14px rgba(0,201,167,0); }
+      50% { box-shadow: 0 0 0 16px rgba(0,201,167,0); }
     }
 
-    /* ── Light mode overrides ── */
-    body.light-mode .meet-card__here {
-      background: var(--accent); color: #fff; border-color: var(--accent);
+    /* ── Modals ── */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 700;
+      background: rgba(0,0,0,0.75); align-items: flex-end; justify-content: center;
     }
-    body.light-mode .meet-card__here:hover { background: #005544; color: #fff; }
-    body.light-mode .meet-card__cancel {
-      border-color: rgba(185,28,28,0.32); color: rgba(185,28,28,0.78);
+    .modal-backdrop--visible { display: flex; }
+    .modal-card {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: 20px 20px 0 0; padding: 20px 20px 40px;
+      width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px;
     }
-    body.light-mode .meet-card__cancel:hover {
-      border-color: rgba(185,28,28,0.55); color: #b91c1c;
+    .modal-handle { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 0 auto 6px; }
+    .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); }
+    .modal-sub { font-size: 12px; color: var(--text-3); line-height: 1.6; margin-top: -6px; }
+    .modal-card textarea {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm); padding: 13px 16px;
+      color: var(--text); font-family: var(--font-body); font-size: 13px;
+      width: 100%; box-sizing: border-box; resize: none; min-height: 90px; line-height: 1.65;
+      transition: border-color var(--t-fast);
     }
-    body.light-mode .req-status-badge--declined {
-      background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80);
-    }
-    body.light-mode .req-btn--decline:hover {
-      border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78);
-    }
+    .modal-card textarea:focus { outline: none; border-color: var(--accent-border); }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-actions .btn { flex: 1; height: 46px; }
+
+    /* ── Star picker ── */
+    .star-picker { display: flex; gap: 8px; justify-content: center; padding: 8px 0; }
+    .star-picker__star { font-size: 32px; cursor: pointer; opacity: 0.2; transition: opacity var(--t-fast), transform var(--t-fast); user-select: none; }
+    .star-picker__star--active { opacity: 1; }
+    .star-picker__star:hover { transform: scale(1.12); }
+
+    /* ── Light mode ── */
+    body.light-mode .meet-card__btn--danger { border-color: rgba(185,28,28,0.25); color: rgba(185,28,28,0.75); }
+    body.light-mode .req-btn--decline:hover { border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78); }
+    body.light-mode .req-status-badge--declined { background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80); }
   </style>
 </head>
 <body>
@@ -221,63 +266,53 @@
 
   <main class="page-content">
 
-    <div class="tours-header">
-      <div class="page-title">Meets</div>
-      <div class="page-subtitle" style="margin-bottom:14px;">Manage your days</div>
-      <div class="tab-bar">
-        <button class="tab-bar__filter" id="filter-btn" onclick="openFilterDialog()" title="Filter &amp; Sort">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 4h12M4 8h8M6 12h4"/>
-          </svg>
-        </button>
-        <div class="tab-bar__item tab-bar__item--active" onclick="switchTab(this,'meets')">My Meets</div>
-        <div class="tab-bar__item" onclick="switchTab(this,'listings')">My Listings</div>
-        <div class="tab-bar__item" id="tab-requests-item" onclick="switchTab(this,'requests')">Requests</div>
+    <!-- ── Segmented tabs ── -->
+    <div class="seg-tabs">
+      <button class="seg-tab seg-tab--active" id="tab-btn-meets"     onclick="switchTab('meets')">Meets</button>
+      <button class="seg-tab"                 id="tab-btn-listings"  onclick="switchTab('listings')">Listings</button>
+      <button class="seg-tab"                 id="tab-btn-requests"  onclick="switchTab('requests')">
+        Requests
+        <span class="seg-tab__badge" id="req-badge" style="display:none;"></span>
+      </button>
+    </div>
+
+    <!-- ── MY MEETS ── -->
+    <div class="tab-panel tab-panel--active" id="panel-meets">
+      <!-- Inline filter chips -->
+      <div class="filter-chips-row" id="meets-chips" style="padding-bottom:10px;">
+        <button class="fchip fchip--active" id="fchip-joined"   onclick="setMeetFilter('role','joined')">Joined</button>
+        <button class="fchip"              id="fchip-hosting"  onclick="setMeetFilter('role','hosting')">Hosting</button>
+        <div class="fchip-divider"></div>
+        <button class="fchip fchip--active" id="fchip-upcoming" onclick="setMeetFilter('timeframe','upcoming')">Upcoming</button>
+        <button class="fchip"              id="fchip-past"     onclick="setMeetFilter('timeframe','past')">Past</button>
       </div>
+      <div id="meets-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
 
-    <!-- ── MY MEETS TAB ── -->
-    <div id="tab-meets" style="display:flex;flex-direction:column;gap:0;">
-      <div id="meets-panel" style="display:flex;flex-direction:column;gap:14px;padding:14px 18px 32px;"></div>
+    <!-- ── MY LISTINGS ── -->
+    <div class="tab-panel" id="panel-listings">
+      <div id="listings-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
 
-    <!-- ── MY LISTINGS TAB ── -->
-    <div id="tab-listings" style="display:none;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
-
-    <!-- ── REQUESTS TAB ── -->
-    <div id="tab-requests" style="display:none;flex-direction:column;gap:0;">
-      <div id="requests-panel" style="display:flex;flex-direction:column;gap:10px;padding:14px 18px 32px;"></div>
-    </div>
-
-    <div style="padding:0 18px 32px;display:flex;flex-direction:column;gap:10px;">
-      <a href="/listings/new" class="btn btn--primary" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
-        <span style="font-size:18px;line-height:1;">+</span> New Meet
-      </a>
-      <a href="/map" class="btn btn--ghost" style="height:44px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-        Browse Available Meets
-      </a>
+    <!-- ── REQUESTS ── -->
+    <div class="tab-panel" id="panel-requests">
+      <div class="filter-chips-row" style="padding:0 0 10px;">
+        <button class="fchip fchip--active" id="fchip-incoming" onclick="setReqFilter('flowDirection','incoming')">Incoming</button>
+        <button class="fchip"              id="fchip-outgoing" onclick="setReqFilter('flowDirection','outgoing')">Outgoing</button>
+        <div class="fchip-divider"></div>
+        <button class="fchip fchip--active" id="fchip-pending"  onclick="setReqFilter('status','PENDING')">Pending</button>
+        <button class="fchip"              id="fchip-declined" onclick="setReqFilter('status','DECLINED')">Declined</button>
+      </div>
+      <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
 
   </main>
 
+  <!-- ── FAB ── -->
+  <a href="/listings/new" class="fab" title="New Meet">+</a>
+
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-</div>
-
-<!-- ── FILTER BACKDROP + SHEET ── -->
-<div id="filter-backdrop" class="filter-backdrop" onclick="closeFilterDialog()"></div>
-<div id="filter-sheet" class="filter-sheet">
-  <div class="filter-sheet__handle"></div>
-  <div class="filter-sheet__header">
-    <div class="filter-sheet__title">Filter &amp; Sort</div>
-    <button class="filter-sheet__close" onclick="closeFilterDialog()">×</button>
-  </div>
-  <div id="filter-sheet-body"></div>
-  <div class="filter-sheet__actions">
-    <button class="btn btn--ghost" onclick="resetFilter()">Reset</button>
-    <button class="btn btn--primary" onclick="applyFilter()">Apply</button>
-  </div>
 </div>
 
 <!-- ── COUNTDOWN BAR ── -->
@@ -291,16 +326,17 @@
   <div style="font-family:var(--font-display);font-weight:800;font-size:30px;color:var(--text);letter-spacing:-0.02em;">Day is live</div>
   <div class="tour-takeover__pulse">🤝</div>
   <div id="takeover-info" style="font-size:14px;color:var(--text-2);line-height:1.75;"></div>
-  <div style="font-size:11px;color:var(--text-3);max-width:250px;line-height:1.65;margin-top:-4px;">You're live! Tap End Day when you're both done.</div>
+  <div style="font-size:12px;color:var(--text-3);max-width:250px;line-height:1.65;margin-top:-4px;">Tap End Day when you're both done.</div>
   <button id="end-tour-btn" class="btn btn--primary" style="height:52px;padding:0 40px;font-size:14px;margin-top:12px;" onclick="endActiveTour()">End Day</button>
 </div>
 
 <!-- ── CANCEL MODAL ── -->
 <div id="cancel-modal" class="modal-backdrop">
   <div class="modal-card">
+    <div class="modal-handle"></div>
     <div class="modal-title">Cancel this meet?</div>
-    <div class="modal-sub" style="color:rgba(255,160,60,0.9);">⚠️ Cancelling wastes your Mate's time. Repeated cancellations will result in account sanctions. Please explain why you need to cancel:</div>
-    <textarea id="cancel-reason" placeholder="Reason for cancellation..." maxlength="300"></textarea>
+    <div class="modal-sub" style="color:rgba(255,160,60,0.9);">⚠️ Cancelling wastes your Mate's time. Repeated cancellations will result in account sanctions. Please explain why:</div>
+    <textarea id="cancel-reason" placeholder="Reason for cancellation…" maxlength="300"></textarea>
     <div class="modal-actions">
       <button onclick="closeCancelModal()" class="btn btn--ghost">Keep it</button>
       <button onclick="confirmCancel()" class="btn btn--danger">Cancel day</button>
@@ -311,6 +347,7 @@
 <!-- ── RATING MODAL ── -->
 <div id="rating-modal" class="modal-backdrop">
   <div class="modal-card">
+    <div class="modal-handle"></div>
     <div class="modal-title">Rate your Mate</div>
     <div class="modal-sub" id="rating-host-label" style="color:var(--text-2);margin-top:0;"></div>
     <div class="star-picker" id="star-picker">
@@ -320,7 +357,7 @@
       <span class="star-picker__star" data-val="4" onclick="setRating(4)">★</span>
       <span class="star-picker__star" data-val="5" onclick="setRating(5)">★</span>
     </div>
-    <textarea id="rating-review" placeholder="Leave a review (optional)..." maxlength="500" style="min-height:80px;"></textarea>
+    <textarea id="rating-review" placeholder="Leave a review (optional)…" maxlength="500" style="min-height:80px;"></textarea>
     <div class="modal-actions">
       <button onclick="closeRatingModal()" class="btn btn--ghost">Cancel</button>
       <button onclick="submitRating()" class="btn btn--primary" id="rating-submit-btn">Submit</button>
@@ -336,31 +373,268 @@
   let _activeTab = 'meets';
   let _loadedData = {};
   let _pages = {};
-  const _filterDefaults = {
-    meets:    { role: 'joined', timeframe: 'upcoming', direction: 'ASC' },
-    listings: { direction: 'ASC' },
-    requests: { flowDirection: 'incoming', status: 'PENDING', reqDir: 'DESC', meetDir: 'ASC' }
-  };
-  let _filterState = (function() {
-    try {
-      const saved = localStorage.getItem('tours_filter');
-      return saved ? { ..._filterDefaults, ...JSON.parse(saved) } : { ..._filterDefaults };
-    } catch(_) { return { ..._filterDefaults }; }
-  })();
-  let _pendingFilter = {};
 
-  /* ── Tab switcher ── */
-  function switchTab(el, tab) {
+  let _meetFilter    = { role: 'joined', timeframe: 'upcoming' };
+  let _reqFilter     = { flowDirection: 'incoming', status: 'PENDING' };
+
+  const _MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  /* ── Tab switching ── */
+  function switchTab(tab) {
     _activeTab = tab;
-    document.querySelectorAll('.tours-header .tab-bar__item').forEach(t => t.classList.remove('tab-bar__item--active'));
-    el.classList.add('tab-bar__item--active');
-    ['meets','listings','requests'].forEach(id => {
-      const panel = document.getElementById('tab-' + id);
-      if (panel) panel.style.display = (id === tab) ? 'flex' : 'none';
+    ['meets','listings','requests'].forEach(t => {
+      document.getElementById('panel-' + t).classList.toggle('tab-panel--active', t === tab);
+      document.getElementById('tab-btn-' + t).classList.toggle('seg-tab--active', t === tab);
     });
   }
 
-  /* ── Countdown bar + Active tour takeover ── */
+  /* ── Inline chip filters ── */
+  function setMeetFilter(key, value) {
+    _meetFilter[key] = value;
+    if (key === 'role') {
+      document.getElementById('fchip-joined').classList.toggle('fchip--active', value === 'joined');
+      document.getElementById('fchip-hosting').classList.toggle('fchip--active', value === 'hosting');
+    } else {
+      document.getElementById('fchip-upcoming').classList.toggle('fchip--active', value === 'upcoming');
+      document.getElementById('fchip-past').classList.toggle('fchip--active', value === 'past');
+    }
+    renderMeets();
+  }
+
+  function setReqFilter(key, value) {
+    _reqFilter[key] = value;
+    if (key === 'flowDirection') {
+      document.getElementById('fchip-incoming').classList.toggle('fchip--active', value === 'incoming');
+      document.getElementById('fchip-outgoing').classList.toggle('fchip--active', value === 'outgoing');
+    } else {
+      document.getElementById('fchip-pending').classList.toggle('fchip--active', value === 'PENDING');
+      document.getElementById('fchip-declined').classList.toggle('fchip--active', value === 'DECLINED');
+    }
+    renderRequests();
+  }
+
+  /* ── Avatar helper ── */
+  function mkAvatar(username, user, size) {
+    const sz = size || 46;
+    const photoUrl = user?.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
+    const initials = user ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() : (username?.[0] ?? '?').toUpperCase();
+    const hue = (username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    if (photoUrl) {
+      return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;"><img src="${photoUrl}" alt="${initials}"></div>`;
+    }
+    return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;background:hsl(${hue},35%,22%);border-color:hsl(${hue},40%,32%);font-size:${Math.round(sz*0.37)}px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+  }
+
+  /* ── Empty state ── */
+  function emptyState(icon, title, sub, cta) {
+    return `<div class="meet-empty">
+      <div class="meet-empty__icon">${icon}</div>
+      <div class="meet-empty__title">${title}</div>
+      <div class="meet-empty__sub">${sub}</div>
+      ${cta || ''}
+    </div>`;
+  }
+
+  /* ── Render Meets ── */
+  let _cardListings = {};
+
+  function renderMeets() {
+    const el = document.getElementById('meets-list');
+    const { role, timeframe } = _meetFilter;
+    const isJoined = role === 'joined';
+    const isPast   = timeframe === 'past';
+
+    let items = isJoined
+      ? (isPast ? _loadedData.joinedPast : _loadedData.joinedUpcoming)
+      : (isPast ? _loadedData.hostedPast : _loadedData.hostedUpcoming);
+    items = (items || []).filter(r => r.status !== 'CANCELLED');
+
+    if (!items.length) {
+      const icon = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+      const msg = isPast
+        ? (isJoined ? 'No past meets yet.' : 'No past hosted meets yet.')
+        : (isJoined ? 'No upcoming meets.' : 'No upcoming Mates.');
+      const cta = !isPast && isJoined
+        ? `<a href="/map" class="btn btn--ghost" style="height:38px;padding:0 20px;font-size:12px;margin-top:4px;">Browse the map →</a>`
+        : '';
+      el.innerHTML = emptyState(icon, msg, isJoined ? 'Join a meet from the map or Explore tab.' : 'Create a listing to start hosting.', cta);
+      return;
+    }
+
+    el.innerHTML = items.map((res, i) => {
+      const d = new Date(res.tourListing.meetingDate);
+      const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      _cardListings[res.id] = { listing: res.tourListing, isOwn: !isJoined, reserved: true };
+
+      if (isJoined) {
+        const host = res.tourListing.host;
+        const hostUsername = host?.username ?? '';
+        const hostName = host ? host.firstName + ' ' + host.lastName : '?';
+        const alreadyRated = !!localStorage.getItem('rated_' + res.id);
+        const foot = isPast
+          ? (alreadyRated
+              ? `<div class="meet-card__foot"><div class="badge--rated">Rated ✓</div></div>`
+              : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--primary" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">★ Rate your Mate</button></div>`)
+          : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--danger" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button></div>`;
+        return `
+          <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'} anim-fade-up" style="animation-delay:${i*0.04}s">
+            <div class="meet-card__body">
+              ${mkAvatar(hostUsername, _userCache[hostUsername])}
+              <div class="meet-card__info">
+                <div class="meet-card__name">${hostName}</div>
+                <div class="meet-card__handle">@${hostUsername}</div>
+                <div class="meet-card__meta">
+                  <span class="meet-card__city"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${res.tourListing.city}</span>
+                  <div class="meet-card__dot"></div>
+                  <span class="meet-card__date">${dateStr}</span>
+                </div>
+              </div>
+            </div>
+            ${foot}
+          </div>`;
+      } else {
+        const guest = res.guest;
+        const guestUsername = guest?.username ?? '';
+        const guestName = guest ? guest.firstName + ' ' + guest.lastName : '?';
+        return `
+          <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'} anim-fade-up" style="animation-delay:${i*0.04}s">
+            <div class="meet-card__body">
+              ${mkAvatar(guestUsername, _userCache[guestUsername])}
+              <div class="meet-card__info">
+                <div class="meet-card__name">${guestName}</div>
+                <div class="meet-card__handle">@${guestUsername}</div>
+                <div class="meet-card__meta">
+                  <span class="meet-card__city"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${res.tourListing.city}</span>
+                  <div class="meet-card__dot"></div>
+                  <span class="meet-card__date">${dateStr}</span>
+                </div>
+              </div>
+            </div>
+            ${isPast ? '' : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--primary" data-res-id="${res.id}" onclick="checkIn(this)">I'm here ✓</button></div>`}
+          </div>`;
+      }
+    }).join('');
+  }
+
+  /* ── Render Listings ── */
+  function renderListings() {
+    const el = document.getElementById('listings-list');
+    const items = _loadedData.myListings || [];
+    if (!items.length) {
+      const icon = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+      el.innerHTML = emptyState(icon, 'No listings yet', 'Create a listing to host your first Meet Day.',
+        `<a href="/listings/new" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;margin-top:4px;">+ New Meet</a>`);
+      return;
+    }
+    const now = new Date();
+    el.innerHTML = items.map((l, i) => {
+      const d = new Date(l.meetingDate);
+      const isPast = d < now;
+      const isFull = (l.currentGuestCount ?? 0) >= (l.maxGuests ?? 1);
+      const badgeCls = isFull ? 'listing-card__badge--booked' : 'listing-card__badge--open';
+      const badgeLabel = isPast ? 'Past' : (isFull ? 'Booked' : 'Open');
+      const foot = isPast
+        ? `<div class="listing-card__foot"><button class="meet-card__btn meet-card__btn--ghost" style="font-size:10px;" onclick="_redoListing(${l.id})">Re-do this meet</button></div>`
+        : '';
+      return `
+        <div class="listing-card${isPast ? ' listing-card--past' : ''} anim-fade-up" style="animation-delay:${i*0.04}s">
+          <div class="listing-card__body">
+            <div class="listing-card__top">
+              <div class="listing-card__city">${l.city}</div>
+              <span class="listing-card__badge ${badgeCls}">${badgeLabel}</span>
+            </div>
+            <div class="listing-card__date">${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</div>
+            ${l.tourDescription ? `<div class="listing-card__desc">${escapeHtml(l.tourDescription)}</div>` : ''}
+          </div>
+          ${foot}
+        </div>`;
+    }).join('');
+  }
+
+  function _redoListing(listingId) {
+    const l = (_loadedData.myListings || []).find(x => x.id === listingId);
+    if (!l) return;
+    sessionStorage.setItem('redo_listing', JSON.stringify({ city: l.city, tourDescription: l.tourDescription || '', lat: l.lat, lng: l.lng, maxGuests: l.maxGuests || 1 }));
+    window.location.href = '/listings/new';
+  }
+
+  /* ── Render Requests ── */
+  function renderRequests() {
+    const el = document.getElementById('requests-list');
+    const { flowDirection, status } = _reqFilter;
+    const isIncoming = flowDirection === 'incoming';
+    const items = isIncoming
+      ? (status === 'PENDING' ? _loadedData.incomingPending : _loadedData.incomingDeclined)
+      : (status === 'PENDING' ? _loadedData.outgoingPending : _loadedData.outgoingDeclined);
+
+    const count = (_loadedData.incomingPending || []).length;
+    const badge = document.getElementById('req-badge');
+    if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+    else badge.style.display = 'none';
+
+    if (!(items || []).length) {
+      const icon = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+      const msg = `No ${status.toLowerCase()} ${isIncoming ? 'incoming' : 'outgoing'} requests`;
+      el.innerHTML = emptyState(icon, msg, isIncoming ? 'When someone requests your listing, it\'ll appear here.' : 'Requests you\'ve sent will appear here.');
+      return;
+    }
+
+    el.innerHTML = (items || []).map((r, i) => {
+      const isInc = isIncoming;
+      const person = isInc ? r.user : r.tourListing?.host;
+      const username = person?.username ?? '';
+      const name = person ? person.firstName + ' ' + person.lastName : '?';
+      const city = r.tourListing?.city ?? '';
+      const date = r.tourListing?.meetingDate ? `${String(new Date(r.tourListing.meetingDate).getDate()).padStart(2,'0')} ${_MONTHS[new Date(r.tourListing.meetingDate).getMonth()]}` : '';
+      const foot = isInc && r.status === 'PENDING'
+        ? `<div class="req-card__foot">
+             <button class="req-btn req-btn--accept" onclick="handleRequest('accept',${r.id},this)">Accept</button>
+             <button class="req-btn req-btn--decline" onclick="handleRequest('decline',${r.id},this)">Decline</button>
+           </div>`
+        : `<div class="req-card__foot"><span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span></div>`;
+      return `
+        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''} anim-fade-up" style="animation-delay:${i*0.04}s" id="req-${r.id}">
+          <div class="req-card__body">
+            ${mkAvatar(username, _userCache[username], 44)}
+            <div class="req-card__info">
+              <div class="req-card__name">${name}</div>
+              <div class="req-card__meta">@${username}${city ? ' · ' + city : ''}${date ? ' · ' + date : ''}</div>
+            </div>
+          </div>
+          ${foot}
+        </div>`;
+    }).join('');
+  }
+
+  async function handleRequest(action, id, btn) {
+    btn.disabled = true;
+    try {
+      if (action === 'accept') {
+        await BookingRequestAPI.accept(id);
+        document.querySelector(`#req-${id} .req-card__foot`).innerHTML = '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
+        showToast('Request accepted!', 'success');
+      } else {
+        await BookingRequestAPI.decline(id);
+        document.querySelector(`#req-${id} .req-card__foot`).innerHTML = '<span class="req-status-badge req-status-badge--declined">Declined</span>';
+        showToast('Request declined.', 'default');
+      }
+      const remaining = document.querySelectorAll('.req-btn--accept').length;
+      const badge = document.getElementById('req-badge');
+      if (remaining === 0) badge.style.display = 'none';
+      else badge.textContent = remaining;
+    } catch(err) {
+      if (action === 'accept' && err.message?.toLowerCase().includes('already booked')) {
+        try { await BookingRequestAPI.decline(id); } catch(_) {}
+        document.getElementById(`req-${id}`)?.remove();
+        showToast('This Mate already has a meet on that date — request removed.', 'default');
+      } else {
+        btn.disabled = false;
+        showToast(err.message || 'Could not process request.', 'error');
+      }
+    }
+  }
+
+  /* ── Countdown + Takeover ── */
   let _countdownInterval = null;
   let _activeTourResId   = null;
 
@@ -374,9 +648,9 @@
     const now = new Date();
     const ONE_HOUR = 60 * 60 * 1000;
     const soon = (joinedUpcoming || [])
-                     .filter(r => r.status !== 'CANCELLED')
-                     .filter(r => { const diff = new Date(r.tourListing.meetingDate) - now; return diff > 0 && diff <= ONE_HOUR; })
-                     .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
+      .filter(r => r.status !== 'CANCELLED')
+      .filter(r => { const diff = new Date(r.tourListing.meetingDate) - now; return diff > 0 && diff <= ONE_HOUR; })
+      .sort((a, b) => new Date(a.tourListing.meetingDate) - new Date(b.tourListing.meetingDate));
     if (!soon.length) return;
     const next = soon[0];
     const meetTime = new Date(next.tourListing.meetingDate);
@@ -384,16 +658,15 @@
     document.getElementById('countdown-label').textContent = `${next.tourListing.city} · ${hostName} in`;
     document.getElementById('countdown-bar').classList.add('countdown-bar--visible');
     function tick() {
-      const remaining = meetTime - new Date();
-      if (remaining <= 0) { clearInterval(_countdownInterval); document.getElementById('countdown-bar').classList.remove('countdown-bar--visible'); return; }
-      const totalSecs = Math.floor(remaining / 1000);
-      const h = Math.floor(totalSecs / 3600), m = Math.floor((totalSecs % 3600) / 60), s = totalSecs % 60;
+      const rem = meetTime - new Date();
+      if (rem <= 0) { clearInterval(_countdownInterval); document.getElementById('countdown-bar').classList.remove('countdown-bar--visible'); return; }
+      const s = Math.floor(rem / 1000);
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
       document.getElementById('countdown-timer').textContent = h > 0
-        ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-        : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+        : `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
     }
-    tick();
-    _countdownInterval = setInterval(tick, 1000);
+    tick(); _countdownInterval = setInterval(tick, 1000);
   }
 
   function showTakeover(active) {
@@ -403,7 +676,7 @@
 
   function endActiveTour() {
     const btn = document.getElementById('end-tour-btn');
-    btn.disabled = true; btn.textContent = 'Ending...';
+    btn.disabled = true; btn.textContent = 'Ending…';
     ReservationAPI.endTour(_activeTourResId)
       .then(() => {
         localStorage.removeItem('activeTour');
@@ -417,38 +690,31 @@
   /* ── Check-in ── */
   function checkIn(btn) {
     const resId = parseInt(btn.dataset.resId, 10);
-    btn.disabled = true; btn.textContent = '...';
+    btn.disabled = true; btn.textContent = '…';
     ReservationAPI.checkIn(resId)
       .then(res => {
         if (res.guestCheckedIn && res.hostCheckedIn) {
           const card = btn.closest('.meet-card');
-          const city = card?.querySelector('.meet-card__where')?.textContent?.trim() || '';
-          const hostName = (card?.querySelector('.meet-card__who')?.textContent || '').replace('👤 ', '').trim();
+          const city = card?.querySelector('.meet-card__city')?.textContent?.trim() || '';
+          const hostName = card?.querySelector('.meet-card__name')?.textContent?.trim() || 'your Mate';
           const active = { resId, city, hostName };
           localStorage.setItem('activeTour', JSON.stringify(active));
           _activeTourResId = resId;
           showTakeover(active);
           showToast('Both checked in — day is live!', 'success');
         } else {
-          const checkedIn = res.checkedInGuestCount ?? null;
-          const total     = res.totalGuestCount ?? null;
-          const waiting   = (checkedIn !== null && total !== null)
-            ? `${checkedIn}/${total} guests checked in`
-            : 'your Mate';
-          btn.textContent = `${checkedIn !== null && total !== null ? `${checkedIn}/${total} ✓` : 'Waiting…'}`;
-          showToast(`Checked in! Waiting for ${waiting}.`, 'success');
+          btn.textContent = 'Waiting…';
+          showToast('Checked in! Waiting for your Mate.', 'success');
         }
       })
-      .catch(err => { btn.disabled = false; btn.textContent = "I'm here"; showToast(err.message || 'Check-in failed — try again.', 'error'); });
+      .catch(err => { btn.disabled = false; btn.textContent = "I'm here ✓"; showToast(err.message || 'Check-in failed.', 'error'); });
   }
 
   /* ── Cancel modal ── */
-  let _cardListings = {};
   let _cancelResId = null, _cancelBtn = null;
 
   function openCancelModal(btn) {
-    _cancelResId = parseInt(btn.dataset.resId, 10);
-    _cancelBtn = btn;
+    _cancelResId = parseInt(btn.dataset.resId, 10); _cancelBtn = btn;
     document.getElementById('cancel-reason').value = '';
     document.getElementById('cancel-modal').classList.add('modal-backdrop--visible');
   }
@@ -462,7 +728,7 @@
     if (_cancelBtn) _cancelBtn.disabled = true;
     ReservationAPI.cancelTour(_cancelResId)
       .then(() => { _cancelBtn.closest('.meet-card').remove(); closeCancelModal(); showToast('Reservation cancelled.', 'success'); })
-      .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message || 'Could not cancel — please try again.', 'error'); });
+      .catch(err => { if (_cancelBtn) _cancelBtn.disabled = false; closeCancelModal(); showToast(err.message || 'Could not cancel — try again.', 'error'); });
   }
   document.getElementById('cancel-modal').addEventListener('click', function(e) { if (e.target === this) closeCancelModal(); });
 
@@ -472,8 +738,7 @@
   function openRatingModal(btn) {
     _ratingResId = parseInt(btn.dataset.resId, 10);
     _ratingHostUsername = btn.dataset.hostUsername;
-    _ratingBtn = btn;
-    _ratingScore = 0;
+    _ratingBtn = btn; _ratingScore = 0;
     document.getElementById('rating-review').value = '';
     document.getElementById('rating-host-label').textContent = btn.dataset.hostName || _ratingHostUsername;
     setRating(0);
@@ -490,7 +755,7 @@
   async function submitRating() {
     if (_ratingScore === 0) { showToast('Please select a star rating.', 'warn'); return; }
     const submitBtn = document.getElementById('rating-submit-btn');
-    submitBtn.disabled = true; submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true; submitBtn.textContent = 'Submitting…';
     try {
       const users = await UserAPI.getAll();
       const host  = users.find(u => u.username === _ratingHostUsername);
@@ -500,7 +765,7 @@
       if (_ratingBtn) _ratingBtn.outerHTML = `<div class="badge--rated">Rated ✓</div>`;
       showToast('Rating submitted!', 'success');
       closeRatingModal();
-    } catch (e) {
+    } catch(e) {
       showToast(e.message || 'Could not submit rating — try again.', 'error');
     } finally {
       submitBtn.disabled = false; submitBtn.textContent = 'Submit';
@@ -508,383 +773,16 @@
   }
   document.getElementById('rating-modal').addEventListener('click', function(e) { if (e.target === this) closeRatingModal(); });
 
-  function openMeetCard(resId) {
-    const d = _cardListings[resId];
-    if (!d || typeof openListingDetail === 'undefined') return;
-    openListingDetail(d.listing, { isOwn: d.isOwn, reserved: d.reserved });
-  }
-
-  /* ── Render My Meets (guest) ── */
-  function renderMeetsPanel() {
-    const el = document.getElementById('meets-panel');
-    if (!Auth.getToken()) { el.innerHTML = `<div class="meet-empty"><div class="meet-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`; return; }
-    const { role, timeframe, direction } = _filterState.meets;
-    const isJoined = role === 'joined';
-    const isPast   = timeframe === 'past';
-
-    let items = isJoined
-      ? (isPast ? _loadedData.joinedPast : _loadedData.joinedUpcoming)
-      : (isPast ? _loadedData.hostedPast : _loadedData.hostedUpcoming);
-    items = (items || []).filter(r => r.status !== 'CANCELLED');
-    if (direction === 'DESC') items = [...items].reverse();
-
-    const mkJoinedCard = (res) => {
-      const d = new Date(res.tourListing.meetingDate);
-      const alreadyRated = !!localStorage.getItem('rated_' + res.id);
-      const hostUsername = res.tourListing.host?.username ?? '';
-      const hostName = res.tourListing.host ? res.tourListing.host.firstName + ' ' + res.tourListing.host.lastName : '?';
-      _cardListings[res.id] = { listing: res.tourListing, isOwn: false, reserved: true };
-      const actionEl = isPast
-        ? (alreadyRated ? `<div class="badge--rated">Rated ✓</div>` : `<button class="meet-card__rate" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="event.stopPropagation();openRatingModal(this)">Rate</button>`)
-        : `<button class="meet-card__cancel" data-res-id="${res.id}" onclick="event.stopPropagation();openCancelModal(this)">Cancel</button>`;
-      return `
-        <div class="meet-card anim-fade-up" style="${isPast ? 'opacity:0.55;' : ''}cursor:pointer;" onclick="openMeetCard(${res.id})">
-          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
-          <div class="meet-card__info">
-            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(hostUsername, 26, _userCache[hostUsername])}<span>${hostName}</span></div>
-            <div class="meet-card__where">${res.tourListing.city}</div>
-            <div class="meet-card__booked">Joined ${fmtDate(res.dateOfReservation)}</div>
-          </div>
-          ${actionEl}
-        </div>`;
-    };
-
-    const mkHostedCard = (res) => {
-      const d = new Date(res.tourListing.meetingDate);
-      const guestName   = res.guest ? res.guest.firstName + ' ' + res.guest.lastName : '?';
-      const guestHandle = res.guest?.username ?? '';
-      _cardListings[res.id] = { listing: res.tourListing, isOwn: true };
-      return `
-        <div class="meet-card anim-fade-up" style="${isPast ? 'opacity:0.55;' : ''}cursor:pointer;" onclick="openMeetCard(${res.id})">
-          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
-          <div class="meet-card__info">
-            <div class="meet-card__who" style="display:flex;align-items:center;gap:7px;white-space:normal;">${userAvatar(guestHandle, 26, _userCache[guestHandle])}<span>${guestName} <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">@${guestHandle}</span></span></div>
-            <div class="meet-card__where">${res.tourListing.city}</div>
-            <div class="meet-card__booked">${fmtDate(res.tourListing.meetingDate)} · ${fmtTime(res.tourListing.meetingDate)}</div>
-          </div>
-          ${isPast ? '<div class="badge--rated" style="opacity:0.5;">Past</div>' : ''}
-        </div>`;
-    };
-
-    const mkCard = isJoined ? mkJoinedCard : mkHostedCard;
-    const emptyMsg = isPast
-      ? (isJoined ? 'No past meets yet.' : 'No past hosted meets yet.')
-      : (isJoined ? 'No upcoming meets.' : 'No upcoming Mates.');
-    el.innerHTML = items.length ? items.map(mkCard).join('') : `<div style="font-size:11px;color:var(--text-3);padding:4px 0;">${emptyMsg}</div>`;
-  }
-
-  /* ── Render My Listings (host) ── */
-  function renderListingsPanel() {
-    const el = document.getElementById('tab-listings');
-    if (!Auth.getToken()) { el.innerHTML = `<div class="meet-empty"><div class="meet-empty__title">Not signed in</div><a href="/login" class="btn btn--ghost" style="margin-top:8px;">Sign in →</a></div>`; return; }
-    const items = _loadedData.myListings || [];
-    if (!items.length) {
-      el.innerHTML = `
-        <div class="meet-empty">
-          <div class="meet-empty__icon">📋</div>
-          <div class="meet-empty__title">No listings yet</div>
-          <div class="meet-empty__sub">Create a listing to host your own Meet Day.</div>
-        </div>`;
-      return;
-    }
-    const now = new Date();
-    el.innerHTML = items.map(l => {
-      const d = new Date(l.meetingDate);
-      const isPast = d < now;
-      const isFull = (l.currentGuestCount ?? 0) >= (l.maxGuests ?? 1);
-      const statusBadge = isFull
-        ? '<span style="font-size:9px;font-family:var(--font-mono);color:var(--accent);letter-spacing:0.06em;">BOOKED</span>'
-        : '<span style="font-size:9px;font-family:var(--font-mono);color:var(--text-3);letter-spacing:0.06em;">OPEN</span>';
-      const redoBtn = isPast
-        ? `<button class="redo-btn" onclick="_redoListing(${l.id})">Re-do</button>`
-        : statusBadge;
-      return `
-        <div class="meet-card anim-fade-up"${isPast ? ' style="opacity:0.55;"' : ''}>
-          <div class="meet-card__date"><div class="meet-card__day">${String(d.getDate()).padStart(2,'0')}</div><div class="meet-card__month">${_MONTHS[d.getMonth()]}</div></div>
-          <div class="meet-card__info">
-            <div class="meet-card__who">${l.city}</div>
-            <div class="meet-card__where">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
-            <div class="meet-card__booked">${l.tourDescription ? escapeHtml(l.tourDescription) : ''}</div>
-          </div>
-          ${redoBtn}
-        </div>`;
-    }).join('');
-  }
-
-  function _redoListing(listingId) {
-    const l = (_loadedData.myListings || []).find(x => x.id === listingId);
-    if (!l) return;
-    sessionStorage.setItem('redo_listing', JSON.stringify({
-      city: l.city,
-      tourDescription: l.tourDescription || '',
-      lat: l.lat,
-      lng: l.lng,
-      maxGuests: l.maxGuests || 1,
-    }));
-    window.location.href = '/listings/new';
-  }
-
-  /* ── Render Requests ── */
-  function renderRequestsPanel() {
-    const el = document.getElementById('requests-panel');
-    if (!Auth.getToken()) { el.innerHTML = `<div style="font-size:11px;color:var(--text-3);">Sign in to see requests.</div>`; return; }
-
-    const { flowDirection, status } = _filterState.requests;
-    const isIncoming = flowDirection === 'incoming';
-    const pendingArr  = isIncoming ? (_loadedData.incomingPending || [])  : (_loadedData.outgoingPending || []);
-    const declinedArr = isIncoming ? (_loadedData.incomingDeclined || []) : (_loadedData.outgoingDeclined || []);
-    const items = status === 'PENDING' ? pendingArr : declinedArr;
-
-    const tabItem = document.getElementById('tab-requests-item');
-    const badgeCount = (_loadedData.incomingPending || []).length;
-    if (badgeCount > 0) {
-      tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${badgeCount}</span>`;
-    } else {
-      tabItem.textContent = 'Requests';
-    }
-
-    if (!items.length) {
-      el.innerHTML = `
-        <div class="meet-empty">
-          <div class="meet-empty__icon">📬</div>
-          <div class="meet-empty__title">No ${status.toLowerCase()} ${isIncoming ? 'incoming' : 'outgoing'} requests</div>
-          <div class="meet-empty__sub">${isIncoming ? 'When someone requests to join your listing, it\'ll appear here.' : 'Requests you\'ve sent will appear here.'}</div>
-        </div>`;
-      return;
-    }
-
-    const mkIncomingCard = (r) => {
-      const guestName   = r.user ? r.user.firstName + ' ' + r.user.lastName : '?';
-      const guestHandle = r.user?.username ?? '';
-      const city        = r.tourListing?.city ?? '';
-      const date        = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
-      const actionEl    = r.status === 'PENDING'
-        ? `<div class="req-card__actions">
-             <button class="req-btn req-btn--accept" onclick="handleRequest('accept',${r.id},this)">Accept</button>
-             <button class="req-btn req-btn--decline" onclick="handleRequest('decline',${r.id},this)">Decline</button>
-           </div>`
-        : `<span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span>`;
-      return `
-        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-${r.id}">
-          <div style="display:flex;align-items:center;gap:10px;">
-            ${userAvatar(guestHandle, 36, _userCache[guestHandle])}
-            <div style="flex:1;min-width:0;">
-              <div class="req-card__who">${guestName}</div>
-              <div class="req-card__meta">@${guestHandle} · ${city} · ${date}</div>
-            </div>
-          </div>
-          ${actionEl}
-        </div>`;
-    };
-
-    const mkOutgoingCard = (r) => {
-      const hostName   = r.tourListing?.host ? r.tourListing.host.firstName + ' ' + r.tourListing.host.lastName : '?';
-      const hostHandle = r.tourListing?.host?.username ?? '';
-      const city       = r.tourListing?.city ?? '';
-      const date       = r.tourListing?.meetingDate ? fmtDate(r.tourListing.meetingDate) : '';
-      return `
-        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" id="req-out-${r.id}">
-          <div style="display:flex;align-items:center;gap:10px;">
-            ${userAvatar(hostHandle, 36, _userCache[hostHandle])}
-            <div style="flex:1;min-width:0;">
-              <div class="req-card__who">${hostName}</div>
-              <div class="req-card__meta">@${hostHandle} · ${city} · ${date}</div>
-            </div>
-            <span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span>
-          </div>
-        </div>`;
-    };
-
-    const mkCard = isIncoming ? mkIncomingCard : mkOutgoingCard;
-    el.innerHTML = items.map(mkCard).join('');
-  }
-
-  async function handleRequest(action, id, btn) {
-    btn.disabled = true;
-    try {
-      if (action === 'accept') {
-        await BookingRequestAPI.accept(id);
-        document.querySelector(`#req-${id} .req-card__actions`).innerHTML = '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
-        showToast('Request accepted!', 'success');
-      } else {
-        await BookingRequestAPI.decline(id);
-        document.querySelector(`#req-${id} .req-card__actions`).innerHTML = '<span class="req-status-badge req-status-badge--declined">Declined</span>';
-        showToast('Request declined.', 'default');
-      }
-      // Update pending count badge
-      const remaining = document.querySelectorAll('.req-btn--accept').length;
-      const tabItem = document.getElementById('tab-requests-item');
-      if (remaining === 0) tabItem.textContent = 'Requests';
-      else tabItem.innerHTML = `Requests <span style="background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;font-weight:700;margin-left:4px;">${remaining}</span>`;
-    } catch(err) {
-      if (action === 'accept' && err.message && err.message.toLowerCase().includes('already booked')) {
-        // Guest has a conflicting booking — auto-decline and clean up the card
-        try { await BookingRequestAPI.decline(id); } catch(_) {}
-        const card = document.getElementById(`req-${id}`);
-        if (card) card.remove();
-        showToast('This Mate already has a meet on that date — request removed.', 'default');
-      } else {
-        btn.disabled = false;
-        showToast(err.message || 'Could not process request.', 'error');
-      }
-    }
-  }
-
-  /* ── Filter dialog ── */
-  function openFilterDialog() {
-    _pendingFilter = { ..._filterState[_activeTab] };
-    document.getElementById('filter-sheet-body').innerHTML = buildFilterContent();
-    document.getElementById('filter-backdrop').classList.add('filter-backdrop--visible');
-    document.getElementById('filter-sheet').classList.add('filter-sheet--visible');
-    document.getElementById('filter-btn').classList.add('tab-bar__filter--active');
-  }
-
-  function closeFilterDialog() {
-    document.getElementById('filter-backdrop').classList.remove('filter-backdrop--visible');
-    document.getElementById('filter-sheet').classList.remove('filter-sheet--visible');
-    document.getElementById('filter-btn').classList.remove('tab-bar__filter--active');
-  }
-
-  function selectChip(group, value) {
-    _pendingFilter[group] = value;
-    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => {
-      c.classList.toggle('filter-chip--active', c.dataset.value === value);
-    });
-  }
-
-  function buildFilterContent() {
-    if (_activeTab === 'meets') {
-      const f = _pendingFilter;
-      return `
-        <div class="filter-group">
-          <div class="filter-group__label">Role</div>
-          <div class="filter-chips">
-            <button class="filter-chip ${f.role === 'joined' ? 'filter-chip--active' : ''}" data-group="role" data-value="joined" onclick="selectChip('role','joined')">Joined</button>
-            <button class="filter-chip ${f.role === 'hosting' ? 'filter-chip--active' : ''}" data-group="role" data-value="hosting" onclick="selectChip('role','hosting')">Hosting</button>
-          </div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-group__label">Timeframe</div>
-          <div class="filter-chips">
-            <button class="filter-chip ${f.timeframe === 'upcoming' ? 'filter-chip--active' : ''}" data-group="timeframe" data-value="upcoming" onclick="selectChip('timeframe','upcoming')">Upcoming</button>
-            <button class="filter-chip ${f.timeframe === 'past' ? 'filter-chip--active' : ''}" data-group="timeframe" data-value="past" onclick="selectChip('timeframe','past')">Past</button>
-          </div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-group__label">Sort</div>
-          <div class="filter-chips">
-            <button class="filter-chip ${f.direction === 'ASC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="ASC" onclick="selectChip('direction','ASC')">Oldest first</button>
-            <button class="filter-chip ${f.direction === 'DESC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="DESC" onclick="selectChip('direction','DESC')">Newest first</button>
-          </div>
-        </div>`;
-    }
-    if (_activeTab === 'listings') {
-      const f = _pendingFilter;
-      return `
-        <div class="filter-group">
-          <div class="filter-group__label">Sort</div>
-          <div class="filter-chips">
-            <button class="filter-chip ${f.direction === 'ASC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="ASC" onclick="selectChip('direction','ASC')">Oldest first</button>
-            <button class="filter-chip ${f.direction === 'DESC' ? 'filter-chip--active' : ''}" data-group="direction" data-value="DESC" onclick="selectChip('direction','DESC')">Newest first</button>
-          </div>
-        </div>`;
-    }
-    if (_activeTab === 'requests') {
-      const f = _pendingFilter;
-      return `
-        <div class="filter-group">
-          <div class="filter-group__label">Direction</div>
-          <div class="filter-chips">
-            <button class="filter-chip ${f.flowDirection === 'incoming' ? 'filter-chip--active' : ''}" data-group="flowDirection" data-value="incoming" onclick="selectChip('flowDirection','incoming')">Incoming</button>
-            <button class="filter-chip ${f.flowDirection === 'outgoing' ? 'filter-chip--active' : ''}" data-group="flowDirection" data-value="outgoing" onclick="selectChip('flowDirection','outgoing')">Outgoing</button>
-          </div>
-        </div>
-        <div class="filter-group">
-          <div class="filter-group__label">Status</div>
-          <div class="filter-chips">
-            <button class="filter-chip ${f.status === 'PENDING' ? 'filter-chip--active' : ''}" data-group="status" data-value="PENDING" onclick="selectChip('status','PENDING')">Pending</button>
-            <button class="filter-chip ${f.status === 'DECLINED' ? 'filter-chip--active' : ''}" data-group="status" data-value="DECLINED" onclick="selectChip('status','DECLINED')">Declined</button>
-          </div>
-        </div>`;
-    }
-    return '';
-  }
-
-  function applyFilter() {
-    _filterState[_activeTab] = { ..._pendingFilter };
-    try { localStorage.setItem('tours_filter', JSON.stringify(_filterState)); } catch(_) {}
-    closeFilterDialog();
-    if (_activeTab === 'meets') renderMeetsPanel();
-    else if (_activeTab === 'listings') renderListingsPanel();
-    else if (_activeTab === 'requests') renderRequestsPanel();
-  }
-
-  function resetFilter() {
-    _filterState[_activeTab] = { ..._filterDefaults[_activeTab] };
-    try { localStorage.setItem('tours_filter', JSON.stringify(_filterState)); } catch(_) {}
-    closeFilterDialog();
-    if (_activeTab === 'meets') renderMeetsPanel();
-    else if (_activeTab === 'listings') renderListingsPanel();
-    else if (_activeTab === 'requests') renderRequestsPanel();
-  }
-
-  /* ── Auto-switch tab ── */
+  /* ── Auto-switch tab from sessionStorage ── */
   (function() {
     const tab = sessionStorage.getItem('openTab');
-    if (tab) {
+    if (tab && ['meets','listings','requests'].includes(tab)) {
       sessionStorage.removeItem('openTab');
-      const item = document.querySelector(`.tours-header .tab-bar__item[onclick*="${tab}"]`);
-      if (item) item.click();
+      switchTab(tab);
     }
   })();
 
-  /* ── Scroll pagination helpers ── */
-  function _pageKey() {
-    if (_activeTab === 'meets') {
-      const { role, timeframe } = _filterState.meets;
-      return (role === 'joined' ? 'joined' : 'hosted') + (timeframe === 'upcoming' ? 'Upcoming' : 'Past');
-    }
-    if (_activeTab === 'requests') {
-      const { flowDirection, status } = _filterState.requests;
-      return (flowDirection === 'incoming' ? 'incoming' : 'outgoing') + (status === 'PENDING' ? 'Pending' : 'Declined');
-    }
-    return null;
-  }
-
-  function _loadMoreCurrentTab() {
-    const key   = _pageKey();
-    const state = key ? _pages[key] : null;
-    if (!state || state.loading || state.last) return;
-    state.loading = true;
-
-    let promise;
-    if (_activeTab === 'meets') {
-      const { role, timeframe, direction } = _filterState.meets;
-      promise = ReservationAPI.getMine({ filter: role === 'joined' ? 'joined' : 'hosted', timeframe, direction, page: state.page + 1 });
-    } else if (_activeTab === 'requests') {
-      const { flowDirection, status, reqDir, meetDir } = _filterState.requests;
-      promise = BookingRequestAPI.getMine({ flowDirection, status, requestDateDirection: reqDir || 'DESC', meetingDateDirection: meetDir || 'ASC', page: state.page + 1 });
-    }
-
-    if (!promise) { state.loading = false; return; }
-    promise
-      .then(page => {
-        state.page++;
-        state.last = page.last ?? true;
-        _loadedData[key] = [...(_loadedData[key] || []), ...(page.content || [])];
-        if (_activeTab === 'meets') renderMeetsPanel();
-        else if (_activeTab === 'requests') renderRequestsPanel();
-      })
-      .catch(() => {})
-      .finally(() => { state.loading = false; });
-  }
-
-  window.addEventListener('scroll', () => {
-    if ((window.innerHeight + window.scrollY) < (document.body.scrollHeight - 200)) return;
-    _loadMoreCurrentTab();
-  }, { passive: true });
-
-  /* ── Load data ── */
+  /* ── Load all data ── */
   const _empty = { content: [], last: true };
   Promise.all([
     ReservationAPI.getMine({ filter: 'joined',  timeframe: 'upcoming' }).catch(() => _empty),
@@ -897,37 +795,25 @@
     BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'DECLINED' }).catch(() => _empty),
     UserAPI.getAll().catch(() => []),
     TourListingAPI.getMine({ size: 1000, direction: 'DESC' }).catch(() => []),
-  ])
-    .then(([juP, jpP, huP, hpP, ipP, idP, opP, odP, allUsers, myListings]) => {
-      (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
-      const toArr = r => Array.isArray(r) ? r : (r?.content ?? []);
-      _loadedData = {
-        joinedUpcoming:   toArr(juP),
-        joinedPast:       toArr(jpP),
-        hostedUpcoming:   toArr(huP),
-        hostedPast:       toArr(hpP),
-        incomingPending:  toArr(ipP),
-        incomingDeclined: toArr(idP),
-        outgoingPending:  toArr(opP),
-        outgoingDeclined: toArr(odP),
-        myListings:       toArr(myListings),
-      };
-      _pages = {
-        joinedUpcoming:   { page: 0, last: juP.last ?? true, loading: false },
-        joinedPast:       { page: 0, last: jpP.last ?? true, loading: false },
-        hostedUpcoming:   { page: 0, last: huP.last ?? true, loading: false },
-        hostedPast:       { page: 0, last: hpP.last ?? true, loading: false },
-        incomingPending:  { page: 0, last: ipP.last ?? true, loading: false },
-        incomingDeclined: { page: 0, last: idP.last ?? true, loading: false },
-        outgoingPending:  { page: 0, last: opP.last ?? true, loading: false },
-        outgoingDeclined: { page: 0, last: odP.last ?? true, loading: false },
-      };
-      renderMeetsPanel();
-      renderListingsPanel();
-      renderRequestsPanel();
-      initCountdownAndTakeover(_loadedData.joinedUpcoming);
-    })
-    .catch(() => showToast('Could not load data — check your connection.', 'error'));
+  ]).then(([juP, jpP, huP, hpP, ipP, idP, opP, odP, allUsers, myListings]) => {
+    (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
+    const toArr = r => Array.isArray(r) ? r : (r?.content ?? []);
+    _loadedData = {
+      joinedUpcoming:   toArr(juP),
+      joinedPast:       toArr(jpP),
+      hostedUpcoming:   toArr(huP),
+      hostedPast:       toArr(hpP),
+      incomingPending:  toArr(ipP),
+      incomingDeclined: toArr(idP),
+      outgoingPending:  toArr(opP),
+      outgoingDeclined: toArr(odP),
+      myListings:       toArr(myListings),
+    };
+    renderMeets();
+    renderListings();
+    renderRequests();
+    initCountdownAndTakeover(_loadedData.joinedUpcoming);
+  }).catch(() => showToast('Could not load data — check your connection.', 'error'));
 </script>
 </body>
 </html>
