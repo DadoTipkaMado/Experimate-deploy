@@ -84,9 +84,9 @@
     }
     .why-panel--open { max-height: 300px; opacity: 1; }
     .why-panel__inner {
-      font-size: 10px; line-height: 1.7; color: var(--text-3);
+      font-size: 13px; line-height: 1.7; color: var(--text-3);
       background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 10px 12px;
+      border-radius: var(--radius-sm); padding: 12px 14px;
       margin-top: 10px; margin-bottom: 2px;
     }
 
@@ -229,9 +229,101 @@
       </div>
     </div>
 
-    <!-- SESSION -->
+    <!-- NOTIFICATIONS -->
     <div class="settings-section">
-      <div class="settings-section__label">Session</div>
+      <div class="settings-section__label">Notifications</div>
+
+      <div class="settings-row">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="settings-row__info">
+            <div class="settings-row__title">Push notifications</div>
+            <div class="settings-row__desc">New requests, messages, and meet updates.</div>
+          </div>
+        </div>
+        <span class="soon-pill">Soon</span>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="settings-row__info">
+            <div class="settings-row__title">Email reminders</div>
+            <div class="settings-row__desc">Day-before reminders for upcoming meets.</div>
+          </div>
+        </div>
+        <span class="soon-pill">Soon</span>
+      </div>
+
+      <div class="settings-row" style="border-bottom:none;">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="settings-row__info">
+            <div class="settings-row__title">Meet reminders</div>
+            <div class="settings-row__desc">Notify me 1 hour before a meet starts.</div>
+          </div>
+        </div>
+        <span class="soon-pill">Soon</span>
+      </div>
+    </div>
+
+    <!-- PRIVACY — options coming soon -->
+
+    <!-- ABOUT -->
+    <div class="settings-section">
+      <div class="settings-section__label">About</div>
+
+      <a href="mailto:vito.strmecki@gmail.com?subject=ExperiMate%20Feedback" class="settings-link">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <span class="settings-link__title">Help &amp; feedback</span>
+        </div>
+        <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+
+      <a href="#" class="settings-link settings-link--disabled">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <span class="settings-link__title">Rate ExperiMate</span>
+        </div>
+        <span class="soon-pill">Soon</span>
+      </a>
+
+      <a href="#" class="settings-link">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <span class="settings-link__title">Terms of Service</span>
+        </div>
+        <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+
+      <a href="#" class="settings-link">
+        <div class="settings-row__left">
+          <div class="settings-row__icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <span class="settings-link__title">Privacy Policy</span>
+        </div>
+        <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div class="settings-section">
+      <div class="settings-section__label">Danger zone</div>
+
       <a href="#" class="settings-link" id="logout-btn">
         <div class="settings-row__left">
           <div class="settings-row__icon">
@@ -241,11 +333,7 @@
         </div>
         <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </a>
-    </div>
 
-    <!-- DANGER ZONE -->
-    <div class="settings-section">
-      <div class="settings-section__label">Danger zone</div>
       <div class="settings-link settings-link--danger" style="cursor:pointer;" onclick="openDeleteAccountModal()">
         <div class="settings-row__left">
           <div class="settings-row__icon settings-row__icon--red">
