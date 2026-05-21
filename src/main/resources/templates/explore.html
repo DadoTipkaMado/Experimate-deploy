@@ -3,172 +3,390 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#000000">
   <title>Discover — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    .explore-header {
-      position: sticky; top: 0; z-index: 10;
-      padding: 14px 16px 12px;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
+    /* ── Fullscreen reel mode ── */
+    .page--reels .topbar { display: none; }
+    .page--reels .page-content {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    /* ── Reel feed container ── */
+    .reel-feed {
+      height: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+    .reel-feed::-webkit-scrollbar { display: none; }
+
+    /* ── Single reel card ── */
+    .reel-card {
+      position: relative;
+      height: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      overflow: hidden;
+      background: #000;
+      cursor: pointer;
+    }
+
+    .reel-card__bg {
+      position: absolute; inset: 0;
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.07);
+    }
+
+    .reel-card__overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        160deg,
+        rgba(0,0,0,0.10) 0%,
+        rgba(0,0,0,0.00) 28%,
+        rgba(0,0,0,0.00) 45%,
+        rgba(0,0,0,0.55) 68%,
+        rgba(0,0,0,0.94) 100%
+      );
+    }
+
+    /* Center tap zone — opens detail */
+    .reel-tap-zone {
+      position: absolute;
+      top: 0; left: 0; right: 72px; bottom: 190px;
+      z-index: 5;
+    }
+
+    /* ── Right sidebar action buttons ── */
+    .reel-sidebar {
+      position: absolute;
+      right: 12px; bottom: 148px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .reel-host-avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(255,255,255,0.9);
+      overflow: hidden;
       flex-shrink: 0;
+      box-shadow: 0 2px 14px rgba(0,0,0,0.55);
+      transition: transform 0.14s;
     }
-    .explore-header__title { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); letter-spacing: -0.02em; margin-bottom: 10px; }
-    .explore-header .search-bar { margin-bottom: 10px; }
-    .explore-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    /* AI pill glow when active */
-    #pill-ai.pill--active {
-      background: linear-gradient(135deg, rgba(0,201,167,0.18), rgba(255,107,53,0.12));
-      border-color: var(--accent-border);
-      color: var(--accent);
-    }
-
-    /* ── Feed ── */
-    .listing-feed {
-      display: flex; flex-direction: column; gap: 10px;
-      padding: 12px 16px 32px;
-    }
-
-    /* ── Feed card ── */
-    .feed-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden;
-      display: flex; flex-direction: column;
-      transition: border-color var(--t-base), transform var(--t-base);
-    }
-    .feed-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
-    .feed-card--available { border-left: 3px solid var(--accent); }
-    .feed-card--pending   { border-left: 3px solid #ff9944; }
-    .feed-card--reserved  { opacity: 0.55; }
-
-    /* Hero banner */
-    .feed-card__hero {
-      position: relative; height: 80px; overflow: hidden; flex-shrink: 0;
-      display: flex; align-items: center; padding: 0 16px; gap: 14px;
-    }
-    .feed-card__hero-bg {
-      position: absolute; inset: -10px;
-      background-size: cover; background-position: center;
-      filter: blur(18px) brightness(0.25);
-    }
-    .feed-card__hero-avatar {
-      position: relative; z-index: 2; width: 52px; height: 52px; border-radius: 50%;
-      overflow: hidden; flex-shrink: 0;
-      border: 2px solid rgba(255,255,255,0.15);
+    .reel-host-avatar:active { transform: scale(0.90); }
+    .reel-host-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .reel-host-avatar__initials {
+      width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 800; font-size: 18px;
     }
-    .feed-card__hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .feed-card__hero-info { position: relative; z-index: 2; min-width: 0; flex: 1; }
-    .feed-card__city { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: #fff; letter-spacing: -0.02em; line-height: 1.1; }
-    .feed-card__host-name { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: 0.04em; text-decoration: none; margin-top: 3px; display: block; }
-    .feed-card__host-name:hover { color: rgba(255,255,255,0.9); }
-    .feed-card__hero-date { position: relative; z-index: 2; text-align: right; flex-shrink: 0; }
-    .feed-card__date { font-size: 10px; color: rgba(255,255,255,0.7); letter-spacing: 0.06em; white-space: nowrap; }
-    .feed-card__time { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; margin-top: 2px; }
 
-    /* Card body */
-    .feed-card__body { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; }
-    .feed-card__desc {
-      font-size: 13px; color: var(--text-2); line-height: 1.65;
-      overflow-wrap: break-word; word-break: break-word;
+    .reel-action {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
-    .feed-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-    .feed-card__status { display: flex; align-items: center; gap: 6px; }
-    .feed-card__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .feed-card__label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .reel-action__btn {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(255,255,255,0.13);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.14s, background 0.18s;
+    }
+    .reel-action__btn:active { transform: scale(0.87); }
+    .reel-action__label {
+      font-size: 9px; color: rgba(255,255,255,0.72);
+      letter-spacing: 0.07em; text-transform: uppercase; text-align: center;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
 
-    @keyframes feedSpin { to { transform: rotate(360deg); } }
+    /* Join states */
+    .reel-action--join .reel-action__btn {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px rgba(0,201,167,0.45);
+    }
+    .reel-action--pending .reel-action__btn {
+      background: rgba(255,153,68,0.30);
+      border-color: #ff9944;
+    }
+    .reel-action--accepted .reel-action__btn {
+      background: rgba(0,201,167,0.30);
+      border-color: var(--accent);
+    }
+    .reel-action--full .reel-action__btn {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.12);
+      opacity: 0.5;
+      cursor: default;
+    }
+    .reel-action--own .reel-action__btn {
+      background: rgba(255,107,53,0.22);
+      border-color: var(--warm);
+    }
+
+    /* ── Bottom info overlay ── */
+    .reel-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 76px;
+      padding: 0 18px 32px;
+      z-index: 10;
+    }
+
+    .reel-info__city {
+      font-family: var(--font-display);
+      font-weight: 800; font-size: 33px;
+      color: #fff; letter-spacing: -0.03em;
+      line-height: 1.05; margin-bottom: 5px;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.35);
+    }
+
+    .reel-info__host {
+      display: flex; align-items: center; gap: 7px;
+      margin-bottom: 6px;
+    }
+    .reel-info__host-name {
+      font-size: 14px; color: rgba(255,255,255,0.88);
+      font-weight: 600; text-decoration: none;
+    }
+    .reel-info__handle { font-size: 11px; color: rgba(255,255,255,0.42); }
+
+    .reel-info__desc {
+      font-size: 13px; color: rgba(255,255,255,0.60);
+      line-height: 1.5; margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .reel-info__meta {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .reel-info__status {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase;
+    }
+    .reel-info__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .reel-info__date {
+      font-size: 10px; color: rgba(255,255,255,0.40);
+      letter-spacing: 0.06em; font-family: var(--font-mono);
+    }
+
+    /* ── Floating search/filter header ── */
+    .reel-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      padding: 10px 14px 8px;
+      pointer-events: all;
+      transition: opacity 0.35s ease;
+    }
+    .reel-header--dim { opacity: 0.18; pointer-events: none; }
+    .reel-header--dim:hover, .reel-header--dim:focus-within { opacity: 1; pointer-events: all; }
+
+    .reel-header__row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .reel-search {
+      flex: 1;
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(8,8,8,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 24px;
+      padding: 0 14px;
+      height: 42px;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .reel-search:focus-within {
+      border-color: rgba(255,255,255,0.22);
+      background: rgba(8,8,8,0.88);
+    }
+    .reel-search input {
+      flex: 1; background: none; border: none; outline: none;
+      color: rgba(255,255,255,0.85); font-size: 14px;
+      font-family: var(--font-mono);
+    }
+    .reel-search input::placeholder { color: rgba(255,255,255,0.28); }
+
+    .reel-header__avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(8,8,8,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      overflow: hidden; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.18s;
+    }
+    .reel-header__avatar:hover { border-color: rgba(255,255,255,0.3); }
+    .reel-header__avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .reel-chips {
+      display: flex; gap: 6px;
+      overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+    }
+    .reel-chips::-webkit-scrollbar { display: none; }
+
+    .reel-chip {
+      background: rgba(8,8,8,0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-size: 11px; color: rgba(255,255,255,0.65);
+      white-space: nowrap; cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+      user-select: none;
+    }
+    .reel-chip--active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+    .reel-chip--ai.reel-chip--active {
+      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    /* ── Scroll indicator (first visit) ── */
+    .reel-swipe-hint {
+      position: absolute;
+      bottom: 22px; right: 50%;
+      transform: translateX(50%);
+      z-index: 8;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      opacity: 0; animation: reelHintFade 3.5s ease 1.5s forwards;
+      pointer-events: none;
+    }
+    @keyframes reelHintFade {
+      0%   { opacity: 0; transform: translateX(50%) translateY(0); }
+      20%  { opacity: 0.55; }
+      70%  { opacity: 0.55; transform: translateX(50%) translateY(-8px); }
+      100% { opacity: 0; transform: translateX(50%) translateY(-12px); }
+    }
+    .reel-swipe-hint__text {
+      font-size: 10px; color: rgba(255,255,255,0.55);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
 
     /* ── Empty state ── */
-    .feed-empty {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 60px 24px; gap: 12px; text-align: center;
+    .reel-empty {
+      height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; padding: 40px; background: var(--bg);
     }
-    .feed-empty__icon { font-size: 36px; opacity: 0.35; }
-    .feed-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-2); }
-    .feed-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+    .reel-empty__icon { font-size: 52px; opacity: 0.25; }
+    .reel-empty__title {
+      font-family: var(--font-display); font-weight: 800;
+      font-size: 22px; color: var(--text-2); text-align: center;
+    }
+    .reel-empty__sub { font-size: 13px; color: var(--text-3); text-align: center; line-height: 1.65; max-width: 240px; }
 
-    /* ── Light mode — flip hero from cinema-dark to warm-light ── */
-    body.light-mode .feed-card__hero { background: var(--surface-2); }
-    body.light-mode .feed-card__hero-bg { filter: blur(18px) brightness(1.1) saturate(0.5); opacity: 0.45; }
-    body.light-mode .feed-card__city { color: var(--text); }
-    body.light-mode .feed-card__host-name { color: var(--text-2); }
-    body.light-mode .feed-card__host-name:hover { color: var(--text); }
-    body.light-mode .feed-card__date { color: var(--text-2); }
-    body.light-mode .feed-card__time { color: var(--text-3); }
-    body.light-mode .feed-card__hero-avatar { border-color: rgba(0,0,0,0.12); }
+    /* ── Skeleton loader ── */
+    .reel-skeleton {
+      height: 100%;
+      background: #0a0a0a;
+      scroll-snap-align: start;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 24px 18px 140px;
+      gap: 10px;
+    }
+    .reel-skel {
+      background: rgba(255,255,255,0.07);
+      border-radius: 6px;
+      animation: skelPulse 1.4s ease infinite;
+    }
+    @keyframes skelPulse {
+      0%,100% { opacity: 0.4; } 50% { opacity: 0.8; }
+    }
+    @keyframes feedSpin { to { transform: rotate(360deg); } }
+
+    /* ── Light mode ── */
+    body.light-mode .reel-search {
+      background: rgba(250,248,244,0.88);
+      border-color: rgba(0,0,0,0.10);
+    }
+    body.light-mode .reel-search:focus-within {
+      background: rgba(250,248,244,0.97);
+      border-color: rgba(0,0,0,0.18);
+    }
+    body.light-mode .reel-search input { color: #0f0e0c; }
+    body.light-mode .reel-search input::placeholder { color: rgba(0,0,0,0.28); }
+    body.light-mode .reel-chip {
+      background: rgba(250,248,244,0.88);
+      border-color: rgba(0,0,0,0.10);
+      color: rgba(0,0,0,0.60);
+    }
+    body.light-mode .reel-header__avatar {
+      background: rgba(250,248,244,0.88);
+      border-color: rgba(0,0,0,0.10);
+    }
   </style>
 </head>
-<body>
+<body class="page--reels">
 <div class="app-shell">
 
+  <!-- Floating header: search + filters above the reels -->
+  <div class="reel-header" id="reel-header">
+    <div class="reel-header__row">
+      <div class="reel-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="explore-search-input" placeholder="City, host, or vibe..." autocomplete="off" spellcheck="false">
+      </div>
+      <div class="reel-header__avatar" id="reel-user-btn" onclick="window.location.href='/account'" aria-label="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+    <div class="reel-chips">
+      <div id="pill-available" class="reel-chip" onclick="toggleAvailable(this)">Available</div>
+      <div id="pill-ai" class="reel-chip" onclick="toggleAiSearch(this)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:3px;opacity:0.85;"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>AI Match
+      </div>
+    </div>
+  </div>
+
+  <!-- Topbar hidden in reel mode but its scripts still run (theme, back, avatar) -->
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
   <main class="page-content">
-
-    <div class="explore-header">
-      <div class="explore-header__title">Discover</div>
-      <div class="search-bar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="text" id="explore-search-input" placeholder="City, host, or vibe..." autocomplete="off">
-      </div>
-      <div class="explore-filters">
-        <div id="pill-soonest" class="pill pill--active">Soonest</div>
-        <div id="pill-available" class="pill" onclick="toggleAvailable(this)">Available</div>
-        <div id="pill-ai" class="pill" onclick="toggleAiSearch(this)">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px;flex-shrink:0;"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>AI Match
-        </div>
+    <div id="listing-feed" class="reel-feed">
+      <!-- Loading skeleton -->
+      <div class="reel-skeleton">
+        <div class="reel-skel" style="height:38px;width:58%;"></div>
+        <div class="reel-skel" style="height:15px;width:38%;"></div>
+        <div class="reel-skel" style="height:13px;width:85%;"></div>
+        <div class="reel-skel" style="height:13px;width:62%;"></div>
       </div>
     </div>
-
-    <div id="listing-feed" class="listing-feed">
-      <!-- Skeleton -->
-      <div class="feed-card">
-        <div style="display:flex;justify-content:space-between;gap:10px;">
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div class="skeleton skeleton-line skeleton-line--lg" style="width:45%;"></div>
-            <div class="skeleton skeleton-line skeleton-line--sm" style="width:60%;"></div>
-          </div>
-          <div class="skeleton skeleton-line skeleton-line--sm" style="width:70px;"></div>
-        </div>
-        <div class="skeleton skeleton-line skeleton-line--w-full"></div>
-        <div class="skeleton skeleton-line skeleton-line--w-3q"></div>
-        <div style="display:flex;justify-content:space-between;margin-top:2px;">
-          <div class="skeleton skeleton-line skeleton-line--sm" style="width:60px;"></div>
-          <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
-        </div>
-      </div>
-      <div class="feed-card">
-        <div style="display:flex;justify-content:space-between;gap:10px;">
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div class="skeleton skeleton-line skeleton-line--lg" style="width:55%;"></div>
-            <div class="skeleton skeleton-line skeleton-line--sm" style="width:40%;"></div>
-          </div>
-          <div class="skeleton skeleton-line skeleton-line--sm" style="width:65px;"></div>
-        </div>
-        <div class="skeleton skeleton-line skeleton-line--w-full"></div>
-        <div class="skeleton skeleton-line skeleton-line--w-half"></div>
-        <div style="display:flex;justify-content:space-between;margin-top:2px;">
-          <div class="skeleton skeleton-line skeleton-line--sm" style="width:55px;"></div>
-          <div class="skeleton skeleton-line" style="width:80px;height:32px;border-radius:20px;"></div>
-        </div>
-      </div>
-    </div>
-
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
-
 </div>
 
-<!-- AI Match panel -->
+<!-- AI Match panel (unchanged) -->
 <div class="match-panel" id="match-panel">
   <div class="match-panel__grip" onclick="closeMatchPanel()"></div>
   <div class="match-panel__header">
