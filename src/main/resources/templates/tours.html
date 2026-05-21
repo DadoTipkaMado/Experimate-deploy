@@ -532,21 +532,34 @@
 
     const foot = document.getElementById('ds-foot');
     const btnBase = 'width:100%;height:48px;font-size:12px;border-radius:var(--radius-pill);border:1px solid;cursor:pointer;font-family:var(--font-mono);letter-spacing:0.07em;text-transform:uppercase;transition:all var(--t-fast);';
+
+    // Show on map button (always, if coords available)
+    const lat = listing.latitude, lng = listing.longitude;
+    const mapBtn = (lat && lng)
+      ? `<button style="${btnBase}background:var(--surface-2);border-color:var(--border-2);color:var(--text-2);"
+           onclick="showOnMap(${lat},${lng})">
+           <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+             Show on map
+           </span>
+         </button>`
+      : '';
+
     if (isPast && isJoined) {
       const alreadyRated = !!localStorage.getItem('rated_' + res.id);
-      foot.innerHTML = alreadyRated
+      foot.innerHTML = mapBtn + (alreadyRated
         ? `<div class="badge--rated" style="align-self:center;margin:4px 0 8px;">Rated ✓</div>`
         : `<button style="${btnBase}background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent);"
              data-res-id="${res.id}" data-host-username="${username}" data-host-name="${name}"
-             onclick="closeMeetDetail();openRatingModal(this)">★ Rate your Mate</button>`;
+             onclick="closeMeetDetail();openRatingModal(this)">★ Rate your Mate</button>`);
     } else if (!isPast && isJoined) {
-      foot.innerHTML = `<button style="${btnBase}background:transparent;border-color:rgba(255,80,80,0.25);color:rgba(255,100,100,0.8);"
+      foot.innerHTML = mapBtn + `<button style="${btnBase}background:transparent;border-color:rgba(255,80,80,0.25);color:rgba(255,100,100,0.8);"
         data-res-id="${res.id}" onclick="closeMeetDetail();openCancelModal(this)">Cancel meet</button>`;
     } else if (!isPast && !isJoined) {
-      foot.innerHTML = `<button style="${btnBase}background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent);"
+      foot.innerHTML = mapBtn + `<button style="${btnBase}background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent);"
         data-res-id="${res.id}" onclick="checkIn(this)">I'm here ✓</button>`;
     } else {
-      foot.innerHTML = '';
+      foot.innerHTML = mapBtn;
     }
 
     document.getElementById('detail-backdrop').classList.add('detail-backdrop--open');
@@ -558,6 +571,11 @@
     document.getElementById('detail-backdrop').classList.remove('detail-backdrop--open');
     document.getElementById('detail-sheet').classList.remove('detail-sheet--open');
     document.body.style.overflow = '';
+  }
+
+  function showOnMap(lat, lng) {
+    sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat, lng, zoom: 16 }));
+    window.location.href = '/map';
   }
 
   /* ── Empty state ── */
