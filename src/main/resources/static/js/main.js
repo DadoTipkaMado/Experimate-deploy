@@ -1008,3 +1008,4 @@ const DatePicker = (() => {
 
   return { open, close };
 })();
+window.DatePicker = DatePicker;
