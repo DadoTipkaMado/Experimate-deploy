@@ -164,13 +164,6 @@
     .acc-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
     .acc-section:last-child { border-bottom: none; }
 
-    .avail-card {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px;
-    }
-    .avail-card__label { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
-    .avail-card__sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
 
     /* ── Memory grid — 3-col Instagram ── */
     .memory-grid-insta {
@@ -285,19 +278,6 @@
         <div id="account-bio" style="font-size:13px;line-height:1.75;color:var(--text-3);">No bio set.</div>
       </div>
 
-      <div class="acc-section" id="available-section">
-        <div class="avail-card">
-          <div>
-            <div class="avail-card__label">Available to meet</div>
-            <div class="avail-card__sub">Let others know you're open right now</div>
-          </div>
-          <button id="avail-toggle" onclick="toggleAvailability()" style="
-            width:44px;height:26px;border-radius:13px;border:none;cursor:pointer;
-            position:relative;transition:background var(--t-base);flex-shrink:0;background:var(--border-2);">
-            <span id="avail-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform var(--t-base);display:block;"></span>
-          </button>
-        </div>
-      </div>
 
     </div><!-- /overview -->
 
@@ -473,37 +453,10 @@
       renderAvatar(document.getElementById('account-avatar'), 'lg');
       renderAvatar(document.getElementById('drawer-avatar'), 'sm');
 
-      initAvailToggle(user.availableToMeet);
     });
   }
 
   loadAccount();
-
-  function initAvailToggle(apiValue) {
-    const userId = Auth.getUserId();
-    if (!userId) return;
-    const toggle = document.getElementById('avail-toggle');
-    const knob   = document.getElementById('avail-knob');
-    let isAvail;
-    if (apiValue !== undefined) {
-      isAvail = !!apiValue;
-      localStorage.setItem('availableToMeet_' + userId, isAvail);
-    } else {
-      isAvail = localStorage.getItem('availableToMeet_' + userId) === 'true';
-    }
-    function applyState(val) {
-      toggle.style.background = val ? 'var(--accent)' : 'var(--border-2)';
-      knob.style.transform    = val ? 'translateX(18px)' : 'translateX(0)';
-    }
-    applyState(isAvail);
-    window.toggleAvailability = function() {
-      isAvail = !isAvail;
-      localStorage.setItem('availableToMeet_' + userId, isAvail);
-      applyState(isAvail);
-      UserAPI.update(userId, { availableToMeet: isAvail }).catch(() => {});
-      showToast(isAvail ? 'You\'re available to meet!' : 'Availability turned off', 'success');
-    };
-  }
 
   function switchAccTab(name, el) {
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('acc-tab--active'));
