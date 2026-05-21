@@ -6,6 +6,7 @@ import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.UserService;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.security.AuthResponse;
@@ -82,6 +83,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     UserService userService;
 
+    @Autowired
+    private UserRepo userRepo;
+
     /**
      * Truncates every user table (everything except {@code flyway_schema_history}) before each test,
      * resetting auto-generated IDs and cascading through foreign keys.
@@ -110,6 +114,11 @@ public abstract class AbstractIntegrationTest {
                 "Test", "User", LocalDate.of(2000, 1, 1),
                 String.format("%020d", idNum), username + "@test.com", username, LOGIN_PASS, null
         ));
+        // bypass the email verification gate so test helpers can log in immediately
+        userRepo.findByUsername(username).ifPresent(u -> {
+            u.setEmailVerified(true);
+            userRepo.save(u);
+        });
     }
 
     protected Map<String, String> loginAndGetTokens(String username) {
