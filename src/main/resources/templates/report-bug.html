@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Report a Bug — ExperiMate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .report-header {
+      padding: 22px 18px 18px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .report-header__back {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid var(--border-2); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2); text-decoration: none; flex-shrink: 0;
+      transition: border-color var(--t-fast), color var(--t-fast);
+    }
+    .report-header__back:hover { border-color: var(--accent-border); color: var(--accent); }
+
+    .report-body { padding: 24px 18px 40px; display: flex; flex-direction: column; gap: 20px; }
+
+    .report-field { display: flex; flex-direction: column; gap: 6px; }
+    .report-field__label {
+      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .report-select, .report-input, .report-textarea {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius); color: var(--text);
+      font-family: var(--font-body); font-size: 13px;
+      transition: border-color var(--t-fast);
+      width: 100%; box-sizing: border-box;
+    }
+    .report-select:focus, .report-input:focus, .report-textarea:focus {
+      outline: none; border-color: var(--accent-border);
+    }
+    .report-select { height: 44px; padding: 0 12px; appearance: none; cursor: pointer; }
+    .report-input  { height: 44px; padding: 0 12px; }
+    .report-textarea { padding: 12px; resize: none; line-height: 1.6; min-height: 120px; }
+
+    .report-select-wrap { position: relative; }
+    .report-select-wrap::after {
+      content: ''; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 5px solid transparent; border-right: 5px solid transparent;
+      border-top: 5px solid var(--text-3); pointer-events: none;
+    }
+
+    .report-hint { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+
+    .report-severity {
+      display: flex; gap: 8px;
+    }
+    .severity-btn {
+      flex: 1; height: 38px; border-radius: var(--radius-pill);
+      border: 1px solid var(--border-2); background: var(--surface);
+      color: var(--text-3); font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+      transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
+    }
+    .severity-btn--active-low    { border-color: #4CAF50; color: #4CAF50; background: rgba(76,175,80,0.08); }
+    .severity-btn--active-medium { border-color: #FF9800; color: #FF9800; background: rgba(255,152,0,0.08); }
+    .severity-btn--active-high   { border-color: rgba(255,70,70,0.8); color: rgba(255,70,70,0.8); background: rgba(255,50,50,0.08); }
+
+    .report-submit {
+      width: 100%; height: 48px; border-radius: var(--radius-pill);
+      background: var(--accent); border: none; color: #000;
+      font-family: var(--font-display); font-weight: 800; font-size: 14px;
+      letter-spacing: 0.02em; cursor: pointer;
+      transition: opacity var(--t-fast), transform var(--t-fast);
+    }
+    .report-submit:hover { opacity: 0.88; }
+    .report-submit:active { transform: scale(0.98); }
+    .report-submit:disabled { opacity: 0.4; cursor: default; }
+
+    /* Success state */
+    .report-success {
+      display: none; flex-direction: column; align-items: center;
+      padding: 48px 24px; gap: 14px; text-align: center;
+    }
+    .report-success__icon {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center; color: var(--accent);
+    }
+    .report-success--visible { display: flex; }
+    .report-body--hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="report-header">
+      <a href="/settings" class="report-header__back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div>
+        <div class="page-title" style="margin:0;">Report a Bug</div>
+        <div class="page-subtitle" style="margin:0;">Help us fix what's broken</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="report-body" id="report-body">
+
+      <div class="report-field">
+        <div class="report-field__label">Category</div>
+        <div class="report-select-wrap">
+          <select class="report-select" id="bug-category">
+            <option value="" disabled selected>Select a category…</option>
+            <option value="map">Map &amp; pins</option>
+            <option value="listings">Listings &amp; meets</option>
+            <option value="auth">Login &amp; account</option>
+            <option value="explore">Explore &amp; search</option>
+            <option value="requests">Requests &amp; bookings</option>
+            <option value="profile">Profile &amp; settings</option>
+            <option value="notifications">Notifications</option>
+            <option value="performance">Performance &amp; crashes</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="report-field">
+        <div class="report-field__label">Severity</div>
+        <div class="report-severity">
+          <button class="severity-btn" data-severity="low"    onclick="setSeverity('low',this)">Low</button>
+          <button class="severity-btn" data-severity="medium" onclick="setSeverity('medium',this)">Medium</button>
+          <button class="severity-btn" data-severity="high"   onclick="setSeverity('high',this)">High</button>
+        </div>
+        <div class="report-hint">Low = minor visual issue · Medium = feature broken · High = can't use the app</div>
+      </div>
+
+      <div class="report-field">
+        <div class="report-field__label">What happened?</div>
+        <textarea class="report-textarea" id="bug-description" placeholder="Describe what you did, what you expected, and what actually happened…" maxlength="1000"></textarea>
+        <div class="report-hint" id="char-count" style="text-align:right;">0 / 1000</div>
+      </div>
+
+      <div class="report-field">
+        <div class="report-field__label">Steps to reproduce <span style="color:var(--text-3);font-size:10px;letter-spacing:0;text-transform:none;">(optional)</span></div>
+        <textarea class="report-textarea" id="bug-steps" placeholder="1. Go to …&#10;2. Tap …&#10;3. See error" style="min-height:90px;" maxlength="500"></textarea>
+      </div>
+
+      <div class="report-field">
+        <div class="report-field__label">Page / URL <span style="color:var(--text-3);font-size:10px;letter-spacing:0;text-transform:none;">(optional)</span></div>
+        <input class="report-input" id="bug-url" type="text" placeholder="e.g. /map or /explore" maxlength="200">
+      </div>
+
+      <button class="report-submit" id="report-submit-btn" onclick="submitReport()">Send report</button>
+
+    </div>
+
+    <!-- Success -->
+    <div class="report-success" id="report-success">
+      <div class="report-success__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);">Thanks for the report!</div>
+      <div style="font-size:13px;color:var(--text-3);line-height:1.65;max-width:260px;">We got it. If it's reproducible we'll squash it in the next build.</div>
+      <a href="/settings" class="btn btn--ghost" style="margin-top:8px;height:42px;padding:0 24px;font-size:13px;">Back to settings</a>
+    </div>
+
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  let _severity = '';
+
+  function setSeverity(level, btn) {
+    _severity = level;
+    document.querySelectorAll('.severity-btn').forEach(b => {
+      b.className = 'severity-btn';
+    });
+    btn.classList.add('severity-btn--active-' + level);
+  }
+
+  document.getElementById('bug-description').addEventListener('input', function() {
+    document.getElementById('char-count').textContent = this.value.length + ' / 1000';
+  });
+
+  async function submitReport() {
+    const category    = document.getElementById('bug-category').value;
+    const description = document.getElementById('bug-description').value.trim();
+
+    if (!category) { showToast('Please select a category.', 'error'); return; }
+    if (!description) { showToast('Please describe the bug.', 'error'); return; }
+    if (!_severity) { showToast('Please select a severity level.', 'error'); return; }
+
+    const btn = document.getElementById('report-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    const userId   = Auth.getUserId();
+    const username = Auth.getUsername() || 'anonymous';
+    const steps    = document.getElementById('bug-steps').value.trim();
+    const url      = document.getElementById('bug-url').value.trim();
+
+    const body = [
+      `**User:** ${username} (id: ${userId ?? 'n/a'})`,
+      `**Category:** ${category}`,
+      `**Severity:** ${_severity}`,
+      '',
+      `**Description:**`,
+      description,
+      steps ? `\n**Steps to reproduce:**\n${steps}` : '',
+      url   ? `\n**Page:** ${url}` : '',
+      '',
+      `_Submitted: ${new Date().toISOString()}_`,
+    ].filter(l => l !== undefined).join('\n');
+
+    // Send as mailto fallback (real API endpoint can replace this later)
+    const mailto = `mailto:vito.strmecki@gmail.com`
+      + `?subject=${encodeURIComponent('[ExperiMate Bug] ' + category + ' — ' + _severity)}`
+      + `&body=${encodeURIComponent(body)}`;
+
+    // Try to open mailto; show success regardless (user may dismiss mail client)
+    try {
+      window.location.href = mailto;
+    } catch(e) { /* ignore */ }
+
+    // Show success screen after short delay
+    setTimeout(() => {
+      document.getElementById('report-body').classList.add('report-body--hidden');
+      document.getElementById('report-success').classList.add('report-success--visible');
+    }, 600);
+  }
+</script>
+</body>
+</html>
