@@ -84,20 +84,24 @@
     .location-search-wrap { position: relative; }
     #location-search::placeholder { color: var(--text-3); }
     #location-suggestions {
-      position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
-      background: var(--surface-2); border: 1px solid var(--border-2);
-      border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-      display: none; max-height: 220px; overflow-y: auto;
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 200;
+      background: var(--bg); border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      display: none; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
     }
     .location-suggestion {
-      padding: 10px 14px; font-size: 11px; color: var(--text-2);
-      cursor: pointer; border-bottom: 1px solid var(--border); line-height: 1.4;
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 14px; cursor: pointer;
+      border-bottom: 1px solid var(--border); line-height: 1.4;
       transition: background var(--t-fast);
     }
     .location-suggestion:last-child { border-bottom: none; }
-    .location-suggestion:hover, .location-suggestion--active { background: var(--surface); color: var(--text); }
-    .location-suggestion__name { font-weight: 600; color: var(--text); }
-    .location-suggestion__sub { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+    .location-suggestion:hover { background: var(--surface); }
+    .location-suggestion__icon { color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+    .location-suggestion__body { min-width: 0; }
+    .location-suggestion__name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .location-suggestion__sub { font-size: 11px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #location-map {
       height: 180px; border-radius: var(--radius-sm); margin-top: 8px;
       border: 1px solid var(--accent-border); overflow: hidden; display: none;
@@ -152,10 +156,11 @@
 
       <div class="form-field">
         <label for="meetingDateInput">Meeting date</label>
-        <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
-               data-date-format="date" autocomplete="off" required>
+        <input type="text" id="meetingDateInput" placeholder="Select date…"
+               data-date-format="date" autocomplete="off" required readonly
+               style="cursor:pointer;"
+               onclick="(function(el){const t=new Date();t.setHours(0,0,0,0);DatePicker.open(el,{min:t});})(this)">
         <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
-        <span class="form-field__hint">Format: DD/MM/YYYY</span>
       </div>
 
       <div class="form-field">
@@ -368,22 +373,38 @@
     locationMapEl.style.display = 'none';
   }
 
+  const _locPinSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
+
   async function searchLocation(query) {
     if (query.length < 3) { suggestionsEl.style.display = 'none'; return; }
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=8&addressdetails=1`,
         { headers: { 'Accept-Language': 'en' } }
       );
       const results = await res.json();
       if (!results.length) { suggestionsEl.style.display = 'none'; return; }
 
-      suggestionsEl.innerHTML = results.map((r, i) => {
-        const name = r.name || r.display_name.split(',')[0];
-        const sub  = r.display_name.replace(name + ', ', '').slice(0, 60);
-        return `<div class="location-suggestion" data-lat="${r.lat}" data-lon="${r.lon}" data-label="${r.display_name.split(',').slice(0,2).join(',').trim()}" onclick="pickSuggestion(this)">
-          <div class="location-suggestion__name">${name}</div>
-          <div class="location-suggestion__sub">${sub}</div>
+      // Deduplicate: skip results whose first two name words already appeared
+      const seen = new Set();
+      const deduped = results.filter(r => {
+        const rawName  = r.name || r.display_name.split(',')[0];
+        const nameKey  = rawName.toLowerCase().split(/\s+/).slice(0, 3).join(' ');
+        if (seen.has(nameKey)) return false;
+        seen.add(nameKey);
+        return true;
+      }).slice(0, 4);
+
+      suggestionsEl.innerHTML = deduped.map(r => {
+        const name  = r.name || r.display_name.split(',')[0];
+        const parts = r.display_name.split(',').map(p => p.trim()).filter(Boolean);
+        const sub   = parts.slice(1, 4).join(', ');
+        return `<div class="location-suggestion" data-lat="${r.lat}" data-lon="${r.lon}" data-label="${escapeHtml(parts.slice(0,2).join(', '))}" onclick="pickSuggestion(this)">
+          <div class="location-suggestion__icon">${_locPinSvg}</div>
+          <div class="location-suggestion__body">
+            <div class="location-suggestion__name">${escapeHtml(name)}</div>
+            <div class="location-suggestion__sub">${escapeHtml(sub)}</div>
+          </div>
         </div>`;
       }).join('');
       suggestionsEl.style.display = 'block';
