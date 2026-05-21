@@ -35,7 +35,18 @@
     }
     .map-overlay--interactive { pointer-events: all; }
     .map-geo-search { top: 12px; left: 12px; right: 12px; }
-    .map-filters { top: 62px; left: 12px; display: flex; gap: 6px; }
+    .map-filters { top: 62px; left: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .map-filters__pills {
+      display: flex; gap: 5px;
+    }
+    .map-filters__pills .pill {
+      flex: 1; min-width: 0;
+      padding: 5px 8px;
+      font-size: 9.5px;
+      letter-spacing: 0.05em;
+      justify-content: center;
+      white-space: nowrap;
+    }
     .map-geo-search .search-bar {
       background: rgba(10,10,10,0.88);
       backdrop-filter: blur(14px);
@@ -52,7 +63,7 @@
     }
     /* Bottom-right control cluster: legend → [locate] [+FAB] */
     .map-controls {
-      position: absolute; bottom: 160px; right: 14px; z-index: 10;
+      position: absolute; bottom: 80px; right: 14px; z-index: 10;
       display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
     }
     .map-controls-row { display: flex; align-items: center; gap: 8px; }
@@ -303,30 +314,67 @@
     }
     .map-bs__footer { padding: 0 24px 28px; flex-shrink: 0; }
 
-    /* ── Date range filter panel ── */
+    /* ── Venue dropdown ── */
+    .map-venue-dropdown {
+      display: none;
+      flex-direction: column;
+      background: rgba(10,10,10,0.94);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+      min-width: 160px;
+    }
+    .map-venue-dropdown--open { display: flex; }
+    .map-venue-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-2); font-size: 13px; font-family: var(--font-mono);
+      text-align: left; transition: background 0.14s, color 0.14s;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .map-venue-item:last-child { border-bottom: none; }
+    .map-venue-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .map-venue-item.pill--active {
+      background: color-mix(in srgb, var(--vcat-color) 15%, transparent);
+      color: var(--vcat-color);
+    }
+
+    /* ── Date range filter — drops below chip strip ── */
     .map-date-panel {
-      position: absolute; top: 100px; left: 12px; right: 12px; z-index: 15;
-      background: rgba(10,10,10,0.96);
-      border: 1px solid var(--border-2); border-radius: var(--radius);
-      padding: 14px 16px; backdrop-filter: blur(16px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      display: none; flex-direction: column; gap: 12px;
+      background: rgba(10,10,10,0.92);
+      border: 1px solid var(--border-2); border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+      display: none; flex-direction: column; gap: 8px;
     }
     .map-date-panel--open { display: flex; }
-    .map-date-panel__row { display: flex; gap: 8px; align-items: center; }
-    .map-date-panel__label { font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0; width: 28px; }
+    .map-date-panel__rows { display: flex; gap: 8px; align-items: center; }
+    .map-date-panel__row { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .map-date-panel__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.1em;
+      text-transform: uppercase; flex-shrink: 0;
+    }
+    .map-date-panel__sep { color: var(--text-3); font-size: 12px; flex-shrink: 0; }
     .map-date-panel input[type="date"] {
-      flex: 1; background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: 8px; padding: 8px 10px;
-      color: var(--text); font-family: var(--font-mono); font-size: 12px;
+      flex: 1; background: var(--surface-2); border: 1px solid var(--border-2);
+      border-radius: 7px; padding: 6px 8px;
+      color: var(--text); font-family: var(--font-mono); font-size: 11px;
       outline: none; transition: border-color 0.14s;
-      color-scheme: dark;
+      color-scheme: dark; min-width: 0;
     }
     .map-date-panel input[type="date"]:focus { border-color: var(--accent-border); }
-    .map-date-panel__actions { display: flex; gap: 8px; }
-    .map-date-panel__actions button { flex: 1; height: 36px; border-radius: var(--radius-sm); font-size: 11px; letter-spacing: 0.06em; font-family: var(--font-mono); cursor: pointer; border: none; }
-    .map-date-panel__apply { background: var(--accent); color: #000; font-weight: 700; }
-    .map-date-panel__clear { background: var(--surface-2); color: var(--text-2); }
+    .map-date-panel__actions { display: flex; gap: 6px; }
+    .map-date-panel__actions button {
+      flex: 1; height: 30px; border-radius: 7px;
+      font-size: 10px; letter-spacing: 0.07em; font-family: var(--font-mono);
+      cursor: pointer; border: none; font-weight: 600;
+    }
+    .map-date-panel__apply { background: var(--accent); color: #000; }
+    .map-date-panel__clear { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-2); }
 
     /* ── Legend collapsible ── */
     .map-legend { cursor: pointer; user-select: none; }
@@ -370,66 +418,56 @@
         </div>
       </div>
 
-      <!-- Date range filter panel -->
-      <div class="map-date-panel map-overlay" id="map-date-panel">
-        <div class="map-date-panel__row">
-          <span class="map-date-panel__label">Od</span>
-          <input type="date" id="date-from">
+      <div class="map-overlay map-overlay--interactive map-filters">
+        <div class="map-filters__pills">
+          <div class="pill pill--active" onclick="togglePill(this)">Events</div>
+          <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available</div>
+          <div class="pill" id="pill-date" onclick="toggleDatePanel(this)">📅 Date</div>
+          <div class="pill" id="pill-venues" onclick="toggleVenueDropdown(this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;flex-shrink:0;"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>Filters
+          </div>
         </div>
-        <div class="map-date-panel__row">
-          <span class="map-date-panel__label">Do</span>
-          <input type="date" id="date-to">
+
+        <!-- Venue dropdown — vertical list, opens below Filters pill -->
+        <div class="map-venue-dropdown" id="map-venue-dropdown">
+          <button class="map-venue-item" style="--vcat-color:#f59e0b" onclick="togglePoiFilter(this,'cafe')">
+            <span>☕</span><span>Cafés</span>
+          </button>
+          <button class="map-venue-item" style="--vcat-color:#ef4444" onclick="togglePoiFilter(this,'bar')">
+            <span>🍺</span><span>Bars</span>
+          </button>
+          <button class="map-venue-item" style="--vcat-color:#8b5cf6" onclick="togglePoiFilter(this,'museum')">
+            <span>🏛️</span><span>Museums</span>
+          </button>
+          <button class="map-venue-item" style="--vcat-color:#06b6d4" onclick="togglePoiFilter(this,'cinema')">
+            <span>🎬</span><span>Cinemas</span>
+          </button>
+          <button class="map-venue-item" style="--vcat-color:#22c55e" onclick="togglePoiFilter(this,'stadium')">
+            <span>🏟️</span><span>Sports</span>
+          </button>
+          <button class="map-venue-item" style="--vcat-color:#f472b6" onclick="togglePoiFilter(this,'theatre')">
+            <span>🎭</span><span>Theatre</span>
+          </button>
         </div>
-        <div class="map-date-panel__actions">
-          <button class="map-date-panel__apply" onclick="applyDateFilter()">Primijeni</button>
-          <button class="map-date-panel__clear" onclick="clearDateFilter()">Poništi</button>
+        <div class="map-date-panel" id="map-date-panel">
+          <div class="map-date-panel__rows">
+            <div class="map-date-panel__row">
+              <span class="map-date-panel__label">From</span>
+              <input type="date" id="date-from">
+            </div>
+            <span class="map-date-panel__sep">→</span>
+            <div class="map-date-panel__row">
+              <span class="map-date-panel__label">To</span>
+              <input type="date" id="date-to">
+            </div>
+          </div>
+          <div class="map-date-panel__actions">
+            <button class="map-date-panel__apply" onclick="applyDateFilter()">Apply</button>
+            <button class="map-date-panel__clear" onclick="clearDateFilter()">Clear</button>
+          </div>
         </div>
       </div>
 
-<div class="map-overlay map-overlay--interactive map-filters">
-        <div class="pill pill--active" onclick="togglePill(this)">Events</div>
-        <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available only</div>
-        <div class="pill" id="pill-date" onclick="toggleDatePanel(this)">📅 Datum</div>
-      </div>
-
-      <!-- Venue filter strip — Google Maps style, bottom-anchored -->
-      <div class="map-overlay map-overlay--interactive map-venues-strip" id="map-venues-strip">
-        <button class="map-venues-strip__handle" onclick="toggleVenueStrip()">
-          <span class="map-venues-strip__chevron">▾</span>
-        </button>
-        <div class="map-venues-strip__inner">
-          <button class="vcat-btn" style="--vcat-color:#f59e0b" data-cat="cafe"    onclick="togglePoiFilter(this,'cafe')">
-            <span class="vcat-btn__icon">☕</span>
-            <span class="vcat-btn__label">Kafići</span>
-            <div class="vcat-btn__dot" style="background:#f59e0b;"></div>
-          </button>
-          <button class="vcat-btn" style="--vcat-color:#ef4444" data-cat="bar"     onclick="togglePoiFilter(this,'bar')">
-            <span class="vcat-btn__icon">🍺</span>
-            <span class="vcat-btn__label">Barovi</span>
-            <div class="vcat-btn__dot" style="background:#ef4444;"></div>
-          </button>
-          <button class="vcat-btn" style="--vcat-color:#8b5cf6" data-cat="museum"  onclick="togglePoiFilter(this,'museum')">
-            <span class="vcat-btn__icon">🏛️</span>
-            <span class="vcat-btn__label">Muzeji</span>
-            <div class="vcat-btn__dot" style="background:#8b5cf6;"></div>
-          </button>
-          <button class="vcat-btn" style="--vcat-color:#06b6d4" data-cat="cinema"  onclick="togglePoiFilter(this,'cinema')">
-            <span class="vcat-btn__icon">🎬</span>
-            <span class="vcat-btn__label">Kina</span>
-            <div class="vcat-btn__dot" style="background:#06b6d4;"></div>
-          </button>
-          <button class="vcat-btn" style="--vcat-color:#22c55e" data-cat="stadium" onclick="togglePoiFilter(this,'stadium')">
-            <span class="vcat-btn__icon">🏟️</span>
-            <span class="vcat-btn__label">Sportski</span>
-            <div class="vcat-btn__dot" style="background:#22c55e;"></div>
-          </button>
-          <button class="vcat-btn" style="--vcat-color:#f472b6" data-cat="theatre" onclick="togglePoiFilter(this,'theatre')">
-            <span class="vcat-btn__icon">🎭</span>
-            <span class="vcat-btn__label">Kazalište</span>
-            <div class="vcat-btn__dot" style="background:#f472b6;"></div>
-          </button>
-        </div>
-      </div>
 
       <div class="map-overlay map-overlay--interactive map-geo-search">
         <div class="search-bar">
@@ -443,7 +481,7 @@
       <div class="map-controls map-overlay--interactive">
         <div class="map-legend" id="map-legend" onclick="toggleLegend()">
           <div class="map-legend__header">
-            Legenda <span class="map-legend__chevron">▴</span>
+            Legend <span class="map-legend__chevron">▴</span>
           </div>
           <div class="map-legend__rows">
             <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
