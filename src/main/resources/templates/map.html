@@ -182,33 +182,60 @@
       .map-popup-card__footer { justify-content: flex-end; }
       .popup-action { width: 160px; }
     }
-    /* ── POI filter row ── */
-    .map-poi-filters {
-      top: 106px; left: 12px; right: 12px;
-      display: flex; gap: 6px;
-      overflow-x: auto; scrollbar-width: none;
-      -ms-overflow-style: none;
-      padding-bottom: 2px;
+    /* ── Venue bottom strip (Google Maps style) ── */
+    .map-venues-strip {
+      bottom: 62px; left: 0; right: 0;
+      display: flex; justify-content: center;
+      padding: 0 12px;
     }
-    .map-poi-filters::-webkit-scrollbar { display: none; }
-    .map-poi-filters .pill {
-      background: rgba(10,10,10,0.88);
-      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    .map-venues-strip__inner {
+      display: flex; gap: 4px;
+      background: rgba(10,10,10,0.92);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 22px; padding: 7px 10px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.5);
+      overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+      max-width: 100%;
+    }
+    .map-venues-strip__inner::-webkit-scrollbar { display: none; }
+
+    /* Category button */
+    .vcat-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 7px 11px; border-radius: 14px; min-width: 54px;
+      background: none; border: 1.5px solid transparent;
+      cursor: pointer; color: var(--text-3);
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
       flex-shrink: 0;
     }
+    .vcat-btn:hover { background: rgba(255,255,255,0.06); color: var(--text-2); }
+    .vcat-btn__icon { font-size: 20px; line-height: 1; transition: transform 0.15s; }
+    .vcat-btn__label {
+      font-size: 8.5px; letter-spacing: 0.07em; text-transform: uppercase;
+      font-family: var(--font-mono); white-space: nowrap; line-height: 1;
+    }
+    .vcat-btn__dot { width: 5px; height: 5px; border-radius: 50%; opacity: 0.35; transition: opacity 0.15s, box-shadow 0.15s; }
 
-    /* ── POI venue pins (small circles, distinct from event teardrops) ── */
+    /* Active state — uses CSS custom property set per-button */
+    .vcat-btn--active {
+      border-color: var(--vcat-color, #00c9a7);
+      background: color-mix(in srgb, var(--vcat-color, #00c9a7) 14%, transparent);
+      color: #fff;
+    }
+    .vcat-btn--active .vcat-btn__icon { transform: scale(1.15); }
+    .vcat-btn--active .vcat-btn__dot  { opacity: 1; box-shadow: 0 0 7px var(--vcat-color, #00c9a7); }
+
+    /* ── POI venue pins ── */
     .poi-pin {
       width: 10px; height: 10px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.55);
-      box-shadow: 0 1px 6px rgba(0,0,0,0.45);
-      cursor: pointer;
-      transition: transform 0.12s;
+      border: 2px solid rgba(255,255,255,0.6);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+      cursor: pointer; transition: transform 0.12s;
     }
-    .poi-pin:hover { transform: scale(1.5); }
+    .poi-pin:hover { transform: scale(1.6); }
 
-    /* ── Legend ── */
+    /* ── Legend venue section ── */
     .map-legend__section {
       font-size: 9px; color: var(--text-3); letter-spacing: 0.1em;
       text-transform: uppercase; padding-top: 4px;
@@ -288,13 +315,40 @@
         <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available only</div>
       </div>
 
-      <div class="map-overlay map-overlay--interactive map-poi-filters" id="map-poi-filters">
-        <div class="pill" onclick="togglePoiFilter(this,'cafe')">☕ Kafići</div>
-        <div class="pill" onclick="togglePoiFilter(this,'bar')">🍺 Barovi</div>
-        <div class="pill" onclick="togglePoiFilter(this,'museum')">🏛️ Muzeji</div>
-        <div class="pill" onclick="togglePoiFilter(this,'cinema')">🎬 Kina</div>
-        <div class="pill" onclick="togglePoiFilter(this,'stadium')">🏟️ Sportski</div>
-        <div class="pill" onclick="togglePoiFilter(this,'theatre')">🎭 Kazalište</div>
+      <!-- Venue filter strip — Google Maps style, bottom-anchored -->
+      <div class="map-overlay map-overlay--interactive map-venues-strip">
+        <div class="map-venues-strip__inner">
+          <button class="vcat-btn" style="--vcat-color:#f59e0b" data-cat="cafe"    onclick="togglePoiFilter(this,'cafe')">
+            <span class="vcat-btn__icon">☕</span>
+            <span class="vcat-btn__label">Kafići</span>
+            <div class="vcat-btn__dot" style="background:#f59e0b;"></div>
+          </button>
+          <button class="vcat-btn" style="--vcat-color:#ef4444" data-cat="bar"     onclick="togglePoiFilter(this,'bar')">
+            <span class="vcat-btn__icon">🍺</span>
+            <span class="vcat-btn__label">Barovi</span>
+            <div class="vcat-btn__dot" style="background:#ef4444;"></div>
+          </button>
+          <button class="vcat-btn" style="--vcat-color:#8b5cf6" data-cat="museum"  onclick="togglePoiFilter(this,'museum')">
+            <span class="vcat-btn__icon">🏛️</span>
+            <span class="vcat-btn__label">Muzeji</span>
+            <div class="vcat-btn__dot" style="background:#8b5cf6;"></div>
+          </button>
+          <button class="vcat-btn" style="--vcat-color:#06b6d4" data-cat="cinema"  onclick="togglePoiFilter(this,'cinema')">
+            <span class="vcat-btn__icon">🎬</span>
+            <span class="vcat-btn__label">Kina</span>
+            <div class="vcat-btn__dot" style="background:#06b6d4;"></div>
+          </button>
+          <button class="vcat-btn" style="--vcat-color:#22c55e" data-cat="stadium" onclick="togglePoiFilter(this,'stadium')">
+            <span class="vcat-btn__icon">🏟️</span>
+            <span class="vcat-btn__label">Sportski</span>
+            <div class="vcat-btn__dot" style="background:#22c55e;"></div>
+          </button>
+          <button class="vcat-btn" style="--vcat-color:#f472b6" data-cat="theatre" onclick="togglePoiFilter(this,'theatre')">
+            <span class="vcat-btn__icon">🎭</span>
+            <span class="vcat-btn__label">Kazalište</span>
+            <div class="vcat-btn__dot" style="background:#f472b6;"></div>
+          </button>
+        </div>
       </div>
 
       <div class="map-overlay map-overlay--interactive map-geo-search">
