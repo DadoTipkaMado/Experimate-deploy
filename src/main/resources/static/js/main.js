@@ -889,3 +889,122 @@ function _showReminder(res) {
     },
   });
 }
+
+/* ═══════════════════════════════════════════════
+   CUSTOM DATE PICKER — shared across all pages
+   Usage: DatePicker.open(inputEl, { min, max })
+   Writes DD/MM/YYYY into inputEl.value and fires input + change events.
+═══════════════════════════════════════════════ */
+const DatePicker = (() => {
+  const _MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const _DAYS   = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+
+  let _el    = null;   // active input element
+  let _opts  = {};     // { min: Date|null, max: Date|null }
+  let _view  = null;   // { year, month }
+  let _wrap  = null;   // DOM overlay element
+
+  function open(inputEl, opts = {}) {
+    _el   = inputEl;
+    _opts = opts;
+
+    // Parse current value to set view
+    const parts = (inputEl.value || '').split('/');
+    const today = new Date();
+    if (parts.length === 3 && parts[2].length === 4) {
+      _view = { year: parseInt(parts[2]), month: parseInt(parts[1]) - 1 };
+    } else if (opts.max) {
+      _view = { year: opts.max.getFullYear(), month: opts.max.getMonth() };
+    } else {
+      _view = { year: today.getFullYear(), month: today.getMonth() };
+    }
+
+    if (!_wrap) {
+      _wrap = document.createElement('div');
+      _wrap.className = 'dp-wrap';
+      document.body.appendChild(_wrap);
+      document.addEventListener('click', _outsideClick, true);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    }
+    _render();
+    _position();
+    _wrap.style.display = 'block';
+  }
+
+  function _render() {
+    const { year, month } = _view;
+    const today     = new Date(); today.setHours(0,0,0,0);
+    const selParts  = (_el.value || '').split('/');
+    const selDate   = selParts.length === 3 ? new Date(parseInt(selParts[2]), parseInt(selParts[1])-1, parseInt(selParts[0])) : null;
+    const firstDay  = new Date(year, month, 1);
+    const daysInMon = new Date(year, month + 1, 0).getDate();
+    let dow = firstDay.getDay() - 1; if (dow < 0) dow = 6; // Mon=0
+
+    let cells = '';
+    for (let i = 0; i < dow; i++) cells += '<div class="dp-cell dp-cell--empty"></div>';
+    for (let d = 1; d <= daysInMon; d++) {
+      const date = new Date(year, month, d);
+      const isToday    = date.getTime() === today.getTime();
+      const isSelected = selDate && date.getTime() === selDate.getTime();
+      const disabled   = (_opts.min && date < _opts.min) || (_opts.max && date > _opts.max);
+      cells += `<div class="dp-cell${isToday ? ' dp-cell--today' : ''}${isSelected ? ' dp-cell--selected' : ''}${disabled ? ' dp-cell--disabled' : ''}"
+        ${!disabled ? `data-y="${year}" data-m="${month}" data-d="${d}"` : ''}>${d}</div>`;
+    }
+
+    _wrap.innerHTML = `
+      <div class="dp-header">
+        <button class="dp-nav" id="dp-prev">&#8249;</button>
+        <span class="dp-title">${_MONTHS[month]} ${year}</span>
+        <button class="dp-nav" id="dp-next">&#8250;</button>
+      </div>
+      <div class="dp-dow-row">${_DAYS.map(d => `<div class="dp-dow">${d}</div>`).join('')}</div>
+      <div class="dp-grid">${cells}</div>
+    `;
+
+    _wrap.querySelector('#dp-prev').addEventListener('click', e => { e.stopPropagation(); _nav(-1); });
+    _wrap.querySelector('#dp-next').addEventListener('click', e => { e.stopPropagation(); _nav(1); });
+    _wrap.querySelectorAll('.dp-cell[data-d]').forEach(cell => {
+      cell.addEventListener('click', e => { e.stopPropagation(); _pick(cell); });
+    });
+  }
+
+  function _nav(dir) {
+    _view.month += dir;
+    if (_view.month < 0)  { _view.month = 11; _view.year--; }
+    if (_view.month > 11) { _view.month = 0;  _view.year++; }
+    _render();
+  }
+
+  function _pick(cell) {
+    const d = cell.dataset.d.padStart(2,'0');
+    const m = (parseInt(cell.dataset.m)+1).toString().padStart(2,'0');
+    const y = cell.dataset.y;
+    _el.value = `${d}/${m}/${y}`;
+    _el.dispatchEvent(new Event('input',  { bubbles: true }));
+    _el.dispatchEvent(new Event('change', { bubbles: true }));
+    close();
+  }
+
+  function _position() {
+    const rect = _el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    _wrap.style.left = Math.min(rect.left, window.innerWidth - 310) + 'px';
+    if (spaceBelow >= 340) {
+      _wrap.style.top  = (rect.bottom + 6) + 'px';
+      _wrap.style.bottom = 'auto';
+    } else {
+      _wrap.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+      _wrap.style.top    = 'auto';
+    }
+  }
+
+  function _outsideClick(e) {
+    if (_wrap && _wrap.style.display !== 'none' && !_wrap.contains(e.target) && e.target !== _el) close();
+  }
+
+  function close() {
+    if (_wrap) _wrap.style.display = 'none';
+  }
+
+  return { open, close };
+})();
