@@ -209,7 +209,7 @@
     .detail-sheet__handle { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
     .detail-sheet__hero {
       display: flex; flex-direction: column; align-items: center;
-      padding: 20px 20px 16px; gap: 10px; border-bottom: 1px solid var(--border);
+      padding: 20px 20px 22px; gap: 6px; border-bottom: 1px solid var(--border);
     }
     .detail-sheet__avatar {
       width: 72px; height: 72px; border-radius: 50%;
@@ -219,8 +219,8 @@
       box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
     }
     .detail-sheet__avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); margin-bottom: 4px; }
-    .detail-sheet__handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; }
+    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); }
+    .detail-sheet__handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; margin-bottom: 6px; }
     .detail-sheet__body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
     .detail-row { display: flex; align-items: flex-start; gap: 12px; }
     .detail-row__icon { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
@@ -534,7 +534,7 @@
     const btnBase = 'width:100%;height:48px;font-size:12px;border-radius:var(--radius-pill);border:1px solid;cursor:pointer;font-family:var(--font-mono);letter-spacing:0.07em;text-transform:uppercase;transition:all var(--t-fast);';
 
     // Show on map button (always, if coords available)
-    const lat = listing.latitude, lng = listing.longitude;
+    const lat = listing.lat ?? listing.latitude, lng = listing.lng ?? listing.longitude;
     const mapBtn = (lat && lng)
       ? `<button style="${btnBase}background:var(--surface-2);border-color:var(--border-2);color:var(--text-2);"
            onclick="showOnMap(${lat},${lng})">
