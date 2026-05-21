@@ -266,11 +266,20 @@
 
   <main class="page-content">
 
+    <!-- ── Header ── -->
+    <div style="padding:18px 18px 0; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div class="page-title" style="margin:0;">Meets</div>
+        <div class="page-subtitle" style="margin:0;">Your days, your people</div>
+      </div>
+      <a href="/listings/new" style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--accent);text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-dim);padding:0 14px;height:32px;border-radius:var(--radius-pill);">+ New</a>
+    </div>
+
     <!-- ── Segmented tabs ── -->
     <div class="seg-tabs">
-      <button class="seg-tab seg-tab--active" id="tab-btn-meets"     onclick="switchTab('meets')">Meets</button>
-      <button class="seg-tab"                 id="tab-btn-listings"  onclick="switchTab('listings')">Listings</button>
-      <button class="seg-tab"                 id="tab-btn-requests"  onclick="switchTab('requests')">
+      <button class="seg-tab seg-tab--active" id="tab-btn-meets"     onclick="switchMeetsTab('meets')">Meets</button>
+      <button class="seg-tab"                 id="tab-btn-listings"  onclick="switchMeetsTab('listings')">Listings</button>
+      <button class="seg-tab"                 id="tab-btn-requests"  onclick="switchMeetsTab('requests')">
         Requests
         <span class="seg-tab__badge" id="req-badge" style="display:none;"></span>
       </button>
@@ -377,10 +386,10 @@
   let _meetFilter    = { role: 'joined', timeframe: 'upcoming' };
   let _reqFilter     = { flowDirection: 'incoming', status: 'PENDING' };
 
-  const _MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   /* ── Tab switching ── */
-  function switchTab(tab) {
+  function switchMeetsTab(tab) {
     _activeTab = tab;
     ['meets','listings','requests'].forEach(t => {
       document.getElementById('panel-' + t).classList.toggle('tab-panel--active', t === tab);
@@ -463,7 +472,7 @@
 
     el.innerHTML = items.map((res, i) => {
       const d = new Date(res.tourListing.meetingDate);
-      const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const dateStr = `${String(d.getDate()).padStart(2,'0')} ${_M[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       _cardListings[res.id] = { listing: res.tourListing, isOwn: !isJoined, reserved: true };
 
       if (isJoined) {
@@ -543,7 +552,7 @@
               <div class="listing-card__city">${l.city}</div>
               <span class="listing-card__badge ${badgeCls}">${badgeLabel}</span>
             </div>
-            <div class="listing-card__date">${String(d.getDate()).padStart(2,'0')} ${_MONTHS[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</div>
+            <div class="listing-card__date">${String(d.getDate()).padStart(2,'0')} ${_M[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}</div>
             ${l.tourDescription ? `<div class="listing-card__desc">${escapeHtml(l.tourDescription)}</div>` : ''}
           </div>
           ${foot}
@@ -585,7 +594,7 @@
       const username = person?.username ?? '';
       const name = person ? person.firstName + ' ' + person.lastName : '?';
       const city = r.tourListing?.city ?? '';
-      const date = r.tourListing?.meetingDate ? `${String(new Date(r.tourListing.meetingDate).getDate()).padStart(2,'0')} ${_MONTHS[new Date(r.tourListing.meetingDate).getMonth()]}` : '';
+      const date = r.tourListing?.meetingDate ? `${String(new Date(r.tourListing.meetingDate).getDate()).padStart(2,'0')} ${_M[new Date(r.tourListing.meetingDate).getMonth()]}` : '';
       const foot = isInc && r.status === 'PENDING'
         ? `<div class="req-card__foot">
              <button class="req-btn req-btn--accept" onclick="handleRequest('accept',${r.id},this)">Accept</button>
@@ -778,7 +787,7 @@
     const tab = sessionStorage.getItem('openTab');
     if (tab && ['meets','listings','requests'].includes(tab)) {
       sessionStorage.removeItem('openTab');
-      switchTab(tab);
+      switchMeetsTab(tab);
     }
   })();
 
