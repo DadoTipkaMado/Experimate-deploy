@@ -364,10 +364,10 @@ const _poiActive   = {};   // catKey → bool
 let   _poiDebounce = null;
 let   _poiAbort    = null;
 
-function togglePoiFilter(btn, catKey) {
+window.togglePoiFilter = function(btn, catKey) {
   const isNowActive = !_poiActive[catKey];
   _poiActive[catKey] = isNowActive;
-  btn.classList.toggle('pill--active', isNowActive);
+  btn.classList.toggle('vcat-btn--active', isNowActive);
 
   if (!isNowActive) {
     _clearPoiLayer(catKey);
@@ -376,7 +376,7 @@ function togglePoiFilter(btn, catKey) {
   }
   _fetchPoisForActive();
   _updateLegendVenues();
-}
+};
 
 function _clearPoiLayer(catKey) {
   if (_poiLayers[catKey]) {
