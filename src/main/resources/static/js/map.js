@@ -352,6 +352,11 @@ window.toggleLegend = function() {
   document.getElementById('map-legend').classList.toggle('map-legend--collapsed');
 };
 
+/* ── Venue strip collapse ── */
+window.toggleVenueStrip = function() {
+  document.getElementById('map-venues-strip').classList.toggle('map-venues-strip--collapsed');
+};
+
 /* ───────────────────────────────────────────────
    SEARCH — pin filter only
 ─────────────────────────────────────────────── */

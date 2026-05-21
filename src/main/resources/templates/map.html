@@ -52,7 +52,7 @@
     }
     /* Bottom-right control cluster: legend → [locate] [+FAB] */
     .map-controls {
-      position: absolute; bottom: 10px; right: 14px; z-index: 10;
+      position: absolute; bottom: 160px; right: 14px; z-index: 10;
       display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
     }
     .map-controls-row { display: flex; align-items: center; gap: 8px; }
@@ -185,8 +185,24 @@
     /* ── Venue bottom strip (Google Maps style) ── */
     .map-venues-strip {
       bottom: 62px; left: 0; right: 0;
-      display: flex; justify-content: center;
+      display: flex; flex-direction: column; align-items: center;
       padding: 0 12px;
+    }
+    .map-venues-strip__handle {
+      background: rgba(10,10,10,0.92);
+      border: 1px solid rgba(255,255,255,0.1); border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 3px 22px 1px;
+      cursor: pointer; color: var(--text-3); font-size: 11px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s; user-select: none;
+    }
+    .map-venues-strip__handle:hover { color: var(--text); }
+    .map-venues-strip__chevron { display: inline-block; transition: transform 0.22s; }
+    .map-venues-strip--collapsed .map-venues-strip__chevron { transform: rotate(180deg); }
+    .map-venues-strip--collapsed .map-venues-strip__inner { display: none; }
+    .map-venues-strip--collapsed .map-venues-strip__handle {
+      border-radius: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     .map-venues-strip__inner {
       display: flex; gap: 4px;
@@ -377,7 +393,10 @@
       </div>
 
       <!-- Venue filter strip — Google Maps style, bottom-anchored -->
-      <div class="map-overlay map-overlay--interactive map-venues-strip">
+      <div class="map-overlay map-overlay--interactive map-venues-strip" id="map-venues-strip">
+        <button class="map-venues-strip__handle" onclick="toggleVenueStrip()">
+          <span class="map-venues-strip__chevron">▾</span>
+        </button>
         <div class="map-venues-strip__inner">
           <button class="vcat-btn" style="--vcat-color:#f59e0b" data-cat="cafe"    onclick="togglePoiFilter(this,'cafe')">
             <span class="vcat-btn__icon">☕</span>
