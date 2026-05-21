@@ -346,6 +346,143 @@ if (geoInput) {
   });
 }
 
+/* ═══════════════════════════════════════════════
+   POI LAYER — Overpass API venue filtering
+═══════════════════════════════════════════════ */
+
+const _POI = {
+  cafe:    { label: 'Kafići',    color: '#f59e0b', emoji: '☕', filters: [['amenity','cafe']] },
+  bar:     { label: 'Barovi',   color: '#ef4444', emoji: '🍺', filters: [['amenity','bar'],['amenity','nightclub']] },
+  museum:  { label: 'Muzeji',   color: '#8b5cf6', emoji: '🏛️', filters: [['tourism','museum']] },
+  cinema:  { label: 'Kina',     color: '#06b6d4', emoji: '🎬', filters: [['amenity','cinema']] },
+  stadium: { label: 'Sportski', color: '#22c55e', emoji: '🏟️', filters: [['leisure','stadium'],['leisure','sports_centre']] },
+  theatre: { label: 'Kazalište',color: '#f472b6', emoji: '🎭', filters: [['amenity','theatre']] },
+};
+
+const _poiLayers   = {};   // catKey → L.LayerGroup
+const _poiActive   = {};   // catKey → bool
+let   _poiDebounce = null;
+let   _poiAbort    = null;
+
+function togglePoiFilter(btn, catKey) {
+  const isNowActive = !_poiActive[catKey];
+  _poiActive[catKey] = isNowActive;
+  btn.classList.toggle('pill--active', isNowActive);
+
+  if (!isNowActive) {
+    _clearPoiLayer(catKey);
+    _updateLegendVenues();
+    return;
+  }
+  _fetchPoisForActive();
+  _updateLegendVenues();
+}
+
+function _clearPoiLayer(catKey) {
+  if (_poiLayers[catKey]) {
+    MapState.map.removeLayer(_poiLayers[catKey]);
+    delete _poiLayers[catKey];
+  }
+}
+
+function _updateLegendVenues() {
+  const el = document.getElementById('legend-venues');
+  if (!el) return;
+  const active = Object.keys(_poiActive).filter(k => _poiActive[k]);
+  if (!active.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="map-legend__section">Lokali</div>` +
+    active.map(k => {
+      const cat = _POI[k];
+      return `<div class="map-legend__row"><div class="map-legend__dot" style="background:${cat.color};"></div>${cat.emoji} ${cat.label}</div>`;
+    }).join('');
+}
+
+function _fetchPoisForActive() {
+  clearTimeout(_poiDebounce);
+  _poiDebounce = setTimeout(_doFetchPois, 700);
+}
+
+async function _doFetchPois() {
+  const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
+  if (!activeKeys.length) return;
+
+  const zoom = MapState.map.getZoom();
+  if (zoom < 12) {
+    showToast('Zoom in to see venue markers.', 'default');
+    return;
+  }
+
+  const b    = MapState.map.getBounds();
+  const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
+
+  const queryParts = activeKeys.flatMap(k =>
+    _POI[k].filters.flatMap(([key, val]) => [
+      `node["${key}"="${val}"](${bbox});`,
+      `way["${key}"="${val}"](${bbox});`,
+    ])
+  ).join('');
+  const query = `[out:json][timeout:15];(${queryParts});out center;`;
+
+  if (_poiAbort) _poiAbort.abort();
+  _poiAbort = new AbortController();
+
+  try {
+    const res  = await fetch(
+      'https://overpass-api.de/api/interpreter',
+      { method: 'POST', body: query, signal: _poiAbort.signal }
+    );
+    const data = await res.json();
+
+    // Rebuild all active layers fresh
+    activeKeys.forEach(k => _clearPoiLayer(k));
+
+    activeKeys.forEach(catKey => {
+      const cat   = _POI[catKey];
+      const group = L.layerGroup().addTo(MapState.map);
+      _poiLayers[catKey] = group;
+
+      data.elements.forEach(el => {
+        if (!_elementMatchesCat(el, catKey)) return;
+        const lat = el.lat ?? el.center?.lat;
+        const lng = el.lon ?? el.center?.lon;
+        if (lat == null || lng == null) return;
+
+        const name = el.tags?.name || cat.label;
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="poi-pin" style="background:${cat.color};" title="${escapeHtml(name)}"></div>`,
+          iconSize:   [10, 10],
+          iconAnchor: [5, 5],
+        });
+        const marker = L.marker([lat, lng], { icon, zIndexOffset: -100 });
+        marker.bindPopup(
+          `<div style="font-family:var(--font-display);font-weight:700;font-size:13px;line-height:1.4;">${escapeHtml(name)}</div>` +
+          `<div style="font-size:11px;color:${cat.color};margin-top:2px;">${cat.emoji} ${cat.label}</div>`,
+          { className: 'dark-popup', maxWidth: 200 }
+        );
+        group.addLayer(marker);
+      });
+    });
+  } catch (err) {
+    if (err.name !== 'AbortError') showToast('Could not load venue data.', 'error');
+  }
+}
+
+function _elementMatchesCat(el, catKey) {
+  const tags = el.tags || {};
+  return _POI[catKey].filters.some(([key, val]) => tags[key] === val);
+}
+
+// Refresh POI markers when the map moves (debounced)
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    if (!MapState.map) return;
+    MapState.map.on('moveend zoomend', () => {
+      if (Object.values(_poiActive).some(Boolean)) _fetchPoisForActive();
+    });
+  }, 1000);
+});
+
 /* ───────────────────────────────────────────────
    PUBLIC API — websocket.js uses addPin()
 ─────────────────────────────────────────────── */

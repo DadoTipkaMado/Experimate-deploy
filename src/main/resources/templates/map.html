@@ -182,6 +182,39 @@
       .map-popup-card__footer { justify-content: flex-end; }
       .popup-action { width: 160px; }
     }
+    /* ── POI filter row ── */
+    .map-poi-filters {
+      top: 106px; left: 12px; right: 12px;
+      display: flex; gap: 6px;
+      overflow-x: auto; scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+    }
+    .map-poi-filters::-webkit-scrollbar { display: none; }
+    .map-poi-filters .pill {
+      background: rgba(10,10,10,0.88);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+
+    /* ── POI venue pins (small circles, distinct from event teardrops) ── */
+    .poi-pin {
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.55);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+      cursor: pointer;
+      transition: transform 0.12s;
+    }
+    .poi-pin:hover { transform: scale(1.5); }
+
+    /* ── Legend ── */
+    .map-legend__section {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.1em;
+      text-transform: uppercase; padding-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.08); margin-top: 2px;
+    }
+
     /* Cluster styling */
     .marker-cluster { background: rgba(0,201,167,0.15) !important; border: 1px solid rgba(0,201,167,0.4) !important; }
     .marker-cluster div { background: rgba(0,201,167,0.85) !important; color: #000 !important; font-family: var(--font-display) !important; font-weight: 700 !important; font-size: 12px !important; }
@@ -255,6 +288,15 @@
         <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available only</div>
       </div>
 
+      <div class="map-overlay map-overlay--interactive map-poi-filters" id="map-poi-filters">
+        <div class="pill" onclick="togglePoiFilter(this,'cafe')">☕ Kafići</div>
+        <div class="pill" onclick="togglePoiFilter(this,'bar')">🍺 Barovi</div>
+        <div class="pill" onclick="togglePoiFilter(this,'museum')">🏛️ Muzeji</div>
+        <div class="pill" onclick="togglePoiFilter(this,'cinema')">🎬 Kina</div>
+        <div class="pill" onclick="togglePoiFilter(this,'stadium')">🏟️ Sportski</div>
+        <div class="pill" onclick="togglePoiFilter(this,'theatre')">🎭 Kazalište</div>
+      </div>
+
       <div class="map-overlay map-overlay--interactive map-geo-search">
         <div class="search-bar">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -265,10 +307,11 @@
       </div>
 
       <div class="map-controls map-overlay--interactive">
-        <div class="map-legend">
+        <div class="map-legend" id="map-legend">
           <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
           <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Your meet</div>
           <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
+          <div id="legend-venues"></div>
         </div>
         <div class="map-controls-row">
           <button class="map-locate" onclick="centerOnUser()" title="My location">
