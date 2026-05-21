@@ -15,21 +15,14 @@ const Auth = {
   clearToken:  ()       => localStorage.removeItem('jwt'),
   getUserId:   ()       => { const id = localStorage.getItem('userId'); return id ? parseInt(id, 10) : null; },
   saveUserId:  (id)     => localStorage.setItem('userId', String(id)),
-  getUsername: ()       => {
+  _decode: () => {
     const token = localStorage.getItem('jwt');
     if (!token) return null;
-    try {
-      return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub;
-    } catch { return null; }
+    try { return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); }
+    catch { return null; }
   },
-  isExpired: () => {
-    const token = localStorage.getItem('jwt');
-    if (!token) return true;
-    try {
-      const { exp } = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-      return exp * 1000 < Date.now();
-    } catch { return true; }
-  },
+  getUsername: () => { const p = Auth._decode(); return p?.sub ?? null; },
+  isExpired:   () => { const p = Auth._decode(); return p ? p.exp * 1000 < Date.now() : true; },
   logout: () => {
     sessionStorage.setItem('explicit_logout', '1');
     fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});

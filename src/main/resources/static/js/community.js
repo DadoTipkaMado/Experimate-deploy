@@ -16,11 +16,15 @@ function initCommSearch() {
   const input = document.getElementById('comm-search-input');
   if (!input) return;
 
+  let _t = null;
   input.addEventListener('input', (e) => {
-    const query = e.target.value.trim().toLowerCase();
-    document.querySelectorAll('.comm-card').forEach(card => {
-      const name = card.querySelector('.comm-card__name')?.textContent?.toLowerCase() || '';
-      card.style.display = (!query || name.includes(query)) ? '' : 'none';
-    });
+    clearTimeout(_t);
+    _t = setTimeout(() => {
+      const query = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('.comm-card').forEach(card => {
+        const name = card.querySelector('.comm-card__name')?.textContent?.toLowerCase() || '';
+        card.style.display = (!query || name.includes(query)) ? '' : 'none';
+      });
+    }, 150);
   });
 }

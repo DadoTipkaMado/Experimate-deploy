@@ -7,13 +7,34 @@
    the endpoint exists.
 ═══════════════════════════════════════════════ */
 
-const WS_URL      = '/ws/map';
-const BACKOFF_MAX = 30000;
+const WS_URL         = '/ws/map';
+const BACKOFF_MAX    = 30000;
+const HEARTBEAT_MS   = 30000;
+const PONG_TIMEOUT   = 10000;
 
-let _ws           = null;
-let _retryDelay   = 2000;
-let _retryTimer   = null;
-let _intentional  = false;
+let _ws              = null;
+let _retryDelay      = 2000;
+let _retryTimer      = null;
+let _intentional     = false;
+let _heartbeatTimer  = null;
+let _pongTimer       = null;
+
+function _startHeartbeat() {
+  _stopHeartbeat();
+  _heartbeatTimer = setInterval(() => {
+    if (!_ws || _ws.readyState !== WebSocket.OPEN) return;
+    try { _ws.send(JSON.stringify({ type: 'ping' })); } catch (_) {}
+    _pongTimer = setTimeout(() => {
+      if (_ws) { _ws.close(); }
+    }, PONG_TIMEOUT);
+  }, HEARTBEAT_MS);
+}
+
+function _stopHeartbeat() {
+  clearInterval(_heartbeatTimer);
+  clearTimeout(_pongTimer);
+  _heartbeatTimer = _pongTimer = null;
+}
 
 function connectWebSocket() {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -26,10 +47,13 @@ function connectWebSocket() {
     return;
   }
 
-  _ws.onopen    = () => { _retryDelay = 2000; };
-  _ws.onmessage = (event) => { handleMessage(event.data); };
+  _ws.onopen    = () => { _retryDelay = 2000; _startHeartbeat(); };
+  _ws.onmessage = (event) => {
+    clearTimeout(_pongTimer);
+    handleMessage(event.data);
+  };
   _ws.onerror   = () => {};
-  _ws.onclose   = () => { if (!_intentional) scheduleReconnect(); };
+  _ws.onclose   = () => { _stopHeartbeat(); if (!_intentional) scheduleReconnect(); };
 }
 
 function scheduleReconnect() {
@@ -40,6 +64,7 @@ function scheduleReconnect() {
 
 function disconnectWebSocket() {
   _intentional = true;
+  _stopHeartbeat();
   clearTimeout(_retryTimer);
   if (_ws) { _ws.close(); _ws = null; }
 }

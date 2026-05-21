@@ -48,3 +48,4 @@ uploads/
 http/
 .env
 
+src/main/resources/seed-local.sql

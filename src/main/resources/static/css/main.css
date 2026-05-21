@@ -1446,41 +1446,6 @@ svg { display: block; flex-shrink: 0; }
     -webkit-font-smoothing: auto;
     -moz-osx-font-smoothing: auto;
   }
-
-  /* Explore card text stays legible over the dark photo gradient */
-  .explore-card__name,
-  .explore-card__handle,
-  .explore-card__desc,
-  .explore-card__why { color: rgba(240, 238, 234, 0.92); }
-
-  .explore-card__rating,
-  .explore-card__match-pct {
-    border-color: rgba(0, 110, 88, 0.30);
-    color: #006e58;
-  }
-
-  .pill--active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  .pill--warm.pill--active {
-    background: var(--warm);
-    border-color: var(--warm);
-    color: #fff;
-  }
-
-  .pill--personalized {
-    background: linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
-    border-color: rgba(0,110,88,0.38);
-    color: var(--accent);
-  }
-
-  .search-ai-badge {
-    background: rgba(0,110,88,0.10);
-    border-color: rgba(0,110,88,0.22);
-    color: rgba(0,110,88,0.80);
-  }
 }
 
 /* ── Match panel (AI search results) ── */
