@@ -152,27 +152,6 @@
       </div>
     </div>
 
-    <!-- AVAILABILITY -->
-    <div class="settings-section">
-      <div class="settings-section__label">Availability</div>
-
-      <div class="settings-row">
-        <div class="settings-row__left">
-          <div class="settings-row__icon settings-row__icon--teal">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-          <div class="settings-row__info">
-            <div class="settings-row__title">Available to meet</div>
-            <div class="settings-row__desc">Show you as open to spontaneous meetups on the map.</div>
-          </div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="available-toggle">
-          <span class="toggle__track"></span>
-        </label>
-      </div>
-    </div>
-
     <!-- ACCOUNT -->
     <div class="settings-section">
       <div class="settings-section__label">Account</div>
@@ -314,13 +293,7 @@
     if (topbarBtn) topbarBtn.innerHTML = isLight ? MOON_ICON : SUN_ICON;
   });
 
-  const availToggle = document.getElementById('available-toggle');
-  const _availUserId = Auth.getUserId();
-  const _availKey = _availUserId ? 'availableToMeet_' + _availUserId : 'availableToMeet';
-  availToggle.checked = localStorage.getItem(_availKey) === 'true';
-  availToggle.addEventListener('change', () => {
-    localStorage.setItem(_availKey, availToggle.checked ? 'true' : 'false');
-  });
+
 
   // Personality — quiz status
   async function loadQuizStatus() {
