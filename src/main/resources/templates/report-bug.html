@@ -11,79 +11,74 @@
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
     .report-header {
-      padding: 22px 18px 18px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 12px;
+      padding: 20px 18px 16px; border-bottom: 1px solid var(--border);
     }
-    .report-header__back {
-      width: 32px; height: 32px; border-radius: 50%;
-      border: 1px solid var(--border-2); background: var(--surface);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text-2); text-decoration: none; flex-shrink: 0;
-      transition: border-color var(--t-fast), color var(--t-fast);
-    }
-    .report-header__back:hover { border-color: var(--accent-border); color: var(--accent); }
 
     .report-body { padding: 24px 18px 40px; display: flex; flex-direction: column; gap: 20px; }
 
     .report-field { display: flex; flex-direction: column; gap: 6px; }
     .report-field__label {
-      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
     }
 
-    .report-select, .report-input, .report-textarea {
+    /* Custom dropdown */
+    .custom-select { position: relative; }
+    .custom-select__trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 44px; padding: 0 14px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius); color: var(--text-2); font-size: 13px;
+      cursor: pointer; user-select: none;
+      transition: border-color var(--t-fast), color var(--t-fast);
+    }
+    .custom-select__trigger--selected { color: var(--text); }
+    .custom-select__trigger:hover { border-color: var(--border-3); }
+    .custom-select__trigger--open { border-color: var(--accent-border); color: var(--text); }
+    .custom-select__chevron { color: var(--text-3); flex-shrink: 0; transition: transform 0.2s; }
+    .custom-select__trigger--open .custom-select__chevron { transform: rotate(180deg); }
+
+    .custom-select__menu {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: none;
+    }
+    .custom-select__menu--open { display: block; }
+    .custom-select__option {
+      padding: 11px 14px; font-size: 13px; color: var(--text-2); cursor: pointer;
+      transition: background var(--t-fast), color var(--t-fast);
+      border-bottom: 1px solid var(--border);
+    }
+    .custom-select__option:last-child { border-bottom: none; }
+    .custom-select__option:hover { background: var(--surface-2); color: var(--text); }
+    .custom-select__option--selected { color: var(--accent); background: var(--accent-dim); }
+
+    .report-textarea {
       background: var(--surface); border: 1px solid var(--border-2);
       border-radius: var(--radius); color: var(--text);
       font-family: var(--font-body); font-size: 13px;
-      transition: border-color var(--t-fast);
+      padding: 12px; resize: none; line-height: 1.6; min-height: 140px;
       width: 100%; box-sizing: border-box;
+      transition: border-color var(--t-fast);
     }
-    .report-select:focus, .report-input:focus, .report-textarea:focus {
-      outline: none; border-color: var(--accent-border);
-    }
-    .report-select { height: 44px; padding: 0 12px; appearance: none; cursor: pointer; }
-    .report-input  { height: 44px; padding: 0 12px; }
-    .report-textarea { padding: 12px; resize: none; line-height: 1.6; min-height: 120px; }
-
-    .report-select-wrap { position: relative; }
-    .report-select-wrap::after {
-      content: ''; position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-      width: 0; height: 0;
-      border-left: 5px solid transparent; border-right: 5px solid transparent;
-      border-top: 5px solid var(--text-3); pointer-events: none;
-    }
+    .report-textarea:focus { outline: none; border-color: var(--accent-border); }
 
     .report-hint { font-size: 11px; color: var(--text-3); line-height: 1.5; }
-
-    .report-severity {
-      display: flex; gap: 8px;
-    }
-    .severity-btn {
-      flex: 1; height: 38px; border-radius: var(--radius-pill);
-      border: 1px solid var(--border-2); background: var(--surface);
-      color: var(--text-3); font-family: var(--font-mono); font-size: 10px;
-      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
-      transition: border-color var(--t-fast), color var(--t-fast), background var(--t-fast);
-    }
-    .severity-btn--active-low    { border-color: #4CAF50; color: #4CAF50; background: rgba(76,175,80,0.08); }
-    .severity-btn--active-medium { border-color: #FF9800; color: #FF9800; background: rgba(255,152,0,0.08); }
-    .severity-btn--active-high   { border-color: rgba(255,70,70,0.8); color: rgba(255,70,70,0.8); background: rgba(255,50,50,0.08); }
 
     .report-submit {
       width: 100%; height: 48px; border-radius: var(--radius-pill);
       background: var(--accent); border: none; color: #000;
       font-family: var(--font-display); font-weight: 800; font-size: 14px;
-      letter-spacing: 0.02em; cursor: pointer;
-      transition: opacity var(--t-fast), transform var(--t-fast);
+      cursor: pointer; transition: opacity var(--t-fast), transform var(--t-fast);
     }
     .report-submit:hover { opacity: 0.88; }
     .report-submit:active { transform: scale(0.98); }
     .report-submit:disabled { opacity: 0.4; cursor: default; }
 
-    /* Success state */
     .report-success {
       display: none; flex-direction: column; align-items: center;
-      padding: 48px 24px; gap: 14px; text-align: center;
+      padding: 56px 24px; gap: 14px; text-align: center;
     }
     .report-success__icon {
       width: 64px; height: 64px; border-radius: 20px;
@@ -102,44 +97,32 @@
   <main class="page-content">
 
     <div class="report-header">
-      <a href="/settings" class="report-header__back">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </a>
-      <div>
-        <div class="page-title" style="margin:0;">Report a Bug</div>
-        <div class="page-subtitle" style="margin:0;">Help us fix what's broken</div>
-      </div>
+      <div class="page-title" style="margin:0;">Report a Bug</div>
+      <div class="page-subtitle" style="margin:0;">Help us fix what's broken</div>
     </div>
 
-    <!-- Form -->
     <div class="report-body" id="report-body">
 
       <div class="report-field">
         <div class="report-field__label">Category</div>
-        <div class="report-select-wrap">
-          <select class="report-select" id="bug-category">
-            <option value="" disabled selected>Select a category…</option>
-            <option value="map">Map &amp; pins</option>
-            <option value="listings">Listings &amp; meets</option>
-            <option value="auth">Login &amp; account</option>
-            <option value="explore">Explore &amp; search</option>
-            <option value="requests">Requests &amp; bookings</option>
-            <option value="profile">Profile &amp; settings</option>
-            <option value="notifications">Notifications</option>
-            <option value="performance">Performance &amp; crashes</option>
-            <option value="other">Other</option>
-          </select>
+        <div class="custom-select" id="category-select">
+          <div class="custom-select__trigger" id="category-trigger" onclick="toggleDropdown()">
+            <span id="category-label" style="color:var(--text-3);">Select a category…</span>
+            <svg class="custom-select__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="custom-select__menu" id="category-menu">
+            <div class="custom-select__option" onclick="selectCategory('map','Map &amp; pins')">Map &amp; pins</div>
+            <div class="custom-select__option" onclick="selectCategory('listings','Listings &amp; meets')">Listings &amp; meets</div>
+            <div class="custom-select__option" onclick="selectCategory('auth','Login &amp; account')">Login &amp; account</div>
+            <div class="custom-select__option" onclick="selectCategory('explore','Explore &amp; search')">Explore &amp; search</div>
+            <div class="custom-select__option" onclick="selectCategory('requests','Requests &amp; bookings')">Requests &amp; bookings</div>
+            <div class="custom-select__option" onclick="selectCategory('profile','Profile &amp; settings')">Profile &amp; settings</div>
+            <div class="custom-select__option" onclick="selectCategory('notifications','Notifications')">Notifications</div>
+            <div class="custom-select__option" onclick="selectCategory('performance','Performance &amp; crashes')">Performance &amp; crashes</div>
+            <div class="custom-select__option" onclick="selectCategory('other','Other')">Other</div>
+          </div>
         </div>
-      </div>
-
-      <div class="report-field">
-        <div class="report-field__label">Severity</div>
-        <div class="report-severity">
-          <button class="severity-btn" data-severity="low"    onclick="setSeverity('low',this)">Low</button>
-          <button class="severity-btn" data-severity="medium" onclick="setSeverity('medium',this)">Medium</button>
-          <button class="severity-btn" data-severity="high"   onclick="setSeverity('high',this)">High</button>
-        </div>
-        <div class="report-hint">Low = minor visual issue · Medium = feature broken · High = can't use the app</div>
+        <input type="hidden" id="bug-category">
       </div>
 
       <div class="report-field">
@@ -149,20 +132,14 @@
       </div>
 
       <div class="report-field">
-        <div class="report-field__label">Steps to reproduce <span style="color:var(--text-3);font-size:10px;letter-spacing:0;text-transform:none;">(optional)</span></div>
+        <div class="report-field__label">Steps to reproduce <span style="font-size:10px;letter-spacing:0;text-transform:none;">(optional)</span></div>
         <textarea class="report-textarea" id="bug-steps" placeholder="1. Go to …&#10;2. Tap …&#10;3. See error" style="min-height:90px;" maxlength="500"></textarea>
-      </div>
-
-      <div class="report-field">
-        <div class="report-field__label">Page / URL <span style="color:var(--text-3);font-size:10px;letter-spacing:0;text-transform:none;">(optional)</span></div>
-        <input class="report-input" id="bug-url" type="text" placeholder="e.g. /map or /explore" maxlength="200">
       </div>
 
       <button class="report-submit" id="report-submit-btn" onclick="submitReport()">Send report</button>
 
     </div>
 
-    <!-- Success -->
     <div class="report-success" id="report-success">
       <div class="report-success__icon">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -181,15 +158,33 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  let _severity = '';
+  let _category = '';
 
-  function setSeverity(level, btn) {
-    _severity = level;
-    document.querySelectorAll('.severity-btn').forEach(b => {
-      b.className = 'severity-btn';
-    });
-    btn.classList.add('severity-btn--active-' + level);
+  function toggleDropdown() {
+    const trigger = document.getElementById('category-trigger');
+    const menu    = document.getElementById('category-menu');
+    const isOpen  = menu.classList.toggle('custom-select__menu--open');
+    trigger.classList.toggle('custom-select__trigger--open', isOpen);
   }
+
+  function selectCategory(value, label) {
+    _category = value;
+    document.getElementById('bug-category').value = value;
+    const labelEl = document.getElementById('category-label');
+    labelEl.textContent = label;
+    labelEl.style.color = '';
+    document.querySelectorAll('.custom-select__option').forEach(o => o.classList.remove('custom-select__option--selected'));
+    event.currentTarget.classList.add('custom-select__option--selected');
+    document.getElementById('category-menu').classList.remove('custom-select__menu--open');
+    document.getElementById('category-trigger').classList.remove('custom-select__trigger--open');
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('category-select').contains(e.target)) {
+      document.getElementById('category-menu').classList.remove('custom-select__menu--open');
+      document.getElementById('category-trigger').classList.remove('custom-select__trigger--open');
+    }
+  });
 
   document.getElementById('bug-description').addEventListener('input', function() {
     document.getElementById('char-count').textContent = this.value.length + ' / 1000';
@@ -199,9 +194,8 @@
     const category    = document.getElementById('bug-category').value;
     const description = document.getElementById('bug-description').value.trim();
 
-    if (!category) { showToast('Please select a category.', 'error'); return; }
+    if (!category)    { showToast('Please select a category.', 'error'); return; }
     if (!description) { showToast('Please describe the bug.', 'error'); return; }
-    if (!_severity) { showToast('Please select a severity level.', 'error'); return; }
 
     const btn = document.getElementById('report-submit-btn');
     btn.disabled = true;
@@ -210,32 +204,24 @@
     const userId   = Auth.getUserId();
     const username = Auth.getUsername() || 'anonymous';
     const steps    = document.getElementById('bug-steps').value.trim();
-    const url      = document.getElementById('bug-url').value.trim();
 
     const body = [
       `**User:** ${username} (id: ${userId ?? 'n/a'})`,
       `**Category:** ${category}`,
-      `**Severity:** ${_severity}`,
       '',
       `**Description:**`,
       description,
       steps ? `\n**Steps to reproduce:**\n${steps}` : '',
-      url   ? `\n**Page:** ${url}` : '',
       '',
       `_Submitted: ${new Date().toISOString()}_`,
-    ].filter(l => l !== undefined).join('\n');
+    ].join('\n');
 
-    // Send as mailto fallback (real API endpoint can replace this later)
     const mailto = `mailto:vito.strmecki@gmail.com`
-      + `?subject=${encodeURIComponent('[ExperiMate Bug] ' + category + ' — ' + _severity)}`
+      + `?subject=${encodeURIComponent('[ExperiMate Bug] ' + category)}`
       + `&body=${encodeURIComponent(body)}`;
 
-    // Try to open mailto; show success regardless (user may dismiss mail client)
-    try {
-      window.location.href = mailto;
-    } catch(e) { /* ignore */ }
+    try { window.location.href = mailto; } catch(e) { /* ignore */ }
 
-    // Show success screen after short delay
     setTimeout(() => {
       document.getElementById('report-body').classList.add('report-body--hidden');
       document.getElementById('report-success').classList.add('report-success--visible');
