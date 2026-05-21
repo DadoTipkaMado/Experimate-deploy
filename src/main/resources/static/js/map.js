@@ -320,6 +320,9 @@ window.toggleDatePanel = function(btn) {
   const panel = document.getElementById('map-date-panel');
   const open  = panel.classList.toggle('map-date-panel--open');
   btn.classList.toggle('pill--active', open);
+  // Close venue dropdown if open
+  document.getElementById('map-venue-dropdown')?.classList.remove('map-venue-dropdown--open');
+  document.getElementById('pill-venues')?.classList.remove('pill--active');
   closeMapPopup();
 };
 
@@ -419,10 +422,19 @@ const _poiActive   = {};   // catKey → bool
 let   _poiDebounce = null;
 let   _poiAbort    = null;
 
+window.toggleVenueDropdown = function(pill) {
+  const dropdown = document.getElementById('map-venue-dropdown');
+  const isOpen = dropdown.classList.toggle('map-venue-dropdown--open');
+  pill.classList.toggle('pill--active', isOpen);
+  // Close date panel if open
+  document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
+  document.getElementById('pill-date')?.classList.remove('pill--active');
+};
+
 window.togglePoiFilter = function(btn, catKey) {
   const isNowActive = !_poiActive[catKey];
   _poiActive[catKey] = isNowActive;
-  btn.classList.toggle('vcat-btn--active', isNowActive);
+  btn.classList.toggle('pill--active', isNowActive);
 
   if (!isNowActive) {
     _clearPoiLayer(catKey);
@@ -445,7 +457,7 @@ function _updateLegendVenues() {
   if (!el) return;
   const active = Object.keys(_poiActive).filter(k => _poiActive[k]);
   if (!active.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="map-legend__section">Lokali</div>` +
+  el.innerHTML = `<div class="map-legend__section">Venues</div>` +
     active.map(k => {
       const cat = _POI[k];
       return `<div class="map-legend__row"><div class="map-legend__dot" style="background:${cat.color};"></div>${cat.emoji} ${cat.label}</div>`;
@@ -480,6 +492,7 @@ async function _doFetchPois() {
 
   if (_poiAbort) _poiAbort.abort();
   _poiAbort = new AbortController();
+  const _poiTimeout = setTimeout(() => _poiAbort.abort(), 10000);
 
   try {
     const res  = await fetch(
@@ -520,6 +533,8 @@ async function _doFetchPois() {
     });
   } catch (err) {
     if (err.name !== 'AbortError') showToast('Could not load venue data.', 'error');
+  } finally {
+    clearTimeout(_poiTimeout);
   }
 }
 
