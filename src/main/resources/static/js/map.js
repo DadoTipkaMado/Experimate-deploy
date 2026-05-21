@@ -8,6 +8,8 @@ const MapState = {
   clusterGroup: null,
   allMarkers: [],       // { marker, listing, pinType } — full list for filtering
   availableOnly: false,
+  dateFrom: null,       // Date | null
+  dateTo: null,         // Date | null
   userCache: {},        // username → UserResponse (for popup photos)
   myMeetMap: {},        // listingId → 'my-meet' | 'due-soon'
   unlockedIds: new Set(), // listingIds where exact location is visible (own or accepted)
@@ -187,12 +189,15 @@ function openMapPopup(listing, pinType = 'default') {
   MapState._popupPinType  = pinType;
   MapState._popupUnlocked = MapState.unlockedIds.has(listing.id);
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType, MapState._popupUnlocked);
-  document.getElementById('map-popup-footer').innerHTML = `<button class="popup-action" onclick="openListingDetailFromMap()">See listing →</button>`;
-  document.getElementById('map-popup-overlay').style.display = 'flex';
+  document.getElementById('map-popup-footer').innerHTML = `<button class="popup-action" style="width:100%;" onclick="openListingDetailFromMap()">See listing →</button>`;
+  document.getElementById('map-bottom-sheet').classList.add('map-bs--open');
+  // Close date panel if open
+  document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
+  document.getElementById('pill-date')?.classList.remove('pill--active');
 }
 
 function closeMapPopup() {
-  document.getElementById('map-popup-overlay').style.display = 'none';
+  document.getElementById('map-bottom-sheet').classList.remove('map-bs--open');
 }
 
 function openListingDetailFromMap() {
@@ -298,9 +303,54 @@ function applyMarkerFilter() {
   MapState.clusterGroup.clearLayers();
   MapState.allMarkers.forEach(({ marker, listing }) => {
     if (MapState.availableOnly && (listing.currentGuestCount ?? 0) >= (listing.maxGuests ?? 1)) return;
+    if (MapState.dateFrom || MapState.dateTo) {
+      const d = new Date(listing.meetingDate);
+      if (MapState.dateFrom && d < MapState.dateFrom) return;
+      if (MapState.dateTo) {
+        const to = new Date(MapState.dateTo); to.setHours(23, 59, 59);
+        if (d > to) return;
+      }
+    }
     MapState.clusterGroup.addLayer(marker);
   });
 }
+
+/* ── Date filter ── */
+window.toggleDatePanel = function(btn) {
+  const panel = document.getElementById('map-date-panel');
+  const open  = panel.classList.toggle('map-date-panel--open');
+  btn.classList.toggle('pill--active', open);
+  closeMapPopup();
+};
+
+window.applyDateFilter = function() {
+  const fromVal = document.getElementById('date-from').value;
+  const toVal   = document.getElementById('date-to').value;
+  MapState.dateFrom = fromVal ? new Date(fromVal) : null;
+  MapState.dateTo   = toVal   ? new Date(toVal)   : null;
+  const hasFilter = !!(fromVal || toVal);
+  document.getElementById('pill-date').classList.toggle('pill--active', hasFilter);
+  document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
+  if (!hasFilter) document.getElementById('pill-date').classList.remove('pill--active');
+  applyMarkerFilter();
+  const count = MapState.allMarkers.filter(({ marker }) => MapState.clusterGroup.hasLayer(marker)).length;
+  showToast(`${count} listing${count !== 1 ? 's' : ''} in selected range`, 'default');
+};
+
+window.clearDateFilter = function() {
+  document.getElementById('date-from').value = '';
+  document.getElementById('date-to').value   = '';
+  MapState.dateFrom = null;
+  MapState.dateTo   = null;
+  document.getElementById('pill-date').classList.remove('pill--active');
+  document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
+  applyMarkerFilter();
+};
+
+/* ── Legend toggle ── */
+window.toggleLegend = function() {
+  document.getElementById('map-legend').classList.toggle('map-legend--collapsed');
+};
 
 /* ───────────────────────────────────────────────
    SEARCH — pin filter only
