@@ -619,11 +619,11 @@
     try {
       if (action === 'accept') {
         await BookingRequestAPI.accept(id);
-        document.querySelector(`#req-${id} .req-card__foot`).innerHTML = '<span class="req-status-badge req-status-badge--accepted">Accepted</span>';
+        document.getElementById(`req-${id}`)?.remove();
         showToast('Request accepted!', 'success');
       } else {
         await BookingRequestAPI.decline(id);
-        document.querySelector(`#req-${id} .req-card__foot`).innerHTML = '<span class="req-status-badge req-status-badge--declined">Declined</span>';
+        document.getElementById(`req-${id}`)?.remove();
         showToast('Request declined.', 'default');
       }
       const remaining = document.querySelectorAll('.req-btn--accept').length;
