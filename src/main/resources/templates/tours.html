@@ -54,43 +54,54 @@
       width: 1px; background: var(--border-2); margin: 4px 2px; align-self: stretch;
     }
 
-    /* ── Meet card (redesigned) ── */
+    /* ── Meet card ── */
     .meet-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); overflow: hidden;
-      transition: border-color var(--t-fast);
+      border-radius: 16px; overflow: hidden; cursor: pointer;
+      transition: border-color var(--t-fast), transform var(--t-fast);
+      position: relative;
     }
-    .meet-card--upcoming { border-left: 3px solid var(--accent); }
-    .meet-card--past { opacity: 0.6; }
+    .meet-card:active { transform: scale(0.98); }
+    .meet-card--upcoming { border-color: var(--border-2); }
+    .meet-card--past { opacity: 0.5; }
+
+    /* Accent strip top */
+    .meet-card--upcoming::before {
+      content: ''; display: block; height: 3px;
+      background: linear-gradient(90deg, var(--accent) 0%, rgba(0,201,167,0.3) 100%);
+    }
+
     .meet-card__body {
-      display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px;
+      display: flex; align-items: center; gap: 14px; padding: 16px 16px 12px;
     }
     .meet-card__avatar {
-      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
-      background: var(--surface-2); border: 1px solid var(--border-2);
+      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface-2); border: 2px solid var(--border-2);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; font-family: var(--font-display); font-weight: 800;
     }
     .meet-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
     .meet-card__info { flex: 1; min-width: 0; }
     .meet-card__name {
-      font-family: var(--font-display); font-weight: 700; font-size: 14px;
+      font-family: var(--font-display); font-weight: 800; font-size: 15px;
       color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .meet-card__handle { font-size: 10px; color: var(--text-3); margin-top: 1px; }
+    .meet-card__handle { font-size: 11px; color: var(--text-3); margin-top: 2px; }
     .meet-card__meta {
-      display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 6px; margin-top: 8px;
     }
-    .meet-card__city {
-      font-size: 11px; color: var(--text-2); display: flex; align-items: center; gap: 4px;
+    .meet-card__pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--text-2);
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-pill); padding: 3px 10px;
     }
-    .meet-card__dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border-2); }
-    .meet-card__date { font-size: 11px; color: var(--text-3); }
+    .meet-card__pill--accent { color: var(--accent); border-color: var(--accent-border); background: var(--accent-dim); }
     .meet-card__foot {
-      display: flex; gap: 8px; padding: 0 14px 13px;
+      padding: 0 16px 14px; display: flex; gap: 8px;
     }
     .meet-card__btn {
-      flex: 1; height: 36px; border-radius: var(--radius-pill);
+      flex: 1; height: 38px; border-radius: var(--radius-pill);
       font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.07em;
       text-transform: uppercase; cursor: pointer; border: 1px solid;
       transition: all var(--t-fast);
@@ -104,7 +115,7 @@
     .meet-card__btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .badge--rated {
       font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--accent); padding: 0 12px; height: 36px; border-radius: var(--radius-pill);
+      color: var(--accent); padding: 0 12px; height: 38px; border-radius: var(--radius-pill);
       border: 1px solid var(--accent-border); background: var(--accent-dim);
       display: inline-flex; align-items: center;
     }
@@ -206,7 +217,7 @@
       padding-bottom: calc(var(--navbar-h) + 16px);
     }
     .detail-sheet--open { bottom: 0; }
-    .detail-sheet__handle { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
+    .detail-sheet__drag { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
     .detail-sheet__hero {
       display: flex; flex-direction: column; align-items: center;
       padding: 20px 20px 22px; gap: 6px; border-bottom: 1px solid var(--border);
@@ -363,7 +374,7 @@
 <!-- ── MEET DETAIL SHEET ── -->
 <div class="detail-backdrop" id="detail-backdrop" onclick="closeMeetDetail()"></div>
 <div class="detail-sheet" id="detail-sheet">
-  <div class="detail-sheet__handle"></div>
+  <div class="detail-sheet__drag"></div>
   <div class="detail-sheet__hero">
     <div class="detail-sheet__avatar" id="ds-avatar"></div>
     <div class="detail-sheet__name" id="ds-name"></div>
@@ -534,8 +545,9 @@
     const btnBase = 'width:100%;height:48px;font-size:12px;border-radius:var(--radius-pill);border:1px solid;cursor:pointer;font-family:var(--font-mono);letter-spacing:0.07em;text-transform:uppercase;transition:all var(--t-fast);';
 
     // Show on map button (always, if coords available)
-    const lat = listing.lat ?? listing.latitude, lng = listing.lng ?? listing.longitude;
-    const mapBtn = (lat && lng)
+    const lat = listing.lat ?? listing.latitude ?? null;
+    const lng = listing.lng ?? listing.longitude ?? null;
+    const mapBtn = (lat != null && lng != null)
       ? `<button style="${btnBase}background:var(--surface-2);border-color:var(--border-2);color:var(--text-2);"
            onclick="showOnMap(${lat},${lng})">
            <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -638,9 +650,8 @@
                 <div class="meet-card__name">${hostName}</div>
                 <div class="meet-card__handle">@${hostUsername}</div>
                 <div class="meet-card__meta">
-                  <span class="meet-card__city"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${res.tourListing.city}</span>
-                  <div class="meet-card__dot"></div>
-                  <span class="meet-card__date">${dateStr}</span>
+                  <span class="meet-card__pill"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>${res.tourListing.city}</span>
+                  <span class="meet-card__pill meet-card__pill--accent">${dateStr}</span>
                 </div>
               </div>
             </div>
@@ -658,9 +669,8 @@
                 <div class="meet-card__name">${guestName}</div>
                 <div class="meet-card__handle">@${guestUsername}</div>
                 <div class="meet-card__meta">
-                  <span class="meet-card__city"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${res.tourListing.city}</span>
-                  <div class="meet-card__dot"></div>
-                  <span class="meet-card__date">${dateStr}</span>
+                  <span class="meet-card__pill"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>${res.tourListing.city}</span>
+                  <span class="meet-card__pill meet-card__pill--accent">${dateStr}</span>
                 </div>
               </div>
             </div>
