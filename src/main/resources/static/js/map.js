@@ -54,12 +54,21 @@ function initMap() {
   L.control.zoom({ position: 'bottomleft' }).addTo(MapState.map);
 
   const flyToRaw = sessionStorage.getItem('mapFlyTo');
+  const flyCity  = sessionStorage.getItem('mapSearchCity');
   if (flyToRaw) {
     try {
       const { lat, lng, zoom } = JSON.parse(flyToRaw);
       MapState.map.setView([lat, lng], zoom || 16);
     } catch (e) { /* ignore */ }
     sessionStorage.removeItem('mapFlyTo');
+  } else if (flyCity) {
+    sessionStorage.removeItem('mapSearchCity');
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(flyCity)}&format=json&limit=1`)
+      .then(r => r.json())
+      .then(results => {
+        if (results[0]) MapState.map.setView([parseFloat(results[0].lat), parseFloat(results[0].lon)], 14);
+      })
+      .catch(() => {});
   } else if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -409,12 +418,15 @@ if (geoInput) {
 ═══════════════════════════════════════════════ */
 
 const _POI = {
-  cafe:    { label: 'Kafići',    color: '#f59e0b', emoji: '☕', filters: [['amenity','cafe']] },
-  bar:     { label: 'Barovi',   color: '#ef4444', emoji: '🍺', filters: [['amenity','bar'],['amenity','nightclub']] },
-  museum:  { label: 'Muzeji',   color: '#8b5cf6', emoji: '🏛️', filters: [['tourism','museum']] },
-  cinema:  { label: 'Kina',     color: '#06b6d4', emoji: '🎬', filters: [['amenity','cinema']] },
-  stadium: { label: 'Sportski', color: '#22c55e', emoji: '🏟️', filters: [['leisure','stadium'],['leisure','sports_centre']] },
-  theatre: { label: 'Kazalište',color: '#f472b6', emoji: '🎭', filters: [['amenity','theatre']] },
+  food:     { label: 'Food & Drink',    color: '#f97316', emoji: '🍽️', filters: [['amenity','restaurant'],['amenity','fast_food'],['amenity','food_court'],['amenity','cafe']] },
+  coffee:   { label: 'Coffee',          color: '#f59e0b', emoji: '☕', filters: [['amenity','cafe']] },
+  nightlife:{ label: 'Bars & Nightlife',color: '#ef4444', emoji: '🍺', filters: [['amenity','bar'],['amenity','nightclub'],['amenity','pub']] },
+  culture:  { label: 'Culture',         color: '#8b5cf6', emoji: '🏛️', filters: [['tourism','museum'],['tourism','gallery'],['amenity','arts_centre']] },
+  outdoors: { label: 'Parks & Outdoors',color: '#22c55e', emoji: '🌿', filters: [['leisure','park'],['leisure','garden'],['leisure','nature_reserve'],['boundary','national_park']] },
+  sports:   { label: 'Sports',          color: '#06b6d4', emoji: '🏟️', filters: [['leisure','stadium'],['leisure','sports_centre'],['leisure','swimming_pool'],['leisure','fitness_centre']] },
+  arts:     { label: 'Arts & Theatre',  color: '#f472b6', emoji: '🎭', filters: [['amenity','theatre'],['amenity','cinema'],['amenity','music_venue']] },
+  history:  { label: 'History',         color: '#a16207', emoji: '🏰', filters: [['historic','monument'],['historic','memorial'],['historic','castle'],['tourism','attraction'],['historic','ruins']] },
+  market:   { label: 'Markets',         color: '#10b981', emoji: '🛒', filters: [['amenity','marketplace'],['shop','mall'],['amenity','food_court']] },
 };
 
 const _poiLayers   = {};   // catKey → L.LayerGroup
@@ -439,6 +451,7 @@ window.togglePoiFilter = function(btn, catKey) {
   if (!isNowActive) {
     _clearPoiLayer(catKey);
     _updateLegendVenues();
+    _applyProximityFilter();
     return;
   }
   _fetchPoisForActive();
@@ -450,18 +463,64 @@ function _clearPoiLayer(catKey) {
     MapState.map.removeLayer(_poiLayers[catKey]);
     delete _poiLayers[catKey];
   }
+  delete _venueCoords[catKey];
 }
+
+// Haversine distance in metres between two lat/lng points
+function _haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Venue coords fetched per category: catKey → [{lat, lng}]
+const _venueCoords = {};
+const PROXIMITY_M  = 250; // meets within this distance of a venue are shown
 
 function _updateLegendVenues() {
   const el = document.getElementById('legend-venues');
   if (!el) return;
   const active = Object.keys(_poiActive).filter(k => _poiActive[k]);
   if (!active.length) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="map-legend__section">Venues</div>` +
+  el.innerHTML = `<div class="map-legend__section">Showing meets near</div>` +
     active.map(k => {
       const cat = _POI[k];
-      return `<div class="map-legend__row"><div class="map-legend__dot" style="background:${cat.color};"></div>${cat.emoji} ${cat.label}</div>`;
+      return `<div class="map-legend__row"><div class="map-legend__dot" style="background:${cat.color};opacity:1;"></div>${cat.emoji} ${cat.label}</div>`;
     }).join('');
+}
+
+function _applyProximityFilter() {
+  const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
+
+  if (!activeKeys.length) {
+    // No filter active — show all meets
+    MapState.allMarkers.forEach(({ marker }) => {
+      if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
+    });
+    return;
+  }
+
+  // Gather all venue coords across active categories
+  const allVenues = activeKeys.flatMap(k => _venueCoords[k] || []);
+
+  MapState.allMarkers.forEach(({ marker, listing }) => {
+    const mLat = listing.lat ?? listing.latitude;
+    const mLng = listing.lng ?? listing.longitude;
+    if (mLat == null || mLng == null) {
+      // No coords — hide when filtering
+      MapState.clusterGroup.removeLayer(marker);
+      return;
+    }
+    const near = allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M);
+    if (near) {
+      if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
+    } else {
+      MapState.clusterGroup.removeLayer(marker);
+    }
+  });
 }
 
 function _fetchPoisForActive() {
@@ -471,28 +530,31 @@ function _fetchPoisForActive() {
 
 async function _doFetchPois() {
   const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
-  if (!activeKeys.length) return;
+  if (!activeKeys.length) { _applyProximityFilter(); return; }
 
   const zoom = MapState.map.getZoom();
-  if (zoom < 12) {
-    showToast('Zoom in to see venue markers.', 'default');
+  if (zoom < 11) {
+    showToast('Zoom in closer to filter by venue type.', 'default');
     return;
   }
 
-  const b    = MapState.map.getBounds();
+  // Expand bounds slightly for better coverage
+  const b    = MapState.map.getBounds().pad(0.3);
   const bbox = `${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()}`;
 
-  const queryParts = activeKeys.flatMap(k =>
+  // Only fetch categories whose coords we don't have yet for this view
+  const toFetch = activeKeys;
+  const queryParts = toFetch.flatMap(k =>
     _POI[k].filters.flatMap(([key, val]) => [
       `node["${key}"="${val}"](${bbox});`,
       `way["${key}"="${val}"](${bbox});`,
     ])
   ).join('');
-  const query = `[out:json][timeout:15];(${queryParts});out center;`;
+  const query = `[out:json][timeout:20];(${queryParts});out center;`;
 
   if (_poiAbort) _poiAbort.abort();
   _poiAbort = new AbortController();
-  const _poiTimeout = setTimeout(() => _poiAbort.abort(), 10000);
+  const _poiTimeout = setTimeout(() => _poiAbort.abort(), 15000);
 
   try {
     const res  = await fetch(
@@ -501,12 +563,14 @@ async function _doFetchPois() {
     );
     const data = await res.json();
 
-    // Rebuild all active layers fresh
+    // Clear old venue layers
     activeKeys.forEach(k => _clearPoiLayer(k));
 
+    // Store venue coords and build dim background markers
     activeKeys.forEach(catKey => {
       const cat   = _POI[catKey];
-      const group = L.layerGroup().addTo(MapState.map);
+      const coords = [];
+      const group  = L.layerGroup().addTo(MapState.map);
       _poiLayers[catKey] = group;
 
       data.elements.forEach(el => {
@@ -514,23 +578,21 @@ async function _doFetchPois() {
         const lat = el.lat ?? el.center?.lat;
         const lng = el.lon ?? el.center?.lon;
         if (lat == null || lng == null) return;
+        coords.push({ lat, lng });
 
-        const name = el.tags?.name || cat.label;
+        // Dim background venue dot (context only, not clickable)
         const icon = L.divIcon({
           className: '',
-          html: `<div class="poi-pin" style="background:${cat.color};" title="${escapeHtml(name)}"></div>`,
-          iconSize:   [10, 10],
-          iconAnchor: [5, 5],
+          html: `<div style="width:8px;height:8px;border-radius:50%;background:${cat.color};opacity:0.35;"></div>`,
+          iconSize: [8, 8], iconAnchor: [4, 4],
         });
-        const marker = L.marker([lat, lng], { icon, zIndexOffset: -100 });
-        marker.bindPopup(
-          `<div style="font-family:var(--font-display);font-weight:700;font-size:13px;line-height:1.4;">${escapeHtml(name)}</div>` +
-          `<div style="font-size:11px;color:${cat.color};margin-top:2px;">${cat.emoji} ${cat.label}</div>`,
-          { className: 'dark-popup', maxWidth: 200 }
-        );
-        group.addLayer(marker);
+        group.addLayer(L.marker([lat, lng], { icon, zIndexOffset: -200, interactive: false }));
       });
+
+      _venueCoords[catKey] = coords;
     });
+
+    _applyProximityFilter();
   } catch (err) {
     if (err.name !== 'AbortError') showToast('Could not load venue data.', 'error');
   } finally {

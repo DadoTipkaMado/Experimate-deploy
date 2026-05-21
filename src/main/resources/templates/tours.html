@@ -547,7 +547,10 @@
     // Show on map button (always, if coords available)
     const lat = listing.lat ?? listing.latitude ?? null;
     const lng = listing.lng ?? listing.longitude ?? null;
-    const mapOnclick = (lat != null && lng != null) ? `showOnMap(${lat},${lng})` : `window.location.href='/map'`;
+    const mapOnclick = (lat != null && lng != null)
+      ? `showOnMap(${lat},${lng})`
+      : `showOnMap(null,null,'${(listing.city || '').replace(/'/g,"\\'")}')`;
+
     const mapBtn = `<button style="${btnBase}background:var(--surface-2);border-color:var(--border-2);color:var(--text-2);"
          onclick="${mapOnclick}">
          <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -584,8 +587,12 @@
     document.body.style.overflow = '';
   }
 
-  function showOnMap(lat, lng) {
-    sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat, lng, zoom: 16 }));
+  function showOnMap(lat, lng, city) {
+    if (lat != null && lng != null) {
+      sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat, lng, zoom: 16 }));
+    } else if (city) {
+      sessionStorage.setItem('mapSearchCity', city);
+    }
     window.location.href = '/map';
   }
 
