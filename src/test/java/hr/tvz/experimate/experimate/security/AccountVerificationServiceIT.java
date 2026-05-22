@@ -1,7 +1,6 @@
 package hr.tvz.experimate.experimate.security;
 
 import com.icegreen.greenmail.junit5.GreenMailExtension;
-import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
 import hr.tvz.experimate.experimate.domain.user.User;
@@ -9,6 +8,10 @@ import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.response.UserResponse;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+
+import java.io.IOException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +26,12 @@ import static org.awaitility.Awaitility.await;
 class AccountVerificationServiceIT extends AbstractIntegrationTest {
 
     @RegisterExtension
-    GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP);
+    static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP);
+
+    @BeforeEach
+    void resetMailbox() {
+        greenMail.reset();
+    }
 
     @Autowired
     private AccountVerificationService accountVerificationService;
@@ -33,11 +41,11 @@ class AccountVerificationServiceIT extends AbstractIntegrationTest {
     private BCryptPasswordEncoder encoder;
 
     @Test
-    void verifyEmail_validToken_setsEmailVerified() {
+    void verifyEmail_validToken_setsEmailVerified() throws Exception {
         restTemplate.postForEntity("/api/user", buildDto("marko.horvat@test.com", "mhorvat"), UserResponse.class);
 
         await().atMost(5, TimeUnit.SECONDS).until(() -> greenMail.getReceivedMessages().length == 1);
-        String token = extractToken(GreenMailUtil.getBody(greenMail.getReceivedMessages()[0]));
+        String token = extractToken(greenMail.getReceivedMessages()[0]);
 
         accountVerificationService.verifyEmail(token);
 
@@ -45,7 +53,7 @@ class AccountVerificationServiceIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void confirmPasswordReset_validToken_changesPasswordAndVerifiesEmail() {
+    void confirmPasswordReset_validToken_changesPasswordAndVerifiesEmail() throws Exception {
         // Register — verification email arrives async
         restTemplate.postForEntity("/api/user", buildDto("ana.kos@test.com", "akos"), UserResponse.class);
         await().atMost(5, TimeUnit.SECONDS).until(() -> greenMail.getReceivedMessages().length == 1);
@@ -55,7 +63,7 @@ class AccountVerificationServiceIT extends AbstractIntegrationTest {
         await().atMost(5, TimeUnit.SECONDS).until(() -> greenMail.getReceivedMessages().length == 2);
 
         // Reset email is the second message
-        String token = extractToken(GreenMailUtil.getBody(greenMail.getReceivedMessages()[1]));
+        String token = extractToken(greenMail.getReceivedMessages()[1]);
 
         accountVerificationService.confirmPasswordReset(token, "newPassword1234");
 
@@ -67,10 +75,12 @@ class AccountVerificationServiceIT extends AbstractIntegrationTest {
     // ── helpers ──────────────────────────────────────────────────────────────
 
     /**
-     * Extracts the raw token from a verification or reset email body.
-     * Both email types embed the token as the last path segment: {@code ?token=<raw>}.
+     * Extracts the raw token from a verification or reset email.
+     * Uses {@link MimeMessage#getContent()} to decode any quoted-printable or base64
+     * transfer encoding before searching for the {@code ?token=} query parameter.
      */
-    private static String extractToken(String body) {
+    private static String extractToken(MimeMessage message) throws MessagingException, IOException {
+        String body = (String) message.getContent();
         int idx = body.indexOf("?token=") + "?token=".length();
         // token is URL-safe Base64 — ends at the first whitespace character
         return body.substring(idx).split("\\s+")[0];
