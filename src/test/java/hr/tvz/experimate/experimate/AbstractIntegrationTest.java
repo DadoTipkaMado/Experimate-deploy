@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate;
 
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
@@ -59,8 +61,11 @@ public abstract class AbstractIntegrationTest {
     @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16");
 
+    protected static final GreenMail greenMail = new GreenMail(ServerSetupTest.SMTP);
+
     static {
         POSTGRES.start();
+        greenMail.start();
     }
 
     @Autowired
@@ -96,6 +101,7 @@ public abstract class AbstractIntegrationTest {
      */
     @BeforeEach
     void truncateAllTables() throws SQLException {
+        greenMail.reset();
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute(
