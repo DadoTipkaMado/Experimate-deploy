@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.security;
 
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
 import hr.tvz.experimate.experimate.domain.refresh_token.RefreshTokenRepo;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.UserService;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class AuthIT extends AbstractIntegrationTest {
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    UserRepo userRepo;
 
     @Autowired
     RefreshTokenRepo refreshTokenRepo;
@@ -156,6 +160,10 @@ class AuthIT extends AbstractIntegrationTest {
                 "123123123123",
                 null
         ));
+        userRepo.findByUsername("dtopic").ifPresent(u -> {
+            u.setEmailVerified(true);
+            userRepo.save(u);
+        });
     }
 
     private ResponseEntity<Void> sendLogoutRequest(String refreshToken, String accessToken) {

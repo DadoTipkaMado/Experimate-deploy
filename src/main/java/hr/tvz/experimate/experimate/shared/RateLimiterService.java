@@ -21,6 +21,22 @@ public class RateLimiterService {
             throw new RateLimitException("Rate limit exceeded. Please slow down and try again later.");
     }
 
+    /**
+     * Rate-limits an operation keyed by an arbitrary string (e.g. email address).
+     * Used for unauthenticated endpoints where no user ID is available.
+     *
+     * @param operation the operation whose bucket limits apply
+     * @param key       the rate-limit key (e.g. normalized email address)
+     * @throws RateLimitException if the bucket for this key is exhausted
+     */
+    public void consume(RateLimitOperation operation, String key) {
+        String bucketKey = operation.name() + ":" + key;
+        Bucket bucket = buckets.computeIfAbsent(bucketKey, k -> createBucket(operation));
+
+        if (!bucket.tryConsume(1))
+            throw new RateLimitException("Rate limit exceeded. Please slow down and try again later.");
+    }
+
     private Bucket createBucket(RateLimitOperation operation) {
         LocalBucketBuilder builder = Bucket.builder();
         operation.limits.forEach(builder::addLimit);

@@ -7,6 +7,7 @@ import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.shared.event.GoogleUserCreationEvent;
 import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.shared.event.UserRegisteredEvent;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.dto.UpdateUserDto;
 import hr.tvz.experimate.experimate.domain.user.exception.EmailTakenException;
@@ -71,6 +72,7 @@ public class UserService {
 
         userRepo.save(user);
         quizResultRepo.save(new QuizResult(user));
+        publisher.publishEvent(new UserRegisteredEvent(user.getId(), user.getEmail(), user.getFirstName()));
         log.info("User created with id {}", user.getId());
 
         return createUserResponse(user);
