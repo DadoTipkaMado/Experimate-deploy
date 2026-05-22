@@ -1,9 +1,13 @@
 package hr.tvz.experimate.experimate.domain.user;
 
+import com.icegreen.greenmail.junit5.GreenMailExtension;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.response.UserResponse;
+import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +15,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 class UserIT extends AbstractIntegrationTest {
+
+    @RegisterExtension
+    GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP);
 
     @Autowired
     private UserRepo userRepo;
@@ -108,5 +117,28 @@ class UserIT extends AbstractIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void createUser_emailNotVerifiedAfterRegistration_verificationEmailSent() throws Exception {
+        CreateUserDto dto = new CreateUserDto(
+                "Marko", "Horvat",
+                LocalDate.of(2000, 6, 15),
+                "98765432109876543",
+                "marko.horvat@test.com",
+                "mhorvat",
+                "password123456",
+                null
+        );
+
+        ResponseEntity<UserResponse> response = restTemplate.postForEntity("/api/user", dto, UserResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(userRepo.findByUsername("mhorvat").orElseThrow().isEmailVerified()).isFalse();
+
+        await().atMost(5, TimeUnit.SECONDS).until(() -> greenMail.getReceivedMessages().length == 1);
+        MimeMessage mail = greenMail.getReceivedMessages()[0];
+        assertThat(mail.getAllRecipients()[0].toString()).isEqualTo("marko.horvat@test.com");
+        assertThat(mail.getSubject()).isEqualTo("Verify your ExperiMate email address");
     }
 }

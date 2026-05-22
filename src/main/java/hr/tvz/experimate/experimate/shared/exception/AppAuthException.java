@@ -6,6 +6,8 @@ package hr.tvz.experimate.experimate.shared.exception;
  * <p>Subclasses represent specific auth failure modes:
  * <ul>
  *   <li>{@link RefreshTokenException} (→ HTTP 403) — refresh token missing, expired, or invalid</li>
+ *   <li>{@link EmailNotVerifiedException} (→ HTTP 403) — login attempted before email verification</li>
+ *   <li>{@link InvalidTokenException} (→ HTTP 400) — one-time token unknown, consumed, or expired</li>
  *   <li>{@code InvalidGoogleTokenException} (→ HTTP 401) — Google ID token failed verification</li>
  *   <li>{@code UnverifiedGoogleEmailException} (→ HTTP 401) — Google account email is not verified</li>
  * </ul>

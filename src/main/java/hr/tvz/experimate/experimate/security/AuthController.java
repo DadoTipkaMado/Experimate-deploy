@@ -32,14 +32,18 @@ public class AuthController {
 
     private final AuthService authService;
     private final GoogleAuthService googleAuthService;
+    private final AccountVerificationService accountVerificationService;
 
     private final String REFRESH_COOKIE = "refresh_token";
     @Value("${refresh-token.expiration}")
     private long refreshTokenExpirationMS;
 
-    public AuthController(AuthService authService, GoogleAuthService googleAuthService) {
+    public AuthController(AuthService authService,
+                          GoogleAuthService googleAuthService,
+                          AccountVerificationService accountVerificationService) {
         this.authService = authService;
         this.googleAuthService = googleAuthService;
+        this.accountVerificationService = accountVerificationService;
     }
 
     @PostMapping("/login")
@@ -105,6 +109,57 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new AuthResponse(tokenResponse.accessToken()));
+    }
+
+    /**
+     * Marks the caller's email address as verified by consuming a one-time token.
+     *
+     * @param req contains the raw token from the verification link
+     * @return {@code 204 No Content} on success; {@code 400} if the token is invalid or expired
+     */
+    @PostMapping("/verify-email")
+    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest req) {
+        accountVerificationService.verifyEmail(req.token());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Sends a fresh verification email if the address belongs to an unverified mail+password account.
+     * Always returns {@code 202} regardless of whether the address exists, to prevent enumeration.
+     *
+     * @param req contains the email address to resend to
+     * @return {@code 202 Accepted}
+     */
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerification(@Valid @RequestBody ResendVerificationRequest req) {
+        accountVerificationService.resendVerification(req.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    /**
+     * Sends a password reset email if the address belongs to a mail+password account.
+     * Always returns {@code 202} regardless of whether the address exists, to prevent enumeration.
+     *
+     * @param req contains the email address to send the reset link to
+     * @return {@code 202 Accepted}
+     */
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<Void> requestPasswordReset(@Valid @RequestBody PasswordResetRequest req) {
+        accountVerificationService.requestPasswordReset(req.email());
+        return ResponseEntity.accepted().build();
+    }
+
+    /**
+     * Resets the caller's password by consuming a one-time reset token.
+     * Invalidates all active refresh tokens so the old password cannot resume a session.
+     *
+     * @param req contains the raw token from the reset link and the new plaintext password
+     * @return {@code 204 No Content} on success; {@code 400} if the token is invalid or expired
+     */
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<Void> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest req) {
+        accountVerificationService.confirmPasswordReset(req.token(), req.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     private String extractRequestCookie(HttpServletRequest request, String name) {
