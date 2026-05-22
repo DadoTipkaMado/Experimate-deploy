@@ -11,9 +11,11 @@ import hr.tvz.experimate.experimate.domain.user.UserService;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.security.AuthResponse;
 import hr.tvz.experimate.experimate.security.LoginRequest;
+import hr.tvz.experimate.experimate.config.TestAsyncConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,6 +53,7 @@ import java.util.Map;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
 @ActiveProfiles("test")
+@Import(TestAsyncConfig.class)
 public abstract class AbstractIntegrationTest {
 
     @ServiceConnection
