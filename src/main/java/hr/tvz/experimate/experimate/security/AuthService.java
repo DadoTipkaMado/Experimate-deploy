@@ -1,6 +1,7 @@
 package hr.tvz.experimate.experimate.security;
 
 import hr.tvz.experimate.experimate.domain.refresh_token.RefreshTokenService;
+import hr.tvz.experimate.experimate.shared.exception.EmailNotVerifiedException;
 import hr.tvz.experimate.experimate.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
@@ -36,6 +37,10 @@ public class AuthService {
 
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
+
+        // credentials are valid — now block unverified accounts before issuing tokens
+        if (!user.isEmailVerified())
+            throw new EmailNotVerifiedException("Email not verified. Check your inbox or request a new verification link.");
 
         log.info("User {} logged in successfully.", user.getUsername());
         log.debug("Log in successful, generating new JWT");

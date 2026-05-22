@@ -81,6 +81,20 @@ public class RefreshTokenService {
         log.info("Refresh token invalidated.");
     }
 
+    /**
+     * Deletes the refresh token belonging to the given user, if any.
+     * Called after a successful password reset so existing sessions cannot be
+     * reused — the user must log in again with the new password.
+     * If no active token exists, the operation completes silently (idempotent).
+     *
+     * @param userId the ID of the user whose session should be invalidated
+     */
+    @Transactional
+    public void invalidateAllForUser(Integer userId) {
+        refreshTokenRepo.deleteByUser_Id(userId);
+        log.info("Refresh token invalidated for user {}", userId);
+    }
+
     private boolean isValid(RefreshToken refreshToken) {
         return (refreshTokenRepo.existsByTokenAndUser_Id(
                 refreshToken.getToken(),

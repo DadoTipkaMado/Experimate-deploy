@@ -15,6 +15,16 @@ public enum RateLimitOperation {
             .capacity(10)
             .refillIntervally(10, Duration.ofMinutes(5))
             .build()
+    ),
+    EMAIL_RESEND(Bandwidth.builder()
+            .capacity(5)
+            .refillIntervally(5, Duration.ofHours(1))
+            .build()
+    ),
+    PASSWORD_RESET(Bandwidth.builder()
+            .capacity(5)
+            .refillIntervally(5, Duration.ofHours(1))
+            .build()
     );
 
     final List<Bandwidth> limits;
