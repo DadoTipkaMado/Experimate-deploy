@@ -1,7 +1,9 @@
 package hr.tvz.experimate.experimate.shared;
 import hr.tvz.experimate.experimate.shared.exception.ConflictException;
+import hr.tvz.experimate.experimate.shared.exception.EmailNotVerifiedException;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.shared.exception.InternalServerException;
+import hr.tvz.experimate.experimate.shared.exception.InvalidTokenException;
 import hr.tvz.experimate.experimate.shared.exception.NotFoundException;
 import hr.tvz.experimate.experimate.shared.exception.RateLimitException;
 import hr.tvz.experimate.experimate.shared.exception.RefreshTokenException;
@@ -69,6 +71,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAppAuthException(RefreshTokenException ex) {
         ErrorResponse auth = createErrorResponse(HttpStatus.FORBIDDEN, ex);
         return new ResponseEntity<>(auth, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ErrorResponse> handleEmailNotVerifiedException(EmailNotVerifiedException ex) {
+        ErrorResponse unverified = createErrorResponse(HttpStatus.FORBIDDEN, ex);
+        return new ResponseEntity<>(unverified, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTokenException(InvalidTokenException ex) {
+        ErrorResponse invalidToken = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
+        return new ResponseEntity<>(invalidToken, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(RateLimitException.class)
