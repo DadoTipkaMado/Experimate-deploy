@@ -68,6 +68,20 @@ document.addEventListener('DOMContentLoaded', () => {
     _isLastPage   = listingPage.last ?? true;
 
     applyAndRender();
+
+    const idParam = new URLSearchParams(window.location.search).get('id');
+    if (idParam) {
+      const targetId = parseInt(idParam, 10);
+      history.replaceState({}, '', '/explore');
+      const found = _allListings.find(l => l.id === targetId);
+      if (found) {
+        openListingDetailFromExplore(targetId);
+      } else {
+        TourListingAPI.getById(targetId)
+          .then(l => openListingDetail(l, {}))
+          .catch(() => showToast('Meet not found', 'error'));
+      }
+    }
   }).catch(() => renderFeed([]));
 
   // Infinite scroll — listen on the reel-feed container (not window)
@@ -252,6 +266,14 @@ function renderFeed(listings) {
         <span class="reel-action__label">Map</span>
       </div>` : '';
 
+    const shareActionHtml = `
+      <div class="reel-action" onclick="event.stopPropagation();reelShare(${l.id})">
+        <div class="reel-action__btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.82)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        </div>
+        <span class="reel-action__label">Share</span>
+      </div>`;
+
     return `
       <div class="reel-card">
         <div class="reel-card__bg" style="${bgStyle}"></div>
@@ -265,6 +287,7 @@ function renderFeed(listings) {
             <span class="reel-action__label">${joinLabel}</span>
           </div>
           ${mapActionHtml}
+          ${shareActionHtml}
         </div>
 
         <div class="reel-info" onclick="openListingDetailFromExplore(${l.id})">
@@ -321,6 +344,22 @@ function reelJoin(e, listingId) {
 function reelGoToMap(lat, lng) {
   sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat, lng, zoom: 16 }));
   window.location.href = '/map';
+}
+
+function reelShare(listingId) {
+  const listing = _allListings.find(l => l.id === listingId);
+  const url     = `${window.location.origin}/explore?id=${listingId}`;
+  const city    = listing?.city ?? '';
+  const title   = city ? `Meet in ${city} — ExperiMate` : 'ExperiMate';
+  const text    = listing?.tourDescription || 'Check out this local experience on ExperiMate.';
+
+  if (navigator.share) {
+    navigator.share({ title, text, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied!', 'success'))
+      .catch(() => showToast('Could not copy link', 'error'));
+  }
 }
 
 function openListingDetailFromExplore(listingId) {
