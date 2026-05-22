@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,7 @@ public class PasswordResetTokenService {
      * @param user the user to issue the token for
      * @return the raw (unhashed) token — must be sent to the user via email, never logged
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public String issueToken(User user) {
         String raw = generateToken();
         repo.deleteByUser_Id(user.getId());
