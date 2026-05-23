@@ -5,6 +5,9 @@ import hr.tvz.experimate.experimate.domain.reservation.exception.ReservationNotF
 import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
 import hr.tvz.experimate.experimate.domain.user.User;
@@ -635,5 +638,53 @@ class ReservationServiceTest {
         verify(r1).expire();
         verify(r2).expire();
         verify(reservationRepo).saveAll(List.of(r1, r2));
+    }
+
+    // ──────────────── getPresence ────────────────
+
+    @Test
+    void getPresence_throwsIfReservationNotFound() {
+        when(reservationRepo.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(ReservationNotFoundException.class,
+                () -> service.getPresence(10, 1));
+    }
+
+    @Test
+    void getPresence_throwsIfListingHasNoReservations() {
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getHost()).thenReturn(mock(User.class));
+        when(listing.getId()).thenReturn(5);
+        // data integrity violation — listing returned no reservations despite one being loaded by ID
+        when(reservationRepo.findAllByTourListing_Id(5)).thenReturn(List.of());
+
+        assertThrows(IllegalStateException.class,
+                () -> service.getPresence(99, 1));
+    }
+
+    @Test
+    void getPresence_throwsIfCallerIsNeitherHostNorGuest() {
+        Integer outsiderId = 42;
+
+        Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+        User guest = mock(User.class);
+
+        when(reservationRepo.findById(1)).thenReturn(Optional.of(reservation));
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+        when(listing.getId()).thenReturn(5);
+        when(reservationRepo.findAllByTourListing_Id(5)).thenReturn(List.of(reservation));
+        when(reservation.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(10);
+
+        assertThrows(ForbiddenActionException.class,
+                () -> service.getPresence(outsiderId, 1));
     }
 }

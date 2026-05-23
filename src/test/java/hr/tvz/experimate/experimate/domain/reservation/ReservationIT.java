@@ -1,12 +1,16 @@
 package hr.tvz.experimate.experimate.domain.reservation;
 
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
+import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
+import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.ReservationResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
+
+import java.time.temporal.ChronoUnit;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,19 @@ class ReservationIT extends AbstractIntegrationTest {
                 RESERVATION_URL + "/" + reservationId + "/presence", HttpMethod.GET,
                 new HttpEntity<>(bearerHeaders(jwt)),
                 PresenceResponse[].class
+        );
+    }
+
+    /** Sends a booking request for the given listing and immediately accepts it as the host. */
+    private void bookAndAccept(String guestJwt, String hostJwt, Integer listingId) {
+        Integer requestId = restTemplate.exchange(
+                BOOKING_URL, HttpMethod.POST,
+                new HttpEntity<>(new CreateBookingRequestDto(listingId), bearerHeaders(guestJwt)),
+                BookingRequestResponse.class
+        ).getBody().id();
+        restTemplate.exchange(
+                BOOKING_URL + "/accept/" + requestId, HttpMethod.PATCH,
+                new HttpEntity<>(bearerHeaders(hostJwt)), Void.class
         );
     }
 
@@ -98,6 +115,54 @@ class ReservationIT extends AbstractIntegrationTest {
         assertThat(presence).allSatisfy(p -> assertThat(p.checkedIn()).isTrue());
         assertThat(reservation).isPresent();
         assertThat(reservation.get().getStatus()).isEqualTo(ReservationStatus.ACTIVE);
+    }
+
+    @Test
+    void getPresence_withTwoGuests_hostSeesAllThreeParticipants() {
+        Map<String, String> hostTokens  = loginAndGetTokens("host");
+        Map<String, String> guest1Tokens = loginAndGetTokens("guest1");
+        Map<String, String> guest2Tokens = loginAndGetTokens("guest2");
+
+        Integer listingId = createListing(hostTokens.get("accessToken"), 25, ChronoUnit.MINUTES, 3);
+        bookAndAccept(guest1Tokens.get("accessToken"), hostTokens.get("accessToken"), listingId);
+        bookAndAccept(guest2Tokens.get("accessToken"), hostTokens.get("accessToken"), listingId);
+
+        Integer anyReservationId = reservationRepo.findAllByTourListing_Id(listingId).get(0).getId();
+
+        ResponseEntity<PresenceResponse[]> response = getPresence(hostTokens.get("accessToken"), anyReservationId);
+        List<PresenceResponse> presence = List.of(response.getBody());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(presence).hasSize(3);
+        assertThat(presence).filteredOn(PresenceResponse::isHost).hasSize(1);
+        assertThat(presence).filteredOn(p -> !p.isHost()).hasSize(2);
+        assertThat(presence).extracting(PresenceResponse::username)
+                .containsExactlyInAnyOrder("host", "guest1", "guest2");
+    }
+
+    @Test
+    void getPresence_guest2UsingOwnReservationId_seesAllThreeParticipants() {
+        Map<String, String> hostTokens  = loginAndGetTokens("host");
+        Map<String, String> guest1Tokens = loginAndGetTokens("guest1");
+        Map<String, String> guest2Tokens = loginAndGetTokens("guest2");
+
+        Integer listingId = createListing(hostTokens.get("accessToken"), 25, ChronoUnit.MINUTES, 3);
+        bookAndAccept(guest1Tokens.get("accessToken"), hostTokens.get("accessToken"), listingId);
+        // capture guest1's reservation before guest2 books — safe to use findByTourListing_Id here (single result)
+        bookAndAccept(guest2Tokens.get("accessToken"), hostTokens.get("accessToken"), listingId);
+
+        Integer guest2ReservationId = reservationRepo.findAllByTourListing_Id(listingId)
+                .stream()
+                .filter(r -> r.getGuest().getUsername().equals("guest2"))
+                .findFirst().orElseThrow().getId();
+
+        ResponseEntity<PresenceResponse[]> response = getPresence(guest2Tokens.get("accessToken"), guest2ReservationId);
+        List<PresenceResponse> presence = List.of(response.getBody());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(presence).hasSize(3);
+        assertThat(presence).extracting(PresenceResponse::username)
+                .containsExactlyInAnyOrder("host", "guest1", "guest2");
     }
 
     // ── PATCH /end-tour/{reservationId} ───────────────────────────────────────
