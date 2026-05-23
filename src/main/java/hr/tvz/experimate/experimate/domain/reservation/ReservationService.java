@@ -36,6 +36,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -420,47 +421,66 @@ public class ReservationService {
 
 
     /**
-     * Returns presence information for all participants of a reservation.
+     * Returns presence information for all participants of a tour session.
      *
-     * <p>Only the guest or host of the reservation may call this method.
+     * <p>Loads all reservations for the same {@link TourListing} as the given reservation,
+     * so that every guest attending the same tour is included in the response.
+     * Only the host or any participating guest may call this method.
      *
      * @param callerId      ID of the authenticated user making the request
-     * @param reservationId ID of the target reservation
-     * @return list of {@link PresenceResponse} for the guest and host
+     * @param reservationId ID of any reservation belonging to the target tour session
+     * @return list of {@link PresenceResponse} — host first, followed by each guest
      * @throws ReservationNotFoundException if no reservation exists with the given ID
-     * @throws ForbiddenActionException     if the caller is not a participant of the reservation
+     * @throws ForbiddenActionException     if the caller is not a participant of the tour
      */
     public List<PresenceResponse> getPresence(Integer callerId, Integer reservationId) {
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> new ReservationNotFoundException(reservationId));
 
-        User guest = reservation.getGuest();
-        User host = reservation.getTourListing().getHost();
+        TourListing tourListing = reservation.getTourListing();
+        User host = tourListing.getHost();
 
-        // only participants may view presence
-        boolean isParticipant = guest.getId().equals(callerId) || host.getId().equals(callerId);
+        List<Reservation> allReservations = reservationRepo.findAllByTourListing_Id(tourListing.getId());
+
+        // data integrity guard — the reservation we just loaded must appear in this list
+        if (allReservations.isEmpty())
+            throw new IllegalStateException("No reservations found for listing " + tourListing.getId() + " — data integrity violation");
+
+        // only participants may view presence (host or any guest across all reservations for this tour)
+        boolean isParticipant = host.getId().equals(callerId) ||
+                allReservations.stream().anyMatch(r -> r.getGuest().getId().equals(callerId));
         if (!isParticipant)
             throw new ForbiddenActionException("Only participants of the reservation can view presence.");
 
-        PresenceResponse guestPresence = new PresenceResponse(
-                guest.getUsername(),
-                guest.getFirstName(),
-                guest.getLastName(),
-                guest.getProfilePhotoFilename(),
-                reservation.isGuestCheckedIn(),
-                false
-        );
-
         PresenceResponse hostPresence = new PresenceResponse(
+                host.getId(),
                 host.getUsername(),
                 host.getFirstName(),
                 host.getLastName(),
                 host.getProfilePhotoFilename(),
-                reservation.getTourListing().isHostCheckedIn(),
+                tourListing.isHostCheckedIn(),
                 true
         );
 
-        return List.of(guestPresence, hostPresence);
+        List<PresenceResponse> guestPresences = allReservations.stream()
+                .map(r -> {
+                    User guest = r.getGuest();
+                    return new PresenceResponse(
+                            guest.getId(),
+                            guest.getUsername(),
+                            guest.getFirstName(),
+                            guest.getLastName(),
+                            guest.getProfilePhotoFilename(),
+                            r.isGuestCheckedIn(),
+                            false
+                    );
+                })
+                .toList();
+
+        List<PresenceResponse> result = new ArrayList<>(guestPresences.size() + 1);
+        result.add(hostPresence);
+        result.addAll(guestPresences);
+        return result;
     }
 
     /**

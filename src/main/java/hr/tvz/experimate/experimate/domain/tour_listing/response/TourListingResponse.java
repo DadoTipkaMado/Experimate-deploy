@@ -13,6 +13,7 @@ public record TourListingResponse(
         LocalDateTime postDate,
         String tourDescription,
         Integer maxGuests,
+        Integer bookedCount,
         UserDetails host
 ) {
 }

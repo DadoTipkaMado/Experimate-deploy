@@ -261,7 +261,8 @@ public class UserService {
                 user.getLastName(),
                 user.getBio(),
                 user.getRating(),
-                profilePhotoUrl
+                profilePhotoUrl,
+                user.getPersonalitySummary()
         );
     }
 

@@ -30,7 +30,6 @@ import java.util.Map;
 public class OnboardingService {
 
     private static final int MAX_QUIZ_COMPLETIONS = 3;
-    private static final String SUMMARY_PLACEHOLDER = "[AI personality summary not yet implemented]";
     private static final Logger log = LoggerFactory.getLogger(OnboardingService.class);
 
     private final QuizResultRepo quizResultRepo;
@@ -94,14 +93,18 @@ public class OnboardingService {
     }
 
     /**
-     * Submits quiz answers, computes the Big Five personality vector, and marks the quiz as completed.
+     * Submits quiz answers, computes the Big Five personality vector, persists the result, and returns
+     * an AI-generated personality summary alongside the computed scores.
      *
      * <p>The answers list must contain exactly 10 Likert responses (1–5), ordered by item number.
      * Index 0 corresponds to item 1, index 9 to item 10.
      *
+     * <p>The AI-generated summary is stored on the {@link User} entity so it can be retrieved later
+     * via the user profile endpoints. If AI generation fails, the summary is persisted as {@code null}.
+     *
      * @param userId  the ID of the user submitting answers
      * @param answers list of 10 Likert responses (1–5), ordered by item number
-     * @return the computed personality vector and an AI-generated summary (placeholder until Phase 1B)
+     * @return the computed personality vector and an AI-generated summary
      * @throws UserNotFoundException             if no user exists with the given ID
      * @throws QuizResultNotFoundException       if no quiz result exists for the user
      * @throws QuizRetakeLimitExceededException  if the user has exhausted the retake limit
@@ -118,7 +121,10 @@ public class OnboardingService {
         Map<Integer, Integer> answersMap = toAnswersMap(answers);
         Big5Vector vector = big5Calculator.compute(answersMap);
 
+        String summary = aiMatchingService.generatePersonalitySummary(vector).orElse(null);
+
         user.setPersonalityMetricsFromVector(vector);
+        user.setPersonalitySummary(summary);
         user.incrementQuizCompletionCount();
         userRepo.save(user);
 
@@ -128,9 +134,6 @@ public class OnboardingService {
 
         publisher.publishEvent(new QuizCompletedEvent(userId, vector));
         log.info("Quiz completed for user {}", userId);
-
-        String summary = aiMatchingService.generatePersonalitySummary(vector)
-                .orElse(SUMMARY_PLACEHOLDER);
 
         return new OnboardingCompletionResponse(toVectorDto(vector), summary);
     }
