@@ -41,6 +41,8 @@ public class User extends Person {
     private Double personalityAgreeableness;
     private Double personalityNeuroticism;
     private LocalDateTime personalityComputedAt;
+    @Column(columnDefinition = "TEXT")
+    private String personalitySummary;
     @Column(columnDefinition="boolean default false")
     private boolean onboardingCompleted = false;
     @Column(columnDefinition="int default 0")
@@ -194,6 +196,12 @@ public class User extends Person {
     /** @return Timestamp of when the personality profile was last computed, or {@code null} before onboarding. */
     public LocalDateTime getPersonalityComputedAt() { return personalityComputedAt; }
 
+    /** @return AI-generated natural-language summary of the personality profile, or {@code null} if not yet generated. */
+    public String getPersonalitySummary() { return personalitySummary; }
+
+    /** Sets the AI-generated personality summary. Called by {@link hr.tvz.experimate.experimate.domain.onboarding.OnboardingService} after quiz completion. */
+    public void setPersonalitySummary(String personalitySummary) { this.personalitySummary = personalitySummary; }
+
     /** @return the number of times this user has completed the onboarding quiz. */
     public int getQuizCompletionCount() { return quizCompletionCount; }
 
@@ -221,6 +229,7 @@ public class User extends Person {
         this.personalityAgreeableness     = null;
         this.personalityNeuroticism       = null;
         this.personalityComputedAt        = null;
+        this.personalitySummary           = null;
         this.onboardingCompleted          = false;
     }
 

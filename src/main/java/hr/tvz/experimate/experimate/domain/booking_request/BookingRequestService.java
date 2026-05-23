@@ -84,8 +84,10 @@ public class BookingRequestService {
                 windowEnd,
                 blockingStatuses
         );
-        boolean isHostAlreadyReserved = reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
+        // only block if the host is committed to a *different* listing in this window — same listing allows multiple guests
+        boolean isHostAlreadyReserved = reservationRepo.existsByHostOnDifferentListingInWindow(
                 listing.getHost().getId(),
+                listingId,
                 windowStart,
                 windowEnd,
                 blockingStatuses
