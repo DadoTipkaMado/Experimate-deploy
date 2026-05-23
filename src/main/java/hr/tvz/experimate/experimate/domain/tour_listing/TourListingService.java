@@ -30,7 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TourListingService {
@@ -104,8 +106,18 @@ public class TourListingService {
     }
 
     public Page<TourListingResponse> getAllListings(Integer resourceOwnerId, Pageable pageable) {
-        return listingRepo.findAllByHost_IdNot(resourceOwnerId, pageable)
-                .map(this::createListingResponse);
+        Page<TourListing> page = listingRepo.findAllByHost_IdNot(resourceOwnerId, pageable);
+
+        List<Integer> ids = page.stream().map(TourListing::getId).toList();
+        List<ReservationStatus> activeStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
+        Map<Integer, Long> bookedCounts = reservationRepo.countByListingIdsAndStatusIn(ids, activeStatuses)
+                .stream()
+                .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
+
+        return page.map(listing -> createListingResponse(
+                listing,
+                bookedCounts.getOrDefault(listing.getId(), 0L).intValue()
+        ));
     }
 
     public TourListingResponse updateListing(Integer id, UpdateTourListingDto dto, Integer callerId) {
@@ -245,7 +257,11 @@ public class TourListingService {
         log.info("Tour manually started for listing {}", listingId);
     }
 
-    private TourListingResponse createListingResponse(TourListing listing){
+    private TourListingResponse createListingResponse(TourListing listing) {
+        return createListingResponse(listing, 0);
+    }
+
+    private TourListingResponse createListingResponse(TourListing listing, int bookedCount) {
         return new TourListingResponse(
                 listing.getId(),
                 listing.getCity(),
@@ -255,6 +271,7 @@ public class TourListingService {
                 listing.getPostDate(),
                 listing.getTourDescription(),
                 listing.getMaxGuests(),
+                bookedCount,
                 detailsMapper.mapUserDetails(listing.getHost())
         );
     }
