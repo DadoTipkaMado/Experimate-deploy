@@ -3,6 +3,7 @@ package hr.tvz.experimate.experimate.domain.rating;
 import hr.tvz.experimate.experimate.domain.rating.dto.CreateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.dto.UpdateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.response.RatingResponse;
+import hr.tvz.experimate.experimate.shared.UserDetails;
 
 import hr.tvz.experimate.experimate.domain.reservation.Reservation;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
@@ -67,6 +68,12 @@ class RatingServiceTest {
 
         when(rater.getId()).thenReturn(1);
         when(rated.getId()).thenReturn(2);
+        when(rater.getFirstName()).thenReturn("John");
+        when(rater.getLastName()).thenReturn("Doe");
+        when(rater.getUsername()).thenReturn("john.doe");
+        when(rated.getFirstName()).thenReturn("Jane");
+        when(rated.getLastName()).thenReturn("Smith");
+        when(rated.getUsername()).thenReturn("jane.smith");
 
         CreateRatingDto dto = new CreateRatingDto(rated.getId(), 3, "SUPER");
 
@@ -83,11 +90,15 @@ class RatingServiceTest {
         when(rating.getId()).thenReturn(1);
         when(rating.getScore()).thenReturn(3);
         when(rating.getReview()).thenReturn("SUPER");
+        when(rating.getRater()).thenReturn(rater);
+        when(rating.getRated()).thenReturn(rated);
 
         RatingResponse response = new RatingResponse(
                 rating.getId(),
                 rating.getScore(),
-                rating.getReview()
+                rating.getReview(),
+                new UserDetails("John", "Doe", "john.doe"),
+                new UserDetails("Jane", "Smith", "jane.smith")
         );
 
         assertEquals(response, ratingService.createRating(dto, rater.getId()));
@@ -114,6 +125,8 @@ class RatingServiceTest {
                 .thenReturn(Optional.of(mock(Reservation.class)));
         when(ratingRepo.existsByRater_IdAndRated_Id(raterId, ratedId)).thenReturn(false);
         when(ratingRepo.save(any(Rating.class))).thenReturn(saved);
+        when(saved.getRater()).thenReturn(rater);
+        when(saved.getRated()).thenReturn(rated);
         // repo aggregate returns the new average — service must propagate it verbatim
         when(ratingRepo.averageRatingScoreByUserId(ratedId)).thenReturn(newAverage);
 
