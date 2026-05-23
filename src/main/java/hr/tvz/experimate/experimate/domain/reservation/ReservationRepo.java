@@ -57,4 +57,26 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
     long countByListingIdAndStatusAndGuestCheckedIn(@Param("listingId") Integer listingId,
                                                     @Param("status") ReservationStatus status,
                                                     @Param("guestCheckedIn") Boolean guestCheckedIn);
+
+    @Query("SELECT r.tourListing.id, COUNT(r) FROM Reservation r " +
+           "WHERE r.tourListing.id IN :ids AND r.status IN :statuses " +
+           "GROUP BY r.tourListing.id")
+    List<Object[]> countByListingIdsAndStatusIn(@Param("ids") List<Integer> ids,
+                                                @Param("statuses") Collection<ReservationStatus> statuses);
+
+    /**
+     * Returns true if the host has a confirmed or active reservation for a <em>different</em> listing
+     * within the given time window. Used to prevent double-booking across tours while allowing
+     * multiple guests on the same listing.
+     */
+    @Query("SELECT COUNT(r) > 0 FROM Reservation r " +
+           "WHERE r.tourListing.host.id = :hostId " +
+           "AND r.tourListing.id <> :excludeListingId " +
+           "AND r.tourListing.meetingDate BETWEEN :start AND :end " +
+           "AND r.status IN :statuses")
+    boolean existsByHostOnDifferentListingInWindow(@Param("hostId") Integer hostId,
+                                                   @Param("excludeListingId") Integer excludeListingId,
+                                                   @Param("start") LocalDateTime start,
+                                                   @Param("end") LocalDateTime end,
+                                                   @Param("statuses") Collection<ReservationStatus> statuses);
 }

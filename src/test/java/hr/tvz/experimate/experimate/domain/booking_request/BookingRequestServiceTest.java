@@ -88,8 +88,9 @@ class BookingRequestServiceTest {
         when(listing.getHost()).thenReturn(host);
         when(host.getId()).thenReturn(hostId);
 
-        when(reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
-                any(), any(), any(), any())).thenReturn(true);
+        // host has an active reservation on a *different* listing in the same window
+        when(reservationRepo.existsByHostOnDifferentListingInWindow(
+                any(), any(), any(), any(), any())).thenReturn(true);
 
         assertThrows(HostAlreadyTakenException.class, () -> service.createBookingRequest(dto, guestId));
     }
