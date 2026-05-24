@@ -1,7 +1,5 @@
 package hr.tvz.experimate.experimate.security;
 
-import com.icegreen.greenmail.junit5.GreenMailExtension;
-import com.icegreen.greenmail.util.ServerSetupTest;
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
@@ -11,9 +9,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.MessagingException;
 
 import java.io.IOException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -24,14 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 class AccountVerificationServiceIT extends AbstractIntegrationTest {
-
-    @RegisterExtension
-    static GreenMailExtension greenMail = new GreenMailExtension(ServerSetupTest.SMTP);
-
-    @BeforeEach
-    void resetMailbox() {
-        greenMail.reset();
-    }
 
     @Autowired
     private AccountVerificationService accountVerificationService;
