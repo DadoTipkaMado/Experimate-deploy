@@ -259,8 +259,7 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
   const statusLabel = isFull
     ? (maxG > 1 ? 'Full' : 'Booked')
     : maxG > 1 ? `${maxG - curG} spot${maxG - curG !== 1 ? 's' : ''} left` : 'Available';
-  const guestHtml  = maxG > 1
-    ? `<div class="popup-date">👥 ${curG}/${maxG} joined</div>` : '';
+  const guestHtml  = `<div class="popup-date">👥 ${curG}/${maxG} spots taken</div>`;
 
   let hostHtml = '';
   if (hostName) {

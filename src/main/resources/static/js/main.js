@@ -524,12 +524,8 @@ function openListingDetail(listing, opts) {
   const curG   = listing.bookedCount ?? 0;
   const guestInfoEl = document.getElementById('ld-guests');
   if (guestInfoEl) {
-    if (maxG > 1) {
-      guestInfoEl.textContent = `👥 ${curG}/${maxG} joined`;
-      guestInfoEl.style.display = '';
-    } else {
-      guestInfoEl.style.display = 'none';
-    }
+    guestInfoEl.textContent = `👥 ${curG}/${maxG} spots taken`;
+    guestInfoEl.style.display = '';
   }
 
   if (reminder) {
