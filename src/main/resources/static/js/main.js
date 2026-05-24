@@ -520,7 +520,7 @@ function openListingDetail(listing, opts) {
   document.getElementById('ld-date').textContent = `📅 ${dateStr}`;
 
   const maxG   = listing.maxGuests ?? 1;
-  const curG   = listing.currentGuestCount ?? 0;
+  const curG   = listing.bookedCount ?? 0;
   const guestInfoEl = document.getElementById('ld-guests');
   if (guestInfoEl) {
     if (maxG > 1) {

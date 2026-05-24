@@ -153,7 +153,7 @@ function applyAndRender() {
     });
   }
 
-  if (_availableOnly) items = items.filter(l => (l.currentGuestCount ?? 0) < (l.maxGuests ?? 1));
+  if (_availableOnly) items = items.filter(l => (l.bookedCount ?? 0) < (l.maxGuests ?? 1));
 
   items.sort((a, b) => new Date(a.meetingDate) - new Date(b.meetingDate));
 
@@ -190,7 +190,7 @@ function renderFeed(listings) {
     const reqStatus = myReq?.status;
     const isOwn     = !!(currentUsername && l.host?.username === currentUsername);
     const maxGuests = l.maxGuests ?? 1;
-    const guestCnt  = l.currentGuestCount ?? 0;
+    const guestCnt  = l.bookedCount ?? 0;
     const isFull    = guestCnt >= maxGuests;
     const spotsLeft = Math.max(0, maxGuests - guestCnt);
 
@@ -369,7 +369,7 @@ function openListingDetailFromExplore(listingId) {
   const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
   openListingDetail(listing, {
     isOwn,
-    reserved:   (listing.currentGuestCount ?? 0) >= (listing.maxGuests ?? 1),
+    reserved:   (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1),
     reqStatus:  myReq?.status ?? null,
     onJoinSuccess: (id) => {
       _myRequests[id] = { status: 'PENDING' };
