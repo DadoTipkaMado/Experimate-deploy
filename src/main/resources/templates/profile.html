@@ -118,6 +118,17 @@
     .profile-listing-card__status-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
     .profile-listing-card__actions { display: flex; gap: 6px; }
 
+    /* ── Reviews ── */
+    .review-card { margin: 0 18px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .review-card__stars { display: flex; gap: 3px; }
+    .review-card__star { font-size: 13px; color: var(--accent); opacity: 0.2; }
+    .review-card__star--lit { opacity: 1; }
+    .review-card__from { font-size: 10px; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
+    .review-card__from-name { color: var(--text-2); font-weight: 600; }
+    .review-card__from-handle { color: var(--text-3); }
+    .review-card__text { font-size: 11px; color: var(--text-2); line-height: 1.7; }
+    .review-card__empty-text { font-size: 10px; color: var(--text-3); font-style: italic; }
+
     /* ── Empty / not found ── */
     .profile-empty { display: flex; flex-direction: column; align-items: center; padding: 36px 24px; gap: 10px; text-align: center; }
     .profile-empty__icon { font-size: 28px; opacity: 0.18; }
@@ -307,6 +318,9 @@
 
           <div class="profile-section-label">Upcoming Days</div>
           <div class="profile-listings" id="profile-listings"></div>
+
+          <div class="profile-section-label" id="reviews-label" style="display:none;">Reviews</div>
+          <div id="profile-reviews"></div>
         </div>
       `;
 
@@ -353,6 +367,27 @@
           </div>`;
         return;
       }
+
+      // ── Reviews for this profile ─────────────────────────────────
+      RatingAPI.getAll().then(all => {
+        const forThisUser = (all || []).filter(r => r.rated?.username === user.username);
+        const reviewsEl = document.getElementById('profile-reviews');
+        if (!reviewsEl) return;
+        if (!forThisUser.length) return;
+        document.getElementById('reviews-label').style.display = '';
+        reviewsEl.innerHTML = forThisUser.map(r => {
+          const stars = Array.from({ length: 5 }, (_, i) =>
+            `<span class="review-card__star${i < r.score ? ' review-card__star--lit' : ''}">★</span>`
+          ).join('');
+          const from = r.rater
+            ? `<div class="review-card__from">From <a href="/profile/${r.rater.username}" style="display:flex;align-items:center;gap:4px;color:inherit;text-decoration:none;"><span class="review-card__from-name">${r.rater.firstName} ${r.rater.lastName}</span><span class="review-card__from-handle">@${r.rater.username}</span></a></div>`
+            : '';
+          const text = r.review
+            ? `<div class="review-card__text">"${r.review}"</div>`
+            : `<div class="review-card__empty-text">No written review.</div>`;
+          return `<div class="review-card"><div class="review-card__stars">${stars}</div>${from}${text}</div>`;
+        }).join('');
+      }).catch(() => {});
 
       listingsEl.innerHTML = userListings.map(listing => {
         const hasCoords = listing.lat != null && listing.lng != null;
