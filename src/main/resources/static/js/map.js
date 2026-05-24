@@ -135,6 +135,8 @@ function loadPins() {
         if (listing.lat == null || listing.lng == null) return;
         if (new Date(listing.meetingDate) < now) return;
         if (seenIds.has(listing.id)) return;
+        const isFull = (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1);
+        if (isFull && !MapState.unlockedIds.has(listing.id)) return;
         seenIds.add(listing.id);
         const pinType = MapState.myMeetMap[listing.id] ?? 'default';
         const marker = buildMarker(listing, pinType);
