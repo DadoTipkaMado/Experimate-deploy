@@ -383,7 +383,7 @@
       localStorage.setItem('user_hue', hue);
 
       const myListings = listings || [];
-      const activeCount = myListings.filter(l => (l.currentGuestCount ?? 0) < (l.maxGuests ?? 1)).length;
+      const activeCount = myListings.filter(l => (l.bookedCount ?? 0) < (l.maxGuests ?? 1)).length;
       document.getElementById('stat-total').textContent  = myListings.length;
       document.getElementById('stat-active').textContent = activeCount;
       document.getElementById('account-stats').style.display = '';

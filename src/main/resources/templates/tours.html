@@ -701,7 +701,7 @@
     el.innerHTML = items.map((l, i) => {
       const d = new Date(l.meetingDate);
       const isPast = d < now;
-      const isFull = (l.currentGuestCount ?? 0) >= (l.maxGuests ?? 1);
+      const isFull = (l.bookedCount ?? 0) >= (l.maxGuests ?? 1);
       const badgeCls = isFull ? 'listing-card__badge--booked' : 'listing-card__badge--open';
       const badgeLabel = isPast ? 'Past' : (isFull ? 'Booked' : 'Open');
       const foot = isPast
