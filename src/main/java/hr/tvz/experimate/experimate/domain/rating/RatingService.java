@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.domain.rating;
 
 import hr.tvz.experimate.experimate.domain.rating.dto.*;
 import hr.tvz.experimate.experimate.domain.rating.response.*;
+import hr.tvz.experimate.experimate.shared.UserDetails;
 
 import hr.tvz.experimate.experimate.domain.rating.exception.DuplicateRatingException;
 import hr.tvz.experimate.experimate.domain.rating.exception.RatingNotFoundException;
@@ -65,11 +66,7 @@ public class RatingService {
 
         log.info("Rating created with id {}", rating.getId());
 
-        RatingResponse response = new RatingResponse(
-                saved.getId(),
-                saved.getScore(),
-                saved.getReview()
-        );
+        RatingResponse response = toResponse(saved);
 
         publisher.publishEvent(new RatingCreatedEvent(
                 rater.getId(),
@@ -86,21 +83,13 @@ public class RatingService {
 
     public Optional<RatingResponse> getRatingById(Integer id) {
         Optional<Rating> rating = ratingRepo.findById(id);
-        return rating.map(r -> new RatingResponse(
-                r.getId(),
-                r.getScore(),
-                r.getReview()
-        ));
+        return rating.map(this::toResponse);
     }
 
     public List<RatingResponse> getAllRatings() {
         return ratingRepo.findAll()
                 .stream()
-                .map(rating -> new RatingResponse(
-                        rating.getId(),
-                        rating.getScore(),
-                        rating.getReview()
-                ))
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -126,11 +115,7 @@ public class RatingService {
                 ratingRepo.averageRatingScoreByUserId(rating.getRated().getId())
         ));
 
-        return new RatingResponse(
-                rating.getId(),
-                rating.getScore(),
-                rating.getReview()
-        );
+        return toResponse(rating);
     }
 
     @Transactional
@@ -157,5 +142,19 @@ public class RatingService {
     public void handleUserDeleted(UserDeletedEvent event) {
         ratingRepo.deleteAllByRater_IdOrRated_Id(event.userId(), event.userId());
         log.info("Deleted all ratings for user with id {}", event.userId());
+    }
+
+    private RatingResponse toResponse(Rating rating) {
+        UserDetails rater = new UserDetails(
+                rating.getRater().getFirstName(),
+                rating.getRater().getLastName(),
+                rating.getRater().getUsername()
+        );
+        UserDetails rated = new UserDetails(
+                rating.getRated().getFirstName(),
+                rating.getRated().getLastName(),
+                rating.getRated().getUsername()
+        );
+        return new RatingResponse(rating.getId(), rating.getScore(), rating.getReview(), rater, rated);
     }
 }

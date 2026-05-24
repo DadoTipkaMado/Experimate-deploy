@@ -7,6 +7,7 @@ public record UserResponse(
         String lastName,
         String bio,
         double rating,
-        String profilePhotoUrl
+        String profilePhotoUrl,
+        String personalitySummary
 ) {
 }
