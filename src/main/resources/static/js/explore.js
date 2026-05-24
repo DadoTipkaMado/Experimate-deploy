@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════
    EXPERIMATE — explore.js
-   Listing feed + AI match panel.
+   Listing card list + AI match panel.
 ═══════════════════════════════════════════════ */
 
 let _allListings   = [];
@@ -17,30 +17,6 @@ let _isLoadingPage = false;
 ─────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   initSearch();
-
-  // Wire header dim-on-scroll behaviour
-  const reelHeader = document.getElementById('reel-header');
-  const feedEl     = document.getElementById('listing-feed');
-  if (reelHeader && feedEl) {
-    let _lastIdx = 0;
-    feedEl.addEventListener('scroll', () => {
-      const idx = Math.round(feedEl.scrollTop / feedEl.clientHeight);
-      if (idx === _lastIdx) return;
-      _lastIdx = idx;
-      reelHeader.classList.toggle('reel-header--dim', idx > 0);
-    }, { passive: true });
-    reelHeader.addEventListener('pointerdown', () => {
-      reelHeader.classList.remove('reel-header--dim');
-    });
-  }
-
-  // Populate user avatar in reel header if cached
-  (function() {
-    const userId = localStorage.getItem('userId');
-    const photo  = userId ? localStorage.getItem('photo_' + userId) : null;
-    const btn    = document.getElementById('reel-user-btn');
-    if (btn && photo) btn.innerHTML = `<img src="${photo}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
-  })();
 
   const myRequestsPromise = Auth.getToken()
     ? Promise.all([
@@ -63,9 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
 
     const now = new Date();
-    _allListings  = (listingPage.content || []).filter(l => new Date(l.meetingDate) > now);
-    _currentPage  = 0;
-    _isLastPage   = listingPage.last ?? true;
+    _allListings = (listingPage.content || []).filter(l => new Date(l.meetingDate) > now);
+    _currentPage = 0;
+    _isLastPage  = listingPage.last ?? true;
 
     applyAndRender();
 
@@ -84,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }).catch(() => renderFeed([]));
 
-  // Infinite scroll — listen on the reel-feed container (not window)
-  if (feedEl) feedEl.addEventListener('scroll', _onFeedScroll, { passive: true });
+  const pageContent = document.querySelector('.page-content');
+  if (pageContent) pageContent.addEventListener('scroll', _onFeedScroll, { passive: true });
   else window.addEventListener('scroll', _onFeedScroll, { passive: true });
 });
 
@@ -94,18 +70,18 @@ document.addEventListener('DOMContentLoaded', () => {
 ─────────────────────────────────────────────── */
 function _onFeedScroll() {
   if (_isLoadingPage || _isLastPage) return;
-  const feed = document.getElementById('listing-feed');
-  const scrollTop    = feed ? feed.scrollTop    : window.scrollY;
-  const scrollHeight = feed ? feed.scrollHeight : document.body.scrollHeight;
-  const clientHeight = feed ? feed.clientHeight : window.innerHeight;
-  if ((clientHeight + scrollTop) < (scrollHeight - 300)) return;
+  const pc = document.querySelector('.page-content');
+  const scrollTop    = pc ? pc.scrollTop    : window.scrollY;
+  const scrollHeight = pc ? pc.scrollHeight : document.body.scrollHeight;
+  const clientHeight = pc ? pc.clientHeight : window.innerHeight;
+  if ((clientHeight + scrollTop) < (scrollHeight - 400)) return;
   _isLoadingPage = true;
   _showFeedLoader();
   TourListingAPI.getPage(_currentPage + 1)
     .then(page => {
       _currentPage++;
       _isLastPage = page.last ?? true;
-      const now   = new Date();
+      const now  = new Date();
       const fresh = (page.content || []).filter(l => new Date(l.meetingDate) > now);
       _allListings = [..._allListings, ...fresh];
       applyAndRender();
@@ -122,8 +98,8 @@ function _showFeedLoader() {
   if (!feed || document.getElementById('feed-loader')) return;
   const el = document.createElement('div');
   el.id = 'feed-loader';
-  el.style.cssText = 'display:flex;justify-content:center;padding:20px 0;';
-  el.innerHTML = '<div style="width:22px;height:22px;border:2px solid var(--border-2);border-top-color:var(--accent);border-radius:50%;animation:feedSpin 0.7s linear infinite;"></div>';
+  el.style.cssText = 'display:flex;justify-content:center;padding:24px 0;';
+  el.innerHTML = '<div style="width:20px;height:20px;border:2px solid var(--border-2);border-top-color:var(--accent);border-radius:50%;animation:feedSpin 0.7s linear infinite;"></div>';
   feed.appendChild(el);
 }
 
@@ -132,11 +108,11 @@ function _hideFeedLoader() {
 }
 
 /* ───────────────────────────────────────────────
-   FILTERS + SORT
+   FILTERS
 ─────────────────────────────────────────────── */
 function toggleAvailable(pill) {
   _availableOnly = !_availableOnly;
-  pill.classList.toggle('reel-chip--active', _availableOnly);
+  pill.classList.toggle('pill--active', _availableOnly);
   applyAndRender();
 }
 
@@ -161,7 +137,7 @@ function applyAndRender() {
 }
 
 /* ───────────────────────────────────────────────
-   RENDER — TikTok-style snap-scroll reels
+   RENDER — vertical card list
 ─────────────────────────────────────────────── */
 function renderFeed(listings) {
   const feed = document.getElementById('listing-feed');
@@ -169,10 +145,10 @@ function renderFeed(listings) {
 
   if (!listings.length) {
     feed.innerHTML = `
-      <div class="reel-empty">
-        <div class="reel-empty__icon">${_searchQuery ? '🔍' : '🗺️'}</div>
-        <div class="reel-empty__title">${_searchQuery ? `No meets for "${escapeHtml(_searchQuery)}"` : 'No meets yet'}</div>
-        <div class="reel-empty__sub">${_searchQuery ? 'Try a different city or host name.' : 'Be the first to host a local experience.'}</div>
+      <div class="explore-empty">
+        <div class="explore-empty__icon">${_searchQuery ? '🔍' : '🗺️'}</div>
+        <div class="explore-empty__title">${_searchQuery ? `No meets for "${escapeHtml(_searchQuery)}"` : 'No meets yet'}</div>
+        <div class="explore-empty__sub">${_searchQuery ? 'Try a different city or host name.' : 'Be the first to host a local experience.'}</div>
         ${!_searchQuery ? `<a href="/listings/new" class="btn btn--primary" style="margin-top:8px;">+ Host a meet</a>` : ''}
       </div>`;
     return;
@@ -181,11 +157,7 @@ function renderFeed(listings) {
   const currentUsername = Auth.getUsername();
   const currentUserId   = Auth.getUserId();
 
-  // Show swipe hint on first ever visit
-  const showHint = !localStorage.getItem('reel_hint_seen');
-  if (showHint) localStorage.setItem('reel_hint_seen', '1');
-
-  feed.innerHTML = listings.map((l) => {
+  feed.innerHTML = listings.map(l => {
     const myReq     = _myRequests[l.id];
     const reqStatus = myReq?.status;
     const isOwn     = !!(currentUsername && l.host?.username === currentUsername);
@@ -200,150 +172,110 @@ function renderFeed(listings) {
     const hue        = hostHandle.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
     const photoUrl   = u?.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
     const initials   = ((u?.firstName?.[0] ?? '') + (u?.lastName?.[0] ?? '')).toUpperCase() || hostHandle[0]?.toUpperCase() || '?';
-
-    const bgStyle = photoUrl
-      ? `background-image:url('${photoUrl}');background-size:cover;background-position:center;`
-      : `background:radial-gradient(ellipse at 30% 65%, hsl(${hue},55%,18%) 0%, hsl(${(hue+40)%360},35%,08%) 60%, hsl(${(hue+180)%360},25%,05%) 100%);`;
+    const locationUnlocked = isOwn || reqStatus === 'ACCEPTED';
+    const cityLabel  = locationUnlocked ? escapeHtml(l.city ?? '') : `Near ${escapeHtml(l.city ?? '')}`;
 
     const avatarHtml = photoUrl
-      ? `<img src="${photoUrl}" alt="${escapeHtml(hostHandle)}" loading="lazy">`
-      : `<div class="reel-host-avatar__initials" style="background:hsl(${hue},35%,16%);color:hsl(${hue},60%,72%);">${initials}</div>`;
+      ? `<img src="${photoUrl}" alt="" loading="lazy">`
+      : `<span style="color:hsl(${hue},60%,72%);">${initials}</span>`;
+    const avatarBg = photoUrl ? '' : `background:hsl(${hue},35%,16%);`;
 
-    // Status
-    const dotColor = isFull             ? 'rgba(255,255,255,0.28)'
-      : reqStatus === 'PENDING'         ? '#ff9944'
-      : reqStatus === 'ACCEPTED'        ? '#00c9a7'
-      : reqStatus === 'DECLINED'        ? 'rgba(255,80,80,0.7)'
-      : '#00c9a7';
-    const statusLabel = isFull          ? (maxGuests > 1 ? 'Full' : 'Joined')
-      : reqStatus === 'PENDING'         ? 'Pending'
-      : reqStatus === 'ACCEPTED'        ? 'Accepted'
-      : reqStatus === 'DECLINED'        ? 'Declined'
-      : maxGuests > 1 ? `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} left` : 'Available';
-
-    const locationUnlocked = isOwn || reqStatus === 'ACCEPTED';
-    const cityLabel = locationUnlocked ? escapeHtml(l.city ?? '') : `Near ${escapeHtml(l.city ?? '')}`;
-
-    // Right sidebar — join button
-    let joinActionClass, joinSvg, joinLabel, joinClick;
+    // Status badge
+    let badgeClass, badgeLabel;
     if (isOwn) {
-      joinActionClass = 'reel-action--own';
-      joinSvg  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
-      joinLabel = 'Yours';
+      badgeClass = 'explore-card__badge--own';   badgeLabel = 'Hosting';
+    } else if (reqStatus === 'ACCEPTED') {
+      badgeClass = 'explore-card__badge--accepted'; badgeLabel = 'Going';
+    } else if (reqStatus === 'PENDING') {
+      badgeClass = 'explore-card__badge--pending';  badgeLabel = 'Pending';
+    } else if (isFull) {
+      badgeClass = 'explore-card__badge--full';     badgeLabel = 'Full';
+    } else {
+      badgeClass = 'explore-card__badge--available';
+      badgeLabel = maxGuests > 1 ? `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''}` : 'Open';
+    }
+
+    // Join button
+    let joinClass, joinLabel, joinClick;
+    if (isOwn) {
+      joinClass = 'explore-card__join--own'; joinLabel = 'View';
       joinClick = `onclick="event.stopPropagation();openListingDetailFromExplore(${l.id})"`;
     } else if (isFull) {
-      joinActionClass = 'reel-action--full';
-      joinSvg  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
-      joinLabel = maxGuests > 1 ? 'Full' : 'Joined';
-      joinClick = '';
+      joinClass = 'explore-card__join--full'; joinLabel = 'Full'; joinClick = '';
     } else if (reqStatus === 'PENDING') {
-      joinActionClass = 'reel-action--pending';
-      joinSvg  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9944" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>`;
-      joinLabel = 'Pending';
-      joinClick = '';
+      joinClass = 'explore-card__join--pending'; joinLabel = 'Pending'; joinClick = '';
     } else if (reqStatus === 'ACCEPTED') {
-      joinActionClass = 'reel-action--accepted';
-      joinSvg  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00c9a7" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-      joinLabel = 'Joined';
-      joinClick = '';
+      joinClass = 'explore-card__join--accepted'; joinLabel = 'Going'; joinClick = '';
     } else if (currentUserId) {
-      joinActionClass = 'reel-action--join';
-      joinSvg  = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-      joinLabel = 'Join';
-      joinClick = `onclick="event.stopPropagation();reelJoin(event,${l.id})"`;
+      joinClass = 'explore-card__join--join'; joinLabel = 'Join';
+      joinClick = `onclick="event.stopPropagation();cardJoin(event,${l.id})"`;
     } else {
-      joinActionClass = 'reel-action--join';
-      joinSvg  = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-      joinLabel = 'Sign in';
+      joinClass = 'explore-card__join--login'; joinLabel = 'Sign in';
       joinClick = `onclick="event.stopPropagation();window.location.href='/login'"`;
     }
 
-    const mapActionHtml = (l.lat != null && locationUnlocked) ? `
-      <div class="reel-action" onclick="event.stopPropagation();reelGoToMap(${l.lat},${l.lng})">
-        <div class="reel-action__btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.82)" stroke-width="2" stroke-linecap="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-        </div>
-        <span class="reel-action__label">Map</span>
-      </div>` : '';
-
-    const shareActionHtml = `
-      <div class="reel-action" onclick="event.stopPropagation();reelShare(${l.id})">
-        <div class="reel-action__btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.82)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        </div>
-        <span class="reel-action__label">Share</span>
-      </div>`;
-
     return `
-      <div class="reel-card">
-        <div class="reel-card__bg" style="${bgStyle}"></div>
-        <div class="reel-card__overlay"></div>
-        <div class="reel-tap-zone" onclick="openListingDetailFromExplore(${l.id})"></div>
-
-        <div class="reel-sidebar">
-          <div class="reel-host-avatar" onclick="event.stopPropagation();window.location.href='/profile/${encodeURIComponent(hostHandle)}'">${avatarHtml}</div>
-          <div class="reel-action ${joinActionClass}" data-listing-id="${l.id}" ${joinClick}>
-            <div class="reel-action__btn">${joinSvg}</div>
-            <span class="reel-action__label">${joinLabel}</span>
-          </div>
-          ${mapActionHtml}
-          ${shareActionHtml}
-        </div>
-
-        <div class="reel-info" onclick="openListingDetailFromExplore(${l.id})">
-          <div class="reel-info__city">${cityLabel}</div>
-          <div class="reel-info__host">
-            <span class="reel-info__host-name">${escapeHtml(hostName)}</span>
-            <span class="reel-info__handle">@${escapeHtml(hostHandle)}</span>
-          </div>
-          <div class="reel-info__desc">${escapeHtml(l.tourDescription ?? '')}</div>
-          <div class="reel-info__meta">
-            <div class="reel-info__status">
-              <div class="reel-info__dot" style="background:${dotColor};"></div>
-              <span style="color:${dotColor};">${statusLabel}</span>
+      <div class="explore-card" onclick="openListingDetailFromExplore(${l.id})">
+        <div class="explore-card__top">
+          <div class="explore-card__avatar" style="${avatarBg}">${avatarHtml}</div>
+          <div class="explore-card__meta">
+            <div class="explore-card__host">
+              <span class="explore-card__badge ${badgeClass}">${badgeLabel}</span>
+              ${escapeHtml(hostName)}
             </div>
-            <div class="reel-info__date">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
+            <div class="explore-card__handle">@${escapeHtml(hostHandle)}</div>
+            <div class="explore-card__city">📍 ${cityLabel}</div>
           </div>
         </div>
-        ${showHint && listings.indexOf(l) === 0 ? '<div class="reel-swipe-hint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg><span class="reel-swipe-hint__text">Swipe up</span></div>' : ''}
+        <div class="explore-card__desc">${escapeHtml(l.tourDescription ?? '')}</div>
+        <div class="explore-card__footer">
+          <div class="explore-card__date">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
+          <button class="explore-card__join ${joinClass}" data-listing-id="${l.id}" ${joinClick}>${joinLabel}</button>
+        </div>
       </div>`;
   }).join('');
 }
 
-function goToMap(btn) {
-  sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
-  window.location.href = '/map';
-}
-
-/* ── Reel sidebar join (no feed rebuild, update in-place) ── */
-function reelJoin(e, listingId) {
+/* ───────────────────────────────────────────────
+   CARD JOIN (in-place update, no full re-render)
+─────────────────────────────────────────────── */
+function cardJoin(e, listingId) {
   e.stopPropagation();
   if (!Auth.getToken()) { window.location.href = '/login'; return; }
   if (_myRequests[listingId]) return;
 
-  const actionEl = e.currentTarget.closest('.reel-action');
-  const btnEl    = actionEl?.querySelector('.reel-action__btn');
-  const labelEl  = actionEl?.querySelector('.reel-action__label');
-  if (btnEl) btnEl.innerHTML = `<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:feedSpin 0.7s linear infinite;"></div>`;
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  btn.textContent = '…';
 
   BookingRequestAPI.create({ listingId })
     .then(res => {
       _myRequests[listingId] = { status: 'PENDING', id: res?.id };
-      if (actionEl) { actionEl.className = 'reel-action reel-action--pending'; actionEl.removeAttribute('onclick'); }
-      if (btnEl)    btnEl.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9944" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>`;
-      if (labelEl)  labelEl.textContent = 'Pending';
+      btn.className = 'explore-card__join explore-card__join--pending';
+      btn.textContent = 'Pending';
       showToast('Request sent!', 'success');
     })
     .catch(err => {
-      if (actionEl) actionEl.className = 'reel-action reel-action--join';
-      if (btnEl)    btnEl.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+      btn.disabled = false;
+      btn.textContent = 'Join';
       showToast(friendlyBookingError(err), 'error');
     });
 }
 
-function reelGoToMap(lat, lng) {
-  sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat, lng, zoom: 16 }));
-  window.location.href = '/map';
+function openListingDetailFromExplore(listingId) {
+  const listing = _allListings.find(l => l.id === listingId);
+  if (!listing) return;
+  const myReq = _myRequests[listingId];
+  const isOwn = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
+  openListingDetail(listing, {
+    isOwn,
+    reserved:  (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1),
+    reqStatus: myReq?.status ?? null,
+    onJoinSuccess: (id) => {
+      _myRequests[id] = { status: 'PENDING' };
+      applyAndRender();
+    },
+  });
 }
 
 function reelShare(listingId) {
@@ -360,41 +292,6 @@ function reelShare(listingId) {
       .then(() => showToast('Link copied!', 'success'))
       .catch(() => showToast('Could not copy link', 'error'));
   }
-}
-
-function openListingDetailFromExplore(listingId) {
-  const listing = _allListings.find(l => l.id === listingId);
-  if (!listing) return;
-  const myReq    = _myRequests[listingId];
-  const isOwn    = !!(Auth.getUsername() && listing.host?.username === Auth.getUsername());
-  openListingDetail(listing, {
-    isOwn,
-    reserved:   (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1),
-    reqStatus:  myReq?.status ?? null,
-    onJoinSuccess: (id) => {
-      _myRequests[id] = { status: 'PENDING' };
-      applyAndRender();
-    },
-  });
-}
-
-function joinListing(btn) {
-  const listingId = parseInt(btn.dataset.listingId, 10);
-  if (!Auth.getToken()) { window.location.href = '/login'; return; }
-  if (_myRequests[listingId]) { applyAndRender(); return; }
-  btn.disabled = true;
-  btn.textContent = '...';
-  BookingRequestAPI.create({ listingId })
-    .then(res => {
-      _myRequests[listingId] = { status: 'PENDING', id: res?.id };
-      showToast('Request sent!', 'success');
-      applyAndRender();
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.textContent = 'Join';
-      showToast(friendlyBookingError(err), 'error');
-    });
 }
 
 /* ───────────────────────────────────────────────
@@ -431,8 +328,8 @@ let _aiActive   = false;
 
 function toggleAiSearch(pill) {
   _aiActive = !_aiActive;
-  pill.classList.toggle('reel-chip--active', _aiActive);
-  pill.classList.toggle('reel-chip--ai', _aiActive);
+  pill.classList.toggle('pill--active', _aiActive);
+  pill.classList.toggle('pill--ai', _aiActive);
   if (!_aiActive) closeMatchPanel();
 }
 
@@ -481,11 +378,9 @@ function renderMatchCard(m) {
     : `<div class="match-card__avatar" style="background:hsl(${hue},35%,20%);border:1.5px solid hsl(${hue},40%,30%);">
          <span style="font-family:var(--font-display);font-weight:800;font-size:16px;color:hsl(${hue},60%,72%);">${initials}</span>
        </div>`;
-  const pctHtml    = m.compatibilityScore != null ? `<div class="match-card__pct">${m.compatibilityScore}% match</div>` : '';
-  const cityHtml   = m.activeListing ? `<div class="match-card__city">📍 ${escapeHtml(m.activeListing.city)}</div>` : '';
-  const ctaHref    = `/profile/${m.username}`;
-  const ctaLabel   = 'View Profile';
-  const sparkle    = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
+  const pctHtml  = m.compatibilityScore != null ? `<div class="match-card__pct">${m.compatibilityScore}% match</div>` : '';
+  const cityHtml = m.activeListing ? `<div class="match-card__city">📍 ${escapeHtml(m.activeListing.city)}</div>` : '';
+  const sparkle  = `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>`;
   const explainBtn = m.compatibilityScore != null
     ? `<button class="match-card__explain-btn" data-user-id="${m.userId}" onclick="toggleExplain(this)">${sparkle} Why we match</button>` : '';
   return `
@@ -503,7 +398,7 @@ function renderMatchCard(m) {
         <div class="match-card__bio">${escapeHtml(m.bio ?? 'No bio yet.')}</div>
         <div class="match-card__actions">
           ${explainBtn}
-          <a href="${ctaHref}" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;">${ctaLabel}</a>
+          <a href="/profile/${m.username}" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;">View Profile</a>
         </div>
         <div class="match-card__explain-area">
           <div class="match-card__explain-text"></div>
