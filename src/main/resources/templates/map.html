@@ -58,15 +58,27 @@
       background: rgba(10,10,10,0.88);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border-color: var(--border-2);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+      border-color: rgba(255,255,255,0.07);
+      border-top-color: rgba(255,255,255,0.14);
+      border-bottom-color: rgba(0,0,0,0.45);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.09),
+        0 4px 24px rgba(0,0,0,0.45);
     }
-    .map-geo-search .search-bar:focus-within { border-color: rgba(255,255,255,0.18); }
+    .map-geo-search .search-bar:focus-within {
+      border-color: rgba(0,201,167,0.35);
+      border-top-color: rgba(0,201,167,0.5);
+    }
     .map-filters .pill {
       background: rgba(10,10,10,0.88);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      border-color: rgba(255,255,255,0.07);
+      border-top-color: rgba(255,255,255,0.13);
+      border-bottom-color: rgba(0,0,0,0.4);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.08),
+        0 2px 12px rgba(0,0,0,0.45);
     }
     /* Bottom-right control cluster: legend → [locate] [+FAB] */
     .map-controls {
@@ -76,11 +88,14 @@
     .map-controls-row { display: flex; align-items: center; gap: 8px; }
     .map-legend {
       background: rgba(10,10,10,0.90);
-      border: 1px solid var(--border-2);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(255,255,255,0.13);
+      border-bottom-color: rgba(0,0,0,0.45);
       border-radius: var(--radius-sm);
       padding: 8px 10px;
       display: flex; flex-direction: column; gap: 6px;
       backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 16px rgba(0,0,0,0.5);
     }
     .map-legend__row {
       display: flex; align-items: center; gap: 7px;
@@ -293,10 +308,15 @@
     }
     .map-bs__card {
       position: absolute; bottom: 0; left: 0; right: 0;
-      background: var(--bg);
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 45%, #0a0c0c 100%);
       border-radius: 20px 20px 0 0;
-      border-top: 1px solid var(--border-2);
-      box-shadow: 0 -8px 40px rgba(0,0,0,0.55);
+      border-top: 1px solid rgba(255,255,255,0.12);
+      border-left: 1px solid rgba(255,255,255,0.06);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.11),
+        0 -8px 40px rgba(0,0,0,0.65),
+        0 -2px 12px rgba(0,0,0,0.4);
       transform: translateY(100%);
       transition: transform 0.38s cubic-bezier(0.16,1,0.3,1);
       max-height: 68vh;
