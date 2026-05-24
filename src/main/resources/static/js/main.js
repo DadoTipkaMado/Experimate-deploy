@@ -483,6 +483,7 @@ function _ensureListingDetailOverlay() {
         <div id="ld-guests" class="ld-date" style="display:none;"></div>
         <div id="ld-status" class="ld-status"></div>
         <div id="ld-desc" class="ld-desc"></div>
+        <div id="ld-presence" style="display:none;margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
       </div>
       <div class="listing-detail-card__footer" id="ld-footer"></div>
     </div>`;
@@ -581,6 +582,41 @@ function openListingDetail(listing, opts) {
   }
 
   document.getElementById('ld-desc').textContent = listing.tourDescription ?? '';
+
+  // ── Presence cards (only for participants who pass resId) ─────
+  const ldPresence = document.getElementById('ld-presence');
+  if (ldPresence) {
+    ldPresence.innerHTML = '';
+    ldPresence.style.display = 'none';
+    const resId = opts.resId ?? null;
+    if (resId && (isOwn || reserved || reqStatus === 'ACCEPTED') && typeof ReservationAPI !== 'undefined') {
+      ReservationAPI.getPresence(resId).then(people => {
+        if (!people || !people.length) return;
+        ldPresence.style.display = 'flex';
+        ldPresence.innerHTML = people.map(p => {
+          const initials   = ((p.firstName?.[0] ?? '') + (p.lastName?.[0] ?? '')).toUpperCase() || '?';
+          const hue        = (p.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+          const photoUrl   = p.profilePhotoUrl ? UserAPI.photoUrl(p.profilePhotoUrl) : null;
+          const avatarInner = photoUrl
+            ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+            : `<span style="font-size:11px;font-weight:700;color:hsl(${hue},60%,72%);">${initials}</span>`;
+          const avatarBg   = photoUrl ? '' : `background:hsl(${hue},35%,22%);`;
+          const hostBadge  = p.isHost ? `<span style="font-size:9px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);border-radius:4px;padding:1px 5px;letter-spacing:0.07em;flex-shrink:0;">HOST</span>` : '';
+          const checkMark  = p.checkedIn ? `<span style="font-size:12px;color:var(--accent);flex-shrink:0;">✓</span>` : '';
+          return `<a href="/profile/${encodeURIComponent(p.username)}" onclick="closeListingDetail()"
+            style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;color:inherit;transition:border-color var(--t-fast);"
+            onmouseover="this.style.borderColor='var(--accent-border)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;${avatarBg}">${avatarInner}</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.firstName)} ${escapeHtml(p.lastName)}</div>
+              <div style="font-size:11px;color:var(--text-3);">@${escapeHtml(p.username)}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">${hostBadge}${checkMark}</div>
+          </a>`;
+        }).join('');
+      }).catch(() => {});
+    }
+  }
 
   requestAnimationFrame(() => _listingDetailEl.classList.add('listing-detail-overlay--visible'));
   document.body.style.overflow = 'hidden';

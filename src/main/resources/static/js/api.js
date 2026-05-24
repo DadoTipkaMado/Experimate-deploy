@@ -181,6 +181,7 @@ const ReservationAPI = {
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
   endTour: (id)        => apiFetch(`/api/reservation/end-tour/${id}`,  { method: 'PATCH' }),
   cancelTour: (id)     => apiFetch(`/api/reservation/cancel-tour/${id}`, { method: 'PATCH' }),
+  getPresence: (id)    => apiFetch(`/api/reservation/${id}/presence`),
 };
 
 /* ───────────────────────────────────────────────
