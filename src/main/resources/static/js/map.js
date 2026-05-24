@@ -281,7 +281,7 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
   if (pinType === 'due-soon') {
     badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,0.15);border:1px solid #f59e0b;border-radius:6px;padding:3px 8px;font-size:11px;color:#f59e0b;letter-spacing:0.08em;font-weight:700;">⏱ DUE SOON</div>`;
   } else if (pinType === 'my-meet') {
-    badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(168,85,247,0.15);border:1px solid #a855f7;border-radius:6px;padding:3px 8px;font-size:11px;color:#a855f7;letter-spacing:0.08em;font-weight:700;">✓ YOUR MEET</div>`;
+    badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(168,85,247,0.15);border:1px solid #a855f7;border-radius:6px;padding:3px 8px;font-size:11px;color:#a855f7;letter-spacing:0.08em;font-weight:700;">✓ GOING</div>`;
   }
 
   const cityLabel = unlocked ? escapeHtml(listing.city) : `Near ${escapeHtml(listing.city)}`;
