@@ -1,10 +1,10 @@
 package hr.tvz.experimate.experimate.domain.tour_listing;
 
 import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.shared.Constraints;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
 
 @Entity
 @Table(name="tour_listing")
@@ -29,7 +29,11 @@ public class TourListing {
     private LocalDateTime meetingDate;
     @Column(columnDefinition = "TEXT")
     private String tourDescription;
-    private boolean reserved;
+    private Integer maxGuests;
+
+    private Boolean hostCheckedIn;
+    private LocalDateTime hostCheckInTimestamp;
+    private LocalDateTime tourStartedAt;
 
     //For hibernate
     protected TourListing() {
@@ -40,7 +44,8 @@ public class TourListing {
                        Double longitude,
                        Double latitude,
                        LocalDateTime meetingDate,
-                       String tourDescription) {
+                       String tourDescription,
+                       Integer maxGuests) {
         this.host = validateHost(host);
         this.city = validateCity(city);
         this.longitude = longitude;
@@ -48,8 +53,8 @@ public class TourListing {
         this.postDate = LocalDateTime.now();
         this.meetingDate = validateMeetingDate(meetingDate);
         this.tourDescription = validateTourDescription(tourDescription);
-
-        this.reserved = false;
+        this.maxGuests = validateMaxGuests(maxGuests);
+        this.hostCheckedIn = false;
     }
 
     public Integer getId() {
@@ -84,8 +89,36 @@ public class TourListing {
         return tourDescription;
     }
 
-    public boolean isReserved() {
-        return reserved;
+    public Integer getMaxGuests() {
+        return maxGuests;
+    }
+
+    public Boolean isHostCheckedIn() {
+        return hostCheckedIn;
+    }
+
+    public LocalDateTime getHostCheckInTimestamp() {
+        return hostCheckInTimestamp;
+    }
+
+    public LocalDateTime getTourStartedAt() {
+        return tourStartedAt;
+    }
+
+    /** Returns true when the tour has been explicitly started (auto or manual). */
+    public boolean isTourStarted() {
+        return tourStartedAt != null;
+    }
+
+    /** Marks the host as present; records the timestamp. */
+    public void checkHostIn() {
+        this.hostCheckedIn = true;
+        this.hostCheckInTimestamp = LocalDateTime.now();
+    }
+
+    /** Records the moment the tour begins; used as the single source of truth for the ACTIVE transition. */
+    public void startTour() {
+        this.tourStartedAt = LocalDateTime.now();
     }
 
     public void setMeetingDate(LocalDateTime meetingDate) {
@@ -96,10 +129,6 @@ public class TourListing {
         this.tourDescription = tourDescription;
     }
 
-    public void setReserved(boolean reservedStatus){
-        this.reserved = reservedStatus;
-    }
-    
     private User validateHost(User host){
         if(host==null)
             throw new IllegalArgumentException("User cannot be null");
@@ -127,5 +156,15 @@ public class TourListing {
         if(tourDescription.length() < MINIMUM_DESCRIPTION_LENGTH || tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
             throw new IllegalArgumentException("Tour description must be between 200 and 2000 characters long.");
         return tourDescription;
+    }
+
+    private Integer validateMaxGuests(Integer maxGuests) {
+        if (maxGuests == null ||
+            maxGuests < Constraints.TourListingConstraints.MIN_GUESTS ||
+            maxGuests > Constraints.TourListingConstraints.MAX_GUESTS)
+            throw new IllegalArgumentException("Max guests must be between "
+                + Constraints.TourListingConstraints.MIN_GUESTS + " and "
+                + Constraints.TourListingConstraints.MAX_GUESTS + ".");
+        return maxGuests;
     }
 }

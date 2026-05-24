@@ -1,4 +1,6 @@
 package hr.tvz.experimate.experimate.shared;
+import hr.tvz.experimate.experimate.security.google.exception.IncompleteGoogleProfileException;
+import hr.tvz.experimate.experimate.shared.exception.AppAuthException;
 import hr.tvz.experimate.experimate.shared.exception.ConflictException;
 import hr.tvz.experimate.experimate.shared.exception.EmailNotVerifiedException;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
@@ -43,6 +45,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(conflict, HttpStatus.CONFLICT);
     }
 
+    // Missing email/given_name/family_name claims in the Google payload
+    @ExceptionHandler(IncompleteGoogleProfileException.class)
+    public ResponseEntity<ErrorResponse> handleIncompleteGoogleProfileException(IncompleteGoogleProfileException ex) {
+        ErrorResponse incompleteProfile = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
+        return new ResponseEntity<>(incompleteProfile, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponse illegalArg = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
@@ -67,8 +76,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(forbidden, HttpStatus.FORBIDDEN);
     }
 
+    // AppAuthException base → 401; RefreshTokenException (subclass) overrides to 403 below
+    @ExceptionHandler(AppAuthException.class)
+    public ResponseEntity<ErrorResponse> handleAppAuthException(AppAuthException ex) {
+        ErrorResponse auth = createErrorResponse(HttpStatus.UNAUTHORIZED, ex);
+        return new ResponseEntity<>(auth, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(RefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> handleAppAuthException(RefreshTokenException ex) {
+    public ResponseEntity<ErrorResponse> handleRefreshTokenException(RefreshTokenException ex) {
         ErrorResponse auth = createErrorResponse(HttpStatus.FORBIDDEN, ex);
         return new ResponseEntity<>(auth, HttpStatus.FORBIDDEN);
     }

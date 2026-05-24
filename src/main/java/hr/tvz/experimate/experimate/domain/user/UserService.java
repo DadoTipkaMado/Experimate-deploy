@@ -4,11 +4,13 @@ import hr.tvz.experimate.experimate.domain.onboarding.QuizResult;
 import hr.tvz.experimate.experimate.domain.onboarding.QuizResultRepo;
 import hr.tvz.experimate.experimate.shared.FileStorageService;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.event.GoogleUserCreationEvent;
 import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
 import hr.tvz.experimate.experimate.shared.event.UserRegisteredEvent;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.dto.UpdateUserDto;
+import hr.tvz.experimate.experimate.domain.user.exception.EmailTakenException;
 import hr.tvz.experimate.experimate.domain.user.exception.IdNumberTakenException;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.exception.UsernameTakenException;
@@ -17,6 +19,7 @@ import hr.tvz.experimate.experimate.domain.user.response.UserSearchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,12 +62,9 @@ public class UserService {
                 createUserDto.firstName(),
                 createUserDto.lastName(),
                 createUserDto.dateOfBirth(),
-                validateIdNumber(
-                        createUserDto.idNumber()
-                ),
-                validateUsername(
-                        createUserDto.username()
-                ),
+                validateIdNumber(createUserDto.idNumber()),
+                validateEmail(createUserDto.email()),
+                validateUsername(createUserDto.username()),
                 encoder.encode(createUserDto.password())
         )
                 .bio(createUserDto.bio())
@@ -184,6 +184,35 @@ public class UserService {
         return fileStorageService.load(filename);
     }
 
+    /**
+     * Handles {@link GoogleUserCreationEvent} published by {@code GoogleAuthService} during
+     * Google OAuth2 registration. Creates the user account with {@code googleSub} set and
+     * {@code emailVerified = true} since the email is Google-verified.
+     *
+     * <p>Runs synchronously in the same thread and transaction as the publisher, so the
+     * created user is immediately visible to subsequent repo lookups in that transaction.
+     */
+    @EventListener
+    @Transactional
+    public void handleGoogleUserCreation(GoogleUserCreationEvent event) {
+        User user = new User.UserBuilder(
+                event.firstName(),
+                event.lastName(),
+                event.dateOfBirth(),
+                validateIdNumber(event.idNumber()),
+                validateEmail(event.email()),
+                validateUsername(event.username()),
+                encoder.encode(event.password())
+        ).build();
+
+        user.setGoogleSub(event.googleSub());
+        user.setEmailVerified(true);
+
+        userRepo.save(user);
+        quizResultRepo.save(new QuizResult(user));
+        log.info("Google user created with id {}", user.getId());
+    }
+
     @Transactional
     public void deleteUser(Integer id, Integer callerId) {
         if (!callerId.equals(id))
@@ -202,6 +231,15 @@ public class UserService {
             throw new UsernameTakenException(username);
         }
         return username;
+    }
+
+    private String validateEmail(String email) {
+        String normalized = email.toLowerCase();
+        if (userRepo.existsByEmail(normalized)) {
+            log.warn("User with email {} already exists", normalized);
+            throw new EmailTakenException(email);
+        }
+        return normalized;
     }
 
     private String validateIdNumber(String idNumber) {

@@ -6,10 +6,10 @@ import hr.tvz.experimate.experimate.domain.booking_request.response.*;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingAlreadyRequestedException;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingRequestNotFoundException;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
+import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.shared.TourListingDetails;
-import hr.tvz.experimate.experimate.shared.UserDetails;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedEvent;
@@ -47,17 +47,20 @@ public class BookingRequestService {
     private final TourListingRepo tourListingRepo;
     private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
+    private final DetailsMapper detailsMapper;
 
     public BookingRequestService(BookingRequestRepo bookingRequestRepo,
                                  UserRepo userRepo,
                                  TourListingRepo tourListingRepo,
                                  ReservationRepo reservationRepo,
-                                 ApplicationEventPublisher publisher) {
+                                 ApplicationEventPublisher publisher,
+                                 DetailsMapper detailsMapper) {
         this.bookingRequestRepo = bookingRequestRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
         this.reservationRepo = reservationRepo;
         this.publisher = publisher;
+        this.detailsMapper = detailsMapper;
     }
 
     public BookingRequestResponse createBookingRequest(CreateBookingRequestDto dto, Integer guestId) {
@@ -74,15 +77,18 @@ public class BookingRequestService {
 
         LocalDateTime windowStart = listing.getMeetingDate().minusHours(12);
         LocalDateTime windowEnd = listing.getMeetingDate().plusHours(12);
-        boolean isGuestAlreadyReserved = reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetween(
+        List<ReservationStatus> blockingStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
+        boolean isGuestAlreadyReserved = reservationRepo.existsByGuest_IdAndTourListing_MeetingDateBetweenAndStatusIn(
                 guest.getId(),
                 windowStart,
-                windowEnd
+                windowEnd,
+                blockingStatuses
         );
-        boolean isHostAlreadyReserved = reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetween(
+        boolean isHostAlreadyReserved = reservationRepo.existsByTourListing_Host_IdAndTourListing_MeetingDateBetweenAndStatusIn(
                 listing.getHost().getId(),
                 windowStart,
-                windowEnd
+                windowEnd,
+                blockingStatuses
         );
         if(isGuestAlreadyReserved){
             log.warn("Guest with id {} already reserved for date {}", guest.getId(), listing.getMeetingDate());
@@ -103,8 +109,9 @@ public class BookingRequestService {
             throw new IllegalArgumentException("Guest cannot send a booking request to themselves.");
         }
 
-        if(listing.isReserved()) {
-            log.warn("TourListing with id {} is already reserved. Cannot create new BookingRequests for it.", listingId);
+        // listing is full when all guest slots are confirmed or active
+        if (reservationRepo.countByTourListing_IdAndStatusIn(listingId, blockingStatuses) >= listing.getMaxGuests()) {
+            log.warn("TourListing with id {} is full. Cannot create new BookingRequests for it.", listingId);
             throw new TourListingAlreadyReservedException(listing.getId());
         }
 
@@ -199,17 +206,18 @@ public class BookingRequestService {
                 acceptedRequest.getListing().getId()
         ));
 
-        //Updating status of the accepted acceptedRequest
         updateBookingRequest(acceptedId, BookingRequestStatus.ACCEPTED);
 
-        //Updating the rest (automatically decline)
-        List<Integer> declinedIds =
-                bookingRequestRepo
-                        .findBookingRequestIdsByTourListingId(acceptedRequest.getListing().getId())
-                        .stream()
-                        .filter(declinedId -> !declinedId.equals(acceptedId))
-                        .toList();
-        updateBookingRequests(declinedIds, BookingRequestStatus.DECLINED);
+        long confirmedCount = reservationRepo.countByTourListing_IdAndStatusIn(
+                acceptedRequest.getListing().getId(), List.of(ReservationStatus.CONFIRMED));
+
+        // listing just became full — auto-decline all remaining pending requests
+        if (confirmedCount == acceptedRequest.getListing().getMaxGuests()) {
+            List<Integer> declinedIds = bookingRequestRepo
+                    .findBookingRequestIdsByTourListingIdAndStatus(
+                            acceptedRequest.getListing().getId(), BookingRequestStatus.PENDING);
+            updateBookingRequests(declinedIds, BookingRequestStatus.DECLINED);
+        }
 
         log.info("Booking request accepted with id {}", acceptedId);
 
@@ -231,15 +239,8 @@ public class BookingRequestService {
 
     @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
     void handleTourListingDeletedEvent(TourListingDeletedEvent event) {
-        Optional<BookingRequest> request = bookingRequestRepo.findByListing_Id(event.listingId());
-
-        if(request.isEmpty()) {
-            log.debug("No booking requests for given event parameters");
-            return;
-        }
-
-        bookingRequestRepo.deleteById(request.get().getId());
-        log.info("Booking request deleted with id {}", request.get().getId());
+        int count = bookingRequestRepo.deleteAllByListing_IdIn(List.of(event.listingId()));
+        log.info("Deleted {} booking request(s) for listing with id {}", count, event.listingId());
     }
 
     @TransactionalEventListener(phase= TransactionPhase.BEFORE_COMMIT)
@@ -255,31 +256,12 @@ public class BookingRequestService {
     }
 
     private BookingRequestResponse createBookingRequestResponse(BookingRequest request){
-        UserDetails hostDetails = new UserDetails(
-                request.getListing().getHost().getFirstName(),
-                request.getListing().getHost().getLastName(),
-                request.getListing().getHost().getUsername()
-        );
-
-        UserDetails guestDetails = new UserDetails(
-                request.getGuest().getFirstName(),
-                request.getGuest().getLastName(),
-                request.getGuest().getUsername()
-        );
-
-        TourListingDetails listingDetails = new TourListingDetails(
-                request.getListing().getId(),
-                request.getListing().getMeetingDate(),
-                request.getListing().getCity(),
-                hostDetails
-        );
-
         return new BookingRequestResponse(
                 request.getId(),
                 request.getStatus(),
                 request.getRequestDate(),
-                listingDetails,
-                guestDetails
+                detailsMapper.mapListingDetails(request.getListing()),
+                detailsMapper.mapUserDetails(request.getGuest())
         );
     }
 }

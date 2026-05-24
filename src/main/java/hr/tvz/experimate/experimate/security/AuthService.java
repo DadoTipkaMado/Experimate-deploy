@@ -51,7 +51,6 @@ public class AuthService {
     }
 
     public TokenResponse refreshAccessToken(String refreshToken){
-
         return refreshTokenService.rotateAccessToken(refreshToken);
     }
 
