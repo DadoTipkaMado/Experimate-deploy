@@ -567,6 +567,8 @@ function openListingDetail(listing, opts) {
       joinBtn = `<button class="btn" style="border-color:#ff9944;color:#ff9944;background:rgba(255,153,68,0.08);" disabled>Pending</button>`;
     } else if (reqStatus === 'ACCEPTED') {
       joinBtn = `<button class="btn" style="border-color:var(--accent-border);color:var(--accent);background:var(--accent-dim);" disabled>Accepted ✓</button>`;
+    } else if ((listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) {
+      joinBtn = `<button class="btn" style="opacity:0.45;cursor:default;" disabled>Full</button>`;
     } else if (typeof Auth !== 'undefined' && Auth.getToken()) {
       joinBtn = `<button class="btn btn--primary popup-action" data-listing-id="${listing.id}" onclick="_joinFromDetail(this)">Join</button>`;
     } else {
