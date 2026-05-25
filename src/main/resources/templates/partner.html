@@ -164,7 +164,6 @@
       box-shadow: 0 2px 8px rgba(20,20,30,0.07);
     }
     /* Info state (perks) */
-    .partner-cta-info { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; text-align: center; }
     .partner-cta__icon {
       width: 56px; height: 56px; border-radius: 16px;
       background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.30);
@@ -186,9 +185,19 @@
       box-shadow: 0 0 6px rgba(37,99,235,0.6);
     }
 
+    /* Slide animations */
+    @keyframes ctaExitLeft  { from { opacity:1; transform:translateX(0) scale(1); }     to { opacity:0; transform:translateX(-26px) scale(0.95); } }
+    @keyframes ctaExitRight { from { opacity:1; transform:translateX(0) scale(1); }     to { opacity:0; transform:translateX(26px) scale(0.95); } }
+    @keyframes ctaEnterRight { from { opacity:0; transform:translateX(30px) scale(0.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes ctaEnterLeft  { from { opacity:0; transform:translateX(-30px) scale(0.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+
+    .partner-cta-info { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; text-align: center; }
+    .partner-cta-info.cta-exit  { animation: ctaExitLeft  0.2s ease-in forwards; pointer-events: none; }
+    .partner-cta-info.cta-enter { animation: ctaEnterLeft 0.42s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
     /* Form state */
     .partner-cta-form { display: none; flex-direction: column; gap: 14px; width: 100%; }
-    .partner-cta-form.visible { display: flex; }
+    .partner-cta-form.cta-enter { animation: ctaEnterRight 0.44s cubic-bezier(0.34,1.56,0.64,1) forwards; }
     .partner-form-back {
       display: flex; align-items: center; gap: 6px;
       font-size: 11px; color: var(--text-3); cursor: pointer;
@@ -520,18 +529,32 @@
 
   function showApplyForm() {
     if (!Auth.getUserId()) { window.location.href = '/login'; return; }
-    // Pre-fill email from stored user data if available
-    const username = Auth.getUsername();
-    if (username && !document.getElementById('apply-email').value) {
-      // best-effort: leave blank, user fills it in
-    }
-    document.getElementById('cta-info').style.display = 'none';
-    document.getElementById('cta-form').classList.add('visible');
+    const info = document.getElementById('cta-info');
+    const form = document.getElementById('cta-form');
+
+    info.classList.add('cta-exit');
+    info.addEventListener('animationend', () => {
+      info.style.display = 'none';
+      info.classList.remove('cta-exit');
+      form.style.display = 'flex';
+      form.classList.add('cta-enter');
+      form.addEventListener('animationend', () => form.classList.remove('cta-enter'), { once: true });
+    }, { once: true });
   }
 
   function hideApplyForm() {
-    document.getElementById('cta-info').style.display = '';
-    document.getElementById('cta-form').classList.remove('visible');
+    const info = document.getElementById('cta-info');
+    const form = document.getElementById('cta-form');
+
+    form.style.animation = 'ctaExitRight 0.18s ease-in forwards';
+    form.addEventListener('animationend', () => {
+      form.style.display = 'none';
+      form.style.animation = '';
+      info.style.display = '';
+      info.classList.add('cta-enter');
+      info.addEventListener('animationend', () => info.classList.remove('cta-enter'), { once: true });
+    }, { once: true });
+
     document.getElementById('apply-error').style.display = 'none';
     document.getElementById('apply-error').textContent = '';
   }
