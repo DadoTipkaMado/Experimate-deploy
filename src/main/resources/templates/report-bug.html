@@ -10,75 +10,150 @@
   <title>Report a Bug — ExperiMate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
-    .report-header {
-      padding: 20px 18px 16px; border-bottom: 1px solid var(--border);
-    }
+    .page-content { background: #0a0c0c; }
+    body.light-mode .page-content { background: #f0eeea; }
 
-    .report-body { padding: 24px 18px 40px; display: flex; flex-direction: column; gap: 20px; }
+    .report-header { padding: 22px 20px 14px; }
+
+    .report-body {
+      margin: 0 16px 24px;
+      padding: 20px 18px 22px;
+      display: flex; flex-direction: column; gap: 20px;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 8px 20px rgba(0,0,0,0.55),
+        0 2px 6px rgba(0,0,0,0.4);
+    }
+    body.light-mode .report-body {
+      background: #fff;
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
+      border-bottom-color: rgba(0,0,0,0.10);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07), 0 1px 3px rgba(20,20,30,0.04);
+    }
 
     .report-field { display: flex; flex-direction: column; gap: 6px; }
     .report-field__label {
-      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
+      font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase;
     }
 
     /* Custom dropdown */
     .custom-select { position: relative; }
     .custom-select__trigger {
       display: flex; align-items: center; justify-content: space-between;
-      height: 44px; padding: 0 14px;
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius); color: var(--text-2); font-size: 13px;
+      height: 46px; padding: 0 16px;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
+      border-radius: 10px; color: var(--text-2); font-size: 13px;
       cursor: pointer; user-select: none;
-      transition: border-color var(--t-fast), color var(--t-fast);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+    body.light-mode .custom-select__trigger {
+      background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12);
+      border-top-color: rgba(0,0,0,0.18); border-bottom-color: rgba(255,255,255,0.6);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
     }
     .custom-select__trigger--selected { color: var(--text); }
-    .custom-select__trigger:hover { border-color: var(--border-3); }
-    .custom-select__trigger--open { border-color: var(--accent-border); color: var(--text); }
+    .custom-select__trigger--open {
+      border-color: rgba(0,201,167,0.5);
+      border-top-color: rgba(0,201,167,0.3);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(0,201,167,0.12);
+    }
     .custom-select__chevron { color: var(--text-3); flex-shrink: 0; transition: transform 0.2s; }
     .custom-select__trigger--open .custom-select__chevron { transform: rotate(180deg); }
 
     .custom-select__menu {
-      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius); overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 50;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top-color: rgba(255,255,255,0.12);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.4);
       display: none;
+    }
+    body.light-mode .custom-select__menu {
+      background: #fff; border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 8px 24px rgba(20,20,30,0.12);
     }
     .custom-select__menu--open { display: block; }
     .custom-select__option {
       padding: 11px 14px; font-size: 13px; color: var(--text-2); cursor: pointer;
       transition: background var(--t-fast), color var(--t-fast);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
     }
+    body.light-mode .custom-select__option { border-bottom-color: rgba(0,0,0,0.06); }
     .custom-select__option:last-child { border-bottom: none; }
-    .custom-select__option:hover { background: var(--surface-2); color: var(--text); }
+    .custom-select__option:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    body.light-mode .custom-select__option:hover { background: rgba(0,0,0,0.03); }
     .custom-select__option--selected { color: var(--accent); background: var(--accent-dim); }
 
     .report-textarea {
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius); color: var(--text);
-      font-family: var(--font-body); font-size: 13px;
-      padding: 12px; resize: none; line-height: 1.6; min-height: 140px;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
+      border-radius: 10px; color: var(--text);
+      font-family: var(--font-mono); font-size: 13px;
+      padding: 13px 14px; resize: none; line-height: 1.6; min-height: 140px;
       width: 100%; box-sizing: border-box;
-      transition: border-color var(--t-fast);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
     }
-    .report-textarea:focus { outline: none; border-color: var(--accent-border); }
+    body.light-mode .report-textarea {
+      background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12);
+      border-top-color: rgba(0,0,0,0.18); border-bottom-color: rgba(255,255,255,0.6);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .report-textarea:focus {
+      outline: none;
+      border-color: rgba(0,201,167,0.5);
+      border-top-color: rgba(0,201,167,0.3);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(0,201,167,0.12);
+    }
 
-    .report-hint { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+    .report-hint { font-size: 10px; color: var(--text-3); line-height: 1.5; }
 
     .report-submit {
-      width: 100%; height: 48px; border-radius: var(--radius-pill);
+      position: relative; width: 100%; height: 48px; border-radius: var(--radius-pill);
       background: var(--accent); border: none; color: #000;
       font-family: var(--font-display); font-weight: 800; font-size: 14px;
-      cursor: pointer; transition: opacity var(--t-fast), transform var(--t-fast);
+      cursor: pointer; overflow: hidden;
+      transition: opacity var(--t-fast), transform var(--t-fast);
     }
-    .report-submit:hover { opacity: 0.88; }
+    .report-submit::after {
+      content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0% { left: -100%; } 50% { left: 150%; } 100% { left: 150%; } }
     .report-submit:active { transform: scale(0.98); }
     .report-submit:disabled { opacity: 0.4; cursor: default; }
 
     .report-success {
       display: none; flex-direction: column; align-items: center;
-      padding: 56px 24px; gap: 14px; text-align: center;
+      margin: 0 16px; padding: 40px 24px; gap: 14px; text-align: center;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        0 8px 20px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+    }
+    body.light-mode .report-success {
+      background: #fff; border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
     }
     .report-success__icon {
       width: 64px; height: 64px; border-radius: 20px;
