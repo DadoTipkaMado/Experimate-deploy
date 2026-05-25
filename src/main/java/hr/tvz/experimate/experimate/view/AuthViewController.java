@@ -25,4 +25,9 @@ public class AuthViewController {
     public String resetPassword() {
         return "reset-password";
     }
+
+    @GetMapping("/verify-email")
+    public String verifyEmail() {
+        return "verify-email";
+    }
 }
