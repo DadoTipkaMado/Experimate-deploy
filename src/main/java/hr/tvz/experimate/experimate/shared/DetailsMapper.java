@@ -18,9 +18,12 @@ public class DetailsMapper {
     /**
      * Maps a {@link User} entity to its public-facing {@link UserDetails} projection.
      *
-     * <p>Exposes only fields safe for inclusion in API responses
-     * (first name, last name, username) — sensitive attributes such as the
-     * password hash or email are intentionally omitted.
+     * <p>Exposes only fields safe for inclusion in API responses — sensitive attributes
+     * such as the password hash or email are intentionally omitted.
+     *
+     * <p>{@code role} is included so the map frontend can detect partner pins
+     * ({@code host.role === 'PARTNER'}). {@code profilePhotoUrl} is {@code null}
+     * when the user has not uploaded a profile photo.
      *
      * @param user the source user entity; must not be {@code null}
      * @return a populated {@link UserDetails} record
@@ -29,8 +32,20 @@ public class DetailsMapper {
         return new UserDetails(
                 user.getFirstName(),
                 user.getLastName(),
-                user.getUsername()
+                user.getUsername(),
+                user.getRole().name(),
+                buildProfilePhotoUrl(user)
         );
+    }
+
+    /**
+     * Builds the public URL for the user's profile photo, or {@code null} if not set.
+     * Follows the same pattern as {@link hr.tvz.experimate.experimate.domain.user.UserService}.
+     */
+    private String buildProfilePhotoUrl(User user) {
+        return user.getProfilePhotoFilename() != null
+                ? "/api/user/profile-photo/" + user.getProfilePhotoFilename()
+                : null;
     }
 
     /**
