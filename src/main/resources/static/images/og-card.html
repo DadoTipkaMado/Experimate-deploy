@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!--
+  OG CARD GENERATOR
+  ─────────────────
+  How to export as og-card.png:
+  1. Open this file in Chrome
+  2. Open DevTools → Toggle device toolbar (Ctrl+Shift+M)
+  3. Set dimensions to exactly 1200 × 630
+  4. Run in console: document.querySelector('.card').style.transform = 'none'
+  5. Right-click the card → "Capture node screenshot"
+     OR install "GoFullPage" extension → screenshot → crop to 1200x630
+  6. Save the result as og-card.png in this same folder (/static/images/)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 1200px; height: 630px; overflow: hidden; background: #020505; }
+
+    .card {
+      position: relative;
+      width: 1200px;
+      height: 630px;
+      background: #020505;
+      overflow: hidden;
+    }
+
+    .glow-teal {
+      position: absolute;
+      top: -220px; right: -120px;
+      width: 720px; height: 720px;
+      background: radial-gradient(circle, rgba(0,201,167,0.18) 0%, transparent 68%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .glow-warm {
+      position: absolute;
+      bottom: -160px; left: -80px;
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(255,107,53,0.07) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .compass {
+      position: absolute;
+      right: 88px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 290px;
+      height: 290px;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      padding: 68px 80px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .accent-bar {
+      width: 56px;
+      height: 3px;
+      background: #00c9a7;
+      border-radius: 2px;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 12px;
+    }
+
+    .wordmark {
+      font-family: 'Syne', 'Inter', -apple-system, sans-serif;
+      font-size: 108px;
+      font-weight: 800;
+      color: #f2f2f2;
+      letter-spacing: -4px;
+      line-height: 1;
+      margin-bottom: 28px;
+    }
+
+    .tagline {
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 22px;
+      color: #00c9a7;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-rule {
+      height: 1px;
+      width: 380px;
+      background: #1e1e1e;
+    }
+
+    .footer-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: #484848;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="glow-teal"></div>
+    <div class="glow-warm"></div>
+
+    <svg class="compass" viewBox="0 0 290 290" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="145" cy="145" r="135" stroke="#00c9a7" stroke-width="1" stroke-opacity="0.14"/>
+      <circle cx="145" cy="145" r="98"  stroke="#00c9a7" stroke-width="1" stroke-opacity="0.10"/>
+      <circle cx="145" cy="145" r="60"  stroke="#00c9a7" stroke-width="1" stroke-opacity="0.08"/>
+      <line x1="0"   y1="145" x2="290" y2="145" stroke="#00c9a7" stroke-width="1" stroke-opacity="0.10"/>
+      <line x1="145" y1="0"   x2="145" y2="290" stroke="#00c9a7" stroke-width="1" stroke-opacity="0.10"/>
+      <!-- Cardinal ticks -->
+      <line x1="145" y1="10"  x2="145" y2="24"  stroke="#00c9a7" stroke-width="2" stroke-opacity="0.35"/>
+      <line x1="145" y1="266" x2="145" y2="280" stroke="#00c9a7" stroke-width="2" stroke-opacity="0.35"/>
+      <line x1="10"  y1="145" x2="24"  y2="145" stroke="#00c9a7" stroke-width="2" stroke-opacity="0.35"/>
+      <line x1="266" y1="145" x2="280" y2="145" stroke="#00c9a7" stroke-width="2" stroke-opacity="0.35"/>
+      <!-- North label -->
+      <text x="145" y="8" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#00c9a7" fill-opacity="0.5" letter-spacing="1">N</text>
+      <!-- Center dot -->
+      <circle cx="145" cy="145" r="14" fill="#00c9a7" fill-opacity="0.10"/>
+      <circle cx="145" cy="145" r="5"  fill="#00c9a7" fill-opacity="0.55"/>
+      <circle cx="145" cy="145" r="2"  fill="#00c9a7"/>
+    </svg>
+
+    <div class="content">
+      <div class="accent-bar"></div>
+
+      <div class="main">
+        <div class="wordmark">ExperiMate</div>
+        <div class="tagline">Meet a local, not a tourist</div>
+      </div>
+
+      <div class="footer">
+        <div class="footer-rule"></div>
+        <div class="footer-text">Discover · Connect · Explore</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

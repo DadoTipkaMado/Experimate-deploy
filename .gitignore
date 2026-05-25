@@ -2,6 +2,7 @@ HELP.md
 
 target/
 .mvn/wrapper/maven-wrapper.jar
+.mvn/maven.config
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -47,3 +48,4 @@ uploads/
 http/
 .env
 
+src/main/resources/seed-local.sql

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Premium — ExperiMate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .page-content { background: #0a0c0c; }
+    body.light-mode .page-content { background: #f0eeea; }
+    body.warm-mode  .page-content { background: #ECEDF2; }
+
+    /* ── Hero ── */
+    .premium-hero {
+      position: relative; overflow: hidden;
+      padding: 36px 20px 28px; text-align: center;
+    }
+    .premium-hero__glow {
+      position: absolute; inset: -40px; z-index: 0;
+      background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(234,179,8,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    body.light-mode .premium-hero__glow { background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(234,179,8,0.13) 0%, transparent 70%); }
+    .premium-hero__crown {
+      position: relative; z-index: 1;
+      width: 58px; height: 58px; border-radius: 18px;
+      background: linear-gradient(145deg, #fbbf24 0%, #d97706 100%);
+      border: 1px solid rgba(251,191,36,0.4);
+      box-shadow: 0 0 0 6px rgba(234,179,8,0.10), 0 8px 24px rgba(217,119,6,0.45);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .premium-hero__badge {
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 22px; padding: 0 10px; border-radius: 6px;
+      background: rgba(234,179,8,0.14); border: 1px solid rgba(234,179,8,0.32);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.13em;
+      text-transform: uppercase; color: #fbbf24; margin-bottom: 10px;
+    }
+    body.light-mode .premium-hero__badge,
+    body.warm-mode  .premium-hero__badge { color: #92400e; background: rgba(234,179,8,0.10); border-color: rgba(234,179,8,0.28); }
+    .premium-hero__badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #fbbf24; box-shadow: 0 0 5px rgba(251,191,36,0.8); }
+    body.light-mode .premium-hero__badge-dot,
+    body.warm-mode  .premium-hero__badge-dot { background: #d97706; box-shadow: none; }
+    .premium-hero__title {
+      position: relative; z-index: 1;
+      font-family: var(--font-display); font-weight: 900; font-size: 26px;
+      color: var(--text); letter-spacing: -0.02em; line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .premium-hero__title span { color: #fbbf24; }
+    body.light-mode .premium-hero__title span,
+    body.warm-mode  .premium-hero__title span { color: #d97706; }
+    .premium-hero__sub {
+      position: relative; z-index: 1;
+      font-size: 13px; color: var(--text-3); line-height: 1.65; max-width: 260px; margin: 0 auto;
+    }
+
+    /* ── Plan toggle ── */
+    .plan-toggle {
+      display: flex; align-items: center; gap: 0;
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+      border-radius: var(--radius-pill); padding: 3px;
+      width: fit-content; margin: 0 auto 20px;
+    }
+    body.light-mode .plan-toggle,
+    body.warm-mode  .plan-toggle { background: rgba(0,0,0,0.05); }
+    .plan-toggle__btn {
+      height: 32px; padding: 0 18px; border: none; border-radius: var(--radius-pill);
+      font-family: var(--font-display); font-weight: 700; font-size: 12px;
+      cursor: pointer; transition: background 0.16s, color 0.16s;
+      background: none; color: var(--text-3); position: relative;
+    }
+    .plan-toggle__btn--active {
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      color: #1a0e00;
+      box-shadow: 0 2px 8px rgba(217,119,6,0.40);
+    }
+    .plan-toggle__save {
+      position: absolute; top: -7px; right: -4px;
+      background: #16a34a; color: #fff;
+      font-size: 7px; font-weight: 800; letter-spacing: 0.07em;
+      padding: 2px 5px; border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(22,163,74,0.4);
+    }
+
+    /* ── Plan cards ── */
+    .plan-cards { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+    .plan-card {
+      border-radius: 18px; padding: 18px 16px;
+      border: 1.5px solid var(--border-2);
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.10),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 6px 18px rgba(0,0,0,0.50);
+      cursor: pointer; transition: border-color 0.16s, box-shadow 0.16s;
+      position: relative; overflow: hidden;
+    }
+    body.light-mode .plan-card {
+      background: #fff; border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+      border-top-color: rgba(255,255,255,0.9); border-bottom-color: rgba(0,0,0,0.09);
+    }
+    body.warm-mode .plan-card {
+      background: var(--surface); border-color: rgba(0,0,0,0.07);
+      box-shadow: 0 2px 10px rgba(18,18,30,0.08);
+      border-top-color: rgba(255,255,255,0.82); border-bottom-color: rgba(0,0,0,0.08);
+    }
+    .plan-card--selected {
+      border-color: #d97706;
+      box-shadow:
+        inset 0 1.5px 0 rgba(251,191,36,0.18),
+        0 0 0 3px rgba(234,179,8,0.14),
+        0 6px 22px rgba(217,119,6,0.28);
+    }
+    body.light-mode .plan-card--selected,
+    body.warm-mode  .plan-card--selected {
+      border-color: #d97706;
+      box-shadow: 0 0 0 3px rgba(234,179,8,0.14), 0 2px 10px rgba(217,119,6,0.18);
+    }
+    .plan-card__shine {
+      position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(251,191,36,0.06) 0%, transparent 100%);
+      pointer-events: none; opacity: 0; transition: opacity 0.16s;
+    }
+    .plan-card--selected .plan-card__shine { opacity: 1; }
+
+    .plan-card__header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .plan-card__name { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+    .plan-card__price { display: flex; align-items: baseline; gap: 3px; }
+    .plan-card__amount {
+      font-family: var(--font-display); font-weight: 900; font-size: 28px;
+      color: var(--text); letter-spacing: -0.03em; line-height: 1;
+    }
+    .plan-card__currency { font-size: 14px; font-weight: 700; color: var(--text-2); align-self: flex-start; padding-top: 4px; }
+    .plan-card__period { font-size: 11px; color: var(--text-3); }
+    .plan-card__per-month { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+    .plan-card__radio {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid var(--border-2); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.16s;
+    }
+    .plan-card--selected .plan-card__radio {
+      border-color: #d97706;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      box-shadow: 0 0 8px rgba(217,119,6,0.45);
+    }
+    .plan-card__radio-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #1a0e00;
+      opacity: 0; transition: opacity 0.14s;
+    }
+    .plan-card--selected .plan-card__radio-dot { opacity: 1; }
+
+    .plan-card__divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 12px; }
+    body.light-mode .plan-card__divider,
+    body.warm-mode  .plan-card__divider { border-top-color: rgba(0,0,0,0.07); }
+
+    .plan-card__savings {
+      display: inline-flex; align-items: center;
+      background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.25);
+      color: #4ade80; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 5px; margin-bottom: 12px;
+    }
+    body.light-mode .plan-card__savings,
+    body.warm-mode  .plan-card__savings { color: #15803d; background: rgba(22,163,74,0.08); }
+
+    /* ── Features list ── */
+    .premium-features { padding: 0 16px; margin-bottom: 16px; }
+    .premium-features__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    .feature-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .feature-row:last-child { border-bottom: none; }
+    body.light-mode .feature-row,
+    body.warm-mode  .feature-row { border-bottom-color: rgba(0,0,0,0.07); }
+    .feature-row__icon {
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(234,179,8,0.10); border: 1px solid rgba(234,179,8,0.20);
+      color: #fbbf24;
+    }
+    body.light-mode .feature-row__icon,
+    body.warm-mode  .feature-row__icon { color: #d97706; }
+    .feature-row__info { flex: 1; min-width: 0; }
+    .feature-row__title { font-size: 13px; color: var(--text); font-weight: 500; }
+    .feature-row__desc { font-size: 10px; color: var(--text-3); margin-top: 2px; line-height: 1.4; }
+    .feature-row__check { color: #fbbf24; flex-shrink: 0; }
+    body.light-mode .feature-row__check,
+    body.warm-mode  .feature-row__check { color: #d97706; }
+
+    /* ── CTA ── */
+    .premium-cta-wrap { padding: 0 16px 8px; }
+    .btn--premium {
+      width: 100%; height: 50px; border: none; border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      color: #1a0e00; font-family: var(--font-display); font-weight: 900;
+      font-size: 14px; letter-spacing: 0.04em; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(217,119,6,0.45), 0 1px 0 rgba(251,191,36,0.5) inset;
+      transition: opacity 0.14s, transform 0.14s;
+    }
+    .btn--premium:active { transform: scale(0.98); opacity: 0.9; }
+    .btn--premium:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .premium-cta__note {
+      text-align: center; font-size: 10px; color: var(--text-3); margin-top: 10px; line-height: 1.6;
+    }
+
+    /* ── Active state (already premium) ── */
+    .premium-active {
+      margin: 0 16px 12px;
+      padding: 20px 16px;
+      background: linear-gradient(145deg, rgba(234,179,8,0.14) 0%, rgba(234,179,8,0.04) 60%, transparent 100%);
+      border: 1.5px solid rgba(234,179,8,0.30);
+      border-top-color: rgba(251,191,36,0.45);
+      border-radius: 18px;
+      box-shadow: inset 0 1.5px 0 rgba(251,191,36,0.14), 0 6px 18px rgba(0,0,0,0.35);
+      display: none; flex-direction: column; gap: 14px;
+    }
+    body.light-mode .premium-active,
+    body.warm-mode  .premium-active {
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+      background: rgba(234,179,8,0.07);
+    }
+    .premium-active.visible { display: flex; }
+    .premium-active__header { display: flex; align-items: center; gap: 12px; }
+    .premium-active__icon {
+      width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(217,119,6,0.40);
+    }
+    .premium-active__label { font-size: 9px; color: #fbbf24; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px; }
+    body.light-mode .premium-active__label,
+    body.warm-mode  .premium-active__label { color: #d97706; }
+    .premium-active__plan { font-size: 14px; font-weight: 700; color: var(--text); }
+    .premium-active__renews { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .premium-active__cancel {
+      font-size: 11px; color: var(--text-3); text-align: center; cursor: pointer;
+      background: none; border: none; padding: 4px 0; text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .premium-active__cancel:hover { color: rgba(255,80,80,0.8); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <!-- Hero -->
+    <div class="premium-hero">
+      <div class="premium-hero__glow"></div>
+      <div class="premium-hero__crown">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a0e00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/>
+        </svg>
+      </div>
+      <div class="premium-hero__badge"><div class="premium-hero__badge-dot"></div>ExperiMate Premium</div>
+      <div class="premium-hero__title">Unlock the full<br><span>experience</span></div>
+      <div class="premium-hero__sub">More connections, deeper insights, and features built for the truly curious.</div>
+    </div>
+
+    <!-- Already premium — shown when user has active plan -->
+    <div class="premium-active" id="premium-active-card">
+      <div class="premium-active__header">
+        <div class="premium-active__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a0e00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+        </div>
+        <div>
+          <div class="premium-active__label">Active</div>
+          <div class="premium-active__plan" id="active-plan-name">Premium Monthly</div>
+          <div class="premium-active__renews" id="active-renews">Renews —</div>
+        </div>
+      </div>
+      <button class="premium-active__cancel" onclick="openCancelModal()">Cancel subscription</button>
+    </div>
+
+    <!-- Plan toggle — hidden when already premium -->
+    <div id="upgrade-section">
+
+      <div style="display:flex;justify-content:center;margin-bottom:20px;">
+        <div class="plan-toggle">
+          <button class="plan-toggle__btn plan-toggle__btn--active" id="toggle-monthly" onclick="selectBilling('monthly')">Monthly</button>
+          <button class="plan-toggle__btn" id="toggle-annual" onclick="selectBilling('annual')">
+            Annual
+            <span class="plan-toggle__save">−33%</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Plan cards -->
+      <div class="plan-cards">
+
+        <div class="plan-card plan-card--selected" id="card-monthly" onclick="selectCard('monthly')">
+          <div class="plan-card__shine"></div>
+          <div class="plan-card__header">
+            <div>
+              <div class="plan-card__name">Monthly</div>
+              <div class="plan-card__price">
+                <span class="plan-card__currency">€</span>
+                <span class="plan-card__amount" id="price-monthly">9.99</span>
+                <span class="plan-card__period">/mo</span>
+              </div>
+              <div class="plan-card__per-month">Billed monthly · cancel anytime</div>
+            </div>
+            <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
+          </div>
+        </div>
+
+        <div class="plan-card" id="card-annual" onclick="selectCard('annual')">
+          <div class="plan-card__shine"></div>
+          <div class="plan-card__header">
+            <div>
+              <div class="plan-card__name">Annual</div>
+              <div class="plan-card__price">
+                <span class="plan-card__currency">€</span>
+                <span class="plan-card__amount">6.66</span>
+                <span class="plan-card__period">/mo</span>
+              </div>
+              <div class="plan-card__per-month">€79.99 billed once a year</div>
+            </div>
+            <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
+          </div>
+          <hr class="plan-card__divider">
+          <div class="plan-card__savings">Save €39.89 vs monthly</div>
+        </div>
+
+      </div>
+
+      <!-- Features -->
+      <div class="premium-features">
+        <div class="premium-features__label">What you get</div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">Unlimited daily matches</div>
+            <div class="feature-row__desc">Free users get 5 matches per day — Premium removes the cap.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">See who saved you</div>
+            <div class="feature-row__desc">Know who's interested in meeting you before you match.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">AI match explanations</div>
+            <div class="feature-row__desc">Understand exactly why someone is a great match for you.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">Profile analytics</div>
+            <div class="feature-row__desc">See how many people viewed your profile and saved your events.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">Priority in search &amp; Explore</div>
+            <div class="feature-row__desc">Your profile and listings rank higher across the platform.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+      </div>
+
+      <!-- CTA -->
+      <div class="premium-cta-wrap">
+        <button class="btn--premium" id="upgrade-btn" onclick="goToPayment()">
+          Continue to payment →
+        </button>
+        <div class="premium-cta__note" id="cta-note">
+          You'll be taken to our secure payment page.<br>Cancel anytime — no hidden fees.
+        </div>
+      </div>
+
+    </div><!-- /upgrade-section -->
+
+    <div style="height:40px;"></div>
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+</div>
+
+<!-- Cancel subscription modal -->
+<div id="cancel-modal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-title">Cancel subscription?</div>
+    <div class="modal-sub">Your Premium access stays active until the end of the current billing period. After that your account reverts to the free plan.</div>
+    <div class="modal-actions">
+      <button onclick="closeCancelModal()" class="btn btn--ghost">Keep Premium</button>
+      <button onclick="confirmCancel()" class="btn btn--danger">Cancel subscription</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const PAYMENT_URL_MONTHLY = '#'; // TODO: wire Stripe/external checkout URL
+  const PAYMENT_URL_ANNUAL  = '#';
+
+  let selectedPlan = 'monthly';
+
+  function selectBilling(plan) {
+    selectedPlan = plan;
+    document.getElementById('toggle-monthly').classList.toggle('plan-toggle__btn--active', plan === 'monthly');
+    document.getElementById('toggle-annual').classList.toggle('plan-toggle__btn--active', plan === 'annual');
+    if (plan === 'monthly') selectCard('monthly'); else selectCard('annual');
+  }
+
+  function selectCard(plan) {
+    selectedPlan = plan;
+    document.getElementById('card-monthly').classList.toggle('plan-card--selected', plan === 'monthly');
+    document.getElementById('card-annual').classList.toggle('plan-card--selected', plan === 'annual');
+    document.getElementById('toggle-monthly').classList.toggle('plan-toggle__btn--active', plan === 'monthly');
+    document.getElementById('toggle-annual').classList.toggle('plan-toggle__btn--active', plan === 'annual');
+  }
+
+  function goToPayment() {
+    if (!Auth.getUserId()) { window.location.href = '/login'; return; }
+    const url = selectedPlan === 'annual' ? PAYMENT_URL_ANNUAL : PAYMENT_URL_MONTHLY;
+    if (url === '#') {
+      showToast('Payment page coming soon — stay tuned!', 'info');
+      return;
+    }
+    window.location.href = url;
+  }
+
+  function openCancelModal() {
+    document.getElementById('cancel-modal').classList.add('modal-backdrop--open');
+  }
+  function closeCancelModal() {
+    document.getElementById('cancel-modal').classList.remove('modal-backdrop--open');
+  }
+  async function confirmCancel() {
+    closeCancelModal();
+    try {
+      await PremiumAPI.cancel();
+      showToast('Subscription cancelled. Access continues until end of billing period.', 'success');
+      document.getElementById('premium-active-card').classList.remove('visible');
+      document.getElementById('upgrade-section').style.display = '';
+    } catch {
+      showToast('Could not cancel — please try again.', 'error');
+    }
+  }
+
+  async function initPremiumPage() {
+    if (!Auth.getUserId()) return; // guest — show upgrade UI as-is
+    try {
+      const status = await PremiumAPI.getStatus();
+      if (status?.active) {
+        const planLabel = status.plan === 'annual' ? 'Premium Annual' : 'Premium Monthly';
+        const renewsDate = status.renewsAt ? new Date(status.renewsAt).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+        document.getElementById('active-plan-name').textContent = planLabel;
+        document.getElementById('active-renews').textContent = `Renews ${renewsDate}`;
+        document.getElementById('premium-active-card').classList.add('visible');
+        document.getElementById('upgrade-section').style.display = 'none';
+      }
+    } catch { /* not premium or backend pending — show upgrade UI */ }
+  }
+
+  initPremiumPage();
+</script>
+</body>
+</html>
