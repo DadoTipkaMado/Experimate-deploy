@@ -167,6 +167,28 @@
     .map-pin--due-soon::after { background: #f59e0b; }
     .map-legend__dot--my-meet  { background: #a855f7; opacity: 0.8; }
     .map-legend__dot--due-soon { background: #f59e0b; opacity: 0.8; }
+    /* Partner pin — larger, electric blue, with logo slot */
+    .map-pin--partner {
+      width: 20px; height: 20px;
+      background: rgba(37,99,235,0.20);
+      border-color: #2563eb;
+      box-shadow: 0 0 10px rgba(37,99,235,0.45), 0 0 20px rgba(37,99,235,0.18);
+    }
+    .map-pin--partner::after { background: #2563eb; width: 7px; height: 7px; }
+    .map-pin--partner:hover { transform: rotate(-45deg) scale(1.25); }
+    .map-pin--partner-logo {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2.5px solid #2563eb;
+      overflow: hidden; cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.22), 0 3px 10px rgba(0,0,0,0.45);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      background: #1e3a8a;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .map-pin--partner-logo:hover { transform: scale(1.18); box-shadow: 0 0 0 4px rgba(37,99,235,0.35), 0 6px 18px rgba(0,0,0,0.5); }
+    .map-pin--partner-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .map-pin--partner-logo__initials { font-size: 11px; font-weight: 800; color: #93c5fd; font-family: sans-serif; }
+    .map-legend__dot--partner { background: #2563eb; opacity: 0.85; }
     .user-location-pin {
       width: 35px; height: 35px;
       border-radius: 50% 50% 50% 0;
@@ -570,6 +592,7 @@
             <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
             <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Going</div>
             <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
+            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--partner"></div>Partner venue</div>
             <div id="legend-venues"></div>
           </div>
         </div>

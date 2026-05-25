@@ -237,6 +237,18 @@ const RatingAPI = {
 };
 
 /* ───────────────────────────────────────────────
+   PARTNER  /api/partner  (B2B — issue #107)
+   TODO: wire up when David adds backend endpoints
+─────────────────────────────────────────────── */
+const PartnerAPI = {
+  getProfile:  ()      => apiFetch('/api/partner/profile'),
+  getStats:    ()      => apiFetch('/api/partner/stats'),
+  getListings: ()      => apiFetch('/api/partner/listings'),
+  apply:       (dto)   => apiFetch('/api/partner/apply',  { method: 'POST', body: JSON.stringify(dto) }),
+  updateAd:    (dto)   => apiFetch('/api/partner/ad',     { method: 'PUT',  body: JSON.stringify(dto) }),
+};
+
+/* ───────────────────────────────────────────────
    SHARED USER CACHE HELPER
    Saves initials, hue, and photo to localStorage.
    Called after login and auto-redirect so the

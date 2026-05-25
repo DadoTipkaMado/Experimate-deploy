@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Partner Portal — ExperiMate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .page-content { background: #0a0c0c; }
+    body.light-mode .page-content { background: #f0eeea; }
+    body.warm-mode  .page-content { background: #ECEDF2; }
+
+    .partner-header { padding: 22px 20px 16px; }
+
+    /* Partner badge */
+    .partner-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 24px; padding: 0 10px; border-radius: 6px;
+      background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.35);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #60a5fa; margin-bottom: 10px;
+    }
+    .partner-badge__dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #2563eb; box-shadow: 0 0 6px rgba(37,99,235,0.7);
+    }
+    body.light-mode .partner-badge,
+    body.warm-mode  .partner-badge {
+      background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.25);
+      color: #1d4ed8;
+    }
+
+    /* Section card — same 3D pattern */
+    .partner-section {
+      margin: 0 16px 12px;
+      padding: 18px 16px;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 8px 20px rgba(0,0,0,0.55),
+        0 2px 6px rgba(0,0,0,0.4);
+    }
+    body.light-mode .partner-section {
+      background: #fff;
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
+      border-bottom-color: rgba(0,0,0,0.10);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07), 0 1px 3px rgba(20,20,30,0.04);
+    }
+    body.warm-mode  .partner-section {
+      background: var(--surface);
+      border-color: rgba(0,0,0,0.06);
+      border-top-color: rgba(255,255,255,0.82);
+      border-bottom-color: rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px rgba(18,18,30,0.08), 0 1px 3px rgba(18,18,30,0.05);
+    }
+
+    .partner-section__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase; margin-bottom: 14px;
+    }
+
+    /* Stats grid */
+    .partner-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-bottom: 4px;
+    }
+    .stat-cell {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top-color: rgba(255,255,255,0.10);
+      border-radius: 12px; padding: 12px 10px 10px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    body.light-mode .stat-cell,
+    body.warm-mode  .stat-cell {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.7);
+    }
+    .stat-cell__num {
+      font-family: var(--font-display); font-weight: 800; font-size: 22px;
+      color: var(--text); line-height: 1; letter-spacing: -0.02em;
+    }
+    .stat-cell__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* Quick-action row */
+    .partner-actions { display: flex; flex-direction: column; gap: 0; }
+    .partner-action {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text); text-decoration: none; cursor: pointer;
+    }
+    .partner-action:last-child { border-bottom: none; }
+    body.light-mode .partner-action,
+    body.warm-mode  .partner-action { border-bottom-color: rgba(0,0,0,0.07); }
+    .partner-action__left { display: flex; align-items: center; gap: 12px; }
+    .partner-action__icon {
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(37,99,235,0.10); border: 1px solid rgba(37,99,235,0.25);
+      color: #60a5fa;
+    }
+    body.light-mode .partner-action__icon,
+    body.warm-mode  .partner-action__icon { color: #1d4ed8; }
+    .partner-action__title { font-size: 13px; color: var(--text); }
+    .partner-action__desc { font-size: 10px; color: var(--text-3); line-height: 1.4; margin-top: 2px; }
+    .partner-action__arrow { color: var(--text-3); }
+
+    /* Events list */
+    .partner-event-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .partner-event-card:last-child { border-bottom: none; }
+    body.light-mode .partner-event-card,
+    body.warm-mode  .partner-event-card { border-bottom-color: rgba(0,0,0,0.07); }
+    .partner-event-card__date {
+      width: 40px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.22);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+    }
+    .partner-event-card__day { font-size: 15px; font-weight: 800; color: #60a5fa; line-height: 1; }
+    .partner-event-card__mon { font-size: 8px; color: rgba(96,165,250,0.65); text-transform: uppercase; letter-spacing: 0.1em; }
+    body.light-mode .partner-event-card__day,
+    body.warm-mode  .partner-event-card__day { color: #1d4ed8; }
+    body.light-mode .partner-event-card__mon,
+    body.warm-mode  .partner-event-card__mon { color: rgba(29,78,216,0.6); }
+    .partner-event-card__info { flex: 1; min-width: 0; }
+    .partner-event-card__title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .partner-event-card__sub { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .partner-event-card__badge {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 3px 7px; border-radius: 5px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent);
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* Apply CTA — for non-partners */
+    .partner-cta {
+      margin: 0 16px 12px;
+      padding: 28px 20px 24px;
+      background: linear-gradient(145deg, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 60%, rgba(0,0,0,0) 100%);
+      border: 1px solid rgba(37,99,235,0.22);
+      border-top-color: rgba(37,99,235,0.35);
+      border-radius: 18px;
+      box-shadow: inset 0 1.5px 0 rgba(96,165,250,0.14), 0 8px 20px rgba(0,0,0,0.4);
+      text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    body.light-mode .partner-cta,
+    body.warm-mode  .partner-cta {
+      background: rgba(37,99,235,0.06);
+      border-color: rgba(37,99,235,0.18);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+    }
+    .partner-cta__icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.30);
+      display: flex; align-items: center; justify-content: center; color: #60a5fa;
+    }
+    body.light-mode .partner-cta__icon,
+    body.warm-mode  .partner-cta__icon { color: #1d4ed8; }
+    .partner-cta__title {
+      font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text);
+    }
+    .partner-cta__sub { font-size: 12px; color: var(--text-3); line-height: 1.65; max-width: 260px; }
+    .partner-cta__perks { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+    .partner-cta__perk {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--text-2);
+    }
+    .partner-cta__perk-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #2563eb; flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(37,99,235,0.6);
+    }
+
+    /* Apply button — blue accent */
+    .btn--partner {
+      background: #2563eb; color: #fff; border: none;
+      height: 46px; border-radius: var(--radius-pill);
+      font-family: var(--font-display); font-weight: 800; font-size: 13px;
+      letter-spacing: 0.05em; cursor: pointer; width: 100%;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.40);
+      transition: opacity var(--t-fast), transform var(--t-fast);
+    }
+    .btn--partner:active { transform: scale(0.98); opacity: 0.9; }
+
+    .partner-empty {
+      padding: 24px 0 8px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .partner-empty__icon { font-size: 28px; opacity: 0.25; }
+    .partner-empty__title { font-size: 13px; color: var(--text-2); font-weight: 600; }
+    .partner-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+
+    .skeleton { background: rgba(255,255,255,0.06); border-radius: 6px; animation: sk 1.4s ease-in-out infinite; }
+    body.light-mode .skeleton,
+    body.warm-mode  .skeleton { background: rgba(0,0,0,0.07); }
+    @keyframes sk { 0%,100%{opacity:1}50%{opacity:0.4} }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="partner-header">
+      <div id="partner-badge-row"></div>
+      <div class="page-title" style="margin:0;">Partner Portal</div>
+      <div class="page-subtitle" style="margin:0;">B2B advertising &amp; event management</div>
+    </div>
+
+    <!-- Non-partner view — shown until we confirm user is a partner -->
+    <div id="partner-apply-view">
+
+      <div class="partner-cta">
+        <div class="partner-cta__icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="3" width="18" height="18" rx="4"/>
+            <path d="M9 12h6M12 9v6"/>
+          </svg>
+        </div>
+        <div class="partner-cta__title">Become a Partner</div>
+        <div class="partner-cta__sub">List your venue, advertise events, and reach thousands of experience-seekers in your city.</div>
+        <div class="partner-cta__perks">
+          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Your venue pin highlighted in blue on the map</div>
+          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Logo shown directly on the map marker</div>
+          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Promoted events visible to all nearby users</div>
+          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Analytics dashboard — views, clicks, bookings</div>
+          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Priority placement in Explore &amp; search</div>
+        </div>
+        <button class="btn--partner" onclick="applyForPartnership()">Apply for partnership →</button>
+      </div>
+
+    </div>
+
+    <!-- Partner dashboard — shown when user is confirmed partner -->
+    <div id="partner-dashboard-view" style="display:none;">
+
+      <!-- Stats -->
+      <div class="partner-section">
+        <div class="partner-section__label">This month</div>
+        <div class="partner-stats">
+          <div class="stat-cell">
+            <div class="stat-cell__num" id="stat-views"><span class="skeleton" style="width:32px;height:22px;display:block;"></span></div>
+            <div class="stat-cell__label">Profile views</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell__num" id="stat-bookings"><span class="skeleton" style="width:24px;height:22px;display:block;"></span></div>
+            <div class="stat-cell__label">Bookings</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell__num" id="stat-events"><span class="skeleton" style="width:20px;height:22px;display:block;"></span></div>
+            <div class="stat-cell__label">Active events</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="partner-section">
+        <div class="partner-section__label">Manage</div>
+        <div class="partner-actions">
+          <a href="/listings/new" class="partner-action">
+            <div class="partner-action__left">
+              <div class="partner-action__icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <div>
+                <div class="partner-action__title">Create new event</div>
+                <div class="partner-action__desc">Add a new listing visible to nearby users</div>
+              </div>
+            </div>
+            <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </a>
+          <div class="partner-action" onclick="openAdEditor()">
+            <div class="partner-action__left">
+              <div class="partner-action__icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M8 8h8M8 16h5"/></svg>
+              </div>
+              <div>
+                <div class="partner-action__title">Edit advertisement</div>
+                <div class="partner-action__desc">Update your map pin, logo, and promotional text</div>
+              </div>
+            </div>
+            <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <a href="/account/edit" class="partner-action">
+            <div class="partner-action__left">
+              <div class="partner-action__icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+              <div>
+                <div class="partner-action__title">Edit profile</div>
+                <div class="partner-action__desc">Update venue name, description, and photo</div>
+              </div>
+            </div>
+            <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Your events list -->
+      <div class="partner-section">
+        <div class="partner-section__label">Your events</div>
+        <div id="partner-events-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon">📅</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="height:40px;"></div>
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+</div>
+
+<!-- Ad editor modal -->
+<div id="ad-editor-modal" class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;z-index:900;opacity:0;pointer-events:none;transition:opacity 0.18s;">
+  <div style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-bottom-color:rgba(0,0,0,0.55);border-radius:20px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.13),0 40px 80px rgba(0,0,0,0.70);padding:22px 20px 18px;width:min(340px,92vw);display:flex;flex-direction:column;gap:14px;">
+    <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);">Edit Advertisement</div>
+    <div style="font-size:11px;color:var(--text-3);line-height:1.65;">Partner ad editing will be available once David wires the backend. Your map pin is already showing in blue.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+      <button onclick="closeAdEditor()" class="btn btn--ghost" style="height:38px;padding:0 18px;font-size:12px;">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  async function initPartnerPage() {
+    const userId = Auth.getUserId();
+    if (!userId) { window.location.href = '/login'; return; }
+
+    try {
+      const profile = await PartnerAPI.getProfile();
+      showDashboard(profile);
+    } catch (e) {
+      // Not a partner yet — show the apply view (default)
+      document.getElementById('partner-apply-view').style.display = '';
+      document.getElementById('partner-dashboard-view').style.display = 'none';
+    }
+  }
+
+  function showDashboard(profile) {
+    document.getElementById('partner-apply-view').style.display = 'none';
+    document.getElementById('partner-dashboard-view').style.display = '';
+
+    const badgeRow = document.getElementById('partner-badge-row');
+    badgeRow.innerHTML = `<div class="partner-badge"><div class="partner-badge__dot"></div>Partner account</div>`;
+
+    loadStats();
+    loadPartnerEvents();
+  }
+
+  async function loadStats() {
+    try {
+      const stats = await PartnerAPI.getStats();
+      document.getElementById('stat-views').textContent    = stats.profileViews ?? 0;
+      document.getElementById('stat-bookings').textContent = stats.bookings      ?? 0;
+      document.getElementById('stat-events').textContent   = stats.activeEvents  ?? 0;
+    } catch {
+      document.getElementById('stat-views').textContent    = '—';
+      document.getElementById('stat-bookings').textContent = '—';
+      document.getElementById('stat-events').textContent   = '—';
+    }
+  }
+
+  async function loadPartnerEvents() {
+    const container = document.getElementById('partner-events-list');
+    try {
+      const listings = await PartnerAPI.getListings();
+      if (!listings || listings.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon">📅</div>
+            <div class="partner-empty__title">No events yet</div>
+            <div class="partner-empty__sub">Create your first event listing to start attracting guests.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = listings.map(l => {
+        const d = new Date(l.meetingDate);
+        const day = d.getDate();
+        const mon = d.toLocaleString('en', { month: 'short' }).toUpperCase();
+        const booked = l.bookedCount ?? 0;
+        const max    = l.maxGuests   ?? '?';
+        const isFull = booked >= max;
+        return `
+          <div class="partner-event-card">
+            <div class="partner-event-card__date">
+              <div class="partner-event-card__day">${day}</div>
+              <div class="partner-event-card__mon">${mon}</div>
+            </div>
+            <div class="partner-event-card__info">
+              <div class="partner-event-card__title">${l.description ?? l.city ?? 'Untitled event'}</div>
+              <div class="partner-event-card__sub">${l.city ?? ''} · ${booked}/${max} guests</div>
+            </div>
+            <span class="partner-event-card__badge">${isFull ? 'FULL' : 'OPEN'}</span>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load events.</div></div>`;
+    }
+  }
+
+  async function applyForPartnership() {
+    showToast('Application submitted — we\'ll review and get back to you soon.', 'success');
+    try { await PartnerAPI.apply({ userId: Auth.getUserId() }); } catch { /* backend pending */ }
+  }
+
+  function openAdEditor() {
+    const modal = document.getElementById('ad-editor-modal');
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+  }
+
+  function closeAdEditor() {
+    const modal = document.getElementById('ad-editor-modal');
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+  }
+
+  document.getElementById('ad-editor-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdEditor();
+  });
+
+  initPartnerPage();
+</script>
+</body>
+</html>
