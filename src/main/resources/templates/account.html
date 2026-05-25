@@ -11,74 +11,206 @@
   <title>Account — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
-    /* ── Hero ── */
-    .account-hero {
-      padding: 28px 20px 20px;
-      display: flex; flex-direction: column; align-items: center; gap: 0;
-      border-bottom: 1px solid var(--border);
+    /* ── Cover banner ── */
+    .acc-cover {
+      height: 120px;
       position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
     }
-    .account-hero::before {
-      content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
-      width: 340px; height: 240px;
-      background: radial-gradient(ellipse, rgba(0,201,167,0.07) 0%, transparent 65%);
-      pointer-events: none;
+    .acc-cover__bg { position: absolute; inset: 0; }
+    .acc-cover__fade {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%);
     }
-
-    /* Hamburger menu button */
     .acc-menu-btn {
-      position: absolute; top: 16px; right: 16px;
+      position: absolute; top: 14px; right: 14px;
       width: 36px; height: 36px; border-radius: 50%;
-      background: transparent; border: none; cursor: pointer;
+      background: rgba(0,0,0,0.38);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.12);
+      cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      color: var(--text-2); z-index: 2;
-      transition: color var(--t-fast), background var(--t-fast);
+      color: rgba(255,255,255,0.82);
+      transition: background var(--t-fast);
+      z-index: 2;
     }
-    .acc-menu-btn:hover { color: var(--text); background: var(--surface-2); }
+    .acc-menu-btn:hover { background: rgba(0,0,0,0.55); }
 
-    /* Avatar */
+    /* ── Hero section ── */
+    .acc-hero {
+      padding: 0 20px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .acc-avatar-wrap {
+      margin-top: -46px;
+      position: relative;
+      margin-bottom: 14px;
+    }
     .acc-avatar {
-      width: 88px; height: 88px; border-radius: 50%;
+      width: 92px; height: 92px; border-radius: 50%;
       background: var(--surface-2);
-      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+      border: 3px solid var(--bg);
       display: flex; align-items: center; justify-content: center;
-      position: relative; z-index: 1; overflow: hidden; flex-shrink: 0;
-      margin-bottom: 12px;
+      overflow: hidden; position: relative; z-index: 1;
     }
     .acc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .acc-avatar__ring {
+      position: absolute; inset: -5px; border-radius: 50%;
+      border: 2.5px solid transparent;
+      background: linear-gradient(var(--bg), var(--bg)) padding-box,
+                  linear-gradient(135deg, var(--accent), var(--warm)) border-box;
+    }
 
     .acc-name {
-      font-family: var(--font-display); font-weight: 800; font-size: 20px;
-      letter-spacing: -0.01em; color: var(--text); margin-bottom: 2px; z-index: 1; position: relative;
+      font-family: var(--font-display); font-weight: 800; font-size: 22px;
+      letter-spacing: -0.01em; color: var(--text); margin-bottom: 3px; text-align: center;
     }
     .acc-handle {
-      font-size: 12px; color: var(--text-3); letter-spacing: 0.05em;
-      margin-bottom: 16px; z-index: 1; position: relative;
+      font-size: 12px; color: var(--text-3); letter-spacing: 0.05em; margin-bottom: 16px;
     }
-
-    /* Stats row — Instagram style */
-    .acc-stats-row {
-      display: flex; width: 100%; max-width: 300px;
-      margin-bottom: 16px; z-index: 1; position: relative;
+    .acc-premium-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      height: 20px; padding: 0 8px; border-radius: 5px;
+      background: linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,119,6,0.12) 100%);
+      border: 1px solid rgba(234,179,8,0.35);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.11em;
+      text-transform: uppercase; color: #fbbf24;
+      margin-bottom: 14px; cursor: pointer;
     }
-    .acc-stat-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .acc-stat-col + .acc-stat-col { border-left: 1px solid var(--border); }
-    .acc-stat-col__num { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); line-height: 1; }
-    .acc-stat-col__num--accent { color: var(--accent); }
-    .acc-stat-col__label { font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+    body.light-mode .acc-premium-badge,
+    body.warm-mode  .acc-premium-badge { color: #92400e; background: rgba(234,179,8,0.10); border-color: rgba(234,179,8,0.28); }
 
-    /* Edit profile button */
+    /* ── Stats card ── */
+    .acc-stats {
+      display: flex; width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .acc-stat {
+      flex: 1; text-align: center; padding: 14px 8px;
+      border-right: 1px solid var(--border);
+    }
+    .acc-stat:last-child { border-right: none; }
+    .acc-stat__num {
+      font-family: var(--font-display); font-weight: 800; font-size: 22px;
+      color: var(--text); line-height: 1; margin-bottom: 4px;
+    }
+    .acc-stat__num--accent { color: var(--accent); }
+    .acc-stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.09em; text-transform: uppercase; }
+
+    /* ── Action buttons ── */
+    .acc-actions { display: flex; gap: 8px; width: 100%; }
     .acc-edit-btn {
+      flex: 1;
       display: flex; align-items: center; justify-content: center;
-      width: 100%; height: 36px; border-radius: var(--radius-pill);
+      height: 38px; border-radius: var(--radius-pill);
       border: 1px solid var(--border-2); background: var(--surface);
       color: var(--text); font-family: var(--font-display); font-weight: 700; font-size: 13px;
-      text-decoration: none; cursor: pointer; z-index: 1; position: relative;
+      text-decoration: none; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
       transition: border-color var(--t-fast), background var(--t-fast);
     }
     .acc-edit-btn:hover { border-color: var(--accent-border); background: var(--surface-2); }
 
-    /* ── Side drawer ── */
+    /* ── Tabs ── */
+    .acc-tab-bar {
+      display: flex; border-bottom: 1px solid var(--border);
+      padding: 0 4px; flex-shrink: 0; margin-top: 4px;
+    }
+    .acc-tab {
+      flex: 1; text-align: center;
+      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3); padding: 13px 0; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color var(--t-base), border-color var(--t-base); user-select: none;
+    }
+    .acc-tab:hover { color: var(--text-2); }
+    .acc-tab--active { color: var(--accent); border-bottom-color: var(--accent); }
+    .acc-tab-panel { display: none; }
+    .acc-tab-panel--active { display: block; }
+
+    /* ── Overview sections ── */
+    .acc-section {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .acc-section:last-child { border-bottom: none; }
+    .acc-section__label {
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 8px;
+    }
+    .acc-bio-text { font-size: 13px; line-height: 1.75; color: var(--text-2); }
+
+    /* ── Trait pills (reuse .pill but smaller) ── */
+    .acc-traits { display: flex; gap: 6px; flex-wrap: wrap; }
+    .acc-trait {
+      font-size: 10px; letter-spacing: 0.06em; padding: 4px 12px;
+      border-radius: 20px; font-family: var(--font-mono);
+    }
+    .acc-trait--teal { background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.3); color: #00c9a7; }
+    .acc-trait--warm { background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.3); color: var(--warm); }
+    .acc-trait--muted { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); }
+
+    /* ── Memory grid ── */
+    .memory-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px;
+    }
+    .memory-tile {
+      aspect-ratio: 1; position: relative; cursor: pointer;
+      overflow: hidden; background: var(--surface-2);
+      border-radius: 6px;
+    }
+    .memory-tile__bg { width: 100%; height: 100%; transition: transform 0.2s ease; }
+    .memory-tile:active .memory-tile__bg { transform: scale(0.94); }
+    .memory-tile__overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background 0.2s;
+      display: flex; align-items: flex-end; padding: 7px;
+    }
+    .memory-tile:hover .memory-tile__overlay { background: rgba(0,0,0,0.35); }
+    .memory-tile__city {
+      font-family: var(--font-display); font-weight: 700; font-size: 11px;
+      color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      opacity: 0; transform: translateY(4px);
+      transition: opacity 0.2s, transform 0.2s; width: 100%;
+    }
+    .memory-tile:hover .memory-tile__city { opacity: 1; transform: translateY(0); }
+
+    /* ── Memory modal ── */
+    .memory-modal {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      align-items: flex-end; justify-content: center;
+    }
+    .memory-modal--visible { display: flex; }
+    .memory-modal__sheet {
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      border: 1px solid var(--border-2); border-bottom: none;
+      width: 100%; max-width: 480px; max-height: 85dvh;
+      overflow-y: auto; padding: 20px 20px 40px;
+      animation: slideUp 0.3s cubic-bezier(0.32,0.72,0,1) both;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .memory-modal__handle { width: 36px; height: 3px; background: var(--border-3); border-radius: 2px; margin: 0 auto 18px; }
+    .memory-modal__photo { width: 100%; aspect-ratio: 4/3; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; }
+    .memory-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 56px 24px; gap: 12px; text-align: center;
+    }
+    .memory-empty__icon { width: 56px; height: 56px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
+
+    /* ── Drawer ── */
     .drawer-backdrop {
       position: fixed; inset: 0; background: rgba(0,0,0,0); z-index: 800;
       pointer-events: none; transition: background 0.25s;
@@ -126,7 +258,6 @@
       font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
       color: var(--text-3); padding: 10px 20px 4px;
     }
-
     .drawer__item {
       display: flex; align-items: center; gap: 14px;
       padding: 13px 20px; color: var(--text); text-decoration: none; cursor: pointer;
@@ -145,80 +276,6 @@
       background: rgba(255,50,50,0.07); border-color: rgba(255,50,50,0.15); color: rgba(255,80,80,0.7);
     }
     .drawer__item__label { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
-    .drawer__item__sub { font-size: 10px; color: var(--text-3); margin-top: 1px; }
-
-    /* ── Tabs ── */
-    .acc-tab-bar { display: flex; border-bottom: 1px solid var(--border); padding: 0; flex-shrink: 0; }
-    .acc-tab {
-      flex: 1; text-align: center;
-      font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-3); padding: 12px 0; cursor: pointer;
-      border-bottom: 2px solid transparent; margin-bottom: -1px;
-      transition: color var(--t-base), border-color var(--t-base); user-select: none;
-    }
-    .acc-tab:hover { color: var(--text-2); }
-    .acc-tab--active { color: var(--accent); border-bottom-color: var(--accent); }
-    .acc-tab-panel { display: none; }
-    .acc-tab-panel--active { display: block; }
-
-    /* ── Overview ── */
-    .acc-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
-    .acc-section:last-child { border-bottom: none; }
-
-
-    /* ── Memory grid — 3-col Instagram ── */
-    .memory-grid-insta {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px;
-    }
-    .memory-tile { aspect-ratio: 1; position: relative; cursor: pointer; overflow: hidden; background: var(--surface-2); }
-    .memory-tile__bg { width: 100%; height: 100%; transition: transform 0.2s ease; }
-    .memory-tile:active .memory-tile__bg { transform: scale(0.96); }
-    .memory-tile__overlay {
-      position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background 0.2s;
-      display: flex; align-items: flex-end; padding: 8px;
-    }
-    .memory-tile:hover .memory-tile__overlay { background: rgba(0,0,0,0.35); }
-    .memory-tile__city {
-      font-family: var(--font-display); font-weight: 700; font-size: 11px;
-      color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-      opacity: 0; transform: translateY(4px);
-      transition: opacity 0.2s, transform 0.2s; width: 100%;
-    }
-    .memory-tile:hover .memory-tile__city { opacity: 1; transform: translateY(0); }
-
-    /* ── Memory modal ── */
-    .memory-modal {
-      display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(0,0,0,0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      align-items: flex-end; justify-content: center;
-    }
-    .memory-modal--visible { display: flex; }
-    .memory-modal__sheet {
-      background: var(--surface); border-radius: 20px 20px 0 0;
-      border: 1px solid var(--border-2); border-bottom: none;
-      width: 100%; max-width: 480px; max-height: 85dvh;
-      overflow-y: auto; padding: 20px 20px 40px;
-      animation: slideUp 0.32s cubic-bezier(0.32,0.72,0,1) both;
-    }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .memory-modal__handle { width: 36px; height: 3px; background: var(--border-3); border-radius: 2px; margin: 0 auto 18px; }
-    .memory-modal__photo { width: 100%; aspect-ratio: 4/3; border-radius: var(--radius-sm); background: var(--surface-2); overflow: hidden; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; }
-    .memory-empty {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 56px 24px; gap: 12px; text-align: center;
-    }
-    .memory-empty__icon { width: 56px; height: 56px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
-
-    /* legacy req-cards */
-    .req-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
-    .req-btn { flex: 1; height: 36px; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border: 1px solid; transition: background var(--t-base), color var(--t-base); }
-    .req-btn--accept { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
-    .req-btn--accept:hover { background: var(--accent); color: #000; }
-    .req-btn--decline { background: transparent; border-color: var(--border-2); color: var(--text-3); }
-    .req-btn--decline:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
-    .req-status-badge { display: inline-block; padding: 2px 10px; border-radius: var(--radius-pill); font-size: 10px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
-    .req-status-badge--accepted { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
-    .req-status-badge--declined { background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.2); color: rgba(255,80,80,0.6); }
   </style>
 </head>
 <body>
@@ -228,68 +285,90 @@
 
   <main class="page-content">
 
-    <!-- ── Hero ── -->
-    <div class="account-hero">
-
-      <!-- Hamburger -->
+    <!-- Cover banner -->
+    <div class="acc-cover" id="acc-cover">
+      <div class="acc-cover__bg" id="acc-cover-bg"></div>
+      <div class="acc-cover__fade"></div>
       <button class="acc-menu-btn" onclick="openDrawer()" aria-label="Menu">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
+    </div>
 
-      <div class="acc-avatar" id="account-avatar"></div>
+    <!-- Hero -->
+    <div class="acc-hero">
 
-      <div id="account-name-sk" class="skeleton skeleton-line skeleton-line--lg" style="width:130px;margin-bottom:6px;"></div>
+      <div class="acc-avatar-wrap">
+        <div class="acc-avatar" id="account-avatar"></div>
+        <div class="acc-avatar__ring" id="acc-avatar-ring"></div>
+      </div>
+
+      <!-- Skeleton -->
+      <div id="account-name-sk" class="skeleton skeleton-line skeleton-line--lg" style="width:140px;margin-bottom:6px;"></div>
       <div id="account-handle-sk" class="skeleton skeleton-line skeleton-line--sm" style="width:90px;margin-bottom:16px;"></div>
 
       <div id="account-name" class="acc-name" style="display:none;"></div>
       <div id="account-handle" class="acc-handle" style="display:none;"></div>
+      <div id="acc-premium-badge" style="display:none;">
+        <a href="/premium" class="acc-premium-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+          Premium
+        </a>
+      </div>
 
-      <div class="acc-stats-row" id="account-stats" style="display:none;">
-        <div class="acc-stat-col">
-          <div class="acc-stat-col__num" id="stat-total">0</div>
-          <div class="acc-stat-col__label">Meets</div>
+      <!-- Stats card -->
+      <div class="acc-stats" id="account-stats" style="display:none;">
+        <div class="acc-stat">
+          <div class="acc-stat__num" id="stat-total">0</div>
+          <div class="acc-stat__label">Meets</div>
         </div>
-        <div class="acc-stat-col">
-          <div class="acc-stat-col__num acc-stat-col__num--accent">★ <span id="account-rating">0.0</span></div>
-          <div class="acc-stat-col__label">Rating</div>
+        <div class="acc-stat">
+          <div class="acc-stat__num acc-stat__num--accent">★ <span id="account-rating">0.0</span></div>
+          <div class="acc-stat__label">Rating</div>
         </div>
-        <div class="acc-stat-col">
-          <div class="acc-stat-col__num" id="stat-active">0</div>
-          <div class="acc-stat-col__label">Active</div>
+        <div class="acc-stat">
+          <div class="acc-stat__num" id="stat-active">0</div>
+          <div class="acc-stat__label">Active</div>
         </div>
       </div>
 
-      <a href="/account/edit" class="acc-edit-btn" id="acc-edit-btn" style="display:none;">Edit Profile</a>
+      <!-- Action buttons -->
+      <div class="acc-actions" id="acc-actions" style="display:none;">
+        <a href="/account/edit" class="acc-edit-btn">Edit Profile</a>
+      </div>
 
-      <div id="account-rating-badge" style="display:none;"></div>
-    </div>
+    </div><!-- /acc-hero -->
 
-    <!-- ── Tabs ── -->
+    <!-- Tabs -->
     <div class="acc-tab-bar">
       <div class="acc-tab acc-tab--active" onclick="switchAccTab('overview', this)">Overview</div>
       <div class="acc-tab" onclick="switchAccTab('memories', this)">Memories</div>
     </div>
 
-    <!-- ── OVERVIEW TAB ── -->
+    <!-- OVERVIEW TAB -->
     <div id="acc-tab-overview" class="acc-tab-panel acc-tab-panel--active">
 
       <div class="acc-section">
-        <div id="account-bio" style="font-size:13px;line-height:1.75;color:var(--text-3);">No bio set.</div>
+        <div class="acc-section__label">About</div>
+        <div id="account-bio" class="acc-bio-text" style="color:var(--text-3);">—</div>
       </div>
 
+      <div class="acc-section" id="acc-traits-section" style="display:none;">
+        <div class="acc-section__label">Personality</div>
+        <div class="acc-traits" id="acc-traits"></div>
+      </div>
 
-    </div><!-- /overview -->
+    </div>
 
-    <!-- ── MEMORIES TAB ── -->
+    <!-- MEMORIES TAB -->
     <div id="acc-tab-memories" class="acc-tab-panel">
       <div id="memory-grid-wrap"></div>
     </div>
 
   </main>
 
-  <!-- ── Side drawer ── -->
+  <!-- Side drawer -->
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <div class="drawer" id="drawer">
 
@@ -311,6 +390,18 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
         <div class="drawer__item__label">Ratings</div>
+      </a>
+      <a href="/premium" class="drawer__item" id="drawer-premium-item">
+        <div class="drawer__item__icon" style="background:rgba(234,179,8,0.10);border:1px solid rgba(234,179,8,0.22);color:#fbbf24;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+        </div>
+        <div class="drawer__item__label" id="drawer-premium-label">Get Premium</div>
+      </a>
+      <a href="/partner" class="drawer__item">
+        <div class="drawer__item__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 12h6M12 9v6"/></svg>
+        </div>
+        <div class="drawer__item__label">Partner Portal</div>
       </a>
       <a href="/settings" class="drawer__item">
         <div class="drawer__item__icon">
@@ -344,7 +435,6 @@
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
-  // ── Drawer ────────────────────────────────────
   function openDrawer() {
     document.getElementById('drawer').classList.add('drawer--open');
     document.getElementById('drawer-backdrop').classList.add('drawer-backdrop--open');
@@ -356,7 +446,6 @@
     document.body.style.overflow = '';
   }
 
-  // ── Account load ──────────────────────────────
   function loadAccount() {
     const userId = Auth.getUserId();
     if (!userId) { window.location.href = '/login'; return; }
@@ -368,23 +457,46 @@
 
       const fullName = user.firstName + ' ' + user.lastName;
       const handle   = '@' + user.username;
+      const hue      = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
 
       document.getElementById('account-name').textContent = fullName;
       document.getElementById('account-handle').textContent = handle;
       document.getElementById('account-rating').textContent = (user.rating ?? 0).toFixed(1);
       document.getElementById('account-name').style.display = '';
       document.getElementById('account-handle').style.display = '';
-
-      // Populate drawer header
+      checkPremiumStatus();
       document.getElementById('drawer-name').textContent = fullName;
       document.getElementById('drawer-handle').textContent = handle;
 
       const bioEl = document.getElementById('account-bio');
-      bioEl.textContent = user.bio || 'No bio set.';
-      bioEl.style.color = user.bio ? 'var(--text-2)' : 'var(--text-3)';
+      if (user.bio) {
+        bioEl.textContent = user.bio;
+        bioEl.style.color = 'var(--text-2)';
+      } else {
+        bioEl.innerHTML = `No bio yet. <a href="/account/edit" style="color:var(--accent);text-decoration:none;">Add one →</a>`;
+        bioEl.style.color = 'var(--text-3)';
+      }
 
-      const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || '?';
-      const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+      // Personality traits
+      const traitColors = ['acc-trait--teal', 'acc-trait--warm', 'acc-trait--muted'];
+      let traits = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
+        if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 3);
+      } catch(e) {}
+      if (!traits.length) {
+        const pool = ['Curious','Adventurous','Calm','Thoughtful','Warm','Creative','Bold','Organised'];
+        const h = (user.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+        traits = [pool[h % pool.length], pool[(h*3+1) % pool.length], pool[(h*7+5) % pool.length]]
+          .filter((v,i,a) => a.indexOf(v) === i).slice(0, 3);
+      }
+      const traitWrap = document.getElementById('acc-traits');
+      if (traitWrap && traits.length) {
+        traitWrap.innerHTML = traits.map((t, i) => `<span class="acc-trait ${traitColors[i % 3]}">${t}</span>`).join('');
+        document.getElementById('acc-traits-section').style.display = '';
+      }
+
       localStorage.setItem('user_initials', initials);
       localStorage.setItem('user_hue', hue);
 
@@ -393,9 +505,18 @@
       document.getElementById('stat-total').textContent  = myListings.length;
       document.getElementById('stat-active').textContent = activeCount;
       document.getElementById('account-stats').style.display = '';
-      document.getElementById('acc-edit-btn').style.display  = '';
+      document.getElementById('acc-actions').style.display  = '';
 
-      // Render avatars (hero + drawer)
+      // Cover gradient
+      const coverBg = document.getElementById('acc-cover-bg');
+      if (coverBg) {
+        coverBg.style.cssText = `background:linear-gradient(135deg,hsl(${hue},45%,12%) 0%,hsl(${hue},30%,16%) 50%,hsl(${(hue+40)%360},35%,10%) 100%);position:absolute;inset:0;`;
+      }
+      // Avatar ring colour matches hue
+      const ring = document.getElementById('acc-avatar-ring');
+      if (ring) ring.style.background = `linear-gradient(var(--bg),var(--bg)) padding-box, linear-gradient(135deg,hsl(${hue},60%,55%),hsl(${(hue+60)%360},55%,55%)) border-box`;
+
+      // Render avatars
       const photoUrl = UserAPI.photoUrl(user.profilePhotoUrl);
       if (photoUrl) localStorage.setItem('photo_' + userId, photoUrl);
       else localStorage.removeItem('photo_' + userId);
@@ -406,16 +527,23 @@
           el.innerHTML = `<img src="${photoUrl}" alt="Profile">`;
         } else {
           el.style.background = `hsl(${hue},35%,22%)`;
-          el.style.boxShadow  = size === 'lg'
-            ? `0 0 0 2px var(--bg), 0 0 0 4px hsl(${hue},50%,45%)`
-            : 'none';
           el.innerHTML = `<span style="font-family:var(--font-display);font-weight:800;font-size:${size === 'lg' ? 32 : 18}px;color:hsl(${hue},60%,72%);">${initials}</span>`;
         }
       }
       renderAvatar(document.getElementById('account-avatar'), 'lg');
       renderAvatar(document.getElementById('drawer-avatar'), 'sm');
-
     });
+  }
+
+  async function checkPremiumStatus() {
+    try {
+      const status = await PremiumAPI.getStatus();
+      if (status?.active) {
+        document.getElementById('acc-premium-badge').style.display = '';
+        const label = document.getElementById('drawer-premium-label');
+        if (label) label.textContent = 'Manage Premium';
+      }
+    } catch { /* not premium or backend pending */ }
   }
 
   loadAccount();
@@ -434,7 +562,7 @@
     if (_memoriesRendered) return;
     _memoriesRendered = true;
     const wrap = document.getElementById('memory-grid-wrap');
-    wrap.innerHTML = `<div class="memory-grid-insta">${Array(6).fill(
+    wrap.innerHTML = `<div class="memory-grid">${Array(6).fill(
       `<div class="memory-tile"><div class="memory-tile__bg skeleton" style="width:100%;height:100%;"></div></div>`
     ).join('')}</div>`;
 
@@ -455,7 +583,7 @@
         return;
       }
 
-      wrap.innerHTML = `<div class="memory-grid-insta">${past.map((r, i) => {
+      wrap.innerHTML = `<div class="memory-grid">${past.map((r, i) => {
         const d = new Date(r.tourListing?.meetingDate);
         const dateStr = `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
         const city = r.tourListing?.city ?? 'Unknown';

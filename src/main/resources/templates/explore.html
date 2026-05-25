@@ -17,383 +17,367 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    /* ── Fullscreen reel mode ── */
-    .page--reels .topbar { display: none; }
-    .page--reels .page-content {
-      overflow: hidden;
-      padding: 0;
+    /* ── Sticky search / filter header ── */
+    .explore-hd {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px 10px;
     }
 
-    /* ── Reel feed container ── */
-    .reel-feed {
-      height: 100%;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
+    .explore-search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-pill);
+      padding: 0 14px;
+      height: 42px;
+      margin-bottom: 8px;
+      transition: border-color var(--t-fast);
     }
-    .reel-feed::-webkit-scrollbar { display: none; }
-
-    /* ── Single reel card ── */
-    .reel-card {
-      position: relative;
-      height: 100%;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-      overflow: hidden;
-      background: #000;
-      cursor: pointer;
+    .explore-search:focus-within { border-color: var(--accent); }
+    .explore-search input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font-mono);
     }
+    .explore-search input::placeholder { color: var(--text-3); }
 
-    .reel-card__bg {
-      position: absolute; inset: 0;
-      background-size: cover;
-      background-position: center;
-      transform: scale(1.07);
+    .explore-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .explore-pills::-webkit-scrollbar { display: none; }
 
-    .reel-card__overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(
-        160deg,
-        rgba(0,0,0,0.10) 0%,
-        rgba(0,0,0,0.00) 28%,
-        rgba(0,0,0,0.00) 45%,
-        rgba(0,0,0,0.55) 68%,
-        rgba(0,0,0,0.94) 100%
-      );
+    .pill--ai.pill--active {
+      background: linear-gradient(135deg, var(--accent-dim) 0%, rgba(168,85,247,0.12) 100%);
+      border-color: var(--accent-border);
+      color: var(--accent);
     }
 
-    /* Center tap zone — opens detail */
-    .reel-tap-zone {
-      position: absolute;
-      top: 0; left: 0; right: 72px; bottom: 190px;
-      z-index: 5;
-    }
-
-    /* ── Right sidebar action buttons ── */
-    .reel-sidebar {
-      position: absolute;
-      right: 12px; bottom: 148px;
+    /* ── Card list ── */
+    .explore-list {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      z-index: 10;
+      gap: 10px;
+      padding: 14px 14px 24px;
+      /* Slightly lighter than --bg (#020505) so drop shadows are actually visible */
+      background: #0a0c0c;
     }
 
-    .reel-host-avatar {
-      width: 52px; height: 52px;
+    .explore-card {
+      /* Gradient bg: lighter top → darker bottom = light-source-from-above illusion */
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      /* Lighter border on top, darker on bottom = bevel */
+      border-top-color: rgba(255,255,255,0.10);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      padding: 18px;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),   /* top-edge highlight */
+        inset 0 -1px 0 rgba(0,0,0,0.45),            /* bottom-edge shadow */
+        0 8px 20px rgba(0,0,0,0.55),                /* drop shadow — needs bg to be > #000 */
+        0 2px 6px rgba(0,0,0,0.4);
+      transition: box-shadow var(--t-fast), transform var(--t-fast), border-color var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .explore-card:active {
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 100%);
+      border-top-color: rgba(255,255,255,0.06);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.07),
+        inset 0 2px 8px rgba(0,0,0,0.35);          /* pressed-in inset shadow */
+      transform: translateY(1px);
+    }
+
+    .explore-card__top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .explore-card__avatar {
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      border: 2.5px solid rgba(255,255,255,0.9);
-      overflow: hidden;
       flex-shrink: 0;
-      box-shadow: 0 2px 14px rgba(0,0,0,0.55);
-      transition: transform 0.14s;
-    }
-    .reel-host-avatar:active { transform: scale(0.90); }
-    .reel-host-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .reel-host-avatar__initials {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display); font-weight: 800; font-size: 18px;
-    }
-
-    .reel-action {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
-      cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    .reel-action__btn {
-      width: 52px; height: 52px; border-radius: 50%;
-      background: rgba(255,255,255,0.13);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1.5px solid rgba(255,255,255,0.22);
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.14s, background 0.18s;
-    }
-    .reel-action__btn:active { transform: scale(0.87); }
-    .reel-action__label {
-      font-size: 9px; color: rgba(255,255,255,0.72);
-      letter-spacing: 0.07em; text-transform: uppercase; text-align: center;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    }
-
-    /* Join states */
-    .reel-action--join .reel-action__btn {
-      background: var(--accent);
-      border-color: var(--accent);
-      box-shadow: 0 4px 20px rgba(0,201,167,0.45);
-    }
-    .reel-action--pending .reel-action__btn {
-      background: rgba(255,153,68,0.30);
-      border-color: #ff9944;
-    }
-    .reel-action--accepted .reel-action__btn {
-      background: rgba(0,201,167,0.30);
-      border-color: var(--accent);
-    }
-    .reel-action--full .reel-action__btn {
-      background: rgba(255,255,255,0.07);
-      border-color: rgba(255,255,255,0.12);
-      opacity: 0.5;
-      cursor: default;
-    }
-    .reel-action--own .reel-action__btn {
-      background: rgba(255,107,53,0.22);
-      border-color: var(--warm);
-    }
-
-    /* ── Bottom info overlay ── */
-    .reel-info {
-      position: absolute;
-      bottom: 0; left: 0; right: 76px;
-      padding: 0 18px 32px;
-      z-index: 10;
-    }
-
-    .reel-info__city {
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-family: var(--font-display);
-      font-weight: 800; font-size: 33px;
-      color: #fff; letter-spacing: -0.03em;
-      line-height: 1.05; margin-bottom: 5px;
-      text-shadow: 0 2px 16px rgba(0,0,0,0.35);
+      font-weight: 800;
+      font-size: 17px;
+    }
+    .explore-card__avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
-    .reel-info__host {
-      display: flex; align-items: center; gap: 7px;
-      margin-bottom: 6px;
-    }
-    .reel-info__host-name {
-      font-size: 14px; color: rgba(255,255,255,0.88);
-      font-weight: 600; text-decoration: none;
-    }
-    .reel-info__handle { font-size: 11px; color: rgba(255,255,255,0.42); }
+    .explore-card__meta { flex: 1; min-width: 0; }
 
-    .reel-info__desc {
-      font-size: 13px; color: rgba(255,255,255,0.60);
-      line-height: 1.5; margin-bottom: 12px;
+    .explore-card__host {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .explore-card__handle {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-bottom: 7px;
+    }
+
+    .explore-card__city {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-2);
+      background: var(--surface-2);
+      border-radius: var(--radius-pill);
+      padding: 3px 10px;
+    }
+
+    .explore-card__badge {
+      float: right;
+      margin-left: 10px;
+      height: 24px;
+      padding: 0 11px;
+      border-radius: var(--radius-pill);
+      font-size: 9px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .explore-card__badge--available {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(0,201,167,0.25);
+    }
+    .explore-card__badge--pending {
+      background: rgba(255,153,68,0.12);
+      color: #ff9944;
+      border: 1px solid rgba(255,153,68,0.28);
+    }
+    .explore-card__badge--accepted {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+    .explore-card__badge--own {
+      background: var(--warm-dim);
+      color: var(--warm);
+      border: 1px solid var(--warm-border);
+    }
+    .explore-card__badge--full {
+      background: var(--surface-2);
+      color: var(--text-3);
+      border: 1px solid var(--border-2);
+    }
+
+    .explore-card__desc {
+      font-size: 13.5px;
+      color: var(--text-2);
+      line-height: 1.6;
+      margin-bottom: 14px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
-    .reel-info__meta {
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    }
-    .reel-info__status {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase;
-    }
-    .reel-info__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .reel-info__date {
-      font-size: 10px; color: rgba(255,255,255,0.40);
-      letter-spacing: 0.06em; font-family: var(--font-mono);
-    }
-
-    /* ── Floating search/filter header ── */
-    .reel-header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 50;
-      padding: 10px 14px 8px;
-      pointer-events: all;
-      transition: opacity 0.35s ease;
-    }
-    .reel-header--dim { opacity: 0.18; pointer-events: none; }
-    .reel-header--dim:hover, .reel-header--dim:focus-within { opacity: 1; pointer-events: all; }
-
-    .reel-header__row {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 8px;
-    }
-    .reel-search {
-      flex: 1;
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(8,8,8,0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 24px;
-      padding: 0 14px;
-      height: 42px;
-      transition: border-color 0.18s, background 0.18s;
-    }
-    .reel-search:focus-within {
-      border-color: rgba(255,255,255,0.22);
-      background: rgba(8,8,8,0.88);
-    }
-    .reel-search input {
-      flex: 1; background: none; border: none; outline: none;
-      color: rgba(255,255,255,0.85); font-size: 14px;
-      font-family: var(--font-mono);
-    }
-    .reel-search input::placeholder { color: rgba(255,255,255,0.28); }
-
-    .reel-header__avatar {
-      width: 42px; height: 42px; border-radius: 50%;
-      background: rgba(8,8,8,0.72);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1.5px solid rgba(255,255,255,0.12);
-      overflow: hidden; cursor: pointer; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      transition: border-color 0.18s;
-    }
-    .reel-header__avatar:hover { border-color: rgba(255,255,255,0.3); }
-    .reel-header__avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-    .reel-chips {
-      display: flex; gap: 6px;
-      overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
-    }
-    .reel-chips::-webkit-scrollbar { display: none; }
-
-    .reel-chip {
-      background: rgba(8,8,8,0.72);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 20px;
-      padding: 5px 13px;
-      font-size: 11px; color: rgba(255,255,255,0.65);
-      white-space: nowrap; cursor: pointer;
-      transition: background 0.18s, border-color 0.18s, color 0.18s;
-      user-select: none;
-    }
-    .reel-chip--active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #000;
-      font-weight: 700;
-    }
-    .reel-chip--ai.reel-chip--active {
-      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
-      border-color: transparent;
-      color: #fff;
-    }
-
-    /* ── Scroll indicator (first visit) ── */
-    .reel-swipe-hint {
-      position: absolute;
-      bottom: 22px; right: 50%;
-      transform: translateX(50%);
-      z-index: 8;
-      display: flex; flex-direction: column; align-items: center; gap: 3px;
-      opacity: 0; animation: reelHintFade 3.5s ease 1.5s forwards;
-      pointer-events: none;
-    }
-    @keyframes reelHintFade {
-      0%   { opacity: 0; transform: translateX(50%) translateY(0); }
-      20%  { opacity: 0.55; }
-      70%  { opacity: 0.55; transform: translateX(50%) translateY(-8px); }
-      100% { opacity: 0; transform: translateX(50%) translateY(-12px); }
-    }
-    .reel-swipe-hint__text {
-      font-size: 10px; color: rgba(255,255,255,0.55);
-      letter-spacing: 0.1em; text-transform: uppercase;
-    }
-
-    /* ── Empty state ── */
-    .reel-empty {
-      height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 16px; padding: 40px; background: var(--bg);
-    }
-    .reel-empty__icon { font-size: 52px; opacity: 0.25; }
-    .reel-empty__title {
-      font-family: var(--font-display); font-weight: 800;
-      font-size: 22px; color: var(--text-2); text-align: center;
-    }
-    .reel-empty__sub { font-size: 13px; color: var(--text-3); text-align: center; line-height: 1.65; max-width: 240px; }
-
-    /* ── Skeleton loader ── */
-    .reel-skeleton {
-      height: 100%;
-      background: #0a0a0a;
-      scroll-snap-align: start;
-      display: flex; flex-direction: column;
-      justify-content: flex-end;
-      padding: 24px 18px 140px;
+    .explore-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 10px;
     }
-    .reel-skel {
-      background: rgba(255,255,255,0.07);
-      border-radius: 6px;
+
+    .explore-card__date {
+      font-size: 12px;
+      color: var(--text-3);
+      font-family: var(--font-mono);
+    }
+
+    .explore-card__join {
+      height: 34px;
+      padding: 0 20px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-radius: var(--radius-pill);
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity var(--t-fast), transform var(--t-fast);
+    }
+    .explore-card__join:active { transform: scale(0.93); }
+    .explore-card__join--join { background: var(--accent); color: #000; }
+    .explore-card__join--login { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-2); }
+    .explore-card__join--pending { background: rgba(255,153,68,0.12); color: #ff9944; border: 1px solid rgba(255,153,68,0.28); cursor: default; }
+    .explore-card__join--accepted { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,201,167,0.28); cursor: default; }
+    .explore-card__join--own { background: var(--warm-dim); color: var(--warm); border: 1px solid var(--warm-border); }
+    .explore-card__join--full { background: var(--surface-2); color: var(--text-3); border: 1px solid var(--border-2); cursor: default; opacity: 0.6; }
+
+    /* ── Empty state ── */
+    .explore-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 64px 32px;
+      text-align: center;
+    }
+    .explore-empty__icon { font-size: 44px; opacity: 0.22; }
+    .explore-empty__title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--text-2);
+    }
+    .explore-empty__sub { font-size: 13px; color: var(--text-3); line-height: 1.65; max-width: 220px; }
+
+    /* ── Skeleton ── */
+    .explore-skel {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 18px;
+      padding: 18px;
+    }
+    .explore-skel__row { display: flex; gap: 14px; margin-bottom: 12px; }
+    .explore-skel__circle {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: var(--surface-2);
+      animation: skelPulse 1.4s ease infinite;
+      flex-shrink: 0;
+    }
+    .explore-skel__lines { flex: 1; display: flex; flex-direction: column; gap: 7px; padding-top: 5px; }
+    .explore-skel__line {
+      height: 12px; border-radius: 6px;
+      background: var(--surface-2);
       animation: skelPulse 1.4s ease infinite;
     }
-    @keyframes skelPulse {
-      0%,100% { opacity: 0.4; } 50% { opacity: 0.8; }
-    }
-    @keyframes feedSpin { to { transform: rotate(360deg); } }
+    @keyframes skelPulse { 0%,100% { opacity:0.4; } 50% { opacity:0.8; } }
+    @keyframes feedSpin  { to { transform: rotate(360deg); } }
 
-    /* ── Light mode ── */
-    body.light-mode .reel-search {
-      background: rgba(250,248,244,0.88);
+    /* ── Light mode overrides ── */
+    body.light-mode .explore-search {
+      background: rgba(250,248,244,0.95);
       border-color: rgba(0,0,0,0.10);
     }
-    body.light-mode .reel-search:focus-within {
-      background: rgba(250,248,244,0.97);
-      border-color: rgba(0,0,0,0.18);
+    body.light-mode .explore-search input { color: #0f0e0c; }
+    body.light-mode .explore-search input::placeholder { color: rgba(0,0,0,0.30); }
+    body.light-mode .explore-list { background: #f0eeea; }
+    body.light-mode .explore-card {
+      background: linear-gradient(170deg, #fffef9 0%, #faf8f4 100%);
+      border-top-color: rgba(255,255,255,0.95);
+      border-bottom-color: rgba(0,0,0,0.10);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.95),
+        0 4px 14px rgba(0,0,0,0.10),
+        0 1px 4px rgba(0,0,0,0.07);
     }
-    body.light-mode .reel-search input { color: #0f0e0c; }
-    body.light-mode .reel-search input::placeholder { color: rgba(0,0,0,0.28); }
-    body.light-mode .reel-chip {
-      background: rgba(250,248,244,0.88);
-      border-color: rgba(0,0,0,0.10);
-      color: rgba(0,0,0,0.60);
-    }
-    body.light-mode .reel-header__avatar {
-      background: rgba(250,248,244,0.88);
-      border-color: rgba(0,0,0,0.10);
+    body.light-mode .explore-card:active {
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.6),
+        inset 0 2px 6px rgba(0,0,0,0.08);
     }
   </style>
 </head>
-<body class="page--reels">
+<body>
 <div class="app-shell">
 
-  <!-- Floating header: search + filters above the reels -->
-  <div class="reel-header" id="reel-header">
-    <div class="reel-header__row">
-      <div class="reel-search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linecap="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input type="text" id="explore-search-input" placeholder="City, host, or vibe..." autocomplete="off" spellcheck="false">
-      </div>
-      <div class="reel-header__avatar" id="reel-user-btn" onclick="window.location.href='/account'" aria-label="Account">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-    </div>
-    <div class="reel-chips">
-      <div id="pill-available" class="reel-chip" onclick="toggleAvailable(this)">Available</div>
-      <div id="pill-ai" class="reel-chip" onclick="toggleAiSearch(this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:3px;opacity:0.85;"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>AI Match
-      </div>
-    </div>
-  </div>
-
-  <!-- Topbar hidden in reel mode but its scripts still run (theme, back, avatar) -->
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
   <main class="page-content">
-    <div id="listing-feed" class="reel-feed">
-      <!-- Loading skeleton -->
-      <div class="reel-skeleton">
-        <div class="reel-skel" style="height:38px;width:58%;"></div>
-        <div class="reel-skel" style="height:15px;width:38%;"></div>
-        <div class="reel-skel" style="height:13px;width:85%;"></div>
-        <div class="reel-skel" style="height:13px;width:62%;"></div>
+
+    <!-- Sticky search + filter header -->
+    <div class="explore-hd" id="explore-hd">
+      <div class="explore-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3);flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="explore-search-input" placeholder="City, host, or vibe…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="explore-pills">
+        <div id="pill-available" class="pill" onclick="toggleAvailable(this)">Available</div>
+        <div id="pill-ai" class="pill" onclick="toggleAiSearch(this)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="margin-right:4px;opacity:0.85;"><path d="M12 3c-1 3.5-3.5 6-7 7 3.5 1 6 3.5 7 7 1-3.5 3.5-6 7-7-3.5-1-6-3.5-7-7z"/></svg>AI Match
+        </div>
       </div>
     </div>
+
+    <!-- Card list -->
+    <div id="listing-feed" class="explore-list">
+      <!-- Skeleton placeholders -->
+      <div class="explore-skel">
+        <div class="explore-skel__row">
+          <div class="explore-skel__circle"></div>
+          <div class="explore-skel__lines">
+            <div class="explore-skel__line" style="width:52%;"></div>
+            <div class="explore-skel__line" style="width:35%;"></div>
+          </div>
+        </div>
+        <div class="explore-skel__line" style="width:90%;margin-bottom:6px;"></div>
+        <div class="explore-skel__line" style="width:68%;"></div>
+      </div>
+      <div class="explore-skel">
+        <div class="explore-skel__row">
+          <div class="explore-skel__circle"></div>
+          <div class="explore-skel__lines">
+            <div class="explore-skel__line" style="width:46%;"></div>
+            <div class="explore-skel__line" style="width:30%;"></div>
+          </div>
+        </div>
+        <div class="explore-skel__line" style="width:85%;margin-bottom:6px;"></div>
+        <div class="explore-skel__line" style="width:60%;"></div>
+      </div>
+      <div class="explore-skel">
+        <div class="explore-skel__row">
+          <div class="explore-skel__circle"></div>
+          <div class="explore-skel__lines">
+            <div class="explore-skel__line" style="width:58%;"></div>
+            <div class="explore-skel__line" style="width:40%;"></div>
+          </div>
+        </div>
+        <div class="explore-skel__line" style="width:88%;margin-bottom:6px;"></div>
+        <div class="explore-skel__line" style="width:55%;"></div>
+      </div>
+    </div>
+
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 </div>
 
-<!-- AI Match panel (unchanged) -->
+<!-- AI Match panel -->
 <div class="match-panel" id="match-panel">
   <div class="match-panel__grip" onclick="closeMatchPanel()"></div>
   <div class="match-panel__header">

@@ -101,7 +101,7 @@ body.light-mode {
 
   --text:           #0f0e0c;
   --text-2:         #3d3b36;
-  --text-3:         #6a6762;
+  --text-3:         #504e4a;
 
   /* Teal darkened — #00c9a7 is only ~2.5:1 on light bg, fails WCAG AA */
   --accent:         #006e58;
@@ -136,11 +136,7 @@ body.light-mode {
   --search-focus-glow:  rgba(0, 110, 88, 0.08);
 }
 
-/* Light mode — explore card text stays legible over the dark photo gradient */
-body.light-mode .explore-card__name,
-body.light-mode .explore-card__handle,
-body.light-mode .explore-card__desc,
-body.light-mode .explore-card__why { color: rgba(240, 238, 234, 0.92); }
+/* Light mode — explore card text: use vars directly, no override needed */
 
 /* Light mode — rating/match badge border on light card-badge-bg */
 body.light-mode .explore-card__rating,
@@ -175,16 +171,111 @@ body.light-mode .search-ai-badge {
   color: rgba(0,110,88,0.80);
 }
 
-/* Light mode — explore card traits (over dark gradient, keep them teal-tinted) */
+/* Light mode — explore card traits */
 body.light-mode .explore-card__trait {
-  background: rgba(0,201,167,0.18);
-  border-color: rgba(0,201,167,0.32);
-  color: rgba(0,230,190,0.90);
+  background: rgba(0,110,88,0.10);
+  border-color: rgba(0,110,88,0.25);
+  color: var(--accent);
 }
 
-/* Light mode — side action labels + scroll hint sit over dark photo gradient */
+/* Light mode — side action labels */
 body.light-mode .side-action__label,
-body.light-mode .scroll-hint__label { color: rgba(240, 238, 234, 0.80); }
+body.light-mode .scroll-hint__label { color: var(--text-2); }
+
+/* ═══════════════════════════════════════════════
+   WARM MODE — David's palette
+   Activated via body.warm-mode class
+   localStorage key 'theme' = 'warm'
+═══════════════════════════════════════════════ */
+body.warm-mode {
+  color-scheme: light;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+
+  /* Cool lavender-gray base — character stays in the surface tint, not white */
+  --bg:             #ECEDF2;
+  --surface:        #F6F6FB;
+  --surface-2:      #DEE5E5;
+  --surface-3:      #CDD5D5;
+  --border:         #CDD3D5;
+  --border-2:       #BAC3C5;
+  --border-3:       #A5B0B2;
+
+  /* Cool blue-gray ink — distinct from light mode's brown-black */
+  --text:           #16161D;
+  --text-2:         #3A3A47;
+  --text-3:         #5A5A68;
+
+  /* Coral-orange accent — the heat against the cool base */
+  --accent:         #EB6547;
+  --accent-dim:     rgba(235, 101, 71, 0.12);
+  --accent-border:  rgba(235, 101, 71, 0.38);
+  --accent-glow:    rgba(235, 101, 71, 1);
+
+  /* Amber secondary — darkened enough for legibility on light surfaces */
+  --warm:           #C4870A;
+  --warm-dim:       rgba(196, 135, 10, 0.12);
+  --warm-border:    rgba(196, 135, 10, 0.30);
+
+  /* Shadows carry a hint of cool-lavender */
+  --shadow-sm:      0 1px 4px rgba(18, 18, 30, 0.07);
+  --shadow-md:      0 4px 16px rgba(18, 18, 30, 0.09);
+  --shadow-lg:      0 8px 32px rgba(18, 18, 30, 0.13);
+  --shadow-glow:    0 0 0 3px rgba(235, 101, 71, 0.18);
+  --shadow-glow-warm: 0 0 0 3px rgba(196, 135, 10, 0.15);
+
+  --surface-overlay:    rgba(246, 246, 251, 0.97);
+  --card-gradient-end:  rgba(236, 237, 242, 0.96);
+  --card-badge-bg:      rgba(255, 255, 255, 0.88);
+  --btn-ghost-bg:       rgba(0, 0, 0, 0.04);
+  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.07);
+  --divider-subtle:     rgba(0, 0, 0, 0.05);
+  --backdrop:           rgba(10, 10, 20, 0.40);
+  --side-action-bg:     rgba(246, 246, 251, 0.80);
+  --side-action-bg-hover: rgba(246, 246, 251, 0.96);
+  --focus-ring:         rgba(235, 101, 71, 0.52);
+  --accent-shadow:      rgba(235, 101, 71, 0.20);
+  --search-focus-glow:  rgba(235, 101, 71, 0.08);
+}
+
+/* Warm mode — explore cards: let vars handle text, no override */
+body.warm-mode .explore-card__rating,
+body.warm-mode .explore-card__match-pct {
+  border-color: rgba(235, 101, 71, 0.35);
+  color: #c44030;
+}
+
+body.warm-mode .pill--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+body.warm-mode .pill--warm.pill--active {
+  background: var(--warm);
+  border-color: var(--warm);
+  color: #fff;
+}
+
+body.warm-mode .pill--personalized {
+  background: linear-gradient(90deg, rgba(235,101,71,0.11), rgba(235,101,71,0.04));
+  border-color: rgba(235,101,71,0.30);
+  color: var(--accent);
+}
+
+body.warm-mode .search-ai-badge {
+  background: rgba(235,101,71,0.09);
+  border-color: rgba(235,101,71,0.20);
+  color: #c44030;
+}
+
+body.warm-mode .explore-card__trait {
+  background: rgba(235,101,71,0.10);
+  border-color: rgba(235,101,71,0.26);
+  color: #c44030;
+}
+
+body.warm-mode .side-action__label,
+body.warm-mode .scroll-hint__label { color: var(--text-2); }
 
 *, *::before, *::after {
   margin: 0;
@@ -1035,6 +1126,7 @@ svg { display: block; flex-shrink: 0; }
     background: var(--bg);
     gap: 4px;
     overflow-y: auto;
+    box-shadow: 1px 0 0 rgba(0,0,0,0.08);
   }
 
   /* Logo area at top of sidebar */
@@ -1224,6 +1316,13 @@ svg { display: block; flex-shrink: 0; }
   .u-pad-x {
     padding-left: 28px;
     padding-right: 28px;
+  }
+}
+
+/* Light mode — strengthen sidebar separator */
+@media (min-width: 900px) {
+  body.light-mode .navbar {
+    box-shadow: 1px 0 0 var(--border), 4px 0 18px rgba(20,15,5,0.07);
   }
 }
 
@@ -1669,6 +1768,56 @@ svg { display: block; flex-shrink: 0; }
   padding: 14px 20px 36px; display: flex; gap: 10px; flex-shrink: 0;
 }
 .premeet-screen__footer .btn { flex: 1; height: 50px; font-size: 14px; }
+
+/* ─── PRE-MEET CHAT ─── */
+.pms-chat {
+  width: 100%; margin-top: 18px;
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border-2); border-radius: var(--radius);
+  overflow: hidden; flex-shrink: 0;
+}
+.pms-chat__label {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-3); font-family: var(--font-mono);
+  padding: 9px 14px; border-bottom: 1px solid var(--border-2); text-align: left;
+}
+.pms-chat__msgs {
+  overflow-y: auto; max-height: 200px; min-height: 80px;
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface);
+}
+.pms-chat__status {
+  font-size: 12px; color: var(--text-3); text-align: center;
+  font-family: var(--font-mono); padding: 12px 0;
+}
+.pms-chat__msg { display: flex; flex-direction: column; gap: 2px; }
+.pms-chat__msg--mine  { align-items: flex-end; }
+.pms-chat__msg--theirs { align-items: flex-start; }
+.pms-chat__msg-bubble {
+  max-width: 78%; padding: 8px 12px; border-radius: 14px;
+  font-size: 13px; line-height: 1.5; word-break: break-word;
+}
+.pms-chat__msg--mine   .pms-chat__msg-bubble { background: var(--accent); color: #0a0a0a; }
+.pms-chat__msg--theirs .pms-chat__msg-bubble { background: var(--surface-2); color: var(--text); }
+.pms-chat__msg-meta { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); }
+.pms-chat__input-row {
+  display: flex; align-items: flex-end; gap: 8px;
+  padding: 10px 12px; border-top: 1px solid var(--border-2); background: var(--bg);
+}
+.pms-chat__input {
+  flex: 1; background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: 20px; padding: 8px 14px; color: var(--text);
+  font-family: var(--font-mono); font-size: 13px; resize: none;
+  max-height: 90px; line-height: 1.4; overflow-y: auto;
+}
+.pms-chat__input:focus { outline: none; border-color: var(--accent-border); }
+.pms-chat__send {
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: var(--accent); color: #0a0a0a;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: opacity var(--t-fast);
+}
+.pms-chat__send:disabled { opacity: 0.35; cursor: default; }
 
 /* Cancel dialog — absolute inside premeet-screen so it covers the footer */
 .pms-cancel-dialog {

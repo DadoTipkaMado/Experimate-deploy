@@ -17,47 +17,99 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    /* ── Search header ── */
+    /* ── Sticky header ── */
     .cm-header {
       position: sticky; top: 0; z-index: 10;
       background: var(--bg); border-bottom: 1px solid var(--border);
-      padding: 14px 16px 12px;
+      padding: 14px 14px 12px;
     }
-    .cm-header__title { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); letter-spacing: -0.02em; margin-bottom: 10px; }
+    .cm-header__title {
+      font-family: var(--font-display); font-weight: 800; font-size: 24px;
+      color: var(--text); letter-spacing: -0.02em; margin-bottom: 10px;
+    }
     .cm-search {
       display: flex; align-items: center; gap: 10px;
       background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius-pill); padding: 0 16px; height: 42px;
-      transition: border-color 0.14s, box-shadow 0.14s;
+      border-radius: var(--radius-pill); padding: 0 16px; height: 44px;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    .cm-search:focus-within { border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(0,201,167,0.1); }
+    .cm-search:focus-within {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.08);
+    }
     .cm-search input {
       flex: 1; background: none; border: none; outline: none;
-      color: var(--text); font-size: 14px; font-family: inherit;
+      color: var(--text); font-size: 14px;
     }
     .cm-search input::placeholder { color: var(--text-3); }
 
-    /* ── Section label ── */
+    /* ── Section divider label ── */
     .cm-section {
-      padding: 18px 16px 8px;
-      font-size: 10px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 16px 16px 8px;
+      font-family: var(--font-mono); font-size: 9px;
+      color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase;
       display: flex; align-items: center; gap: 10px;
     }
     .cm-section::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    /* ── User list ── */
-    .cm-list { padding: 0 16px; display: flex; flex-direction: column; gap: 2px; }
+    /* ── Liked chips (stories-style row) ── */
+    .cm-liked-row {
+      display: flex; gap: 14px; padding: 4px 14px 12px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .cm-liked-row::-webkit-scrollbar { display: none; }
+
+    .cm-liked-chip {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      flex-shrink: 0; cursor: pointer; text-decoration: none;
+    }
+    .cm-liked-chip__ring {
+      width: 60px; height: 60px; border-radius: 50%; padding: 2.5px;
+      background: linear-gradient(135deg, var(--accent), var(--warm));
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .cm-liked-chip__inner {
+      width: 100%; height: 100%; border-radius: 50%;
+      overflow: hidden; border: 2px solid var(--bg);
+    }
+    .cm-liked-chip__inner img { width: 100%; height: 100%; object-fit: cover; }
+    .cm-liked-chip__name {
+      font-size: 10px; color: var(--text-2); text-align: center;
+      white-space: nowrap; max-width: 64px; overflow: hidden; text-overflow: ellipsis;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Card list ── */
+    .cm-list {
+      padding: 0 14px 24px;
+      display: flex; flex-direction: column; gap: 8px;
+      background: #0a0c0c;
+    }
 
     /* ── User card ── */
     .cm-card {
       display: flex; align-items: center; gap: 14px;
-      padding: 12px 14px; border-radius: var(--radius);
-      cursor: pointer; transition: background 0.12s;
-      text-decoration: none; color: inherit;
-      position: relative;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.09);
+      border-bottom-color: rgba(0,0,0,0.5);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.11),
+        inset 0 -1px 0 rgba(0,0,0,0.4),
+        0 6px 18px rgba(0,0,0,0.5),
+        0 2px 5px rgba(0,0,0,0.35);
+      cursor: pointer; text-decoration: none; color: inherit;
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
     }
-    .cm-card:hover { background: var(--surface); }
-    .cm-card:active { background: var(--surface-2); }
+    .cm-card:active {
+      transform: translateY(1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        inset 0 2px 8px rgba(0,0,0,0.35);
+    }
 
     .cm-card__avatar {
       width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
@@ -69,63 +121,62 @@
     .cm-card__name {
       font-family: var(--font-display); font-weight: 700; font-size: 14px;
       color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 2px;
     }
-    .cm-card__handle { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+    .cm-card__handle {
+      font-size: 11px; color: var(--text-3); margin-bottom: 4px;
+    }
     .cm-card__bio {
-      font-size: 11px; color: var(--text-2); margin-top: 3px; line-height: 1.4;
+      font-size: 12px; color: var(--text-2); line-height: 1.4;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .cm-card__right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;
     }
     .cm-card__rating {
       font-size: 11px; color: var(--accent); font-family: var(--font-mono);
-      letter-spacing: 0.04em; flex-shrink: 0;
+      letter-spacing: 0.04em;
     }
-
     .cm-card__heart {
-      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      width: 32px; height: 32px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      background: none; border: none; cursor: pointer;
-      color: var(--text-3); transition: color 0.14s, background 0.14s;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07);
+      cursor: pointer; color: var(--text-3);
+      transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
     }
-    .cm-card__heart:hover { background: var(--surface-2); }
-    .cm-card__heart--active { color: #ff4d6d; }
+    .cm-card__heart:hover { background: rgba(255,77,109,0.12); border-color: rgba(255,77,109,0.25); color: #ff4d6d; }
+    .cm-card__heart--active { color: #ff4d6d; background: rgba(255,77,109,0.12); border-color: rgba(255,77,109,0.25); }
     .cm-card__heart svg { pointer-events: none; }
 
-    /* ── Liked row (horizontal scroll) ── */
-    .cm-liked-row {
-      display: flex; gap: 16px; padding: 4px 16px 8px;
-      overflow-x: auto; scrollbar-width: none;
-    }
-    .cm-liked-row::-webkit-scrollbar { display: none; }
-
-    .cm-liked-chip {
-      display: flex; flex-direction: column; align-items: center; gap: 6px;
-      flex-shrink: 0; cursor: pointer; text-decoration: none;
-    }
-    .cm-liked-chip__ring {
-      width: 58px; height: 58px; border-radius: 50%; padding: 2px;
-      background: linear-gradient(135deg, var(--accent), var(--warm));
-    }
-    .cm-liked-chip__inner {
-      width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
-      border: 2px solid var(--bg);
-    }
-    .cm-liked-chip__inner img { width: 100%; height: 100%; object-fit: cover; }
-    .cm-liked-chip__name {
-      font-size: 10px; color: var(--text-2); text-align: center;
-      white-space: nowrap; max-width: 62px; overflow: hidden; text-overflow: ellipsis;
+    /* ── Skeleton cards ── */
+    .cm-skeleton {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
     }
 
-    /* ── Empty states ── */
+    /* ── Empty state ── */
     .cm-empty {
-      text-align: center; padding: 40px 24px;
-      color: var(--text-3); font-size: 13px; line-height: 1.6;
+      text-align: center; padding: 48px 24px;
+      color: var(--text-3); font-size: 13px; line-height: 1.65;
     }
-    .cm-empty__icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+    .cm-empty__icon { font-size: 32px; margin-bottom: 10px; opacity: 0.35; }
 
-    /* ── Skeleton ── */
-    .cm-skeleton-card {
-      display: flex; align-items: center; gap: 14px;
-      padding: 12px 14px;
+    /* ── Light mode ── */
+    body.light-mode .cm-list { background: #f0eeea; }
+    body.light-mode .cm-card {
+      background: linear-gradient(160deg, #fffef9 0%, #faf8f4 100%);
+      border-top-color: rgba(255,255,255,0.95);
+      border-bottom-color: rgba(0,0,0,0.08);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.9),
+        0 3px 12px rgba(0,0,0,0.09),
+        0 1px 3px rgba(0,0,0,0.06);
+    }
+    body.light-mode .cm-card:active {
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.07);
     }
   </style>
 </head>
@@ -138,8 +189,10 @@
     <div class="cm-header">
       <div class="cm-header__title">Community</div>
       <div class="cm-search">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="cm-search-input" placeholder="Search people..." autocomplete="off" autocorrect="off">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3);flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="cm-search-input" placeholder="Search people…" autocomplete="off" autocorrect="off">
       </div>
     </div>
 
@@ -153,26 +206,28 @@
     <div id="cm-results-section">
       <div class="cm-section" id="cm-results-label">People</div>
       <div class="cm-list" id="cm-list">
-        <!-- skeletons -->
-        <div class="cm-skeleton-card">
+        <div class="cm-skeleton">
           <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div class="skeleton skeleton-line" style="width:40%;height:13px;"></div>
-            <div class="skeleton skeleton-line" style="width:55%;height:11px;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+            <div class="skeleton skeleton-line" style="width:42%;height:13px;border-radius:5px;"></div>
+            <div class="skeleton skeleton-line" style="width:28%;height:11px;border-radius:4px;"></div>
+            <div class="skeleton skeleton-line" style="width:70%;height:11px;border-radius:4px;"></div>
           </div>
         </div>
-        <div class="cm-skeleton-card">
+        <div class="cm-skeleton">
           <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div class="skeleton skeleton-line" style="width:50%;height:13px;"></div>
-            <div class="skeleton skeleton-line" style="width:35%;height:11px;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+            <div class="skeleton skeleton-line" style="width:50%;height:13px;border-radius:5px;"></div>
+            <div class="skeleton skeleton-line" style="width:32%;height:11px;border-radius:4px;"></div>
+            <div class="skeleton skeleton-line" style="width:60%;height:11px;border-radius:4px;"></div>
           </div>
         </div>
-        <div class="cm-skeleton-card">
+        <div class="cm-skeleton">
           <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <div class="skeleton skeleton-line" style="width:45%;height:13px;"></div>
-            <div class="skeleton skeleton-line" style="width:60%;height:11px;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+            <div class="skeleton skeleton-line" style="width:38%;height:13px;border-radius:5px;"></div>
+            <div class="skeleton skeleton-line" style="width:25%;height:11px;border-radius:4px;"></div>
+            <div class="skeleton skeleton-line" style="width:75%;height:11px;border-radius:4px;"></div>
           </div>
         </div>
       </div>
@@ -188,8 +243,8 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
 (function() {
-  let _allUsers  = [];
-  let _liked     = new Set(JSON.parse(localStorage.getItem('liked_users') || '[]'));
+  let _allUsers   = [];
+  let _liked      = new Set(JSON.parse(localStorage.getItem('liked_users') || '[]'));
   let _myUsername = typeof Auth !== 'undefined' ? Auth.getUsername() : null;
 
   const searchInput  = document.getElementById('cm-search-input');
@@ -217,55 +272,66 @@
   }
 
   function heartSvg(filled) {
-    return `<svg width="16" height="16" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+    return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
   }
 
-  function avatarHtml(user, size) {
-    if (typeof userAvatar === 'function') return userAvatar(user.username, size, user);
+  function avatarEl(user, size) {
+    const photoUrl = user.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
     const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || user.username?.[0]?.toUpperCase() || '?';
     const hue = (user.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-    return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:hsl(${hue},55%,32%);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.35)}px;font-weight:700;color:#fff;font-family:var(--font-display);">${initials}</div>`;
+    if (photoUrl) return `<img src="${photoUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`;
+    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:${Math.round(size*0.34)}px;color:hsl(${hue},60%,72%);">${initials}</div>`;
   }
 
   function renderCard(user) {
     const isLiked = _liked.has(user.username);
     const rating  = user.rating > 0 ? `★ ${user.rating.toFixed(1)}` : '';
-    const div = document.createElement('div');
+    const div = document.createElement('a');
     div.className = 'cm-card';
+    div.href = `/profile/${encodeURIComponent(user.username)}`;
     div.innerHTML = `
-      <div class="cm-card__avatar">${avatarHtml(user, 52)}</div>
+      <div class="cm-card__avatar">${avatarEl(user, 52)}</div>
       <div class="cm-card__info">
-        <div class="cm-card__name">${escapeHtml(user.firstName + ' ' + user.lastName)}</div>
-        <div class="cm-card__handle">@${escapeHtml(user.username)}${rating ? ` · <span style="color:var(--accent)">${rating}</span>` : ''}</div>
+        <div class="cm-card__name">${escapeHtml((user.firstName + ' ' + user.lastName).trim() || user.username)}</div>
+        <div class="cm-card__handle">@${escapeHtml(user.username)}</div>
         ${user.bio ? `<div class="cm-card__bio">${escapeHtml(user.bio)}</div>` : ''}
       </div>
-      <button class="cm-card__heart${isLiked ? ' cm-card__heart--active' : ''}" title="${isLiked ? 'Unlike' : 'Like'}" data-username="${escapeHtml(user.username)}">${heartSvg(isLiked)}</button>
+      <div class="cm-card__right">
+        ${rating ? `<div class="cm-card__rating">${rating}</div>` : ''}
+        <button class="cm-card__heart${isLiked ? ' cm-card__heart--active' : ''}" data-username="${escapeHtml(user.username)}" title="${isLiked ? 'Unlike' : 'Like'}">${heartSvg(isLiked)}</button>
+      </div>
     `;
     div.querySelector('.cm-card__heart').addEventListener('click', function(e) {
       e.preventDefault(); e.stopPropagation();
       toggleLike(user.username, this);
     });
-    div.addEventListener('click', () => { window.location.href = `/profile/${encodeURIComponent(user.username)}`; });
     return div;
   }
 
   function renderLiked() {
     const likedUsers = _allUsers.filter(u => _liked.has(u.username));
-    if (likedUsers.length === 0) { likedSection.style.display = 'none'; return; }
+    if (!likedUsers.length) { likedSection.style.display = 'none'; return; }
     likedSection.style.display = '';
-    likedRow.innerHTML = likedUsers.map(u => `
-      <a class="cm-liked-chip" href="/profile/${encodeURIComponent(u.username)}">
-        <div class="cm-liked-chip__ring">
-          <div class="cm-liked-chip__inner">${avatarHtml(u, 54)}</div>
-        </div>
-        <div class="cm-liked-chip__name">${escapeHtml(u.firstName)}</div>
-      </a>
-    `).join('');
+    likedRow.innerHTML = likedUsers.map(u => {
+      const photoUrl = u.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
+      const initials = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue = (u.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+      const inner = photoUrl
+        ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+      return `
+        <a class="cm-liked-chip" href="/profile/${encodeURIComponent(u.username)}">
+          <div class="cm-liked-chip__ring">
+            <div class="cm-liked-chip__inner">${inner}</div>
+          </div>
+          <div class="cm-liked-chip__name">${escapeHtml(u.firstName || u.username)}</div>
+        </a>`;
+    }).join('');
   }
 
   function renderList(users) {
     listEl.innerHTML = '';
-    if (users.length === 0) {
+    if (!users.length) {
       listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">🔍</div>No people found.</div>`;
       return;
     }
@@ -274,11 +340,7 @@
 
   function filter(query) {
     const q = query.trim().toLowerCase();
-    if (!q) {
-      labelEl.textContent = 'People';
-      renderList(_allUsers);
-      return;
-    }
+    if (!q) { labelEl.textContent = 'People'; renderList(_allUsers); return; }
     const results = _allUsers.filter(u =>
       (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
       u.username.toLowerCase().includes(q) ||
