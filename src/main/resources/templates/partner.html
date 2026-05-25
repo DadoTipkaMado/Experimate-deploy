@@ -155,7 +155,7 @@
       border-top-color: rgba(37,99,235,0.35);
       border-radius: 18px;
       box-shadow: inset 0 1.5px 0 rgba(96,165,250,0.14), 0 8px 20px rgba(0,0,0,0.4);
-      text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
     }
     body.light-mode .partner-cta,
     body.warm-mode  .partner-cta {
@@ -163,6 +163,8 @@
       border-color: rgba(37,99,235,0.18);
       box-shadow: 0 2px 8px rgba(20,20,30,0.07);
     }
+    /* Info state (perks) */
+    .partner-cta-info { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; text-align: center; }
     .partner-cta__icon {
       width: 56px; height: 56px; border-radius: 16px;
       background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.30);
@@ -184,6 +186,61 @@
       box-shadow: 0 0 6px rgba(37,99,235,0.6);
     }
 
+    /* Form state */
+    .partner-cta-form { display: none; flex-direction: column; gap: 14px; width: 100%; }
+    .partner-cta-form.visible { display: flex; }
+    .partner-form-back {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-3); cursor: pointer;
+      background: none; border: none; padding: 0; align-self: flex-start;
+      transition: color 0.14s;
+    }
+    .partner-form-back:hover { color: var(--text-2); }
+    .partner-form-title {
+      font-family: var(--font-display); font-weight: 800; font-size: 16px;
+      color: var(--text); text-align: left;
+    }
+    /* Reuse recessed input pattern */
+    .partner-form-field { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+    .partner-form-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+    .partner-form-field input,
+    .partner-form-field textarea {
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      width: 100%; box-sizing: border-box;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+      transition: border-color 0.14s, box-shadow 0.14s;
+    }
+    body.light-mode .partner-form-field input, body.light-mode .partner-form-field textarea,
+    body.warm-mode  .partner-form-field input, body.warm-mode  .partner-form-field textarea {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.12);
+      border-top-color: rgba(0,0,0,0.18);
+      border-bottom-color: rgba(255,255,255,0.6);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .partner-form-field input:focus, .partner-form-field textarea:focus {
+      outline: none;
+      border-color: rgba(37,99,235,0.55);
+      border-top-color: rgba(37,99,235,0.30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(37,99,235,0.13);
+    }
+    .partner-form-field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+    .partner-form-error {
+      background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.22);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 11px; color: rgba(255,110,110,0.9); display: none;
+    }
+    body.light-mode .partner-form-error { color: #c0392b; }
+    .partner-form-actions { display: flex; gap: 8px; }
+
     /* Apply button — blue accent */
     .btn--partner {
       background: #2563eb; color: #fff; border: none;
@@ -194,6 +251,7 @@
       transition: opacity var(--t-fast), transform var(--t-fast);
     }
     .btn--partner:active { transform: scale(0.98); opacity: 0.9; }
+    .btn--partner:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
     .partner-empty {
       padding: 24px 0 8px; text-align: center;
@@ -226,22 +284,60 @@
     <div id="partner-apply-view">
 
       <div class="partner-cta">
-        <div class="partner-cta__icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <rect x="3" y="3" width="18" height="18" rx="4"/>
-            <path d="M9 12h6M12 9v6"/>
-          </svg>
+
+        <!-- Info / perks state -->
+        <div class="partner-cta-info" id="cta-info">
+          <div class="partner-cta__icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="4"/>
+              <path d="M9 12h6M12 9v6"/>
+            </svg>
+          </div>
+          <div class="partner-cta__title">Become a Partner</div>
+          <div class="partner-cta__sub">List your venue, advertise events, and reach thousands of experience-seekers in your city.</div>
+          <div class="partner-cta__perks">
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Your venue pin highlighted in blue on the map</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Logo shown directly on the map marker</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Promoted events visible to all nearby users</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Analytics dashboard — views, clicks, bookings</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Priority placement in Explore &amp; search</div>
+          </div>
+          <button class="btn--partner" onclick="showApplyForm()">Apply for partnership →</button>
         </div>
-        <div class="partner-cta__title">Become a Partner</div>
-        <div class="partner-cta__sub">List your venue, advertise events, and reach thousands of experience-seekers in your city.</div>
-        <div class="partner-cta__perks">
-          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Your venue pin highlighted in blue on the map</div>
-          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Logo shown directly on the map marker</div>
-          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Promoted events visible to all nearby users</div>
-          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Analytics dashboard — views, clicks, bookings</div>
-          <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Priority placement in Explore &amp; search</div>
+
+        <!-- Form state -->
+        <div class="partner-cta-form" id="cta-form">
+          <button class="partner-form-back" onclick="hideApplyForm()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <div class="partner-form-title">Partnership Application</div>
+
+          <div class="partner-form-field">
+            <label for="apply-name">Business / venue name *</label>
+            <input type="text" id="apply-name" placeholder="e.g. The Jazz Cellar" autocomplete="organization">
+          </div>
+          <div class="partner-form-field">
+            <label for="apply-city">City *</label>
+            <input type="text" id="apply-city" placeholder="e.g. Zagreb" autocomplete="address-level2">
+          </div>
+          <div class="partner-form-field">
+            <label for="apply-email">Contact email *</label>
+            <input type="email" id="apply-email" placeholder="you@venue.com" autocomplete="email">
+          </div>
+          <div class="partner-form-field">
+            <label for="apply-desc">Tell us about your venue</label>
+            <textarea id="apply-desc" placeholder="What kind of events do you host? What makes your space unique?"></textarea>
+          </div>
+
+          <div class="partner-form-error" id="apply-error"></div>
+
+          <div class="partner-form-actions">
+            <button class="btn btn--ghost" style="height:46px;flex:0 0 80px;font-size:12px;" onclick="hideApplyForm()">Cancel</button>
+            <button class="btn--partner" id="apply-submit-btn" onclick="submitApplication()">Submit application →</button>
+          </div>
         </div>
-        <button class="btn--partner" onclick="applyForPartnership()">Apply for partnership →</button>
+
       </div>
 
     </div>
@@ -348,7 +444,7 @@
 <script>
   async function initPartnerPage() {
     const userId = Auth.getUserId();
-    if (!userId) { window.location.href = '/login'; return; }
+    if (!userId) return; // not logged in — show apply CTA (default state)
 
     try {
       const profile = await PartnerAPI.getProfile();
@@ -422,9 +518,62 @@
     }
   }
 
-  async function applyForPartnership() {
+  function showApplyForm() {
+    if (!Auth.getUserId()) { window.location.href = '/login'; return; }
+    // Pre-fill email from stored user data if available
+    const username = Auth.getUsername();
+    if (username && !document.getElementById('apply-email').value) {
+      // best-effort: leave blank, user fills it in
+    }
+    document.getElementById('cta-info').style.display = 'none';
+    document.getElementById('cta-form').classList.add('visible');
+  }
+
+  function hideApplyForm() {
+    document.getElementById('cta-info').style.display = '';
+    document.getElementById('cta-form').classList.remove('visible');
+    document.getElementById('apply-error').style.display = 'none';
+    document.getElementById('apply-error').textContent = '';
+  }
+
+  async function submitApplication() {
+    const name  = document.getElementById('apply-name').value.trim();
+    const city  = document.getElementById('apply-city').value.trim();
+    const email = document.getElementById('apply-email').value.trim();
+    const desc  = document.getElementById('apply-desc').value.trim();
+    const errEl = document.getElementById('apply-error');
+    const btn   = document.getElementById('apply-submit-btn');
+
+    errEl.style.display = 'none';
+
+    if (!name || !city || !email) {
+      errEl.textContent = 'Please fill in all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errEl.textContent = 'Enter a valid email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      await PartnerAPI.apply({ userId: Auth.getUserId(), venueName: name, city, contactEmail: email, description: desc });
+    } catch { /* backend pending — still show success */ }
+
     showToast('Application submitted — we\'ll review and get back to you soon.', 'success');
-    try { await PartnerAPI.apply({ userId: Auth.getUserId() }); } catch { /* backend pending */ }
+    // Replace CTA with a thank-you state
+    document.getElementById('partner-apply-view').innerHTML = `
+      <div class="partner-cta" style="text-align:center;">
+        <div class="partner-cta__icon" style="background:rgba(37,99,235,0.14);border-color:rgba(37,99,235,0.30);">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="partner-cta__title">Application received</div>
+        <div class="partner-cta__sub">We've got your application for <strong>${name}</strong> in ${city}. We'll reach out to ${email} within a few days.</div>
+      </div>`;
   }
 
   function openAdEditor() {

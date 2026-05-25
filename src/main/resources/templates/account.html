@@ -75,6 +75,17 @@
     .acc-handle {
       font-size: 12px; color: var(--text-3); letter-spacing: 0.05em; margin-bottom: 16px;
     }
+    .acc-premium-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      height: 20px; padding: 0 8px; border-radius: 5px;
+      background: linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(217,119,6,0.12) 100%);
+      border: 1px solid rgba(234,179,8,0.35);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.11em;
+      text-transform: uppercase; color: #fbbf24;
+      margin-bottom: 14px; cursor: pointer;
+    }
+    body.light-mode .acc-premium-badge,
+    body.warm-mode  .acc-premium-badge { color: #92400e; background: rgba(234,179,8,0.10); border-color: rgba(234,179,8,0.28); }
 
     /* ── Stats card ── */
     .acc-stats {
@@ -299,6 +310,12 @@
 
       <div id="account-name" class="acc-name" style="display:none;"></div>
       <div id="account-handle" class="acc-handle" style="display:none;"></div>
+      <div id="acc-premium-badge" style="display:none;">
+        <a href="/premium" class="acc-premium-badge">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+          Premium
+        </a>
+      </div>
 
       <!-- Stats card -->
       <div class="acc-stats" id="account-stats" style="display:none;">
@@ -374,6 +391,12 @@
         </div>
         <div class="drawer__item__label">Ratings</div>
       </a>
+      <a href="/premium" class="drawer__item" id="drawer-premium-item">
+        <div class="drawer__item__icon" style="background:rgba(234,179,8,0.10);border:1px solid rgba(234,179,8,0.22);color:#fbbf24;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+        </div>
+        <div class="drawer__item__label" id="drawer-premium-label">Get Premium</div>
+      </a>
       <a href="/partner" class="drawer__item">
         <div class="drawer__item__icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 12h6M12 9v6"/></svg>
@@ -442,6 +465,7 @@
       document.getElementById('account-rating').textContent = (user.rating ?? 0).toFixed(1);
       document.getElementById('account-name').style.display = '';
       document.getElementById('account-handle').style.display = '';
+      checkPremiumStatus();
       document.getElementById('drawer-name').textContent = fullName;
       document.getElementById('drawer-handle').textContent = handle;
 
@@ -509,6 +533,17 @@
       renderAvatar(document.getElementById('account-avatar'), 'lg');
       renderAvatar(document.getElementById('drawer-avatar'), 'sm');
     });
+  }
+
+  async function checkPremiumStatus() {
+    try {
+      const status = await PremiumAPI.getStatus();
+      if (status?.active) {
+        document.getElementById('acc-premium-badge').style.display = '';
+        const label = document.getElementById('drawer-premium-label');
+        if (label) label.textContent = 'Manage Premium';
+      }
+    } catch { /* not premium or backend pending */ }
   }
 
   loadAccount();
