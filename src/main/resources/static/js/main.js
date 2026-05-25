@@ -671,6 +671,8 @@ let _pmsResId    = null;
 let _pmsOther    = null;
 let _pmsMeetDate = null;
 let _pmsTimer    = null;
+let _pmsChatWs   = null;
+let _pmsChatMyUsername = null;
 
 document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
   const path = window.location.pathname;
@@ -685,7 +687,7 @@ document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
       ReservationAPI.getMine({ filter: 'hosted', timeframe: 'upcoming', direction: 'ASC' }).catch(() => []),
     ]);
     const now        = new Date();
-    const LOCK_MS    = 45 * 60 * 1000;
+    const LOCK_MS    = 60 * 60 * 1000;
     const REMIND_MS  = 3 * 60 * 60 * 1000;
     const GRACE_MS   = 55 * 60 * 1000; // backend expires CONFIRMED reservations after 60 min
 
@@ -733,6 +735,19 @@ function _ensurePreMeetScreen() {
         <div id="pms-datetime" class="premeet-screen__detail"></div>
       </div>
       <div id="pms-desc" class="premeet-screen__desc"></div>
+      <div class="pms-chat" id="pms-chat">
+        <div class="pms-chat__label">Group chat</div>
+        <div class="pms-chat__msgs" id="pms-chat-msgs">
+          <div class="pms-chat__status" id="pms-chat-status">Connecting...</div>
+        </div>
+        <div class="pms-chat__input-row">
+          <textarea class="pms-chat__input" id="pms-chat-input" placeholder="Message..." maxlength="500" rows="1"
+            onkeydown="_pmsChatKeydown(event)"></textarea>
+          <button class="pms-chat__send" id="pms-chat-send" onclick="_pmsChatSend()" title="Send">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
     <div class="premeet-screen__footer">
       <button class="btn btn--ghost" onclick="_pmsCancelClick()">Cancel meet</button>
@@ -839,6 +854,7 @@ function _showPreMeetScreen(res) {
   tick();
   _pmsTimer = setInterval(tick, 30000);
 
+  _pmsChatConnect(res.id);
   document.getElementById('premeet-screen').classList.add('premeet-screen--visible');
   document.body.style.overflow = 'hidden';
   const toast = document.getElementById('toast');
@@ -906,7 +922,102 @@ function _pmsClose() {
   const toast = document.getElementById('toast');
   if (toast) toast.style.bottom = '';
   if (_pmsTimer) { clearInterval(_pmsTimer); _pmsTimer = null; }
+  _pmsChatDisconnect();
   _pmsResId = _pmsOther = _pmsMeetDate = null;
+}
+
+/* ───────────────────────────────────────────────
+   PRE-MEET CHAT
+   WebSocket chat embedded in the lock screen.
+   Backend endpoint: ws://<host>/ws/chat/{reservationId}?token=<jwt>
+   Inbound frames:
+     { type: 'HISTORY', messages: [ChatMessage] }
+     { type: 'MESSAGE', ...ChatMessage }
+   Outbound frames:
+     { text: '...' }
+   ChatMessage: { senderUsername, senderFirstName, senderLastName, text, sentAt }
+─────────────────────────────────────────────── */
+function _pmsChatConnect(resId) {
+  _pmsChatMyUsername = Auth.getUsername();
+  const msgsEl   = document.getElementById('pms-chat-msgs');
+  const statusEl = document.getElementById('pms-chat-status');
+  if (!msgsEl) return;
+
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const token = Auth.getToken() ?? '';
+  const url   = `${proto}//${location.host}/ws/chat/${resId}?token=${encodeURIComponent(token)}`;
+
+  try { _pmsChatWs = new WebSocket(url); }
+  catch (_) {
+    if (statusEl) statusEl.textContent = 'Chat unavailable.';
+    return;
+  }
+
+  _pmsChatWs.addEventListener('open', () => {
+    if (statusEl) statusEl.remove();
+  });
+
+  _pmsChatWs.addEventListener('message', evt => {
+    try {
+      const data = JSON.parse(evt.data);
+      if (data.type === 'HISTORY') (data.messages || []).forEach(_pmsChatAddMsg);
+      else if (data.type === 'MESSAGE') _pmsChatAddMsg(data);
+    } catch (_) {}
+  });
+
+  _pmsChatWs.addEventListener('close', () => {
+    const msgsDiv = document.getElementById('pms-chat-msgs');
+    if (!msgsDiv) return;
+    const existing = document.getElementById('pms-chat-status');
+    if (!existing) {
+      const div = document.createElement('div');
+      div.id = 'pms-chat-status';
+      div.className = 'pms-chat__status';
+      div.textContent = 'Disconnected — refresh to reconnect.';
+      msgsDiv.appendChild(div);
+    }
+  });
+
+  _pmsChatWs.addEventListener('error', () => {
+    const s = document.getElementById('pms-chat-status');
+    if (s) s.textContent = 'Chat unavailable.';
+  });
+}
+
+function _pmsChatAddMsg(msg) {
+  const msgsEl = document.getElementById('pms-chat-msgs');
+  if (!msgsEl) return;
+  const isMine = msg.senderUsername === _pmsChatMyUsername;
+  const name   = isMine ? 'You'
+    : msg.senderFirstName ? `${msg.senderFirstName} ${msg.senderLastName}` : msg.senderUsername;
+  const time = msg.sentAt
+    ? new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  const div = document.createElement('div');
+  div.className = `pms-chat__msg pms-chat__msg--${isMine ? 'mine' : 'theirs'}`;
+  div.innerHTML = `<div class="pms-chat__msg-bubble">${escapeHtml(msg.text)}</div>`
+    + `<div class="pms-chat__msg-meta">${escapeHtml(name)}${time ? ' · ' + time : ''}</div>`;
+  msgsEl.appendChild(div);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function _pmsChatSend() {
+  const input = document.getElementById('pms-chat-input');
+  const text  = input?.value.trim();
+  if (!text || !_pmsChatWs || _pmsChatWs.readyState !== WebSocket.OPEN) return;
+  _pmsChatWs.send(JSON.stringify({ text }));
+  input.value = '';
+  input.style.height = '';
+}
+
+function _pmsChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); _pmsChatSend(); }
+}
+
+function _pmsChatDisconnect() {
+  if (_pmsChatWs) { _pmsChatWs.close(); _pmsChatWs = null; }
+  _pmsChatMyUsername = null;
+  const msgsEl = document.getElementById('pms-chat-msgs');
+  if (msgsEl) msgsEl.innerHTML = '<div class="pms-chat__status" id="pms-chat-status">Connecting...</div>';
 }
 
 /* ───────────────────────────────────────────────
