@@ -15,15 +15,17 @@ const Auth = {
   clearToken:  ()       => localStorage.removeItem('jwt'),
   getUserId:   ()       => { const id = localStorage.getItem('userId'); return id ? parseInt(id, 10) : null; },
   saveUserId:  (id)     => localStorage.setItem('userId', String(id)),
-  getUsername: ()       => {
+  _decode: () => {
     const token = localStorage.getItem('jwt');
     if (!token) return null;
-    try {
-      return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub;
-    } catch { return null; }
+    try { return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); }
+    catch { return null; }
   },
+  getUsername: () => { const p = Auth._decode(); return p?.sub ?? null; },
+  isExpired:   () => { const p = Auth._decode(); return p ? p.exp * 1000 < Date.now() : true; },
   logout: () => {
     sessionStorage.setItem('explicit_logout', '1');
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
     window.location.href = '/login';
@@ -42,6 +44,29 @@ function buildQuery(params = {}) {
 let _refreshPromise = null;
 
 async function apiFetch(path, options = {}, _isRetry = false) {
+  // Proactively refresh if JWT is expired before making the call.
+  // Avoids a guaranteed 401 round-trip and catches the browser-reopen case
+  // where the JWT expired while the tab was closed but the refresh cookie is still valid.
+  const isAuthPath = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'].some(p => path.startsWith(p));
+  if (!_isRetry && !isAuthPath && Auth.getToken() && Auth.isExpired()) {
+    if (!_refreshPromise) {
+      _refreshPromise = fetch(API_BASE + '/api/auth/refresh', { method: 'POST', credentials: 'include' })
+        .then(async (r) => {
+          if (!r.ok) {
+            sessionStorage.setItem('explicit_logout', '1');
+            Auth.clearToken();
+            localStorage.removeItem('userId');
+            const onAuthPage = ['/login', '/register'].some(p => window.location.pathname.startsWith(p));
+            if (!onAuthPage) window.location.href = '/login';
+            throw new Error('Session expired. Please sign in.');
+          }
+          const { token: newToken } = await r.json();
+          Auth.saveToken(newToken);
+        }).finally(() => { _refreshPromise = null; });
+    }
+    await _refreshPromise;
+  }
+
   const token = Auth.getToken();
   const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -86,11 +111,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
         Auth.saveToken(newToken);
       }).finally(() => { _refreshPromise = null; });
     }
-    try {
-      await _refreshPromise;
-    } catch (e) {
-      throw e;
-    }
+    await _refreshPromise;
     return apiFetch(path, options, true);
   }
 
@@ -102,6 +123,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
       403: 'You don\'t have permission to do this.',
       404: 'Not found.',
       409: 'Already exists.',
+      429: 'Too many requests — slow down and try again shortly.',
       500: 'Server error — try again shortly.',
     };
     throw new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
@@ -141,7 +163,7 @@ const UserAPI = {
 const TourListingAPI = {
   getPage: (page = 0, params = {}) => apiFetch('/api/tour-listing' + buildQuery({ page, ...params })),
   getAll: (params = {})  => apiFetch('/api/tour-listing' + buildQuery({ size: 1000, ...params })).then(p => p?.content ?? []),
-  getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)),
+  getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)).then(p => p?.content ?? []),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
   create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
@@ -153,12 +175,13 @@ const TourListingAPI = {
 ─────────────────────────────────────────────── */
 const ReservationAPI = {
   getAll: ()           => apiFetch('/api/reservation'),
-  getMine: (params = {}) => apiFetch('/api/reservation/mine' + buildQuery(params)),
+  getMine: (params = {}) => apiFetch('/api/reservation/mine' + buildQuery(params)).then(p => p?.content ?? []),
   getById: (id)        => apiFetch(`/api/reservation/${id}`),
   delete: (id)         => apiFetch(`/api/reservation/${id}`,  { method: 'DELETE' }),
   checkIn: (id)        => apiFetch(`/api/reservation/check-in/${id}`,  { method: 'PATCH' }),
   endTour: (id)        => apiFetch(`/api/reservation/end-tour/${id}`,  { method: 'PATCH' }),
   cancelTour: (id)     => apiFetch(`/api/reservation/cancel-tour/${id}`, { method: 'PATCH' }),
+  getPresence: (id)    => apiFetch(`/api/reservation/${id}/presence`),
 };
 
 /* ───────────────────────────────────────────────
@@ -166,7 +189,7 @@ const ReservationAPI = {
 ─────────────────────────────────────────────── */
 const BookingRequestAPI = {
   getAll: ()           => apiFetch('/api/booking-request'),
-  getMine: (params = {}) => apiFetch('/api/booking-request/mine' + buildQuery(params)),
+  getMine: (params = {}) => apiFetch('/api/booking-request/mine' + buildQuery(params)).then(p => p?.content ?? []),
   getById: (id)        => apiFetch(`/api/booking-request/${id}`),
   create: (dto)        => apiFetch('/api/booking-request',             { method: 'POST',   body: JSON.stringify(dto) }),
   accept: (id)         => apiFetch(`/api/booking-request/accept/${id}`, { method: 'PATCH' }),
@@ -211,6 +234,26 @@ const RatingAPI = {
   create: (dto)         => apiFetch('/api/rating',       { method: 'POST',  body: JSON.stringify(dto) }),
   update: (id, dto)     => apiFetch(`/api/rating/${id}`, { method: 'PATCH', body: JSON.stringify(dto) }),
   delete: (id)          => apiFetch(`/api/rating/${id}`, { method: 'DELETE' }),
+};
+
+/* ───────────────────────────────────────────────
+   PREMIUM  /api/premium
+─────────────────────────────────────────────── */
+const PremiumAPI = {
+  getStatus: ()       => apiFetch('/api/premium/status'),
+  cancel:    ()       => apiFetch('/api/premium/cancel', { method: 'POST' }),
+};
+
+/* ───────────────────────────────────────────────
+   PARTNER  /api/partner  (B2B — issue #107)
+   TODO: wire up when David adds backend endpoints
+─────────────────────────────────────────────── */
+const PartnerAPI = {
+  getProfile:  ()      => apiFetch('/api/partner/profile'),
+  getStats:    ()      => apiFetch('/api/partner/stats'),
+  getListings: ()      => apiFetch('/api/partner/listings'),
+  apply:       (dto)   => apiFetch('/api/partner/apply',  { method: 'POST', body: JSON.stringify(dto) }),
+  updateAd:    (dto)   => apiFetch('/api/partner/ad',     { method: 'PUT',  body: JSON.stringify(dto) }),
 };
 
 /* ───────────────────────────────────────────────

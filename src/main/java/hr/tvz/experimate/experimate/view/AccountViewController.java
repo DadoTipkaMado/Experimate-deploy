@@ -46,4 +46,22 @@ public class AccountViewController {
     public String onboarding() {
         return "onboarding";
     }
+
+    @GetMapping("/report-bug")
+    public String reportBug(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "report-bug";
+    }
+
+    @GetMapping("/partner")
+    public String partner(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "partner";
+    }
+
+    @GetMapping("/premium")
+    public String premium(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "premium";
+    }
 }

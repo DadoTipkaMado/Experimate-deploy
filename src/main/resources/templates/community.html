@@ -4,175 +4,231 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="Join the ExperiMate community. Connect with travellers and locals, share experiences, and discover what's happening near you.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Community — ExperiMate">
+  <meta property="og:description" content="Connect with travellers and locals, share experiences, and discover what's happening near you.">
+  <meta property="og:image" content="/images/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <title>Community — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    .community-header { padding: 22px 18px 18px; border-bottom: 1px solid var(--border); }
+    /* ── Sticky header ── */
+    .cm-header {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 14px 14px 12px;
+    }
+    .cm-header__title {
+      font-family: var(--font-display); font-weight: 800; font-size: 24px;
+      color: var(--text); letter-spacing: -0.02em; margin-bottom: 10px;
+    }
+    .cm-search {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius-pill); padding: 0 16px; height: 44px;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    }
+    .cm-search:focus-within {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.08);
+    }
+    .cm-search input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-size: 14px;
+    }
+    .cm-search input::placeholder { color: var(--text-3); }
 
-    /* ── Coming soon hero ── */
-    .cs-hero {
-      position: relative;
-      padding: 48px 24px 32px;
-      text-align: center;
-      overflow: hidden;
+    /* ── Section divider label ── */
+    .cm-section {
+      padding: 16px 16px 8px;
+      font-family: var(--font-mono); font-size: 9px;
+      color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
     }
-    .cs-hero__orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(70px);
-      pointer-events: none;
-      animation: orb-drift linear infinite;
-    }
-    .cs-hero__orb-1 { width: 300px; height: 300px; background: var(--accent); opacity: 0.07; top: -80px; left: -60px; animation-duration: 20s; }
-    .cs-hero__orb-2 { width: 220px; height: 220px; background: var(--warm); opacity: 0.07; bottom: -40px; right: -40px; animation-duration: 26s; animation-delay: -8s; }
-    @keyframes orb-drift {
-      0%   { transform: translate(0,0) scale(1); }
-      50%  { transform: translate(15px,-10px) scale(1.05); }
-      100% { transform: translate(0,0) scale(1); }
-    }
+    .cm-section::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    .cs-badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: var(--accent-dim); border: 1px solid var(--accent-border);
-      border-radius: var(--radius-pill); padding: 5px 14px;
-      font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 18px; position: relative; z-index: 1;
+    /* ── Liked chips (stories-style row) ── */
+    .cm-liked-row {
+      display: flex; gap: 14px; padding: 4px 14px 12px;
+      overflow-x: auto; scrollbar-width: none;
     }
-    .cs-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .cm-liked-row::-webkit-scrollbar { display: none; }
 
-    .cs-title {
-      font-family: var(--font-display); font-weight: 800; font-size: 28px;
-      color: var(--text); letter-spacing: -0.02em; line-height: 1.1;
-      margin-bottom: 12px; position: relative; z-index: 1;
+    .cm-liked-chip {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      flex-shrink: 0; cursor: pointer; text-decoration: none;
     }
-    .cs-title span { color: var(--accent); }
-    .cs-sub {
-      font-size: 13px; color: var(--text-2); line-height: 1.7;
-      max-width: 300px; margin: 0 auto; position: relative; z-index: 1;
+    .cm-liked-chip__ring {
+      width: 60px; height: 60px; border-radius: 50%; padding: 2.5px;
+      background: linear-gradient(135deg, var(--accent), var(--warm));
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }
-
-    /* ── Feature preview cards ── */
-    .cs-features { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-    .cs-feature {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex; align-items: flex-start; gap: 14px;
-      position: relative; overflow: hidden;
-      transition: border-color var(--t-base);
+    .cm-liked-chip__inner {
+      width: 100%; height: 100%; border-radius: 50%;
+      overflow: hidden; border: 2px solid var(--bg);
     }
-    .cs-feature:hover { border-color: var(--border-2); }
-    .cs-feature--locked::after {
-      content: 'Coming soon';
-      position: absolute; top: 12px; right: 12px;
-      font-size: 9px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
-      background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: var(--radius-pill); padding: 3px 9px;
+    .cm-liked-chip__inner img { width: 100%; height: 100%; object-fit: cover; }
+    .cm-liked-chip__name {
+      font-size: 10px; color: var(--text-2); text-align: center;
+      white-space: nowrap; max-width: 64px; overflow: hidden; text-overflow: ellipsis;
+      font-family: var(--font-mono);
     }
 
-    .cs-feature__icon {
-      width: 40px; height: 40px; border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
+    /* ── Card list ── */
+    .cm-list {
+      padding: 0 14px 24px;
+      display: flex; flex-direction: column; gap: 8px;
+      background: #0a0c0c;
     }
-    .cs-feature__icon--teal { background: var(--accent-dim); border: 1px solid var(--accent-border); }
-    .cs-feature__icon--warm { background: var(--warm-dim); border: 1px solid var(--warm-border); }
-    .cs-feature__icon--muted { background: var(--surface-2); border: 1px solid var(--border-2); }
 
-    .cs-feature__title {
+    /* ── User card ── */
+    .cm-card {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.09);
+      border-bottom-color: rgba(0,0,0,0.5);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.11),
+        inset 0 -1px 0 rgba(0,0,0,0.4),
+        0 6px 18px rgba(0,0,0,0.5),
+        0 2px 5px rgba(0,0,0,0.35);
+      cursor: pointer; text-decoration: none; color: inherit;
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cm-card:active {
+      transform: translateY(1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        inset 0 2px 8px rgba(0,0,0,0.35);
+    }
+
+    .cm-card__avatar {
+      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+      overflow: hidden; position: relative;
+    }
+    .cm-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .cm-card__info { flex: 1; min-width: 0; }
+    .cm-card__name {
       font-family: var(--font-display); font-weight: 700; font-size: 14px;
-      color: var(--text); margin-bottom: 3px;
+      color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 2px;
     }
-    .cs-feature__desc { font-size: 11px; color: var(--text-2); line-height: 1.6; }
+    .cm-card__handle {
+      font-size: 11px; color: var(--text-3); margin-bottom: 4px;
+    }
+    .cm-card__bio {
+      font-size: 12px; color: var(--text-2); line-height: 1.4;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
-    /* ── Divider ── */
-    .cs-divider {
-      display: flex; align-items: center; gap: 12px;
-      padding: 4px 16px 0; color: var(--text-3);
-      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    .cm-card__right {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0;
     }
-    .cs-divider::before, .cs-divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
+    .cm-card__rating {
+      font-size: 11px; color: var(--accent); font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+    }
+    .cm-card__heart {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07);
+      cursor: pointer; color: var(--text-3);
+      transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+    }
+    .cm-card__heart:hover { background: rgba(255,77,109,0.12); border-color: rgba(255,77,109,0.25); color: #ff4d6d; }
+    .cm-card__heart--active { color: #ff4d6d; background: rgba(255,77,109,0.12); border-color: rgba(255,77,109,0.25); }
+    .cm-card__heart svg { pointer-events: none; }
+
+    /* ── Skeleton cards ── */
+    .cm-skeleton {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+    }
+
+    /* ── Empty state ── */
+    .cm-empty {
+      text-align: center; padding: 48px 24px;
+      color: var(--text-3); font-size: 13px; line-height: 1.65;
+    }
+    .cm-empty__icon { font-size: 32px; margin-bottom: 10px; opacity: 0.35; }
+
+    /* ── Light mode ── */
+    body.light-mode .cm-list { background: #f0eeea; }
+    body.light-mode .cm-card {
+      background: linear-gradient(160deg, #fffef9 0%, #faf8f4 100%);
+      border-top-color: rgba(255,255,255,0.95);
+      border-bottom-color: rgba(0,0,0,0.08);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.9),
+        0 3px 12px rgba(0,0,0,0.09),
+        0 1px 3px rgba(0,0,0,0.06);
+    }
+    body.light-mode .cm-card:active {
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.07);
     }
   </style>
 </head>
 <body>
 <div class="app-shell">
-
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
   <main class="page-content">
-    <div class="community-header">
-      <div class="page-title">Community</div>
-      <div class="page-subtitle">Connect with people who share your vibe</div>
+
+    <div class="cm-header">
+      <div class="cm-header__title">Community</div>
+      <div class="cm-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3);flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="cm-search-input" placeholder="Search people…" autocomplete="off" autocorrect="off">
+      </div>
     </div>
 
-    <div class="cs-hero">
-      <div class="cs-hero__orb cs-hero__orb-1"></div>
-      <div class="cs-hero__orb cs-hero__orb-2"></div>
-
-      <div class="cs-badge">
-        <div class="cs-badge__dot"></div>
-        In development
-      </div>
-      <div class="cs-title">Your <span>people</span><br>are out there</div>
-      <div class="cs-sub">Communities are launching soon — local groups, shared interests, real meetups.</div>
+    <!-- Liked users -->
+    <div id="cm-liked-section" style="display:none;">
+      <div class="cm-section">Liked</div>
+      <div class="cm-liked-row" id="cm-liked-row"></div>
     </div>
 
-    <div class="cs-divider">What's coming</div>
-
-    <div class="cs-features">
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--teal">🏃</div>
-        <div>
-          <div class="cs-feature__title">Local activity groups</div>
-          <div class="cs-feature__desc">Running clubs, dog walking, cycling — find people doing what you love nearby.</div>
+    <!-- Results -->
+    <div id="cm-results-section">
+      <div class="cm-section" id="cm-results-label">People</div>
+      <div class="cm-list" id="cm-list">
+        <div class="cm-skeleton">
+          <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+            <div class="skeleton skeleton-line" style="width:42%;height:13px;border-radius:5px;"></div>
+            <div class="skeleton skeleton-line" style="width:28%;height:11px;border-radius:4px;"></div>
+            <div class="skeleton skeleton-line" style="width:70%;height:11px;border-radius:4px;"></div>
+          </div>
         </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--warm">✈️</div>
-        <div>
-          <div class="cs-feature__title">Travel section</div>
-          <div class="cs-feature__desc">Connect with travellers passing through your city. Be their local guide or join them.</div>
+        <div class="cm-skeleton">
+          <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+            <div class="skeleton skeleton-line" style="width:50%;height:13px;border-radius:5px;"></div>
+            <div class="skeleton skeleton-line" style="width:32%;height:11px;border-radius:4px;"></div>
+            <div class="skeleton skeleton-line" style="width:60%;height:11px;border-radius:4px;"></div>
+          </div>
         </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--muted">🎯</div>
-        <div>
-          <div class="cs-feature__title">Interest matching</div>
-          <div class="cs-feature__desc">Get matched with locals who share your interests — not just your location.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--teal">🏆</div>
-        <div>
-          <div class="cs-feature__title">Achievements & ratings</div>
-          <div class="cs-feature__desc">Earn points for hosting, exploring, and connecting. Build your local reputation.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Bridge CTA — while community launches, point users somewhere useful -->
-    <div style="padding:20px 16px 32px;">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;text-align:center;">
-        <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:16px;">In the meantime, the best way to meet people is already here.</div>
-        <div style="display:flex;gap:8px;">
-          <a href="/map" class="btn btn--ghost" style="flex:1;min-width:0;height:42px;font-size:11px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:5px;flex-shrink:0;"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-            Explore map
-          </a>
-          <a href="/explore" class="btn btn--primary" style="flex:1;min-width:0;height:42px;font-size:11px;">Browse locals →</a>
+        <div class="cm-skeleton">
+          <div class="skeleton" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+            <div class="skeleton skeleton-line" style="width:38%;height:13px;border-radius:5px;"></div>
+            <div class="skeleton skeleton-line" style="width:25%;height:11px;border-radius:4px;"></div>
+            <div class="skeleton skeleton-line" style="width:75%;height:11px;border-radius:4px;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -180,11 +236,130 @@
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
-
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
+<script>
+(function() {
+  let _allUsers   = [];
+  let _liked      = new Set(JSON.parse(localStorage.getItem('liked_users') || '[]'));
+  let _myUsername = typeof Auth !== 'undefined' ? Auth.getUsername() : null;
+
+  const searchInput  = document.getElementById('cm-search-input');
+  const listEl       = document.getElementById('cm-list');
+  const labelEl      = document.getElementById('cm-results-label');
+  const likedSection = document.getElementById('cm-liked-section');
+  const likedRow     = document.getElementById('cm-liked-row');
+
+  function saveLiked() {
+    localStorage.setItem('liked_users', JSON.stringify([..._liked]));
+  }
+
+  function toggleLike(username, btn) {
+    if (_liked.has(username)) {
+      _liked.delete(username);
+      btn.classList.remove('cm-card__heart--active');
+      btn.querySelector('svg').setAttribute('fill', 'none');
+    } else {
+      _liked.add(username);
+      btn.classList.add('cm-card__heart--active');
+      btn.querySelector('svg').setAttribute('fill', 'currentColor');
+    }
+    saveLiked();
+    renderLiked();
+  }
+
+  function heartSvg(filled) {
+    return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  }
+
+  function avatarEl(user, size) {
+    const photoUrl = user.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
+    const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || user.username?.[0]?.toUpperCase() || '?';
+    const hue = (user.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    if (photoUrl) return `<img src="${photoUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`;
+    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:${Math.round(size*0.34)}px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+  }
+
+  function renderCard(user) {
+    const isLiked = _liked.has(user.username);
+    const rating  = user.rating > 0 ? `★ ${user.rating.toFixed(1)}` : '';
+    const div = document.createElement('a');
+    div.className = 'cm-card';
+    div.href = `/profile/${encodeURIComponent(user.username)}`;
+    div.innerHTML = `
+      <div class="cm-card__avatar">${avatarEl(user, 52)}</div>
+      <div class="cm-card__info">
+        <div class="cm-card__name">${escapeHtml((user.firstName + ' ' + user.lastName).trim() || user.username)}</div>
+        <div class="cm-card__handle">@${escapeHtml(user.username)}</div>
+        ${user.bio ? `<div class="cm-card__bio">${escapeHtml(user.bio)}</div>` : ''}
+      </div>
+      <div class="cm-card__right">
+        ${rating ? `<div class="cm-card__rating">${rating}</div>` : ''}
+        <button class="cm-card__heart${isLiked ? ' cm-card__heart--active' : ''}" data-username="${escapeHtml(user.username)}" title="${isLiked ? 'Unlike' : 'Like'}">${heartSvg(isLiked)}</button>
+      </div>
+    `;
+    div.querySelector('.cm-card__heart').addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      toggleLike(user.username, this);
+    });
+    return div;
+  }
+
+  function renderLiked() {
+    const likedUsers = _allUsers.filter(u => _liked.has(u.username));
+    if (!likedUsers.length) { likedSection.style.display = 'none'; return; }
+    likedSection.style.display = '';
+    likedRow.innerHTML = likedUsers.map(u => {
+      const photoUrl = u.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
+      const initials = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?';
+      const hue = (u.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+      const inner = photoUrl
+        ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+      return `
+        <a class="cm-liked-chip" href="/profile/${encodeURIComponent(u.username)}">
+          <div class="cm-liked-chip__ring">
+            <div class="cm-liked-chip__inner">${inner}</div>
+          </div>
+          <div class="cm-liked-chip__name">${escapeHtml(u.firstName || u.username)}</div>
+        </a>`;
+    }).join('');
+  }
+
+  function renderList(users) {
+    listEl.innerHTML = '';
+    if (!users.length) {
+      listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">🔍</div>No people found.</div>`;
+      return;
+    }
+    users.forEach(u => listEl.appendChild(renderCard(u)));
+  }
+
+  function filter(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) { labelEl.textContent = 'People'; renderList(_allUsers); return; }
+    const results = _allUsers.filter(u =>
+      (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q) ||
+      (u.bio || '').toLowerCase().includes(q)
+    );
+    labelEl.textContent = `Results for "${query.trim()}"`;
+    renderList(results);
+  }
+
+  searchInput.addEventListener('input', function() { filter(this.value); });
+
+  UserAPI.getAll().then(users => {
+    _allUsers = (users || []).filter(u => u.username !== _myUsername);
+    renderList(_allUsers);
+    renderLiked();
+  }).catch(() => {
+    listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">⚠️</div>Could not load people — check your connection.</div>`;
+  });
+})();
+</script>
 </body>
 </html>
