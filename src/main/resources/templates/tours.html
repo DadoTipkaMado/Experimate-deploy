@@ -342,28 +342,38 @@
     .star-picker__star--active { opacity: 1; }
     .star-picker__star:hover { transform: scale(1.12); }
 
-    /* ── Light mode ── */
+    /* ── Light / Warm mode ── */
     body.light-mode .page-content { background: #f0eeea; }
+    body.warm-mode  .page-content { background: #E6EAEB; }
     body.light-mode .seg-tabs { background: #f0eeea; border-bottom-color: rgba(0,0,0,0.10); }
+    body.warm-mode  .seg-tabs { background: #E6EAEB; border-bottom-color: rgba(0,0,0,0.10); }
     body.light-mode .meet-card,
     body.light-mode .listing-card,
-    body.light-mode .req-card {
-      background: linear-gradient(170deg, #fffef9 0%, #faf8f4 100%);
-      border-top-color: rgba(255,255,255,0.95);
+    body.light-mode .req-card,
+    body.warm-mode  .meet-card,
+    body.warm-mode  .listing-card,
+    body.warm-mode  .req-card {
+      background: #fff;
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
       border-bottom-color: rgba(0,0,0,0.10);
       box-shadow:
         inset 0 1.5px 0 rgba(255,255,255,0.95),
-        0 4px 14px rgba(0,0,0,0.10),
-        0 1px 4px rgba(0,0,0,0.07);
+        0 4px 14px rgba(20,20,30,0.08),
+        0 1px 4px rgba(20,20,30,0.05);
     }
-    body.light-mode .meet-card:active {
+    body.light-mode .meet-card:active,
+    body.warm-mode  .meet-card:active {
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.6),
         inset 0 2px 6px rgba(0,0,0,0.08);
     }
-    body.light-mode .meet-card__btn--danger { border-color: rgba(185,28,28,0.25); color: rgba(185,28,28,0.75); }
-    body.light-mode .req-btn--decline:hover { border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78); }
-    body.light-mode .req-status-badge--declined { background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80); }
+    body.light-mode .meet-card__btn--danger,
+    body.warm-mode  .meet-card__btn--danger { border-color: rgba(185,28,28,0.25); color: rgba(185,28,28,0.75); }
+    body.light-mode .req-btn--decline:hover,
+    body.warm-mode  .req-btn--decline:hover { border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78); }
+    body.light-mode .req-status-badge--declined,
+    body.warm-mode  .req-status-badge--declined { background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80); }
   </style>
 </head>
 <body>

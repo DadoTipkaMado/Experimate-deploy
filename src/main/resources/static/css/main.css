@@ -186,6 +186,101 @@ body.light-mode .explore-card__trait {
 body.light-mode .side-action__label,
 body.light-mode .scroll-hint__label { color: rgba(240, 238, 234, 0.80); }
 
+/* ═══════════════════════════════════════════════
+   WARM MODE — David's palette
+   Activated via body.warm-mode class
+   localStorage key 'theme' = 'warm'
+═══════════════════════════════════════════════ */
+body.warm-mode {
+  color-scheme: light;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+
+  --bg:             #F3F3F7;
+  --surface:        #FAFAFA;
+  --surface-2:      #DDE3E3;
+  --surface-3:      #C8D0D0;
+  --border:         #D5DADB;
+  --border-2:       #C2CBCC;
+  --border-3:       #ADB8B9;
+
+  --text:           #1a1a24;
+  --text-2:         #42424e;
+  --text-3:         #72727a;
+
+  --accent:         #EB6547;
+  --accent-dim:     rgba(235, 101, 71, 0.12);
+  --accent-border:  rgba(235, 101, 71, 0.40);
+  --accent-glow:    rgba(235, 101, 71, 1);
+
+  --warm:           #E0A500;
+  --warm-dim:       rgba(224, 165, 0, 0.12);
+  --warm-border:    rgba(224, 165, 0, 0.32);
+
+  --shadow-sm:      0 1px 4px rgba(20, 20, 30, 0.07);
+  --shadow-md:      0 4px 16px rgba(20, 20, 30, 0.09);
+  --shadow-lg:      0 8px 32px rgba(20, 20, 30, 0.13);
+  --shadow-glow:    0 0 0 3px rgba(235, 101, 71, 0.16);
+  --shadow-glow-warm: 0 0 0 3px rgba(224, 165, 0, 0.14);
+
+  --surface-overlay:    rgba(243, 243, 247, 0.97);
+  --card-gradient-end:  rgba(243, 243, 247, 0.96);
+  --card-badge-bg:      rgba(255, 255, 255, 0.85);
+  --btn-ghost-bg:       rgba(0, 0, 0, 0.04);
+  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.07);
+  --divider-subtle:     rgba(0, 0, 0, 0.05);
+  --backdrop:           rgba(0, 0, 0, 0.38);
+  --side-action-bg:     rgba(255, 255, 255, 0.72);
+  --side-action-bg-hover: rgba(255, 255, 255, 0.90);
+  --focus-ring:         rgba(235, 101, 71, 0.50);
+  --accent-shadow:      rgba(235, 101, 71, 0.20);
+  --search-focus-glow:  rgba(235, 101, 71, 0.08);
+}
+
+/* Warm mode — explore card text/badges (cards have dark photo gradients, keep legible) */
+body.warm-mode .explore-card__name,
+body.warm-mode .explore-card__handle,
+body.warm-mode .explore-card__desc,
+body.warm-mode .explore-card__why { color: rgba(240, 238, 234, 0.92); }
+
+body.warm-mode .explore-card__rating,
+body.warm-mode .explore-card__match-pct {
+  border-color: rgba(235, 101, 71, 0.35);
+  color: #d44020;
+}
+
+body.warm-mode .pill--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+body.warm-mode .pill--warm.pill--active {
+  background: var(--warm);
+  border-color: var(--warm);
+  color: #fff;
+}
+
+body.warm-mode .pill--personalized {
+  background: linear-gradient(90deg, rgba(235,101,71,0.12), rgba(235,101,71,0.05));
+  border-color: rgba(235,101,71,0.32);
+  color: var(--accent);
+}
+
+body.warm-mode .search-ai-badge {
+  background: rgba(235,101,71,0.10);
+  border-color: rgba(235,101,71,0.22);
+  color: rgba(235,101,71,0.85);
+}
+
+body.warm-mode .explore-card__trait {
+  background: rgba(235,101,71,0.16);
+  border-color: rgba(235,101,71,0.30);
+  color: rgba(235,101,71,0.95);
+}
+
+body.warm-mode .side-action__label,
+body.warm-mode .scroll-hint__label { color: rgba(240, 238, 234, 0.80); }
+
 *, *::before, *::after {
   margin: 0;
   padding: 0;
