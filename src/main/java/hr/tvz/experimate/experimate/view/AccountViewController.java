@@ -52,4 +52,10 @@ public class AccountViewController {
         model.addAttribute("currentPage", "account");
         return "report-bug";
     }
+
+    @GetMapping("/partner")
+    public String partner(Model model) {
+        model.addAttribute("currentPage", "account");
+        return "partner";
+    }
 }
