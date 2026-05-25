@@ -237,6 +237,14 @@ const RatingAPI = {
 };
 
 /* ───────────────────────────────────────────────
+   PREMIUM  /api/premium
+─────────────────────────────────────────────── */
+const PremiumAPI = {
+  getStatus: ()       => apiFetch('/api/premium/status'),
+  cancel:    ()       => apiFetch('/api/premium/cancel', { method: 'POST' }),
+};
+
+/* ───────────────────────────────────────────────
    PARTNER  /api/partner  (B2B — issue #107)
    TODO: wire up when David adds backend endpoints
 ─────────────────────────────────────────────── */

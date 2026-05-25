@@ -234,6 +234,18 @@
         </div>
         <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
       </a>
+      <a href="/premium" class="settings-link" id="settings-premium-link">
+        <div class="settings-row__left">
+          <div class="settings-row__icon" style="background:rgba(234,179,8,0.10);border-color:rgba(234,179,8,0.22);color:#fbbf24;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+          </div>
+          <div>
+            <span class="settings-link__title" id="settings-premium-title">Get Premium</span>
+            <div class="settings-row__desc" id="settings-premium-desc" style="font-size:10px;color:var(--text-3);margin-top:1px;">Unlock unlimited matches, chat &amp; more</div>
+          </div>
+        </div>
+        <span class="settings-link__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </a>
       <a href="/partner" class="settings-link">
         <div class="settings-row__left">
           <div class="settings-row__icon">
@@ -396,6 +408,19 @@
   })();
 
 
+
+  // Premium status
+  (async function checkPremium() {
+    if (!Auth.getUserId()) return;
+    try {
+      const status = await PremiumAPI.getStatus();
+      if (status?.active) {
+        document.getElementById('settings-premium-title').textContent = 'Manage Premium';
+        document.getElementById('settings-premium-desc').textContent  = 'Active — ' + (status.plan === 'annual' ? 'Annual plan' : 'Monthly plan');
+        document.getElementById('settings-premium-desc').style.color  = '#d97706';
+      }
+    } catch { /* not premium or backend pending */ }
+  })();
 
   // Personality — quiz status
   async function loadQuizStatus() {
