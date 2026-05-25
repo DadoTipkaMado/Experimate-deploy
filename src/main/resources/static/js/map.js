@@ -138,7 +138,9 @@ function loadPins() {
         const isFull = (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1);
         if (isFull && !MapState.unlockedIds.has(listing.id)) return;
         seenIds.add(listing.id);
-        const pinType = MapState.myMeetMap[listing.id] ?? 'default';
+        const isPartner = listing.host?.partner === true || listing.host?.role === 'PARTNER';
+        const pinType = MapState.myMeetMap[listing.id]
+          ?? (isPartner ? 'partner' : 'default');
         const marker = buildMarker(listing, pinType);
         MapState.allMarkers.push({ marker, listing, pinType });
         MapState.clusterGroup.addLayer(marker);
@@ -181,13 +183,33 @@ function buildMarker(listing, pinType = 'default') {
 
   const pinClass = pinType === 'due-soon' ? 'map-pin--due-soon'
                  : pinType === 'my-meet'  ? 'map-pin--my-meet'
+                 : pinType === 'partner'  ? 'map-pin--partner'
                  : 'map-pin--event';
+
+  let iconHtml, iconSize, iconAnchor;
+  if (pinType === 'partner' && listing.host?.profilePhotoUrl) {
+    const photoUrl = listing.host.profilePhotoUrl.startsWith('/')
+      ? listing.host.profilePhotoUrl
+      : '/api/user/profile-photo/' + listing.host.profilePhotoUrl;
+    iconHtml   = `<div class="map-pin--partner-logo"><img src="${photoUrl}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(listing.host.firstName?.[0]??'P').toUpperCase()}</span>'"></div>`;
+    iconSize   = [32, 32];
+    iconAnchor = [16, 32];
+  } else if (pinType === 'partner') {
+    const initial = (listing.host?.firstName?.[0] ?? listing.host?.username?.[0] ?? 'P').toUpperCase();
+    iconHtml   = `<div class="map-pin--partner-logo"><span class="map-pin--partner-logo__initials">${initial}</span></div>`;
+    iconSize   = [32, 32];
+    iconAnchor = [16, 32];
+  } else {
+    iconHtml   = `<div class="map-pin ${pinClass}"></div>`;
+    iconSize   = [14, 14];
+    iconAnchor = [7, 14];
+  }
 
   const icon = L.divIcon({
     className: '',
-    html: `<div class="map-pin ${pinClass}"></div>`,
-    iconSize:   [14, 14],
-    iconAnchor: [7, 14],
+    html: iconHtml,
+    iconSize,
+    iconAnchor,
   });
 
   const marker = L.marker([markerLat, markerLng], { icon });
