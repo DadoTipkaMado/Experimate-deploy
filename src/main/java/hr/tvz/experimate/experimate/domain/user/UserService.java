@@ -18,6 +18,7 @@ import hr.tvz.experimate.experimate.domain.user.response.UserResponse;
 import hr.tvz.experimate.experimate.domain.user.response.UserSearchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Sort;
@@ -37,6 +38,9 @@ import java.util.Optional;
 public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    @Value("${app.upload.profile-photos-dir}")
+    private String profilePhotosDir;
 
     private final UserRepo userRepo;
     private final QuizResultRepo quizResultRepo;
@@ -155,9 +159,9 @@ public class UserService {
             throw new ForbiddenActionException("You can only upload a photo to your own profile.");
         User user = findEntityById(id);
         String oldFilename = user.getProfilePhotoFilename();
-        String newFilename = fileStorageService.store(file);
+        String newFilename = fileStorageService.store(file, profilePhotosDir);
         user.setProfilePhotoFilename(newFilename);
-        if (oldFilename != null) fileStorageService.delete(oldFilename);
+        if (oldFilename != null) fileStorageService.delete(oldFilename, profilePhotosDir);
         userRepo.save(user);
         log.info("Profile photo updated for user {}", id);
         return createUserResponse(user);
@@ -181,7 +185,7 @@ public class UserService {
     }
 
     public Resource getProfilePhotoResourceByFilename(String filename) {
-        return fileStorageService.load(filename);
+        return fileStorageService.load(filename, profilePhotosDir);
     }
 
     /**

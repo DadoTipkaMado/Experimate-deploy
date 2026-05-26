@@ -109,6 +109,4 @@ public abstract class Person {
             throw new IllegalArgumentException("Email cannot be empty/null");
         return email.toLowerCase();
     }
-
-    //TODO validacija za idNumber
 }
