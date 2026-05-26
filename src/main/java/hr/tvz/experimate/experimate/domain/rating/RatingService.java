@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate.domain.rating;
 
 import hr.tvz.experimate.experimate.domain.rating.dto.*;
 import hr.tvz.experimate.experimate.domain.rating.response.*;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.UserDetails;
 
 import hr.tvz.experimate.experimate.domain.rating.exception.DuplicateRatingException;
@@ -34,12 +35,15 @@ public class RatingService {
     private final UserRepo userRepo;
     private final ReservationRepo reservationRepo;
     private final ApplicationEventPublisher publisher;
+    private final DetailsMapper detailsMapper;
 
-    public RatingService(RatingRepo ratingRepo, UserRepo userRepo, ReservationRepo reservationRepo, ApplicationEventPublisher publisher) {
+    public RatingService(RatingRepo ratingRepo, UserRepo userRepo, ReservationRepo reservationRepo,
+                         ApplicationEventPublisher publisher, DetailsMapper detailsMapper) {
         this.ratingRepo = ratingRepo;
         this.userRepo = userRepo;
         this.reservationRepo = reservationRepo;
         this.publisher = publisher;
+        this.detailsMapper = detailsMapper;
     }
 
     @Transactional
@@ -145,16 +149,8 @@ public class RatingService {
     }
 
     private RatingResponse toResponse(Rating rating) {
-        UserDetails rater = new UserDetails(
-                rating.getRater().getFirstName(),
-                rating.getRater().getLastName(),
-                rating.getRater().getUsername()
-        );
-        UserDetails rated = new UserDetails(
-                rating.getRated().getFirstName(),
-                rating.getRated().getLastName(),
-                rating.getRated().getUsername()
-        );
+        UserDetails rater = detailsMapper.mapUserDetails(rating.getRater());
+        UserDetails rated = detailsMapper.mapUserDetails(rating.getRated());
         return new RatingResponse(rating.getId(), rating.getScore(), rating.getReview(), rater, rated);
     }
 }

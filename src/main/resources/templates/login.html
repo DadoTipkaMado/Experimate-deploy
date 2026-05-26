@@ -279,6 +279,10 @@
   <script src="https://accounts.google.com/gsi/client" async></script>
   <script src="/js/api.js"></script>
   <script>
+    if (new URLSearchParams(window.location.search).get('verified') === '1') {
+      window.addEventListener('DOMContentLoaded', () => showToast('Email verified — you can now sign in.', 'success'));
+    }
+
     let _googleClientId = null;
     fetch('/api/auth/google-client-id').then(r => r.ok ? r.text() : null).then(id => {
       _googleClientId = id ? id.trim().replace(/"/g, '') : null;
