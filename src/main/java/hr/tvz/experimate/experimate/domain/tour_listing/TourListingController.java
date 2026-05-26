@@ -1,5 +1,6 @@
 package hr.tvz.experimate.experimate.domain.tour_listing;
 
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateListingFromEventRequest;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListingService;
@@ -62,6 +63,20 @@ public class TourListingController {
                                                                    @AuthenticationPrincipal AppUserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 tourListingService.createListing(dto, userDetails.getId())
+        );
+    }
+
+    /**
+     * Creates a listing pre-filled from an existing partner event.
+     * The event's start time and pin coordinates are used as defaults;
+     * the caller may override them via the request body.
+     */
+    @PostMapping("/from-partner-event")
+    public ResponseEntity<TourListingResponse> createFromPartnerEvent(
+            @Valid @RequestBody CreateListingFromEventRequest req,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                tourListingService.createFromPartnerEvent(userDetails.getId(), req)
         );
     }
 
