@@ -1,6 +1,6 @@
 package hr.tvz.experimate.experimate.domain.partner;
 
-import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventResponse;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -9,20 +9,19 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * REST endpoints for partner account management, consumed by the partner portal frontend
  * ({@code /partner} route, {@code PartnerAPI} in api.js).
  *
- * <p>All endpoints except {@code /apply} require {@code ROLE_PARTNER}. The {@code /apply}
- * endpoint is open to any authenticated user so they can self-serve upgrade their account.
+ * <p>Endpoints: {@code /apply} (any authenticated user), {@code /profile},
+ * {@code /stats}, {@code /events} (all require {@code ROLE_PARTNER}).
+ * Ad management is handled separately by {@code PromotedAdController}.
  */
 @RestController
 @RequestMapping("/api/partner")
@@ -56,22 +55,11 @@ public class PartnerController {
         return ResponseEntity.ok(partnerService.getStats(userDetails.getId()));
     }
 
-    @GetMapping("/listings")
+    @GetMapping("/events")
     @PreAuthorize("hasRole('PARTNER')")
-    public ResponseEntity<List<TourListingResponse>> getListings(
+    public ResponseEntity<List<PartnerEventResponse>> getEvents(
             @AuthenticationPrincipal AppUserDetails userDetails) {
-        return ResponseEntity.ok(partnerService.getListings(userDetails.getId()));
+        return ResponseEntity.ok(partnerService.getEvents(userDetails.getId()));
     }
 
-    /**
-     * Stub endpoint for ad management. Returns a placeholder response until the
-     * PartnerPin and ad schema are defined in a future iteration.
-     */
-    @PutMapping("/ad")
-    @PreAuthorize("hasRole('PARTNER')")
-    public ResponseEntity<Map<String, String>> updateAd(
-            @AuthenticationPrincipal AppUserDetails userDetails) {
-        // TODO: implement once PartnerPin/PartnerEvent ad schema is defined
-        return ResponseEntity.ok(Map.of("status", "not_implemented_yet"));
-    }
 }

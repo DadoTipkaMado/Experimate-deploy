@@ -1,7 +1,8 @@
 package hr.tvz.experimate.experimate.domain.partner;
 
-import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
-import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEvent;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventResponse;
 import hr.tvz.experimate.experimate.domain.user.Role;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
@@ -24,14 +25,14 @@ public class PartnerService {
 
     private final PartnerProfileRepository partnerProfileRepository;
     private final UserRepo userRepo;
-    private final TourListingRepo tourListingRepo;
+    private final PartnerEventRepository partnerEventRepository;
 
     public PartnerService(PartnerProfileRepository partnerProfileRepository,
                           UserRepo userRepo,
-                          TourListingRepo tourListingRepo) {
+                          PartnerEventRepository partnerEventRepository) {
         this.partnerProfileRepository = partnerProfileRepository;
         this.userRepo = userRepo;
-        this.tourListingRepo = tourListingRepo;
+        this.partnerEventRepository = partnerEventRepository;
     }
 
     /**
@@ -93,24 +94,25 @@ public class PartnerService {
      * @param userId the authenticated partner's user ID
      * @return stats snapshot
      */
+    @Transactional(readOnly = true)
     public PartnerStatsResponse getStats(Integer userId) {
-        long activeEvents = tourListingRepo.countByHost_IdAndMeetingDateAfter(userId, LocalDateTime.now());
+        long activeEvents = partnerEventRepository
+                .countByPartnerPin_PartnerProfile_UserIdAndStartDatetimeAfter(userId, LocalDateTime.now());
         return new PartnerStatsResponse(0, 0, activeEvents);
     }
 
     /**
-     * Placeholder for the partner's event listings.
-     *
-     * <p>Returns an empty list until the {@code PartnerPin} and {@code PartnerEvent} models
-     * are implemented. At that point this endpoint will be replaced by
-     * {@code GET /api/partner-pins/{id}/events}.
+     * Returns all partner events across every pin owned by the given user's partner profile.
+     * Used by {@code GET /api/partner/events}.
      *
      * @param userId the authenticated partner's user ID
-     * @return empty list
      */
-    public List<TourListingResponse> getListings(Integer userId) {
-        // TODO: replace with PartnerPin/PartnerEvent query once that model is implemented
-        return List.of();
+    @Transactional(readOnly = true)
+    public List<PartnerEventResponse> getEvents(Integer userId) {
+        return partnerEventRepository.findByPartnerPin_PartnerProfile_UserId(userId)
+                .stream()
+                .map(this::toPartnerEventResponse)
+                .toList();
     }
 
     private PartnerProfileResponse toResponse(PartnerProfile profile) {
@@ -120,6 +122,22 @@ public class PartnerService {
                 profile.getContactEmail(),
                 profile.getWebsite(),
                 profile.getCreatedAt()
+        );
+    }
+
+    private PartnerEventResponse toPartnerEventResponse(PartnerEvent event) {
+        return new PartnerEventResponse(
+                event.getId(),
+                event.getPartnerPin().getId(),
+                event.getPartnerPin().getName(),
+                event.getPartnerPin().getLatitude(),
+                event.getPartnerPin().getLongitude(),
+                event.getTitle(),
+                event.getDescription(),
+                event.getTicketVendorUrl(),
+                event.getStartDatetime(),
+                event.getEndDatetime(),
+                event.getCreatedAt()
         );
     }
 }
