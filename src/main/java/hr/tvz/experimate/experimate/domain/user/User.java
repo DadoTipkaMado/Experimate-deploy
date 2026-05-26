@@ -3,6 +3,8 @@ package hr.tvz.experimate.experimate.domain.user;
 import hr.tvz.experimate.experimate.domain.onboarding.Big5Vector;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -32,6 +34,9 @@ public class User extends Person {
     private String bio;
     @Column(unique = true)
     private String googleSub;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20)", nullable = false)
+    private Role role = Role.USER;
     private double rating = 0.0;
     private String profilePhotoFilename;
 
@@ -127,6 +132,14 @@ public class User extends Person {
 
     public void setGoogleSub(String googleSub) {
         this.googleSub = googleSub;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public String getBio() {

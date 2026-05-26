@@ -1,5 +1,9 @@
 package hr.tvz.experimate.experimate.domain.tour_listing;
 
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEvent;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventNotFoundException;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
+import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.*;
 
@@ -42,17 +46,20 @@ public class TourListingService {
     private final TourListingRepo listingRepo;
     private final UserRepo userRepo;
     private final ReservationRepo reservationRepo;
+    private final PartnerEventRepository partnerEventRepo;
     private final ApplicationEventPublisher publisher;
     private final DetailsMapper detailsMapper;
 
     public TourListingService(TourListingRepo repo,
                               UserRepo userRepo,
                               ReservationRepo reservationRepo,
+                              PartnerEventRepository partnerEventRepo,
                               ApplicationEventPublisher publisher,
                               DetailsMapper detailsMapper) {
         this.listingRepo = repo;
         this.userRepo = userRepo;
         this.reservationRepo = reservationRepo;
+        this.partnerEventRepo = partnerEventRepo;
         this.publisher = publisher;
         this.detailsMapper = detailsMapper;
     }
@@ -84,6 +91,51 @@ public class TourListingService {
         log.info("Created TourListing with id {}", saved.getId());
 
         return createListingResponse(saved);
+    }
+
+    /**
+     * Creates a {@link TourListing} pre-filled from an existing {@link PartnerEvent}.
+     *
+     * <p>Default values are pulled from the event and its parent pin:
+     * <ul>
+     *   <li>Meeting date → {@code event.startDatetime} (unless {@code req.overrideMeetingDate} is present)</li>
+     *   <li>Latitude / longitude → pin coordinates (unless the caller provides overrides)</li>
+     * </ul>
+     *
+     * <p>The city field is always taken from the request — {@code PartnerPin} stores only
+     * coordinates so there is no city to inherit.
+     *
+     * @param hostId the authenticated user creating the listing
+     * @param req    request body with required fields and optional overrides
+     * @return the created listing response
+     * @throws PartnerEventNotFoundException if no event exists with the given ID
+     * @throws UserNotFoundException         if the host user does not exist
+     * @throws HostAlreadyTakenException     if the host already has a live reservation that day
+     */
+    @Transactional
+    public TourListingResponse createFromPartnerEvent(Integer hostId, CreateListingFromEventRequest req) {
+        PartnerEvent event = partnerEventRepo.findById(req.partnerEventId())
+                .orElseThrow(() -> new PartnerEventNotFoundException(req.partnerEventId()));
+
+        PartnerPin pin = event.getPartnerPin();
+
+        LocalDateTime meetingDate = req.overrideMeetingDate() != null
+                ? req.overrideMeetingDate()
+                : event.getStartDatetime();
+
+        double latitude  = req.overrideLatitude()  != null ? req.overrideLatitude()  : pin.getLatitude();
+        double longitude = req.overrideLongitude() != null ? req.overrideLongitude() : pin.getLongitude();
+
+        CreateTourListingDto dto = new CreateTourListingDto(
+                req.city(),
+                longitude,
+                latitude,
+                meetingDate,
+                req.tourDescription(),
+                req.maxGuests()
+        );
+
+        return createListing(dto, hostId);
     }
 
     public Optional<TourListingResponse> getListingById(Integer id) {

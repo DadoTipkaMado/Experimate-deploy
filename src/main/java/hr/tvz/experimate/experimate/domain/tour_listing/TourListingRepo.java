@@ -16,6 +16,8 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
     boolean existsByHost_Id(Integer id);
     int deleteAllByHost_Id(Integer id);
 
+    long countByHost_IdAndMeetingDateAfter(Integer hostId, LocalDateTime now);
+
     List<TourListing> findAllByHost_Id(Integer hostId, Sort sort);
     Page<TourListing> findAllByHost_Id(Integer hostId, Pageable pageable);
 
