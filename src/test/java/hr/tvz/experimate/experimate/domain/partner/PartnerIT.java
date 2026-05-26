@@ -1,8 +1,13 @@
 package hr.tvz.experimate.experimate.domain.partner;
 
 import hr.tvz.experimate.experimate.AbstractIntegrationTest;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEvent;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventResponse;
+import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
+import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
@@ -17,6 +22,12 @@ class PartnerIT extends AbstractIntegrationTest {
     private static final String PROFILE_URL = "/api/partner/profile";
     private static final String STATS_URL   = "/api/partner/stats";
     private static final String EVENTS_URL  = "/api/partner/events";
+
+    @Autowired
+    private PartnerPinRepository partnerPinRepository;
+
+    @Autowired
+    private PartnerEventRepository partnerEventRepository;
 
     // ──────────────── apply ────────────────
 
@@ -91,5 +102,29 @@ class PartnerIT extends AbstractIntegrationTest {
         assertThat(response.getBody()).hasSize(1);
         assertThat(response.getBody().get(0).title()).isEqualTo("My Event");
         assertThat(response.getBody().get(0).partnerPinId()).isEqualTo(pinId);
+    }
+
+    @Test
+    void getEvents_filterUpcoming_excludesPastEvents() {
+        String jwt = loginAndGetTokens("partner").get("accessToken");
+        applyAsPartner(jwt);
+        Integer pinId = createPin(jwt, 45.0, 16.0);
+        createEvent(jwt, pinId, LocalDateTime.now().plusDays(1), "Future Event");
+
+        // API validates @Future, so insert the past event directly via the repository
+        PartnerPin pin = partnerPinRepository.findById(pinId).orElseThrow();
+        LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
+        partnerEventRepository.save(new PartnerEvent(
+                pin, "Past Event", null, null, yesterday, yesterday.plusHours(2), LocalDateTime.now()));
+
+        ResponseEntity<List<PartnerEventResponse>> response = restTemplate.exchange(
+                EVENTS_URL + "?filter=upcoming", HttpMethod.GET,
+                new HttpEntity<>(bearerHeaders(jwt)),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).hasSize(1);
+        assertThat(response.getBody().get(0).title()).isEqualTo("Future Event");
     }
 }

@@ -20,6 +20,13 @@ public interface PartnerEventRepository extends JpaRepository<PartnerEvent, Inte
     List<PartnerEvent> findByPartnerPin_PartnerProfile_UserId(Integer userId);
 
     /**
+     * Returns events with a future {@code startDatetime} across all pins owned by the given user's partner profile.
+     * Used by {@code GET /api/partner/events?filter=upcoming}.
+     */
+    List<PartnerEvent> findByPartnerPin_PartnerProfile_UserIdAndStartDatetimeAfter(
+            Integer userId, LocalDateTime after);
+
+    /**
      * Counts future events across all pins owned by the given user's partner profile.
      * Used by {@code GET /api/partner/stats} to populate {@code activeEvents}.
      */

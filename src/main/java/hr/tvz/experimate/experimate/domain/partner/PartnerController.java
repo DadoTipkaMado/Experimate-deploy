@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,8 +20,9 @@ import java.util.List;
  * REST endpoints for partner account management, consumed by the partner portal frontend
  * ({@code /partner} route, {@code PartnerAPI} in api.js).
  *
- * <p>Endpoints: {@code /apply} (any authenticated user), {@code /profile},
- * {@code /stats}, {@code /events} (all require {@code ROLE_PARTNER}).
+ * <p>Endpoints: {@code /apply} (any authenticated user), {@code /profile}, {@code /stats},
+ * {@code /events} (all require {@code ROLE_PARTNER}).
+ * {@code /events} accepts an optional {@code ?filter=upcoming} query parameter.
  * Ad management is handled separately by {@code PromotedAdController}.
  */
 @RestController
@@ -58,8 +60,9 @@ public class PartnerController {
     @GetMapping("/events")
     @PreAuthorize("hasRole('PARTNER')")
     public ResponseEntity<List<PartnerEventResponse>> getEvents(
-            @AuthenticationPrincipal AppUserDetails userDetails) {
-        return ResponseEntity.ok(partnerService.getEvents(userDetails.getId()));
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @RequestParam(required = false) String filter) {
+        return ResponseEntity.ok(partnerService.getEvents(userDetails.getId(), filter));
     }
 
 }

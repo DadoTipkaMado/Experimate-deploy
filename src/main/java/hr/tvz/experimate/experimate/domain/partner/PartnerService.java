@@ -16,9 +16,8 @@ import java.util.List;
 /**
  * Business logic for partner account management.
  *
- * <p>Handles self-serve onboarding ({@link #apply}), profile retrieval, and dashboard stats.
- * Advertisement and event listing logic will be added in a future iteration alongside
- * the {@code PartnerPin} and {@code PartnerEvent} models.
+ * <p>Handles self-serve onboarding ({@link #apply}), profile retrieval, dashboard stats,
+ * and the partner's own event list (optionally filtered to upcoming events only).
  */
 @Service
 public class PartnerService {
@@ -102,17 +101,21 @@ public class PartnerService {
     }
 
     /**
-     * Returns all partner events across every pin owned by the given user's partner profile.
-     * Used by {@code GET /api/partner/events}.
+     * Returns partner events for the given user's partner profile.
+     * Pass {@code "upcoming"} as {@code filter} to restrict to events whose
+     * {@code startDatetime} is in the future; any other value (including {@code null})
+     * returns all events, including past ones.
      *
-     * @param userId the authenticated partner's user ID
+     * @param userId  the authenticated partner's user ID
+     * @param filter  optional filter; {@code "upcoming"} returns only future events
      */
     @Transactional(readOnly = true)
-    public List<PartnerEventResponse> getEvents(Integer userId) {
-        return partnerEventRepository.findByPartnerPin_PartnerProfile_UserId(userId)
-                .stream()
-                .map(this::toPartnerEventResponse)
-                .toList();
+    public List<PartnerEventResponse> getEvents(Integer userId, String filter) {
+        List<PartnerEvent> events = "upcoming".equalsIgnoreCase(filter)
+                ? partnerEventRepository.findByPartnerPin_PartnerProfile_UserIdAndStartDatetimeAfter(
+                        userId, LocalDateTime.now())
+                : partnerEventRepository.findByPartnerPin_PartnerProfile_UserId(userId);
+        return events.stream().map(this::toPartnerEventResponse).toList();
     }
 
     private PartnerProfileResponse toResponse(PartnerProfile profile) {
