@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/user").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/user/profile-photo/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/partner-pins/logo/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/promoted-ads/image/*").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll())
 
