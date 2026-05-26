@@ -72,6 +72,7 @@
       transition: box-shadow var(--t-fast), transform var(--t-fast), border-color var(--t-fast);
       position: relative;
       -webkit-tap-highlight-color: transparent;
+      animation: meetCardEnter 0.38s cubic-bezier(0.2,0,0,1) both;
     }
     .meet-card:active {
       background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 100%);
@@ -81,13 +82,19 @@
         inset 0 2px 8px rgba(0,0,0,0.35);
       transform: scale(0.98);
     }
-    .meet-card--upcoming { border-color: var(--border-2); }
+    .meet-card--upcoming { border-color: hsl(var(--card-hue,160),20%,20%); }
     .meet-card--past { opacity: 0.5; }
+    .meet-card:hover:not(.meet-card--past) { transform: translateY(-3px); box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.5), 0 14px 30px rgba(0,0,0,0.65), 0 3px 8px rgba(0,0,0,0.45); }
+
+    @keyframes meetCardEnter {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
     /* Accent strip top */
     .meet-card--upcoming::before {
       content: ''; display: block; height: 3px;
-      background: linear-gradient(90deg, var(--accent) 0%, rgba(0,201,167,0.3) 100%);
+      background: linear-gradient(90deg, hsl(var(--card-hue,160),60%,45%) 0%, hsl(var(--card-hue,160),28%,18%) 100%);
     }
 
     .meet-card__body {
@@ -102,10 +109,10 @@
     .meet-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
     .meet-card__info { flex: 1; min-width: 0; }
     .meet-card__name {
-      font-family: var(--font-display); font-weight: 800; font-size: 15px;
+      font-family: var(--font-display); font-weight: 800; font-size: 16px;
       color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .meet-card__handle { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .meet-card__handle { font-size: 12px; color: hsl(var(--card-hue,160),40%,55%); margin-top: 2px; }
     .meet-card__meta {
       display: flex; align-items: center; gap: 6px; margin-top: 8px;
     }
@@ -142,7 +149,7 @@
     /* ── Listing card ── */
     .listing-card {
       background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
-      border: 1px solid var(--border-2);
+      border: 1px solid hsl(var(--city-hue,200),18%,18%);
       border-top-color: rgba(255,255,255,0.10);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
@@ -152,13 +159,20 @@
         inset 0 -1px 0 rgba(0,0,0,0.45),
         0 8px 20px rgba(0,0,0,0.55),
         0 2px 6px rgba(0,0,0,0.4);
-      transition: box-shadow var(--t-fast);
+      transition: box-shadow var(--t-fast), transform var(--t-fast);
+      animation: meetCardEnter 0.38s cubic-bezier(0.2,0,0,1) both;
     }
+    .listing-card::before {
+      content: ''; display: block; height: 3px;
+      background: linear-gradient(90deg, hsl(var(--city-hue,200),58%,45%) 0%, hsl(var(--city-hue,200),28%,18%) 100%);
+    }
+    .listing-card:hover:not(.listing-card--past) { transform: translateY(-3px); box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.16), 0 14px 30px rgba(0,0,0,0.65), 0 3px 8px rgba(0,0,0,0.45); }
     .listing-card--past { opacity: 0.6; }
     .listing-card__body { padding: 14px; }
     .listing-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
     .listing-card__city {
-      font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text);
+      font-family: var(--font-display); font-weight: 800; font-size: 16px;
+      color: hsl(var(--city-hue,200),65%,68%);
     }
     .listing-card__badge {
       font-size: 9px; font-family: var(--font-mono); letter-spacing: 0.07em;
@@ -177,7 +191,7 @@
     /* ── Request card ── */
     .req-card {
       background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
-      border: 1px solid var(--border-2);
+      border: 1px solid hsl(var(--card-hue,160),18%,18%);
       border-top-color: rgba(255,255,255,0.10);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
@@ -187,7 +201,8 @@
         inset 0 -1px 0 rgba(0,0,0,0.45),
         0 8px 20px rgba(0,0,0,0.55),
         0 2px 6px rgba(0,0,0,0.4);
-      transition: box-shadow var(--t-fast);
+      transition: box-shadow var(--t-fast), transform var(--t-fast);
+      animation: meetCardEnter 0.38s cubic-bezier(0.2,0,0,1) both;
     }
     .req-card--pending { border-left: 3px solid #ff9944; }
     .req-card__body { display: flex; align-items: center; gap: 12px; padding: 14px; }
@@ -580,14 +595,15 @@
 
   /* ── Avatar helper ── */
   function mkAvatar(username, user, size) {
-    const sz = size || 46;
+    const sz = size || 54;
     const photoUrl = user?.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
     const initials = user ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() : (username?.[0] ?? '?').toUpperCase();
     const hue = (username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const ring = `box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px hsl(${hue},52%,42%);`;
     if (photoUrl) {
-      return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;"><img src="${photoUrl}" alt="${initials}"></div>`;
+      return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;${ring}"><img src="${photoUrl}" alt="${initials}"></div>`;
     }
-    return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;background:hsl(${hue},35%,22%);border-color:hsl(${hue},40%,32%);font-size:${Math.round(sz*0.37)}px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+    return `<div class="meet-card__avatar" style="width:${sz}px;height:${sz}px;background:hsl(${hue},35%,22%);border-color:hsl(${hue},40%,32%);font-size:${Math.round(sz*0.37)}px;color:hsl(${hue},62%,74%);${ring}">${initials}</div>`;
   }
 
   /* ── Meet detail sheet ── */
@@ -757,6 +773,7 @@
         const host = res.tourListing.host;
         const hostUsername = host?.username ?? '';
         const hostName = host ? host.firstName + ' ' + host.lastName : '?';
+        const hue = hostUsername.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 360;
         const alreadyRated = !!localStorage.getItem('rated_' + res.id);
         const foot = isPast
           ? (alreadyRated
@@ -764,7 +781,7 @@
               : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--primary" data-res-id="${res.id}" data-host-username="${hostUsername}" data-host-name="${hostName}" onclick="openRatingModal(this)">★ Rate your Mate</button></div>`)
           : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--danger" data-res-id="${res.id}" onclick="openCancelModal(this)">Cancel</button></div>`;
         return `
-          <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'} anim-fade-up" style="animation-delay:${i*0.04}s">
+          <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'}" style="--card-hue:${hue};animation-delay:${Math.min(i*55,350)}ms">
             <div class="meet-card__body" style="cursor:pointer;" onclick="openMeetDetail(${res.id})">
               ${mkAvatar(hostUsername, _userCache[hostUsername])}
               <div class="meet-card__info">
@@ -782,8 +799,9 @@
         const guest = res.guest;
         const guestUsername = guest?.username ?? '';
         const guestName = guest ? guest.firstName + ' ' + guest.lastName : '?';
+        const hue = guestUsername.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 360;
         return `
-          <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'} anim-fade-up" style="animation-delay:${i*0.04}s">
+          <div class="meet-card${isPast ? ' meet-card--past' : ' meet-card--upcoming'}" style="--card-hue:${hue};animation-delay:${Math.min(i*55,350)}ms">
             <div class="meet-card__body" style="cursor:pointer;" onclick="openMeetDetail(${res.id})">
               ${mkAvatar(guestUsername, _userCache[guestUsername])}
               <div class="meet-card__info">
@@ -817,11 +835,12 @@
       const isFull = (l.bookedCount ?? 0) >= (l.maxGuests ?? 1);
       const badgeCls = isFull ? 'listing-card__badge--booked' : 'listing-card__badge--open';
       const badgeLabel = isPast ? 'Past' : (isFull ? 'Booked' : 'Open');
+      const cityHue = (l.city ?? '').split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 360;
       const foot = isPast
         ? `<div class="listing-card__foot"><button class="meet-card__btn meet-card__btn--ghost" style="font-size:10px;" onclick="_redoListing(${l.id})">Re-do this meet</button></div>`
         : '';
       return `
-        <div class="listing-card${isPast ? ' listing-card--past' : ''} anim-fade-up" style="animation-delay:${i*0.04}s">
+        <div class="listing-card${isPast ? ' listing-card--past' : ''}" style="--city-hue:${cityHue};animation-delay:${Math.min(i*55,350)}ms">
           <div class="listing-card__body">
             <div class="listing-card__top">
               <div class="listing-card__city">${l.city}</div>
@@ -876,8 +895,9 @@
              <button class="req-btn req-btn--decline" onclick="handleRequest('decline',${r.id},this)">Decline</button>
            </div>`
         : `<div class="req-card__foot"><span class="req-status-badge req-status-badge--${r.status.toLowerCase()}">${r.status}</span></div>`;
+      const reqHue = username.split('').reduce((a,c)=>a+c.charCodeAt(0),0) % 360;
       return `
-        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''} anim-fade-up" style="animation-delay:${i*0.04}s" id="req-${r.id}">
+        <div class="req-card${r.status === 'PENDING' ? ' req-card--pending' : ''}" style="--card-hue:${reqHue};animation-delay:${Math.min(i*55,350)}ms" id="req-${r.id}">
           <div class="req-card__body">
             ${mkAvatar(username, _userCache[username], 44)}
             <div class="req-card__info">
