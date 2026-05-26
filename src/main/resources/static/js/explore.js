@@ -157,7 +157,7 @@ function renderFeed(listings) {
   const currentUsername = Auth.getUsername();
   const currentUserId   = Auth.getUserId();
 
-  feed.innerHTML = listings.map(l => {
+  feed.innerHTML = listings.map((l, idx) => {
     const myReq     = _myRequests[l.id];
     const reqStatus = myReq?.status;
     const isOwn     = !!(currentUsername && l.host?.username === currentUsername);
@@ -214,8 +214,21 @@ function renderFeed(listings) {
       joinClick = `onclick="event.stopPropagation();window.location.href='/login'"`;
     }
 
+    // Spots dots (only when group meet, max 8 dots to keep it compact)
+    const showDots = maxGuests > 1 && maxGuests <= 8;
+    const spotsDots = showDots
+      ? `<span class="explore-card__spots">${
+          Array.from({length: maxGuests}, (_, i) =>
+            `<span class="explore-card__spot-dot${i < guestCnt ? ' explore-card__spot-dot--taken' : ''}"></span>`
+          ).join('')
+        }</span>`
+      : '';
+
+    const animDelay = Math.min(idx * 55, 380);
+
     return `
-      <div class="explore-card" onclick="openListingDetailFromExplore(${l.id})">
+      <div class="explore-card" onclick="openListingDetailFromExplore(${l.id})"
+           style="--card-hue:${hue};animation-delay:${animDelay}ms">
         <div class="explore-card__top">
           <div class="explore-card__avatar" style="${avatarBg}">${avatarHtml}</div>
           <div class="explore-card__meta">
@@ -229,7 +242,7 @@ function renderFeed(listings) {
         </div>
         <div class="explore-card__desc">${escapeHtml(l.tourDescription ?? '')}</div>
         <div class="explore-card__footer">
-          <div class="explore-card__date">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
+          <div class="explore-card__date">${relTime(l.meetingDate)} · ${fmtTime(l.meetingDate)}${spotsDots}</div>
           <button class="explore-card__join ${joinClass}" data-listing-id="${l.id}" ${joinClick}>${joinLabel}</button>
         </div>
       </div>`;
@@ -292,6 +305,22 @@ function reelShare(listingId) {
       .then(() => showToast('Link copied!', 'success'))
       .catch(() => showToast('Could not copy link', 'error'));
   }
+}
+
+/* ───────────────────────────────────────────────
+   RELATIVE TIME HELPER
+─────────────────────────────────────────────── */
+function relTime(dateStr) {
+  const d     = new Date(dateStr);
+  const diffMs = d - Date.now();
+  const diffH  = diffMs / 3_600_000;
+  const diffD  = diffMs / 86_400_000;
+  if (diffH < 1)   return 'Soon';
+  if (diffH < 6)   return `In ${Math.round(diffH)}h`;
+  if (diffH < 20)  return 'Today';
+  if (diffD < 1.5) return 'Tomorrow';
+  if (diffD < 7)   return `In ${Math.floor(diffD)} days`;
+  return fmtDate(dateStr);
 }
 
 /* ───────────────────────────────────────────────
