@@ -4,6 +4,13 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
 import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
+import hr.tvz.experimate.experimate.domain.partner.ApplyPartnerRequest;
+import hr.tvz.experimate.experimate.domain.partner_event.CreatePartnerEventRequest;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventResponse;
+import hr.tvz.experimate.experimate.domain.partner_pin.CreatePartnerPinRequest;
+import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinResponse;
+import hr.tvz.experimate.experimate.domain.promoted_ad.CreatePromotedAdRequest;
+import hr.tvz.experimate.experimate.domain.promoted_ad.PromotedAdResponse;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
@@ -154,6 +161,54 @@ public abstract class AbstractIntegrationTest {
         headers.setBearerAuth(jwt);
         headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
+    }
+
+    /**
+     * Calls {@code POST /api/partner/apply} on behalf of an already-authenticated user,
+     * promoting them to the PARTNER role. Reusable across all IT classes that need a partner account.
+     */
+    protected void applyAsPartner(String jwt) {
+        restTemplate.exchange(
+                "/api/partner/apply", HttpMethod.POST,
+                new HttpEntity<>(new ApplyPartnerRequest("Test Corp", "test@corp.com", null), bearerHeaders(jwt)),
+                Void.class
+        );
+    }
+
+    /**
+     * Creates a partner pin at the given coordinates and returns its ID.
+     * Requires the caller to already hold a PARTNER role JWT.
+     */
+    protected Integer createPin(String jwt, double lat, double lng) {
+        return restTemplate.exchange(
+                "/api/partner-pins", HttpMethod.POST,
+                new HttpEntity<>(new CreatePartnerPinRequest("Test Pin", null, lat, lng), bearerHeaders(jwt)),
+                PartnerPinResponse.class
+        ).getBody().id();
+    }
+
+    /**
+     * Creates a partner event on the given pin and returns its ID.
+     * {@code start} must be in the future to satisfy {@code @Future} validation.
+     */
+    protected Integer createEvent(String jwt, Integer pinId, LocalDateTime start, String title) {
+        return restTemplate.exchange(
+                "/api/partner-pins/" + pinId + "/events", HttpMethod.POST,
+                new HttpEntity<>(new CreatePartnerEventRequest(title, null, null, start, start.plusHours(2)), bearerHeaders(jwt)),
+                PartnerEventResponse.class
+        ).getBody().id();
+    }
+
+    /**
+     * Creates a promoted ad (always active, no image) and returns its ID.
+     * Requires the caller to already hold a PARTNER role JWT.
+     */
+    protected Integer createAd(String jwt, String title) {
+        return restTemplate.exchange(
+                "/api/promoted-ads", HttpMethod.POST,
+                new HttpEntity<>(new CreatePromotedAdRequest(title, null, null, null, null), bearerHeaders(jwt)),
+                PromotedAdResponse.class
+        ).getBody().id();
     }
 
     /**
