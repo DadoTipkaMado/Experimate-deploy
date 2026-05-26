@@ -686,8 +686,7 @@
       foot.innerHTML = mapBtn + `<button style="${btnBase}background:transparent;border-color:rgba(255,80,80,0.25);color:rgba(255,100,100,0.8);"
         data-res-id="${res.id}" onclick="closeMeetDetail();openCancelModal(this)">Cancel meet</button>`;
     } else if (!isPast && !isJoined) {
-      foot.innerHTML = mapBtn + `<button style="${btnBase}background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent);"
-        data-res-id="${res.id}" onclick="checkIn(this)">I'm here ✓</button>`;
+      foot.innerHTML = mapBtn;
     } else {
       foot.innerHTML = mapBtn;
     }
@@ -796,7 +795,6 @@
                 </div>
               </div>
             </div>
-            ${isPast ? '' : `<div class="meet-card__foot"><button class="meet-card__btn meet-card__btn--primary" data-res-id="${res.id}" onclick="checkIn(this)">I'm here ✓</button></div>`}
           </div>`;
       }
     }).join('');

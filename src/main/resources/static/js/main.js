@@ -673,6 +673,27 @@ let _pmsMeetDate = null;
 let _pmsTimer    = null;
 let _pmsChatWs   = null;
 let _pmsChatMyUsername = null;
+let _pmsGraphicColor  = null;
+let _pmsGraphicSymbol = null;
+
+const MEET_COLORS = [
+  { hex: '#EF4444', name: 'Red' },       { hex: '#F97316', name: 'Orange' },
+  { hex: '#F59E0B', name: 'Amber' },     { hex: '#EAB308', name: 'Yellow' },
+  { hex: '#84CC16', name: 'Lime' },      { hex: '#22C55E', name: 'Green' },
+  { hex: '#10B981', name: 'Emerald' },   { hex: '#14B8A6', name: 'Teal' },
+  { hex: '#06B6D4', name: 'Cyan' },      { hex: '#0EA5E9', name: 'Sky' },
+  { hex: '#3B82F6', name: 'Blue' },      { hex: '#6366F1', name: 'Indigo' },
+  { hex: '#8B5CF6', name: 'Purple' },    { hex: '#A855F7', name: 'Violet' },
+  { hex: '#EC4899', name: 'Pink' },      { hex: '#F43F5E', name: 'Rose' },
+  { hex: '#DC2626', name: 'Crimson' },   { hex: '#7C3AED', name: 'Dark Violet' },
+  { hex: '#059669', name: 'Forest' },    { hex: '#0369A1', name: 'Ocean' },
+];
+const MEET_SYMBOLS = [
+  '★', '●', '▲', '◆', '✦', '⚡', '☀', '❄',
+  '⚓', '♠', '♥', '♣', '✈', '☯', '⚜', '⊕',
+  '⚛', '♫', '✿', '⚔', '❋', '✺', '⌘', '☁',
+  '✙', '◎', '✧', '⚘', '☮', '❃',
+];
 
 document.addEventListener('DOMContentLoaded', async function _preMeetCheck() {
   const path = window.location.pathname;
@@ -748,6 +769,21 @@ function _ensurePreMeetScreen() {
           </button>
         </div>
       </div>
+      <div class="pms-meet-graphic" id="pms-meet-graphic" style="display:none;">
+        <div class="pms-meet-graphic__header">Meet identifier</div>
+        <div class="pms-meet-graphic__row">
+          <div class="pms-meet-graphic__swatch" id="pms-graphic-swatch" onclick="_showMeetGraphicFS()" title="Show full screen">
+            <span id="pms-graphic-symbol">★</span>
+          </div>
+          <div class="pms-meet-graphic__meta">
+            <div class="pms-meet-graphic__colorname" id="pms-graphic-colorname">—</div>
+            <div class="pms-meet-graphic__hint">Show this to your Mate to find each other</div>
+          </div>
+          <button class="pms-meet-graphic__expand" onclick="_showMeetGraphicFS()" title="Show full screen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
     <div class="premeet-screen__footer">
       <button class="btn btn--ghost" onclick="_pmsCancelClick()">Cancel meet</button>
@@ -802,6 +838,20 @@ function _ensurePreMeetScreen() {
   card.appendChild(actions);
   dlg.appendChild(card);
   document.body.appendChild(dlg);
+
+  // Meet graphic full-screen overlay
+  if (!document.getElementById('pms-graphic-fullscreen')) {
+    const fs = document.createElement('div');
+    fs.id = 'pms-graphic-fullscreen';
+    fs.className = 'pms-graphic-fullscreen';
+    fs.innerHTML = `
+      <button class="pms-graphic-fullscreen__close" onclick="_hideMeetGraphicFS()">✕</button>
+      <div class="pms-graphic-fullscreen__symbol" id="pms-graphic-fs-symbol">★</div>
+      <div class="pms-graphic-fullscreen__colorname" id="pms-graphic-fs-colorname">—</div>
+      <div class="pms-graphic-fullscreen__sub">Show this to your Mate</div>`;
+    fs.addEventListener('click', e => { if (e.target === fs) _hideMeetGraphicFS(); });
+    document.body.appendChild(fs);
+  }
 }
 
 function _showPreMeetScreen(res) {
@@ -870,12 +920,14 @@ function _pmsCheckIn() {
         const city     = document.getElementById('pms-city').textContent.replace('📍 ', '');
         const hostName = document.getElementById('pms-name').textContent;
         localStorage.setItem('activeTour', JSON.stringify({ resId: _pmsResId, city, hostName }));
+        _loadMeetGraphic(_pmsResId);
         _pmsClose();
         showToast('Both checked in — meet is live!', 'success');
         setTimeout(() => { window.location.href = '/tours'; }, 900);
       } else {
         btn.textContent = 'Waiting…';
         showToast('Checked in! Waiting for your Mate.', 'success');
+        _loadMeetGraphic(_pmsResId);
       }
     })
     .catch(err => {
@@ -899,6 +951,51 @@ function _pmsCancelClick() {
 
 function _pmsCloseCancelDlg() {
   document.getElementById('pms-cancel-dialog').style.display = 'none';
+}
+
+async function _loadMeetGraphic(resId) {
+  const el = document.getElementById('pms-meet-graphic');
+  if (!el) return;
+
+  let colorIdx = null, symbolIdx = null;
+  try {
+    const presence = await ReservationAPI.getPresence(resId);
+    if (presence?.colorIndex  != null) colorIdx  = presence.colorIndex;
+    if (presence?.symbolIndex != null) symbolIdx = presence.symbolIndex;
+  } catch { /* backend pending — use fallback */ }
+
+  // Deterministic fallback from resId so testing always shows something
+  if (colorIdx  === null) colorIdx  = resId % MEET_COLORS.length;
+  if (symbolIdx === null) symbolIdx = (resId * 7 + 3) % MEET_SYMBOLS.length;
+
+  const color  = MEET_COLORS[colorIdx  % MEET_COLORS.length];
+  const symbol = MEET_SYMBOLS[symbolIdx % MEET_SYMBOLS.length];
+  _pmsGraphicColor  = color;
+  _pmsGraphicSymbol = symbol;
+
+  const swatch = document.getElementById('pms-graphic-swatch');
+  if (swatch) swatch.style.background = color.hex;
+  const symEl = document.getElementById('pms-graphic-symbol');
+  if (symEl) symEl.textContent = symbol;
+  const nameEl = document.getElementById('pms-graphic-colorname');
+  if (nameEl) nameEl.textContent = color.name;
+
+  el.style.display = '';
+}
+
+function _showMeetGraphicFS() {
+  if (!_pmsGraphicColor) return;
+  const fs = document.getElementById('pms-graphic-fullscreen');
+  if (!fs) return;
+  fs.style.background = _pmsGraphicColor.hex;
+  document.getElementById('pms-graphic-fs-symbol').textContent    = _pmsGraphicSymbol;
+  document.getElementById('pms-graphic-fs-colorname').textContent = _pmsGraphicColor.name;
+  fs.classList.add('visible');
+}
+
+function _hideMeetGraphicFS() {
+  const fs = document.getElementById('pms-graphic-fullscreen');
+  if (fs) fs.classList.remove('visible');
 }
 
 function _pmsConfirmCancel() {
