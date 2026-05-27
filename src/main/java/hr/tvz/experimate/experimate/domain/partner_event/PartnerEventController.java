@@ -2,6 +2,10 @@ package hr.tvz.experimate.experimate.domain.partner_event;
 
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +28,8 @@ import java.util.List;
  * ({@code POST /api/partner-pins/{pinId}/events} and
  * {@code GET /api/partner-pins/{pinId}/events}).
  * Individual event access and mutations use the flat {@code /api/partner-events/{id}} path.
+ * {@code GET /api/partner-events/upcoming} returns a paginated feed of all future events
+ * across every partner — accessible to any authenticated user.
  *
  * <p>Read endpoints are accessible to all authenticated users.
  * Write operations require {@code ROLE_PARTNER} and ownership of the parent pin.
@@ -50,6 +56,13 @@ public class PartnerEventController {
     @GetMapping("/api/partner-pins/{pinId}/events")
     public ResponseEntity<List<PartnerEventResponse>> getEventsForPin(@PathVariable Integer pinId) {
         return ResponseEntity.ok(partnerEventService.getEventsForPin(pinId));
+    }
+
+    @GetMapping("/api/partner-events/upcoming")
+    public ResponseEntity<Page<PartnerEventResponse>> getUpcomingEvents(
+            @PageableDefault(size = 20, sort = "startDatetime", direction = Sort.Direction.ASC)
+            Pageable pageable) {
+        return ResponseEntity.ok(partnerEventService.findUpcoming(pageable));
     }
 
     @GetMapping("/api/partner-events/{id}")

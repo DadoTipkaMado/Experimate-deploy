@@ -1,5 +1,7 @@
 package hr.tvz.experimate.experimate.domain.partner_event;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -25,6 +27,12 @@ public interface PartnerEventRepository extends JpaRepository<PartnerEvent, Inte
      */
     List<PartnerEvent> findByPartnerPin_PartnerProfile_UserIdAndStartDatetimeAfter(
             Integer userId, LocalDateTime after);
+
+    /**
+     * Returns all events with a future {@code startDatetime} across all partners, paginated.
+     * Used by {@code GET /api/partner-events/upcoming}.
+     */
+    Page<PartnerEvent> findByStartDatetimeAfter(LocalDateTime after, Pageable pageable);
 
     /**
      * Counts future events across all pins owned by the given user's partner profile.
