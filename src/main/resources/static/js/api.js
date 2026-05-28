@@ -268,6 +268,19 @@ const PartnerPinAPI = {
 };
 
 /* ───────────────────────────────────────────────
+   PARTNER EVENTS  /api/partner-events  (issue #131)
+─────────────────────────────────────────────── */
+const PartnerEventAPI = {
+  createForPin:  (pinId, dto) => apiFetch(`/api/partner-pins/${pinId}/events`, { method: 'POST', body: JSON.stringify(dto) }),
+  listForPin:    (pinId)      => apiFetch(`/api/partner-pins/${pinId}/events`),
+  getUpcoming:   (page = 0, size = 20) => apiFetch(`/api/partner-events/upcoming?page=${page}&size=${size}&sort=startDatetime,asc`),
+  getById:       (id)         => apiFetch(`/api/partner-events/${id}`),
+  update:        (id, dto)    => apiFetch(`/api/partner-events/${id}`,   { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:        (id)         => apiFetch(`/api/partner-events/${id}`,   { method: 'DELETE' }),
+  getMine:       (filter = 'upcoming') => apiFetch(`/api/partner/events?filter=${filter}`),
+};
+
+/* ───────────────────────────────────────────────
    SHARED USER CACHE HELPER
    Saves initials, hue, and photo to localStorage.
    Called after login and auto-redirect so the
