@@ -29,8 +29,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final AppUserDetailsService userDetailsService;
     private final HandlerExceptionResolver resolver;
 
-    private final Map<String, String> PUBLIC_ENDPOINTS = Map.of(
-            "ANY", "/api/auth",
+    private final Set<String> PUBLIC_PATH_PREFIXES = Set.of("/api/auth");
+
+    private final Map<String, String> PUBLIC_EXACT_ENDPOINTS = Map.of(
             "POST", "/api/user"
     );
 
@@ -85,21 +86,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    //Check for determining if request should not be filtered in doFilterInternal
+    /**
+     * Returns true if the request targets a public endpoint that should bypass JWT validation.
+     * Prefix entries (e.g. /api/auth) match any subpath; exact entries match only the specific path and method.
+     */
     private boolean isPublicEndpoint(HttpServletRequest request) {
         String path = request.getServletPath();
         String method = request.getMethod();
 
-        return PUBLIC_ENDPOINTS.entrySet().stream()
-                .anyMatch(entry -> {
-                    if(path.equals(entry.getValue())){
-                        if(entry.getKey().equalsIgnoreCase("ANY"))
-                            return true;
-                        if(entry.getKey().equalsIgnoreCase(method))
-                            return true;
-                        return false;
-                    }
-                    return false;
-                });
+        boolean prefixMatch = PUBLIC_PATH_PREFIXES.stream()
+                .anyMatch(path::startsWith);
+
+        boolean exactMatch = PUBLIC_EXACT_ENDPOINTS.entrySet().stream()
+                .anyMatch(e -> e.getValue().equals(path) && e.getKey().equalsIgnoreCase(method));
+
+        return prefixMatch || exactMatch;
     }
 }
