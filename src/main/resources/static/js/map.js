@@ -106,13 +106,16 @@ function loadPins() {
     ? BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'ACCEPTED' }).catch(() => [])
     : Promise.resolve([]);
 
-  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise, myAcceptedPromise])
-    .then(([listingsResult, usersResult, myResResult, myListingsResult, myAcceptedResult]) => {
-      const listings    = listingsResult.status    === 'fulfilled' ? (listingsResult.value    || []) : [];
-      const users       = usersResult.status       === 'fulfilled' ? (usersResult.value       || []) : [];
-      const myRes       = myResResult.status       === 'fulfilled' ? (myResResult.value       || []) : [];
-      const myListings  = myListingsResult.status  === 'fulfilled' ? (myListingsResult.value  || []) : [];
-      const myAccepted  = myAcceptedResult.status  === 'fulfilled' ? (myAcceptedResult.value  || []) : [];
+  const partnerPinsPromise = PartnerPinAPI.getAll().catch(() => []);
+
+  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise, myAcceptedPromise, partnerPinsPromise])
+    .then(([listingsResult, usersResult, myResResult, myListingsResult, myAcceptedResult, partnerPinsResult]) => {
+      const listings     = listingsResult.status     === 'fulfilled' ? (listingsResult.value     || []) : [];
+      const users        = usersResult.status        === 'fulfilled' ? (usersResult.value        || []) : [];
+      const myRes        = myResResult.status        === 'fulfilled' ? (myResResult.value        || []) : [];
+      const myListings   = myListingsResult.status   === 'fulfilled' ? (myListingsResult.value   || []) : [];
+      const myAccepted   = myAcceptedResult.status   === 'fulfilled' ? (myAcceptedResult.value   || []) : [];
+      const partnerPins  = partnerPinsResult.status  === 'fulfilled' ? (partnerPinsResult.value  || []) : [];
 
       (users || []).forEach(u => { if (u.username) MapState.userCache[u.username] = u; });
 
@@ -138,12 +141,17 @@ function loadPins() {
         const isFull = (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1);
         if (isFull && !MapState.unlockedIds.has(listing.id)) return;
         seenIds.add(listing.id);
-        const isPartner = listing.host?.partner === true || listing.host?.role === 'PARTNER';
-        const pinType = MapState.myMeetMap[listing.id]
-          ?? (isPartner ? 'partner' : 'default');
+        const pinType = MapState.myMeetMap[listing.id] ?? 'default';
         const marker = buildMarker(listing, pinType);
         MapState.allMarkers.push({ marker, listing, pinType });
         MapState.clusterGroup.addLayer(marker);
+      });
+
+      // Partner venue pins — separate layer, not clustered with TourListings
+      partnerPins.filter(p => p.active !== false).forEach(pin => {
+        if (pin.latitude == null || pin.longitude == null) return;
+        const marker = buildPartnerPinMarker(pin);
+        MapState.map.addLayer(marker);
       });
 
       const count = MapState.allMarkers.length;
@@ -215,6 +223,41 @@ function buildMarker(listing, pinType = 'default') {
   const marker = L.marker([markerLat, markerLng], { icon });
   marker.on('click', () => openMapPopup(listing, pinType));
   return marker;
+}
+
+function buildPartnerPinMarker(pin) {
+  let iconHtml;
+  if (pin.logoUrl) {
+    iconHtml = `<div class="map-pin--partner-logo"><img src="${escapeHtml(pin.logoUrl)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>'"></div>`;
+  } else {
+    const initial = (pin.name?.[0] ?? 'P').toUpperCase();
+    iconHtml = `<div class="map-pin--partner-logo"><span class="map-pin--partner-logo__initials">${initial}</span></div>`;
+  }
+  const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [36, 36], iconAnchor: [18, 36] });
+  const marker = L.marker([pin.latitude, pin.longitude], { icon });
+  marker.on('click', () => openPartnerPinPopup(pin));
+  return marker;
+}
+
+function openPartnerPinPopup(pin) {
+  const logoHtml = pin.logoUrl
+    ? `<img src="${escapeHtml(pin.logoUrl)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;" alt="">`
+    : `<div style="width:36px;height:36px;border-radius:10px;background:rgba(37,99,235,0.18);border:1px solid rgba(37,99,235,0.35);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#60a5fa;flex-shrink:0;">${(pin.name?.[0] ?? 'P').toUpperCase()}</div>`;
+  document.getElementById('map-popup-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      ${logoHtml}
+      <div>
+        <div class="popup-name" style="margin:0;">${escapeHtml(pin.name)}</div>
+        ${pin.partnerCompanyName ? `<div style="font-size:10px;color:var(--text-3);margin-top:2px;">${escapeHtml(pin.partnerCompanyName)}</div>` : ''}
+      </div>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;margin-bottom:10px;">PARTNER VENUE</div>
+    ${pin.description ? `<div class="popup-desc">${escapeHtml(pin.description)}</div>` : ''}
+  `;
+  document.getElementById('map-popup-footer').innerHTML = '';
+  document.getElementById('map-bottom-sheet').classList.add('map-bs--open');
+  document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
+  document.getElementById('pill-date')?.classList.remove('pill--active');
 }
 
 function openMapPopup(listing, pinType = 'default') {
