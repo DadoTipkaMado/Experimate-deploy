@@ -558,12 +558,6 @@
         OnboardingAPI.getQuestions(),
       ]);
 
-      // Already completed — skip straight to explore
-      if (statusRes.status === 'COMPLETED') {
-        window.location.href = '/explore';
-        return;
-      }
-
       QUESTIONS = questionsRes.map(q => q.text);
       answers   = new Array(QUESTIONS.length).fill(null);
 
