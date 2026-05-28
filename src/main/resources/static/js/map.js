@@ -243,7 +243,9 @@ function openPartnerPinPopup(pin) {
   const logoHtml = pin.logoUrl
     ? `<img src="${escapeHtml(pin.logoUrl)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;" alt="">`
     : `<div style="width:36px;height:36px;border-radius:10px;background:rgba(37,99,235,0.18);border:1px solid rgba(37,99,235,0.35);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#60a5fa;flex-shrink:0;">${(pin.name?.[0] ?? 'P').toUpperCase()}</div>`;
-  document.getElementById('map-popup-body').innerHTML = `
+
+  const body = document.getElementById('map-popup-body');
+  body.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       ${logoHtml}
       <div>
@@ -253,11 +255,45 @@ function openPartnerPinPopup(pin) {
     </div>
     <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;margin-bottom:10px;">PARTNER VENUE</div>
     ${pin.description ? `<div class="popup-desc">${escapeHtml(pin.description)}</div>` : ''}
+    <div id="pin-events-list" style="margin-top:10px;"><div style="font-size:10px;color:var(--text-3);">Loading events…</div></div>
   `;
   document.getElementById('map-popup-footer').innerHTML = '';
   document.getElementById('map-bottom-sheet').classList.add('map-bs--open');
   document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
   document.getElementById('pill-date')?.classList.remove('pill--active');
+
+  PartnerEventAPI.listForPin(pin.id).then(events => {
+    const el = document.getElementById('pin-events-list');
+    if (!el) return;
+    if (!events || events.length === 0) {
+      el.innerHTML = `<div style="font-size:10px;color:var(--text-3);">No upcoming events at this venue.</div>`;
+      return;
+    }
+    el.innerHTML = `<div style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Upcoming events</div>` +
+      events.map(ev => {
+        const start = new Date(ev.startDatetime);
+        const dateStr = start.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+        const timeStr = start.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+        const ticketBtn = ev.ticketVendorUrl
+          ? `<button onclick="window.open('${escapeHtml(ev.ticketVendorUrl)}','_blank','noopener')" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;">Tickets</button>`
+          : '';
+        return `
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="min-width:38px;text-align:center;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.22);border-radius:8px;padding:4px 0;">
+              <div style="font-size:14px;font-weight:800;color:#60a5fa;line-height:1;">${start.getDate()}</div>
+              <div style="font-size:8px;color:rgba(96,165,250,0.65);text-transform:uppercase;">${dateStr.split(' ')[0]}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(ev.title)}</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:1px;">${timeStr}</div>
+            </div>
+            ${ticketBtn}
+          </div>`;
+      }).join('');
+  }).catch(() => {
+    const el = document.getElementById('pin-events-list');
+    if (el) el.innerHTML = '';
+  });
 }
 
 function openMapPopup(listing, pinType = 'default') {
