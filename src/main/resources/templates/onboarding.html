@@ -553,13 +553,18 @@
     showLoadingSkeleton();
 
     try {
-      const [statusRes, questionsRes] = await Promise.all([
-        OnboardingAPI.getStatus(),
-        OnboardingAPI.getQuestions(),
-      ]);
+      const questionsRes = await OnboardingAPI.getQuestions();
+
+      // getStatus may 404 for users created before quiz_result rows existed —
+      // treat any error as AWAITING so the quiz still loads.
+      let quizStatus = 'AWAITING';
+      try {
+        const statusRes = await OnboardingAPI.getStatus();
+        quizStatus = statusRes.status;
+      } catch (_) { /* no quiz_result row yet — proceed as new */ }
 
       // Already completed — skip straight to explore
-      if (statusRes.status === 'COMPLETED') {
+      if (quizStatus === 'COMPLETED') {
         window.location.href = '/explore';
         return;
       }
