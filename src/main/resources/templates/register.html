@@ -17,6 +17,18 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #020505 !important; --surface: #141414 !important;
+        --surface-2: #1c1c1c !important; --border: #2a2a2a !important;
+        --border-2: #333333 !important; --text: #f2f2f2 !important;
+        --text-2: #c0c0c0 !important; --text-3: #909090 !important;
+        --accent: #00c9a7 !important; --warm: #ff6b35 !important;
+        --accent-dim: rgba(0,201,167,0.12) !important;
+        --accent-border: rgba(0,201,167,0.3) !important;
+      }
+    }
+
     *, *::before, *::after { box-sizing: border-box; }
 
     html, body {
@@ -34,9 +46,10 @@
       padding: 32px 0;
     }
 
-    .orb { position: fixed; border-radius: 50%; filter: blur(90px); opacity: 0.14; pointer-events: none; animation: drift linear infinite; }
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.24; pointer-events: none; animation: drift linear infinite; }
     .orb-1 { width: 500px; height: 500px; background: var(--accent, #00c9a7); top: -180px; right: -100px; animation-duration: 22s; }
     .orb-2 { width: 300px; height: 300px; background: var(--warm, #ff6b35); bottom: -60px; left: -60px; animation-duration: 28s; animation-delay: -10s; }
+    .orb-3 { width: 180px; height: 180px; background: var(--warm, #ff6b35); top: 40%; right: -40px; opacity: 0.10; animation-duration: 34s; animation-delay: -18s; }
     @keyframes drift {
       0%   { transform: translate(0, 0) scale(1); }
       33%  { transform: translate(20px, -15px) scale(1.04); }
@@ -51,7 +64,7 @@
       backdrop-filter: blur(28px);
       -webkit-backdrop-filter: blur(28px);
       border: 1px solid rgba(255,255,255,0.08);
-      border-top-color: rgba(255,255,255,0.15);
+      border-top-color: rgba(0,201,167,0.25);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 22px;
       padding: 36px 32px;
@@ -90,6 +103,7 @@
       width: 100%;
       box-shadow: inset 0 1px 4px rgba(0,0,0,0.4);
       transition: border-color 0.14s ease, box-shadow 0.14s ease;
+      color-scheme: dark;
     }
     .auth-field input:focus, .auth-field textarea:focus {
       outline: none;
@@ -147,6 +161,7 @@
 <body>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
 
   <div class="auth-card">
     <div>
