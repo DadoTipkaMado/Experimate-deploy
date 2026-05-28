@@ -6,6 +6,8 @@ import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinNotFoundException;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinRepository;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,6 +90,20 @@ public class PartnerEventService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    /**
+     * Returns a paginated list of all upcoming events (startDatetime in the future) across all partners,
+     * sorted by {@code startDatetime} ascending by default.
+     * Accessible to all authenticated users. Used by {@code GET /api/partner-events/upcoming}.
+     *
+     * @param pageable pagination and sort parameters
+     */
+    @Transactional(readOnly = true)
+    public Page<PartnerEventResponse> findUpcoming(Pageable pageable) {
+        return partnerEventRepository
+                .findByStartDatetimeAfter(LocalDateTime.now(), pageable)
+                .map(this::toResponse);
     }
 
     /**
