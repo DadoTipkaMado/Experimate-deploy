@@ -281,6 +281,18 @@ const PartnerEventAPI = {
 };
 
 /* ───────────────────────────────────────────────
+   PROMOTED ADS  /api/promoted-ads  (issue #132)
+─────────────────────────────────────────────── */
+const PromotedAdAPI = {
+  create:      (dto)      => apiFetch('/api/promoted-ads',           { method: 'POST',   body: JSON.stringify(dto) }),
+  getMine:     ()         => apiFetch('/api/promoted-ads/mine'),
+  update:      (id, dto)  => apiFetch(`/api/promoted-ads/${id}`,     { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:      (id)       => apiFetch(`/api/promoted-ads/${id}`,     { method: 'DELETE' }),
+  uploadImage: (id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/promoted-ads/${id}/image`, { method: 'POST', body: f }); },
+  imageUrl:    (filename) => filename ? `/api/promoted-ads/image/${filename}` : null,
+};
+
+/* ───────────────────────────────────────────────
    SHARED USER CACHE HELPER
    Saves initials, hue, and photo to localStorage.
    Called after login and auto-redirect so the
