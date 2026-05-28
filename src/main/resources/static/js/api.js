@@ -246,14 +246,25 @@ const PremiumAPI = {
 
 /* ───────────────────────────────────────────────
    PARTNER  /api/partner  (B2B — issue #107)
-   TODO: wire up when David adds backend endpoints
 ─────────────────────────────────────────────── */
 const PartnerAPI = {
-  getProfile:  ()      => apiFetch('/api/partner/profile'),
-  getStats:    ()      => apiFetch('/api/partner/stats'),
-  getListings: ()      => apiFetch('/api/partner/listings'),
-  apply:       (dto)   => apiFetch('/api/partner/apply',  { method: 'POST', body: JSON.stringify(dto) }),
-  updateAd:    (dto)   => apiFetch('/api/partner/ad',     { method: 'PUT',  body: JSON.stringify(dto) }),
+  getProfile: () => apiFetch('/api/partner/profile'),
+  getStats:   () => apiFetch('/api/partner/stats'),
+  apply: (dto) => apiFetch('/api/partner/apply', { method: 'POST', body: JSON.stringify(dto) }),
+};
+
+/* ───────────────────────────────────────────────
+   PARTNER PINS  /api/partner-pins  (issue #130)
+─────────────────────────────────────────────── */
+const PartnerPinAPI = {
+  getAll:    ()         => apiFetch('/api/partner-pins'),
+  getMine:   ()         => apiFetch('/api/partner-pins/mine'),
+  getById:   (id)       => apiFetch(`/api/partner-pins/${id}`),
+  create:    (dto)      => apiFetch('/api/partner-pins',        { method: 'POST',   body: JSON.stringify(dto) }),
+  update:    (id, dto)  => apiFetch(`/api/partner-pins/${id}`,  { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:    (id)       => apiFetch(`/api/partner-pins/${id}`,  { method: 'DELETE' }),
+  uploadLogo:(id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/partner-pins/${id}/logo`, { method: 'POST', body: f }); },
+  logoUrl:   (filename) => filename ? `/api/partner-pins/logo/${filename}` : null,
 };
 
 /* ───────────────────────────────────────────────
