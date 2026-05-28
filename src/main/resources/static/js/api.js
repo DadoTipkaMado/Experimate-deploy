@@ -25,7 +25,7 @@ const Auth = {
   isExpired:   () => { const p = Auth._decode(); return p ? p.exp * 1000 < Date.now() : true; },
   logout: () => {
     sessionStorage.setItem('explicit_logout', '1');
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true }).catch(() => {});
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
     window.location.href = '/login';
