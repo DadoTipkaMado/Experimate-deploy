@@ -10,7 +10,7 @@
    7. Animations
 ═══════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+/* Fonts are loaded via <link> in each page <head> — @import here was render-blocking */
 
 /* ───────────────────────────────────────────────
    1. TOKENS & RESET
@@ -1967,10 +1967,17 @@ svg { display: block; flex-shrink: 0; }
 
 /* ── Cross-document View Transitions ──────────────────────────────────── */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: _vt-out 0.22s cubic-bezier(0.4,0,1,1) both; }
-::view-transition-new(root) { animation: _vt-in  0.22s cubic-bezier(0,0,0.2,1)  both; }
-@keyframes _vt-out { to   { opacity: 0; transform: scale(0.985) translateY(5px); } }
-@keyframes _vt-in  { from { opacity: 0; transform: scale(0.985) translateY(5px); } }
+/* Pure opacity — no scale/translate avoids compositor layer jank on mobile */
+::view-transition-old(root) { animation: _vt-out 0.18s ease both; }
+::view-transition-new(root) { animation: _vt-in  0.22s ease both; }
+@keyframes _vt-out { to   { opacity: 0; } }
+@keyframes _vt-in  { from { opacity: 0; } }
+
+/* Fallback: smooth body entry for browsers without View Transitions support */
+@supports not (view-transition-name: none) {
+  body { animation: _page-in 0.2s ease both; }
+}
+@keyframes _page-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── Navigation progress bar ──────────────────────────────────────────── */
 #np {
