@@ -392,6 +392,7 @@
 
   // ── Render question ───────────────────────────────────────────────
   function renderQuestion(idx, direction) {
+    if (idx >= QUESTIONS.length) return;
     const stage  = document.getElementById('stage');
     const text   = QUESTIONS[idx];
     const entered = direction === 'next' ? 'q-card--enter-right' : 'q-card--enter-left';
@@ -399,6 +400,7 @@
 
     const existing = stage.querySelector('.q-card--active');
     if (existing) {
+      existing.style.pointerEvents = 'none';
       existing.classList.remove('q-card--active');
       existing.classList.add(exited);
       setTimeout(() => existing.remove(), 400);
@@ -478,6 +480,16 @@
     try {
       response = await OnboardingAPI.submit(answers);
     } catch (err) {
+      // 409 = already completed; backend doesn't allow re-submission yet.
+      // Fall back to stored personality scores so the result screen still shows.
+      const stored = localStorage.getItem('personality_scores');
+      if (stored) {
+        const vector = JSON.parse(stored);
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 2600) await new Promise(r => setTimeout(r, 2600 - elapsed));
+        showResult(vector, null);
+        return;
+      }
       document.getElementById('analyzing').classList.remove('analyzing--visible');
       document.getElementById('progress-wrap').style.opacity = '';
       alert(err.message || 'Could not save results — please try again.');
