@@ -454,14 +454,14 @@
             </div>
             <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
           </a>
-          <div class="partner-action" onclick="openAdEditor()">
+          <div class="partner-action" onclick="document.getElementById('partner-ads-section').scrollIntoView({behavior:'smooth'})">
             <div class="partner-action__left">
               <div class="partner-action__icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M8 8h8M8 16h5"/></svg>
               </div>
               <div>
-                <div class="partner-action__title">Edit advertisement</div>
-                <div class="partner-action__desc">Update your map pin, logo, and promotional text</div>
+                <div class="partner-action__title">Promoted ads</div>
+                <div class="partner-action__desc">Create and manage feed advertisements</div>
               </div>
             </div>
             <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
@@ -499,6 +499,24 @@
         </div>
       </div>
 
+      <!-- Promoted ads -->
+      <div class="partner-section" id="partner-ads-section">
+        <div class="section-header-row">
+          <div class="partner-section__label">Promoted ads</div>
+          <button class="btn--add-pin" onclick="openAdModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            NEW AD
+          </button>
+        </div>
+        <div id="partner-ads-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📢</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Your events list -->
       <div class="partner-section">
         <div class="section-header-row">
@@ -525,13 +543,54 @@
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 </div>
 
-<!-- Ad editor modal -->
-<div id="ad-editor-modal" class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;z-index:900;opacity:0;pointer-events:none;transition:opacity 0.18s;">
-  <div style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-bottom-color:rgba(0,0,0,0.55);border-radius:20px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.13),0 40px 80px rgba(0,0,0,0.70);padding:22px 20px 18px;width:min(340px,92vw);display:flex;flex-direction:column;gap:14px;">
-    <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);">Edit Advertisement</div>
-    <div style="font-size:11px;color:var(--text-3);line-height:1.65;">Partner ad editing will be available once David wires the backend. Your map pin is already showing in blue.</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-      <button onclick="closeAdEditor()" class="btn btn--ghost" style="height:38px;padding:0 18px;font-size:12px;">Close</button>
+<!-- Promoted ad create / edit modal -->
+<div id="ad-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:903;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="ad-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="ad-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">New promoted ad</div>
+      <button onclick="closeAdModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="ad-title">Ad title *</label>
+      <input type="text" id="ad-title" placeholder="e.g. Summer Festival 2026" maxlength="100">
+    </div>
+    <div class="partner-form-field">
+      <label for="ad-desc">Description</label>
+      <textarea id="ad-desc" placeholder="Brief promo copy for the feed card" style="min-height:60px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label for="ad-link">Link URL (optional)</label>
+      <input type="url" id="ad-link" placeholder="https://your-site.com">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="partner-form-field">
+        <label for="ad-from">Active from</label>
+        <input type="datetime-local" id="ad-from">
+      </div>
+      <div class="partner-form-field">
+        <label for="ad-until">Active until</label>
+        <input type="datetime-local" id="ad-until">
+      </div>
+    </div>
+    <div class="partner-form-field">
+      <label>Ad image (optional)</label>
+      <div class="logo-upload-area" id="ad-img-area" onclick="document.getElementById('ad-img-input').click()">
+        <div id="ad-img-preview-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="logo-upload-label">Tap to upload image<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>
+        </div>
+      </div>
+      <input type="file" id="ad-img-input" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="previewAdImage(this)">
+    </div>
+
+    <div class="partner-form-error" id="ad-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeAdModal()">Cancel</button>
+      <button class="btn--partner" id="ad-modal-save" onclick="saveAdModal()">Save ad →</button>
     </div>
   </div>
 </div>
@@ -657,6 +716,7 @@
       `<div class="partner-badge"><div class="partner-badge__dot"></div>Partner account</div>`;
     loadStats();
     loadVenuePins();
+    loadAds();
     loadPartnerEvents();
   }
 
@@ -1067,22 +1127,203 @@
       </div>`;
   }
 
-  /* ── Ad editor modal ────────────────────────── */
+  /* ── Promoted ads ───────────────────────────── */
 
-  function openAdEditor() {
-    const modal = document.getElementById('ad-editor-modal');
+  function _adStatusBadge(ad) {
+    const now = Date.now();
+    if (!ad.active) return `<span class="partner-event-card__badge" style="background:rgba(100,100,100,0.12);border-color:rgba(150,150,150,0.22);color:var(--text-3);">PAUSED</span>`;
+    const from  = ad.activeFrom  ? new Date(ad.activeFrom).getTime()  : null;
+    const until = ad.activeUntil ? new Date(ad.activeUntil).getTime() : null;
+    if (from  && now < from)  return `<span class="partner-event-card__badge" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.28);color:#60a5fa;">SCHEDULED</span>`;
+    if (until && now > until) return `<span class="partner-event-card__badge" style="background:rgba(100,100,100,0.1);border-color:rgba(100,100,100,0.2);color:var(--text-3);">EXPIRED</span>`;
+    return `<span class="partner-event-card__badge">RUNNING</span>`;
+  }
+
+  async function loadAds() {
+    const container = document.getElementById('partner-ads-list');
+    try {
+      const ads = await PromotedAdAPI.getMine();
+      if (!ads || ads.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📢</div>
+            <div class="partner-empty__title">No ads yet</div>
+            <div class="partner-empty__sub">Create a promoted ad to appear in the Explore feed.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = ads.map(ad => {
+        const thumb = ad.imageUrl
+          ? `<img src="${escH(ad.imageUrl)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;" alt="">`
+          : `<div style="width:40px;height:40px;border-radius:8px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+        const pauseLabel = ad.active ? 'Pause' : 'Resume';
+        return `
+          <div class="partner-event-card">
+            ${thumb}
+            <div class="partner-event-card__info">
+              <div class="partner-event-card__title">${escH(ad.title)}</div>
+              <div class="partner-event-card__sub">${ad.description ? escH(ad.description.slice(0,60)) : '—'}</div>
+            </div>
+            ${_adStatusBadge(ad)}
+            <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              <button class="pin-card__btn" title="${pauseLabel}" onclick="toggleAdPause(${ad.id}, ${ad.active})">
+                ${ad.active
+                  ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+                  : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`}
+              </button>
+              <button class="pin-card__btn" title="Edit" onclick="openAdModal(${ad.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deleteAdConfirm(${ad.id}, '${escH(ad.title)}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load ads.</div></div>`;
+    }
+  }
+
+  async function toggleAdPause(adId, currentlyActive) {
+    try {
+      await PromotedAdAPI.update(adId, { active: !currentlyActive });
+      showToast(currentlyActive ? 'Ad paused.' : 'Ad resumed.', 'default');
+      loadAds();
+    } catch (e) {
+      showToast(e.message || 'Could not update ad.', 'error');
+    }
+  }
+
+  let _adEditId = null;
+
+  async function openAdModal(adId) {
+    _adEditId = adId;
+    const modal = document.getElementById('ad-modal');
+    const card  = document.getElementById('ad-modal-card');
+    document.getElementById('ad-modal-title').textContent = adId ? 'Edit ad' : 'New promoted ad';
+    document.getElementById('ad-modal-error').style.display = 'none';
+    document.getElementById('ad-modal-save').disabled = false;
+    document.getElementById('ad-modal-save').textContent = 'Save ad →';
+    document.getElementById('ad-img-input').value = '';
+    document.getElementById('ad-img-preview-wrap').innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div class="logo-upload-label">Tap to upload image<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>`;
+
+    if (adId) {
+      try {
+        const ad = await PromotedAdAPI.getMine().then(list => list.find(a => a.id === adId));
+        if (ad) {
+          document.getElementById('ad-title').value = ad.title ?? '';
+          document.getElementById('ad-desc').value  = ad.description ?? '';
+          document.getElementById('ad-link').value  = ad.linkUrl ?? '';
+          document.getElementById('ad-from').value  = ad.activeFrom?.slice(0, 16)  ?? '';
+          document.getElementById('ad-until').value = ad.activeUntil?.slice(0, 16) ?? '';
+          if (ad.imageUrl) {
+            document.getElementById('ad-img-preview-wrap').innerHTML =
+              `<img src="${escH(ad.imageUrl)}" class="logo-upload-preview" alt=""><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+          }
+        }
+      } catch { /* open modal anyway */ }
+    } else {
+      document.getElementById('ad-title').value = '';
+      document.getElementById('ad-desc').value  = '';
+      document.getElementById('ad-link').value  = '';
+      document.getElementById('ad-from').value  = '';
+      document.getElementById('ad-until').value = '';
+    }
+
     modal.style.opacity = '1';
     modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
   }
 
-  function closeAdEditor() {
-    const modal = document.getElementById('ad-editor-modal');
+  function closeAdModal() {
+    const modal = document.getElementById('ad-modal');
+    const card  = document.getElementById('ad-modal-card');
+    card.style.transform = 'translateY(30px)';
     modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
   }
 
-  document.getElementById('ad-editor-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeAdEditor();
+  function previewAdImage(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+      showToast('Only PNG, JPEG, or WebP images are allowed.', 'error'); return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image must be under 2 MB.', 'error'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('ad-img-preview-wrap').innerHTML =
+        `<img src="${e.target.result}" class="logo-upload-preview" alt=""><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveAdModal() {
+    const errEl = document.getElementById('ad-modal-error');
+    const btn   = document.getElementById('ad-modal-save');
+    const title = document.getElementById('ad-title').value.trim();
+    const desc  = document.getElementById('ad-desc').value.trim();
+    const link  = document.getElementById('ad-link').value.trim();
+    const from  = document.getElementById('ad-from').value;
+    const until = document.getElementById('ad-until').value;
+    const file  = document.getElementById('ad-img-input').files?.[0];
+
+    errEl.style.display = 'none';
+    if (!title) { errEl.textContent = 'Ad title is required.'; errEl.style.display = 'block'; return; }
+    if (link && !/^https?:\/\/.+/.test(link)) { errEl.textContent = 'Link URL must start with http:// or https://'; errEl.style.display = 'block'; return; }
+    if (from && until && new Date(until) <= new Date(from)) { errEl.textContent = 'Active until must be after active from.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const dto = {
+      title,
+      description: desc || null,
+      linkUrl: link || null,
+      activeFrom:  from  ? from  + ':00' : null,
+      activeUntil: until ? until + ':00' : null,
+    };
+
+    try {
+      let ad;
+      if (_adEditId) {
+        ad = await PromotedAdAPI.update(_adEditId, dto);
+        ad = ad ?? { id: _adEditId };
+      } else {
+        ad = await PromotedAdAPI.create(dto);
+      }
+      if (file && ad?.id) {
+        await PromotedAdAPI.uploadImage(ad.id, file);
+      }
+      closeAdModal();
+      showToast(_adEditId ? 'Ad updated.' : 'Ad created.', 'success');
+      loadAds();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save ad.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save ad →';
+    }
+  }
+
+  async function deleteAdConfirm(adId, title) {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await PromotedAdAPI.delete(adId);
+      showToast('Ad deleted.', 'default');
+      loadAds();
+    } catch (e) {
+      showToast(e.message || 'Could not delete ad.', 'error');
+    }
+  }
+
+  document.getElementById('ad-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdModal();
   });
   document.getElementById('pin-modal').addEventListener('click', function(e) {
     if (e.target === this) closePinModal();
