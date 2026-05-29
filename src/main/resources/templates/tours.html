@@ -12,22 +12,41 @@
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
 
+    /* ── Page header ── */
+    .meets-header {
+      padding: 22px 20px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .meets-header::before {
+      content: '';
+      position: absolute;
+      top: -70px; left: -50px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(0,201,167,0.10) 0%, transparent 68%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
     /* ── Segmented tab bar ── */
     .seg-tabs {
-      display: flex; padding: 12px 16px;
+      display: flex; padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       gap: 6px; background: #0a0c0c; position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
     .seg-tab {
-      flex: 1; height: 36px; border-radius: var(--radius-pill);
+      flex: 1; height: 38px; border-radius: var(--radius-pill);
       border: 1px solid var(--border-2); background: transparent;
       color: var(--text-3); font-family: var(--font-mono); font-size: 10px;
       letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer;
       transition: all var(--t-fast); position: relative;
     }
     .seg-tab--active {
-      background: var(--surface-2); border-color: var(--accent-border);
+      background: var(--surface-2);
+      border-color: rgba(0,201,167,0.55);
       color: var(--accent);
+      box-shadow: 0 0 10px rgba(0,201,167,0.14), inset 0 1px 0 rgba(0,201,167,0.10);
     }
     .seg-tab__badge {
       position: absolute; top: -4px; right: -4px;
@@ -57,9 +76,9 @@
 
     /* ── Meet card ── */
     .meet-card {
-      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0c0e0e 100%);
       border: 1px solid var(--border-2);
-      border-top-color: rgba(255,255,255,0.10);
+      border-top-color: rgba(255,255,255,0.11);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
       overflow: hidden;
@@ -67,8 +86,8 @@
       box-shadow:
         inset 0 1.5px 0 rgba(255,255,255,0.13),
         inset 0 -1px 0 rgba(0,0,0,0.45),
-        0 8px 20px rgba(0,0,0,0.55),
-        0 2px 6px rgba(0,0,0,0.4);
+        0 8px 24px rgba(0,0,0,0.55),
+        0 2px 8px rgba(0,0,0,0.4);
       transition: box-shadow var(--t-fast), transform var(--t-fast), border-color var(--t-fast);
       position: relative;
       -webkit-tap-highlight-color: transparent;
@@ -79,15 +98,23 @@
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.07),
         inset 0 2px 8px rgba(0,0,0,0.35);
-      transform: scale(0.98);
+      transform: scale(0.985);
     }
-    .meet-card--upcoming { border-color: var(--border-2); }
-    .meet-card--past { opacity: 0.5; }
+    .meet-card--upcoming {
+      border-color: rgba(255,255,255,0.07);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 8px 24px rgba(0,0,0,0.55),
+        0 2px 8px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(0,201,167,0.04);
+    }
+    .meet-card--past { opacity: 0.45; }
 
     /* Accent strip top */
     .meet-card--upcoming::before {
-      content: ''; display: block; height: 3px;
-      background: linear-gradient(90deg, var(--accent) 0%, rgba(0,201,167,0.3) 100%);
+      content: ''; display: block; height: 2px;
+      background: linear-gradient(90deg, rgba(0,201,167,0.85) 0%, rgba(0,201,167,0.22) 60%, transparent 100%);
     }
 
     .meet-card__body {
@@ -98,14 +125,16 @@
       background: var(--surface-2); border: 2px solid var(--border-2);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; font-family: var(--font-display); font-weight: 800;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     }
     .meet-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
     .meet-card__info { flex: 1; min-width: 0; }
     .meet-card__name {
       font-family: var(--font-display); font-weight: 800; font-size: 15px;
       color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: -0.01em;
     }
-    .meet-card__handle { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .meet-card__handle { font-size: 11px; color: var(--text-3); margin-top: 2px; font-family: var(--font-mono); }
     .meet-card__meta {
       display: flex; align-items: center; gap: 6px; margin-top: 8px;
     }
@@ -214,15 +243,17 @@
     /* ── Empty state ── */
     .meet-empty {
       display: flex; flex-direction: column; align-items: center;
-      padding: 56px 24px; gap: 12px; text-align: center;
+      padding: 56px 24px; gap: 14px; text-align: center;
     }
     .meet-empty__icon {
-      width: 60px; height: 60px; border-radius: 18px;
-      background: var(--surface-2); border: 1px solid var(--border);
+      width: 64px; height: 64px; border-radius: 20px;
+      background: linear-gradient(140deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2);
       display: flex; align-items: center; justify-content: center; color: var(--text-3);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 24px rgba(0,201,167,0.05);
     }
-    .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
-    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.65; max-width: 220px; }
+    .meet-empty__title { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--text-2); letter-spacing: -0.01em; }
+    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.7; max-width: 220px; }
 
     /* ── FAB ── */
     .fab {
@@ -246,38 +277,49 @@
     /* ── Meet detail sheet ── */
     .detail-backdrop {
       display: none; position: fixed; inset: 0; z-index: 400;
-      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     }
     .detail-backdrop--open { display: block; }
     .detail-sheet {
       position: fixed; bottom: -100%; left: 0; right: 0; z-index: 401;
-      background: var(--surface); border-radius: 20px 20px 0 0;
-      border: 1px solid var(--border-2); border-bottom: none;
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 35%, #0c0e0e 100%);
+      border-radius: 24px 24px 0 0;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      border-left: 1px solid rgba(255,255,255,0.06);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      border-bottom: none;
+      box-shadow: 0 -12px 48px rgba(0,0,0,0.65), 0 -2px 12px rgba(0,0,0,0.4);
       max-height: 85dvh; overflow-y: auto;
-      transition: bottom 0.3s cubic-bezier(0.32,0.72,0,1);
+      transition: bottom 0.32s cubic-bezier(0.32,0.72,0,1);
       padding-bottom: calc(var(--navbar-h) + 16px);
     }
     .detail-sheet--open { bottom: 0; }
-    .detail-sheet__drag { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
+    .detail-sheet__drag { width: 40px; height: 4px; background: rgba(255,255,255,0.14); border-radius: 2px; margin: 14px auto 0; }
     .detail-sheet__hero {
       display: flex; flex-direction: column; align-items: center;
       padding: 20px 20px 22px; gap: 6px; border-bottom: 1px solid var(--border);
     }
     .detail-sheet__avatar {
-      width: 72px; height: 72px; border-radius: 50%;
+      width: 76px; height: 76px; border-radius: 50%;
       background: var(--surface-2); overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-display); font-weight: 800;
-      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+      box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px rgba(0,201,167,0.6), 0 4px 16px rgba(0,0,0,0.45);
     }
     .detail-sheet__avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); }
-    .detail-sheet__handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; margin-bottom: 6px; }
+    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 21px; color: var(--text); letter-spacing: -0.01em; }
+    .detail-sheet__handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; margin-bottom: 6px; font-family: var(--font-mono); }
     .detail-sheet__body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
     .detail-row { display: flex; align-items: flex-start; gap: 12px; }
-    .detail-row__icon { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
-    .detail-row__label { font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
-    .detail-row__value { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .detail-row__icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(140deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); flex-shrink: 0; margin-top: 1px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .detail-row__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 3px; font-family: var(--font-mono); }
+    .detail-row__value { font-size: 14px; color: var(--text); line-height: 1.55; }
     .detail-sheet__foot { padding: 12px 20px 0; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); }
 
     /* ── Countdown bar ── */
@@ -323,7 +365,7 @@
       width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px;
     }
     .modal-handle { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 0 auto 6px; }
-    .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); }
+    .modal-title { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text); letter-spacing: -0.01em; }
     .modal-sub { font-size: 12px; color: var(--text-3); line-height: 1.6; margin-top: -6px; }
     .modal-card textarea {
       background: var(--surface-2); border: 1px solid var(--border-2);
@@ -345,8 +387,10 @@
     /* ── Light / Warm mode ── */
     body.light-mode .page-content { background: #f0eeea; }
     body.warm-mode  .page-content { background: #ECEDF2; }
-    body.light-mode .seg-tabs { background: #f0eeea; border-bottom-color: rgba(0,0,0,0.10); }
-    body.warm-mode  .seg-tabs { background: #ECEDF2; border-bottom-color: rgba(0,0,0,0.08); }
+    body.light-mode .seg-tabs { background: rgba(240,238,234,0.95); border-bottom-color: rgba(0,0,0,0.10); }
+    body.warm-mode  .seg-tabs { background: rgba(236,237,242,0.95); border-bottom-color: rgba(0,0,0,0.08); }
+    body.light-mode .meets-header::before { background: radial-gradient(circle, rgba(0,110,88,0.08) 0%, transparent 68%); }
+    body.warm-mode  .meets-header::before { background: radial-gradient(circle, rgba(235,101,71,0.07) 0%, transparent 68%); }
     body.light-mode .meet-card,
     body.light-mode .listing-card,
     body.light-mode .req-card {
@@ -393,11 +437,9 @@
   <main class="page-content">
 
     <!-- ── Header ── -->
-    <div style="padding:18px 18px 0; display:flex; align-items:center; justify-content:space-between;">
-      <div>
-        <div class="page-title" style="margin:0;">Meets</div>
-        <div class="page-subtitle" style="margin:0;">Your days, your people</div>
-      </div>
+    <div class="meets-header">
+      <div class="page-title">Meets</div>
+      <div class="page-subtitle">Your days, your people</div>
     </div>
 
     <!-- ── Segmented tabs ── -->
