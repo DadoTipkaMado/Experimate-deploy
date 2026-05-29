@@ -177,9 +177,9 @@
 
       <div class="auth-field">
         <label for="dateOfBirth">Date of birth</label>
-        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required readonly style="cursor:pointer"
+        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required
           onclick="(function(el){const t=new Date();t.setFullYear(t.getFullYear()-18);t.setHours(0,0,0,0);DatePicker.open(el,{max:t});})(this)">
-        <span class="auth-field__hint">Click to pick · Must be 18 or older</span>
+        <span class="auth-field__hint">Type or click to pick · Must be 18 or older</span>
         <span class="field-error" id="err-dob"></span>
       </div>
 
