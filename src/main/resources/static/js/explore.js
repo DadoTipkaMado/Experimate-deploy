@@ -1,9 +1,11 @@
 /* ═══════════════════════════════════════════════
    EXPERIMATE — explore.js
    Listing card list + AI match panel.
+   Feed items are polymorphic: type LISTING or AD.
 ═══════════════════════════════════════════════ */
 
-let _allListings   = [];
+let _allFeedItems  = [];   // raw feed items (LISTING + AD) — used when no filter active
+let _allListings   = [];   // LISTING items only — used for search/filter
 let _myRequests    = {};   // listingId → { status, id }
 let _userCache     = {};
 let _availableOnly = false;
@@ -27,10 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     : Promise.resolve([]);
 
   Promise.all([
-    TourListingAPI.getPage(0),
+    FeedAPI.getPage(0),
     myRequestsPromise,
     UserAPI.getAll().catch(() => []),
-  ]).then(([listingPage, myRequests, allUsers]) => {
+  ]).then(([feedPage, myRequests, allUsers]) => {
     (allUsers || []).forEach(u => { if (u.username) _userCache[u.username] = u; });
 
     _myRequests = {};
@@ -39,9 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
       .forEach(r => { _myRequests[r.tourListing.id] = { status: r.status, id: r.id }; });
 
     const now = new Date();
-    _allListings = (listingPage.content || []).filter(l => new Date(l.meetingDate) > now);
-    _currentPage = 0;
-    _isLastPage  = listingPage.last ?? true;
+    const items = feedPage.content || [];
+    _allFeedItems = items.filter(i => i.type !== 'LISTING' || new Date(i.meetingDate) > now);
+    _allListings  = _allFeedItems.filter(i => i.type === 'LISTING');
+    _currentPage  = 0;
+    _isLastPage   = feedPage.last ?? true;
 
     applyAndRender();
 
@@ -77,13 +81,14 @@ function _onFeedScroll() {
   if ((clientHeight + scrollTop) < (scrollHeight - 400)) return;
   _isLoadingPage = true;
   _showFeedLoader();
-  TourListingAPI.getPage(_currentPage + 1)
+  FeedAPI.getPage(_currentPage + 1)
     .then(page => {
       _currentPage++;
       _isLastPage = page.last ?? true;
       const now  = new Date();
-      const fresh = (page.content || []).filter(l => new Date(l.meetingDate) > now);
-      _allListings = [..._allListings, ...fresh];
+      const fresh = (page.content || []).filter(i => i.type !== 'LISTING' || new Date(i.meetingDate) > now);
+      _allFeedItems = [..._allFeedItems, ...fresh];
+      _allListings  = [..._allListings, ...fresh.filter(i => i.type === 'LISTING')];
       applyAndRender();
     })
     .catch(() => {})
@@ -117,6 +122,14 @@ function toggleAvailable(pill) {
 }
 
 function applyAndRender() {
+  const filterActive = !!_searchQuery || _availableOnly;
+
+  if (!filterActive) {
+    renderFeed(_allFeedItems);
+    return;
+  }
+
+  // Filter mode: show only LISTING items that match; ads hidden during search/filter
   const now = new Date();
   let items = _allListings.filter(l => new Date(l.meetingDate) > now);
 
@@ -137,13 +150,15 @@ function applyAndRender() {
 }
 
 /* ───────────────────────────────────────────────
-   RENDER — vertical card list
+   RENDER — vertical card list (listings + ads)
 ─────────────────────────────────────────────── */
-function renderFeed(listings) {
+function renderFeed(items) {
   const feed = document.getElementById('listing-feed');
   if (!feed) return;
 
-  if (!listings.length) {
+  const listingsOnly = items.filter(i => !i.type || i.type === 'LISTING');
+
+  if (!items.length || !listingsOnly.length) {
     feed.innerHTML = `
       <div class="explore-empty">
         <div class="explore-empty__icon">${_searchQuery ? '🔍' : '🗺️'}</div>
@@ -157,7 +172,10 @@ function renderFeed(listings) {
   const currentUsername = Auth.getUsername();
   const currentUserId   = Auth.getUserId();
 
-  feed.innerHTML = listings.map(l => {
+  feed.innerHTML = items.map((item, idx) => {
+    if (item.type === 'AD') return renderAdCard(item, idx);
+
+    const l = item;
     const myReq     = _myRequests[l.id];
     const reqStatus = myReq?.status;
     const isOwn     = !!(currentUsername && l.host?.username === currentUsername);
@@ -180,10 +198,9 @@ function renderFeed(listings) {
       : `<span style="color:hsl(${hue},60%,72%);">${initials}</span>`;
     const avatarBg = photoUrl ? '' : `background:hsl(${hue},35%,16%);`;
 
-    // Status badge
     let badgeClass, badgeLabel;
     if (isOwn) {
-      badgeClass = 'explore-card__badge--own';   badgeLabel = 'Hosting';
+      badgeClass = 'explore-card__badge--own';      badgeLabel = 'Hosting';
     } else if (reqStatus === 'ACCEPTED') {
       badgeClass = 'explore-card__badge--accepted'; badgeLabel = 'Going';
     } else if (reqStatus === 'PENDING') {
@@ -195,7 +212,6 @@ function renderFeed(listings) {
       badgeLabel = maxGuests > 1 ? `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''}` : 'Open';
     }
 
-    // Join button
     let joinClass, joinLabel, joinClick;
     if (isOwn) {
       joinClass = 'explore-card__join--own'; joinLabel = 'View';
@@ -214,8 +230,20 @@ function renderFeed(listings) {
       joinClick = `onclick="event.stopPropagation();window.location.href='/login'"`;
     }
 
+    const showDots = maxGuests > 1 && maxGuests <= 8;
+    const spotsDots = showDots
+      ? `<span class="explore-card__spots">${
+          Array.from({length: maxGuests}, (_, i) =>
+            `<span class="explore-card__spot-dot${i < guestCnt ? ' explore-card__spot-dot--taken' : ''}"></span>`
+          ).join('')
+        }</span>`
+      : '';
+
+    const animDelay = Math.min(idx * 55, 380);
+
     return `
-      <div class="explore-card" onclick="openListingDetailFromExplore(${l.id})">
+      <div class="explore-card" onclick="openListingDetailFromExplore(${l.id})"
+           style="--card-hue:${hue};animation-delay:${animDelay}ms">
         <div class="explore-card__top">
           <div class="explore-card__avatar" style="${avatarBg}">${avatarHtml}</div>
           <div class="explore-card__meta">
@@ -229,11 +257,37 @@ function renderFeed(listings) {
         </div>
         <div class="explore-card__desc">${escapeHtml(l.tourDescription ?? '')}</div>
         <div class="explore-card__footer">
-          <div class="explore-card__date">${fmtDate(l.meetingDate)} · ${fmtTime(l.meetingDate)}</div>
+          <div class="explore-card__date">${relTime(l.meetingDate)} · ${fmtTime(l.meetingDate)}${spotsDots}</div>
           <button class="explore-card__join ${joinClass}" data-listing-id="${l.id}" ${joinClick}>${joinLabel}</button>
         </div>
       </div>`;
   }).join('');
+}
+
+/* ───────────────────────────────────────────────
+   AD CARD
+─────────────────────────────────────────────── */
+function renderAdCard(ad, idx) {
+  const animDelay = Math.min(idx * 55, 380);
+  const imgHtml = ad.imageUrl
+    ? `<div class="explore-ad__img"><img src="${escapeHtml(ad.imageUrl)}" alt="${escapeHtml(ad.title)}" loading="lazy"></div>`
+    : '';
+  const ctaClick = ad.linkUrl
+    ? `onclick="event.stopPropagation();window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')"`
+    : '';
+  const cardClick = ad.linkUrl
+    ? `onclick="window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')"`
+    : '';
+  return `
+    <div class="explore-card explore-ad" ${cardClick} style="animation-delay:${animDelay}ms;cursor:${ad.linkUrl ? 'pointer' : 'default'};">
+      <div class="explore-ad__label">Sponsored</div>
+      ${imgHtml}
+      <div class="explore-ad__body">
+        <div class="explore-ad__title">${escapeHtml(ad.title)}</div>
+        ${ad.description ? `<div class="explore-ad__desc">${escapeHtml(ad.description)}</div>` : ''}
+      </div>
+      ${ad.linkUrl ? `<div class="explore-ad__footer"><button class="explore-card__join explore-card__join--join" ${ctaClick} style="pointer-events:none;">Visit →</button></div>` : ''}
+    </div>`;
 }
 
 /* ───────────────────────────────────────────────
@@ -292,6 +346,22 @@ function reelShare(listingId) {
       .then(() => showToast('Link copied!', 'success'))
       .catch(() => showToast('Could not copy link', 'error'));
   }
+}
+
+/* ───────────────────────────────────────────────
+   RELATIVE TIME HELPER
+─────────────────────────────────────────────── */
+function relTime(dateStr) {
+  const d     = new Date(dateStr);
+  const diffMs = d - Date.now();
+  const diffH  = diffMs / 3_600_000;
+  const diffD  = diffMs / 86_400_000;
+  if (diffH < 1)   return 'Soon';
+  if (diffH < 6)   return `In ${Math.round(diffH)}h`;
+  if (diffH < 20)  return 'Today';
+  if (diffD < 1.5) return 'Tomorrow';
+  if (diffD < 7)   return `In ${Math.floor(diffD)} days`;
+  return fmtDate(dateStr);
 }
 
 /* ───────────────────────────────────────────────

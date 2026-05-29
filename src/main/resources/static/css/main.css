@@ -10,7 +10,7 @@
    7. Animations
 ═══════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+/* Fonts are loaded via <link> in each page <head> — @import here was render-blocking */
 
 /* ───────────────────────────────────────────────
    1. TOKENS & RESET
@@ -41,6 +41,15 @@
   /* Typography */
   --font-display:   'Syne', sans-serif;
   --font-mono:      'DM Mono', monospace;
+
+  /* Type scale — use these for consistent sizing across pages */
+  --fs-xs:    9px;   /* captions, tiny badges */
+  --fs-sm:    11px;  /* meta, handles, secondary labels */
+  --fs-base:  13px;  /* body copy, descriptions */
+  --fs-md:    15px;  /* card titles, list items */
+  --fs-lg:    18px;  /* section headings */
+  --fs-xl:    24px;  /* page titles (mobile) */
+  --fs-2xl:   28px;  /* page titles (desktop) */
 
   /* Spacing */
   --space-xs:       4px;
@@ -658,9 +667,9 @@ svg { display: block; flex-shrink: 0; }
   gap: 8px;
   border-radius: var(--radius-pill);
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
   transition: opacity var(--t-fast), transform var(--t-fast), background var(--t-fast);
@@ -778,8 +787,8 @@ svg { display: block; flex-shrink: 0; }
 /* — Section label — */
 .section-label {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-sm);  /* 11px */
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 10px;
@@ -789,18 +798,18 @@ svg { display: block; flex-shrink: 0; }
 .page-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 24px;
-  letter-spacing: -0.02em;
+  font-size: var(--fs-xl);  /* 24px */
+  letter-spacing: -0.025em;
   color: var(--text);
   margin-bottom: 5px;
-  line-height: 1.15;
+  line-height: 1.12;
 }
 
 .page-subtitle {
-  font-size: 12px;
+  font-size: var(--fs-base);  /* 13px — was 12px, too small relative to body */
   color: var(--text-2);
-  letter-spacing: 0.03em;
-  line-height: 1.5;
+  letter-spacing: 0.02em;
+  line-height: 1.55;
 }
 
 /* — Tab bar — */
@@ -854,9 +863,9 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .settings-row__value {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-2);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 /* — Card base — */
@@ -1306,7 +1315,7 @@ svg { display: block; flex-shrink: 0; }
      GENERAL CONTENT PADDING
   ─────────────────────────────────────────── */
   .page-title {
-    font-size: 28px;
+    font-size: var(--fs-2xl);  /* 28px */
   }
 
   .u-pad {
@@ -1967,10 +1976,17 @@ svg { display: block; flex-shrink: 0; }
 
 /* ── Cross-document View Transitions ──────────────────────────────────── */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: _vt-out 0.22s cubic-bezier(0.4,0,1,1) both; }
-::view-transition-new(root) { animation: _vt-in  0.22s cubic-bezier(0,0,0.2,1)  both; }
-@keyframes _vt-out { to   { opacity: 0; transform: scale(0.985) translateY(5px); } }
-@keyframes _vt-in  { from { opacity: 0; transform: scale(0.985) translateY(5px); } }
+/* Pure opacity — no scale/translate avoids compositor layer jank on mobile */
+::view-transition-old(root) { animation: _vt-out 0.18s ease both; }
+::view-transition-new(root) { animation: _vt-in  0.22s ease both; }
+@keyframes _vt-out { to   { opacity: 0; } }
+@keyframes _vt-in  { from { opacity: 0; } }
+
+/* Fallback: smooth body entry for browsers without View Transitions support */
+@supports not (view-transition-name: none) {
+  body { animation: _page-in 0.2s ease both; }
+}
+@keyframes _page-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── Navigation progress bar ──────────────────────────────────────────── */
 #np {

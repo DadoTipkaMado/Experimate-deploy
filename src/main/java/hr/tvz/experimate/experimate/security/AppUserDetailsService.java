@@ -24,7 +24,8 @@ public class AppUserDetailsService implements UserDetailsService {
         return new AppUserDetails(
                 user.getId(),
                 user.getUsername(),
-                user.getPassword()
+                user.getPassword(),
+                user.getRole()
         );
     }
 }

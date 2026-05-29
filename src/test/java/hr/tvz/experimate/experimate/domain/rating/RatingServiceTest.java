@@ -3,6 +3,8 @@ package hr.tvz.experimate.experimate.domain.rating;
 import hr.tvz.experimate.experimate.domain.rating.dto.CreateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.dto.UpdateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.response.RatingResponse;
+import hr.tvz.experimate.experimate.domain.user.Role;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.UserDetails;
 
 import hr.tvz.experimate.experimate.domain.reservation.Reservation;
@@ -39,6 +41,8 @@ class RatingServiceTest {
     private ReservationRepo reservationRepo;
     @Mock
     private ApplicationEventPublisher publisher;
+    @Mock
+    private DetailsMapper mapper;
 
     @InjectMocks
     private RatingService ratingService;
@@ -68,12 +72,11 @@ class RatingServiceTest {
 
         when(rater.getId()).thenReturn(1);
         when(rated.getId()).thenReturn(2);
-        when(rater.getFirstName()).thenReturn("John");
-        when(rater.getLastName()).thenReturn("Doe");
-        when(rater.getUsername()).thenReturn("john.doe");
-        when(rated.getFirstName()).thenReturn("Jane");
-        when(rated.getLastName()).thenReturn("Smith");
-        when(rated.getUsername()).thenReturn("jane.smith");
+
+        UserDetails raterDetails = new UserDetails("John", "Doe", "john.doe", Role.USER.toString(), "fakeUrl");
+        UserDetails ratedDetails = new UserDetails("Jane", "Smith", "jane.smith", Role.USER.toString(), "fakeUrl");
+        when(mapper.mapUserDetails(rater)).thenReturn(raterDetails);
+        when(mapper.mapUserDetails(rated)).thenReturn(ratedDetails);
 
         CreateRatingDto dto = new CreateRatingDto(rated.getId(), 3, "SUPER");
 
@@ -97,8 +100,8 @@ class RatingServiceTest {
                 rating.getId(),
                 rating.getScore(),
                 rating.getReview(),
-                new UserDetails("John", "Doe", "john.doe"),
-                new UserDetails("Jane", "Smith", "jane.smith")
+                raterDetails,
+                ratedDetails
         );
 
         assertEquals(response, ratingService.createRating(dto, rater.getId()));

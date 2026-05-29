@@ -1,6 +1,5 @@
 package hr.tvz.experimate.experimate.shared;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -16,10 +15,11 @@ import java.util.UUID;
 /**
  * Handles persistence of user-uploaded image files on the local filesystem.
  * Validates content type and emptiness, generates collision-safe filenames via UUID,
- * and writes files to the configured upload directory.
+ * and writes files to the caller-supplied upload directory.
  *
- * <p>The upload directory is configured via {@code app.upload.profile-photos-dir}
- * in application.properties and created automatically on first use.</p>
+ * <p>The upload directory is passed per-call so this service can be reused for
+ * multiple distinct upload locations (profile photos, partner logos, ad images, etc.)
+ * without needing a separate bean for each.</p>
  */
 @Service
 public class FileStorageService {
@@ -28,20 +28,18 @@ public class FileStorageService {
             "image/png", "image/jpeg", "image/webp"
     );
 
-    @Value("${app.upload.profile-photos-dir}")
-    private String uploadDir;
-
     /**
-     * Validates and stores a multipart file on the filesystem.
+     * Validates and stores a multipart file in the given directory.
      * The original filename is never used — a UUID-based name is generated to
      * prevent collisions and path traversal attacks.
      *
-     * @param file the uploaded file from the HTTP request
-     * @return the generated filename (e.g., "a3f2e8b1-7c9d.png") stored on disk
+     * @param file      the uploaded file from the HTTP request
+     * @param uploadDir the target directory path (e.g. {@code "./uploads/partner-logos"})
+     * @return the generated filename (e.g., {@code "a3f2e8b1-7c9d.png"}) stored on disk
      * @throws IllegalArgumentException if the file is empty or has a disallowed content type
      * @throws RuntimeException         if writing to disk fails
      */
-    public String store(MultipartFile file) {
+    public String store(MultipartFile file, String uploadDir) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file is empty");
         }
@@ -67,21 +65,25 @@ public class FileStorageService {
     /**
      * Loads a stored file as a {@link Resource} suitable for an HTTP response body.
      *
-     * @param filename the filename returned by {@link #store(MultipartFile)}
+     * @param filename  the filename returned by {@link #store(MultipartFile, String)}
+     * @param uploadDir the directory from which the file should be loaded
      * @return a {@link FileSystemResource} pointing to the file on disk
+     * @throws IllegalArgumentException if the filename contains path traversal characters
      */
-    public Resource load(String filename) {
+    public Resource load(String filename, String uploadDir) {
         if (filename.contains("/") || filename.contains("\\") || filename.contains(".."))
             throw new IllegalArgumentException("Invalid filename: " + filename);
         return new FileSystemResource(Path.of(uploadDir, filename));
     }
 
     /**
-     * Deletes a stored file from the filesystem. Does nothing if the file does not exist.
+     * Deletes a stored file from the given directory. Does nothing if the file does not exist.
      *
-     * @param filename the filename to delete
+     * @param filename  the filename to delete
+     * @param uploadDir the directory from which the file should be deleted
+     * @throws RuntimeException if the filesystem operation fails
      */
-    public void delete(String filename) {
+    public void delete(String filename, String uploadDir) {
         try {
             Files.deleteIfExists(Path.of(uploadDir, filename));
         } catch (IOException e) {
