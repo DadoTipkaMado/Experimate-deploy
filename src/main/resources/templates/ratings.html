@@ -9,26 +9,38 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Ratings — ExperiMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: none; }
+    }
+
     .ratings-header {
       padding: 22px 18px 16px;
       border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
     }
     .rating-score-hero {
       display: flex; flex-direction: column; align-items: center;
       padding: 28px 18px 20px; border-bottom: 1px solid var(--border);
       gap: 6px; position: relative; overflow: hidden;
+      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.06s both;
     }
     .rating-score-hero::before {
       content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 280px; height: 160px;
-      background: radial-gradient(ellipse, rgba(0,201,167,0.07) 0%, transparent 70%);
+      width: 360px; height: 200px;
+      background: radial-gradient(ellipse, rgba(0,201,167,0.10) 0%, transparent 72%);
       pointer-events: none;
     }
     .rating-score-num {
       font-family: var(--font-display); font-weight: 800; font-size: 52px;
-      color: var(--text); letter-spacing: -0.03em; line-height: 1; position: relative; z-index: 1;
+      color: var(--accent);
+      text-shadow: 0 0 40px rgba(0,201,167,0.35), 0 0 80px rgba(0,201,167,0.15);
+      letter-spacing: -0.03em; line-height: 1; position: relative; z-index: 1;
     }
     .rating-stars { display: flex; gap: 4px; position: relative; z-index: 1; }
     .rating-star { font-size: 20px; color: var(--accent); opacity: 0.25; transition: opacity var(--t-fast); }
@@ -39,15 +51,23 @@
       padding: 16px 18px 8px;
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--text-3);
+      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.12s both;
     }
     .review-card {
       margin: 0 18px 10px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px;
+      background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.88) 100%);
+      border: 1px solid var(--border);
+      border-top-color: rgba(255,255,255,0.10);
+      border-radius: 16px;
+      padding: 14px 16px;
       display: flex; flex-direction: column; gap: 8px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.08),
+        0 8px 24px rgba(0,0,0,0.45),
+        0 2px 6px rgba(0,0,0,0.35);
     }
     .review-card__stars { display: flex; gap: 3px; }
-    .review-card__star { font-size: 13px; color: var(--accent); opacity: 0.2; }
+    .review-card__star { font-size: 15px; color: var(--accent); opacity: 0.2; }
     .review-card__star--lit { opacity: 1; }
     .review-card__from { font-size: 10px; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
     .review-card__from-name { color: var(--text-2); font-weight: 600; }

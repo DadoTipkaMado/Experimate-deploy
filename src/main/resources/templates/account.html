@@ -9,11 +9,14 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Account — Experimate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
     /* ── Cover banner ── */
     .acc-cover {
-      height: 120px;
+      height: 150px;
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -98,13 +101,15 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
     }
     .acc-stat {
-      flex: 1; text-align: center; padding: 14px 8px;
+      flex: 1; text-align: center; padding: 16px 8px 14px;
       border-right: 1px solid var(--border);
+      position: relative;
     }
     .acc-stat:last-child { border-right: none; }
+    .acc-stat__icon { font-size: 16px; margin-bottom: 6px; opacity: 0.7; }
     .acc-stat__num {
-      font-family: var(--font-display); font-weight: 800; font-size: 22px;
-      color: var(--text); line-height: 1; margin-bottom: 4px;
+      font-family: var(--font-display); font-weight: 800; font-size: 24px;
+      color: var(--text); line-height: 1; margin-bottom: 5px;
     }
     .acc-stat__num--accent { color: var(--accent); }
     .acc-stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.09em; text-transform: uppercase; }
@@ -151,17 +156,40 @@
       letter-spacing: 0.12em; text-transform: uppercase;
       color: var(--text-3); margin-bottom: 8px;
     }
-    .acc-bio-text { font-size: 13px; line-height: 1.75; color: var(--text-2); }
-
-    /* ── Trait pills (reuse .pill but smaller) ── */
-    .acc-traits { display: flex; gap: 6px; flex-wrap: wrap; }
-    .acc-trait {
-      font-size: 10px; letter-spacing: 0.06em; padding: 4px 12px;
-      border-radius: 20px; font-family: var(--font-mono);
+    .acc-bio-text {
+      font-size: 14px; line-height: 1.8; color: var(--text-2);
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      margin-left: 0;
     }
-    .acc-trait--teal { background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.3); color: #00c9a7; }
-    .acc-trait--warm { background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.3); color: var(--warm); }
-    .acc-trait--muted { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); }
+
+    /* ── Trait cards ── */
+    .acc-traits { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .acc-trait {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 14px 16px; border-radius: 16px;
+      position: relative; overflow: hidden;
+    }
+    .acc-trait__icon { font-size: 22px; line-height: 1; }
+    .acc-trait__name {
+      font-family: var(--font-display); font-weight: 800; font-size: 15px;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .acc-trait__desc { font-size: 11px; color: var(--text-3); line-height: 1.4; }
+    .acc-trait--teal {
+      background: rgba(0,201,167,0.08);
+      border: 1px solid rgba(0,201,167,0.22);
+    }
+    .acc-trait--teal .acc-trait__name { color: var(--accent); }
+    .acc-trait--warm {
+      background: rgba(255,107,53,0.08);
+      border: 1px solid rgba(255,107,53,0.22);
+    }
+    .acc-trait--warm .acc-trait__name { color: var(--warm); }
+    .acc-trait--muted {
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+    }
 
     /* ── Memory grid ── */
     .memory-grid {
@@ -320,14 +348,17 @@
       <!-- Stats card -->
       <div class="acc-stats" id="account-stats" style="display:none;">
         <div class="acc-stat">
+          <div class="acc-stat__icon">🤝</div>
           <div class="acc-stat__num" id="stat-total">0</div>
           <div class="acc-stat__label">Meets</div>
         </div>
         <div class="acc-stat">
-          <div class="acc-stat__num acc-stat__num--accent">★ <span id="account-rating">0.0</span></div>
+          <div class="acc-stat__icon">⭐</div>
+          <div class="acc-stat__num acc-stat__num--accent"><span id="account-rating">0.0</span></div>
           <div class="acc-stat__label">Rating</div>
         </div>
         <div class="acc-stat">
+          <div class="acc-stat__icon">📍</div>
           <div class="acc-stat__num" id="stat-active">0</div>
           <div class="acc-stat__label">Active</div>
         </div>
@@ -479,21 +510,50 @@
       }
 
       // Personality traits
+      const TRAIT_META = {
+        'Curious':        { icon: '🔍', desc: 'Always asking why' },
+        'Adventurous':    { icon: '🧭', desc: 'Ready for anything' },
+        'Calm':           { icon: '🌊', desc: 'Cool under pressure' },
+        'Thoughtful':     { icon: '💭', desc: 'Reads between the lines' },
+        'Warm':           { icon: '☀️', desc: 'Brings good energy' },
+        'Creative':       { icon: '✨', desc: 'Sees things differently' },
+        'Bold':           { icon: '⚡', desc: 'Never holds back' },
+        'Organised':      { icon: '📋', desc: 'Always one step ahead' },
+        'Grounded':       { icon: '🌱', desc: 'Steady and real' },
+        'Enthusiastic':   { icon: '🔥', desc: 'Energy for everything' },
+        'Direct':         { icon: '🎯', desc: 'Says it like it is' },
+        'Empathetic':     { icon: '🤝', desc: 'Feels what others feel' },
+        'Analytical':     { icon: '🔬', desc: 'Breaks it all down' },
+        'Spontaneous':    { icon: '🎲', desc: 'Decides in the moment' },
+        'Reliable':       { icon: '🔒', desc: 'Always shows up' },
+        'Open-minded':    { icon: '🌍', desc: 'Every view has merit' },
+        'Introverted':    { icon: '🎧', desc: 'Recharges in quiet' },
+        'Extroverted':    { icon: '🎉', desc: 'Fuelled by people' },
+        'Funny':          { icon: '😄', desc: 'Finds the laugh in it' },
+        'Serious':        { icon: '🧠', desc: 'Depth over surface' },
+      };
       const traitColors = ['acc-trait--teal', 'acc-trait--warm', 'acc-trait--muted'];
       let traits = [];
       try {
         const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
-        if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 3);
+        if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 4);
       } catch(e) {}
       if (!traits.length) {
         const pool = ['Curious','Adventurous','Calm','Thoughtful','Warm','Creative','Bold','Organised'];
         const h = (user.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
         traits = [pool[h % pool.length], pool[(h*3+1) % pool.length], pool[(h*7+5) % pool.length]]
-          .filter((v,i,a) => a.indexOf(v) === i).slice(0, 3);
+          .filter((v,i,a) => a.indexOf(v) === i).slice(0, 4);
       }
       const traitWrap = document.getElementById('acc-traits');
       if (traitWrap && traits.length) {
-        traitWrap.innerHTML = traits.map((t, i) => `<span class="acc-trait ${traitColors[i % 3]}">${t}</span>`).join('');
+        traitWrap.innerHTML = traits.map((t, i) => {
+          const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
+          return `<div class="acc-trait ${traitColors[i % 3]}">
+            <div class="acc-trait__icon">${meta.icon}</div>
+            <div class="acc-trait__name">${t}</div>
+            <div class="acc-trait__desc">${meta.desc}</div>
+          </div>`;
+        }).join('');
         document.getElementById('acc-traits-section').style.display = '';
       }
 

@@ -9,6 +9,9 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Partner Portal — ExperiMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
     .page-content { background: #0a0c0c; }
@@ -185,6 +188,14 @@
       box-shadow: 0 0 6px rgba(37,99,235,0.6);
     }
 
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .partner-header { animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .partner-section:nth-child(1) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.06s both; }
+    .partner-section:nth-child(2) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.10s both; }
+    .partner-section:nth-child(3) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.14s both; }
+    .partner-section:nth-child(4) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.18s both; }
+    .partner-cta    { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s both; }
+
     /* Slide animations */
     @keyframes ctaExitLeft  { from { opacity:1; transform:translateX(0) scale(1); }     to { opacity:0; transform:translateX(-26px) scale(0.95); } }
     @keyframes ctaExitRight { from { opacity:1; transform:translateX(0) scale(1); }     to { opacity:0; transform:translateX(26px) scale(0.95); } }
@@ -274,6 +285,63 @@
     body.light-mode .skeleton,
     body.warm-mode  .skeleton { background: rgba(0,0,0,0.07); }
     @keyframes sk { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+    /* Venue pin cards */
+    .pin-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .pin-card:last-child { border-bottom: none; }
+    body.light-mode .pin-card,
+    body.warm-mode  .pin-card { border-bottom-color: rgba(0,0,0,0.07); }
+    .pin-card__logo {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .pin-card__logo img { width: 100%; height: 100%; object-fit: cover; }
+    .pin-card__logo__initial { font-size: 16px; font-weight: 800; color: #60a5fa; }
+    .pin-card__info { flex: 1; min-width: 0; }
+    .pin-card__name { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pin-card__desc { font-size: 10px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pin-card__actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .pin-card__btn {
+      width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04); color: var(--text-3); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, color 0.12s;
+    }
+    .pin-card__btn:hover { background: rgba(255,255,255,0.08); color: var(--text-2); }
+    .pin-card__btn--del:hover { background: rgba(255,60,60,0.12); color: #f87171; border-color: rgba(255,60,60,0.25); }
+    body.light-mode .pin-card__btn, body.warm-mode .pin-card__btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+
+    .pin-inactive-badge {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); color: var(--text-3);
+    }
+
+    .section-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .section-header-row .partner-section__label { margin-bottom: 0; }
+    .btn--add-pin {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.28);
+      border-radius: 8px; color: #60a5fa; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 5px 10px; cursor: pointer; transition: background 0.12s;
+    }
+    .btn--add-pin:hover { background: rgba(37,99,235,0.20); }
+    body.light-mode .btn--add-pin, body.warm-mode .btn--add-pin { color: #1d4ed8; }
+
+    /* Logo upload preview */
+    .logo-upload-area {
+      border: 1.5px dashed rgba(37,99,235,0.35); border-radius: 12px;
+      padding: 16px; cursor: pointer; text-align: center;
+      transition: border-color 0.14s, background 0.14s;
+    }
+    .logo-upload-area:hover { border-color: rgba(37,99,235,0.6); background: rgba(37,99,235,0.04); }
+    .logo-upload-preview { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; margin: 0 auto 8px; display: block; }
+    .logo-upload-label { font-size: 11px; color: var(--text-3); }
   </style>
 </head>
 <body>
@@ -389,14 +457,14 @@
             </div>
             <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
           </a>
-          <div class="partner-action" onclick="openAdEditor()">
+          <div class="partner-action" onclick="document.getElementById('partner-ads-section').scrollIntoView({behavior:'smooth'})">
             <div class="partner-action__left">
               <div class="partner-action__icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M8 8h8M8 16h5"/></svg>
               </div>
               <div>
-                <div class="partner-action__title">Edit advertisement</div>
-                <div class="partner-action__desc">Update your map pin, logo, and promotional text</div>
+                <div class="partner-action__title">Promoted ads</div>
+                <div class="partner-action__desc">Create and manage feed advertisements</div>
               </div>
             </div>
             <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
@@ -416,9 +484,51 @@
         </div>
       </div>
 
+      <!-- Venue pins -->
+      <div class="partner-section">
+        <div class="section-header-row">
+          <div class="partner-section__label">My venue pins</div>
+          <button class="btn--add-pin" onclick="openPinModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            ADD PIN
+          </button>
+        </div>
+        <div id="partner-pins-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📍</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Promoted ads -->
+      <div class="partner-section" id="partner-ads-section">
+        <div class="section-header-row">
+          <div class="partner-section__label">Promoted ads</div>
+          <button class="btn--add-pin" onclick="openAdModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            NEW AD
+          </button>
+        </div>
+        <div id="partner-ads-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📢</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Your events list -->
       <div class="partner-section">
-        <div class="partner-section__label">Your events</div>
+        <div class="section-header-row">
+          <div class="partner-section__label">Your events</div>
+          <button class="btn--add-pin" onclick="openEventModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            ADD EVENT
+          </button>
+        </div>
         <div id="partner-events-list">
           <div class="partner-empty">
             <div class="partner-empty__icon">📅</div>
@@ -436,13 +546,196 @@
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 </div>
 
-<!-- Ad editor modal -->
-<div id="ad-editor-modal" class="modal-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;z-index:900;opacity:0;pointer-events:none;transition:opacity 0.18s;">
-  <div style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-bottom-color:rgba(0,0,0,0.55);border-radius:20px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.13),0 40px 80px rgba(0,0,0,0.70);padding:22px 20px 18px;width:min(340px,92vw);display:flex;flex-direction:column;gap:14px;">
-    <div style="font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text);">Edit Advertisement</div>
-    <div style="font-size:11px;color:var(--text-3);line-height:1.65;">Partner ad editing will be available once David wires the backend. Your map pin is already showing in blue.</div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-      <button onclick="closeAdEditor()" class="btn btn--ghost" style="height:38px;padding:0 18px;font-size:12px;">Close</button>
+<!-- Promoted ad create / edit modal -->
+<div id="ad-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:903;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="ad-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="ad-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">New promoted ad</div>
+      <button onclick="closeAdModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="ad-title">Ad title *</label>
+      <input type="text" id="ad-title" placeholder="e.g. Summer Festival 2026" maxlength="100">
+    </div>
+    <div class="partner-form-field">
+      <label for="ad-desc">Description</label>
+      <textarea id="ad-desc" placeholder="Brief promo copy for the feed card" style="min-height:60px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label for="ad-link">Link URL (optional)</label>
+      <input type="url" id="ad-link" placeholder="https://your-site.com">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="partner-form-field">
+        <label for="ad-from">Active from</label>
+        <input type="datetime-local" id="ad-from">
+      </div>
+      <div class="partner-form-field">
+        <label for="ad-until">Active until</label>
+        <input type="datetime-local" id="ad-until">
+      </div>
+    </div>
+    <div class="partner-form-field">
+      <label>Ad image (optional)</label>
+      <div class="logo-upload-area" id="ad-img-area" onclick="document.getElementById('ad-img-input').click()">
+        <div id="ad-img-preview-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="logo-upload-label">Tap to upload image<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>
+        </div>
+      </div>
+      <input type="file" id="ad-img-input" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="previewAdImage(this)">
+    </div>
+
+    <div class="partner-form-error" id="ad-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeAdModal()">Cancel</button>
+      <button class="btn--partner" id="ad-modal-save" onclick="saveAdModal()">Save ad →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Venue pin create / edit modal -->
+<div id="pin-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:901;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="pin-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="pin-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Add venue pin</div>
+      <button onclick="closePinModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="pin-name">Venue name *</label>
+      <input type="text" id="pin-name" placeholder="e.g. The Jazz Cellar" maxlength="80">
+    </div>
+    <div class="partner-form-field">
+      <label for="pin-desc">Description</label>
+      <textarea id="pin-desc" placeholder="What happens here? What makes this venue special?" style="min-height:72px;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="partner-form-field">
+        <label for="pin-lat">Latitude *</label>
+        <input type="number" id="pin-lat" placeholder="45.815" step="0.000001" min="-90" max="90">
+      </div>
+      <div class="partner-form-field">
+        <label for="pin-lng">Longitude *</label>
+        <input type="number" id="pin-lng" placeholder="15.982" step="0.000001" min="-180" max="180">
+      </div>
+    </div>
+
+    <div class="partner-form-field">
+      <label>Logo (optional)</label>
+      <div class="logo-upload-area" id="pin-logo-area" onclick="document.getElementById('pin-logo-input').click()">
+        <div id="pin-logo-preview-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="logo-upload-label">Tap to upload logo<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>
+        </div>
+      </div>
+      <input type="file" id="pin-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="previewPinLogo(this)">
+    </div>
+
+    <div class="partner-form-error" id="pin-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closePinModal()">Cancel</button>
+      <button class="btn--partner" id="pin-modal-save" onclick="savePinModal()">Save pin →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event create / edit modal -->
+<div id="event-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:902;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="event-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="event-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Add event</div>
+      <button onclick="closeEventModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="ev-pin">Venue pin *</label>
+      <select id="ev-pin" style="background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.07);border-top-color:rgba(0,0,0,0.45);border-bottom-color:rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font-mono);font-size:13px;width:100%;box-shadow:inset 0 1px 4px rgba(0,0,0,0.38);">
+        <option value="">Select a venue pin…</option>
+      </select>
+    </div>
+    <div class="partner-form-field">
+      <label for="ev-title">Event title *</label>
+      <input type="text" id="ev-title" placeholder="e.g. Jazz Night vol. 42" maxlength="100">
+    </div>
+    <div class="partner-form-field">
+      <label for="ev-desc">Description</label>
+      <textarea id="ev-desc" placeholder="What's happening?" style="min-height:72px;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="partner-form-field">
+        <label for="ev-start">Start *</label>
+        <input type="datetime-local" id="ev-start">
+      </div>
+      <div class="partner-form-field">
+        <label for="ev-end">End *</label>
+        <input type="datetime-local" id="ev-end">
+      </div>
+    </div>
+    <div class="partner-form-field">
+      <label for="ev-tickets">Ticket URL (optional)</label>
+      <input type="url" id="ev-tickets" placeholder="https://entrio.hr/…">
+    </div>
+
+    <div class="partner-form-error" id="event-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeEventModal()">Cancel</button>
+      <button class="btn--partner" id="event-modal-save" onclick="saveEventModal()">Save event →</button>
+    </div>
+  </div>
+</div>
+
+<div id="jah-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:904;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="jah-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(0,201,167,0.18);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65),0 -4px 24px rgba(0,201,167,0.06);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Join as host</div>
+        <div id="jah-modal-event" style="font-size:12px;color:var(--accent);margin-top:3px;font-family:var(--font-mono);"></div>
+      </div>
+      <button onclick="closeJahModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="jah-city">City *</label>
+      <input type="text" id="jah-city" placeholder="e.g. Zagreb" maxlength="80">
+    </div>
+    <div class="partner-form-field">
+      <label for="jah-desc">Description for your meet *</label>
+      <textarea id="jah-desc" placeholder="What will you do with guests?" style="min-height:72px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label for="jah-guests">Max guests *</label>
+      <input type="number" id="jah-guests" value="8" min="1" max="100">
+    </div>
+
+    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2);cursor:pointer;user-select:none;">
+      <input type="checkbox" id="jah-use-time" onchange="document.getElementById('jah-override-wrap').style.display=this.checked?'':'none'" style="accent-color:var(--accent);width:15px;height:15px;">
+      Override meeting date/time
+    </label>
+    <div id="jah-override-wrap" style="display:none;">
+      <div class="partner-form-field" style="margin:0;">
+        <label for="jah-override">Meeting date &amp; time</label>
+        <input type="datetime-local" id="jah-override">
+      </div>
+    </div>
+
+    <div class="partner-form-error" id="jah-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeJahModal()">Cancel</button>
+      <button class="btn--partner" id="jah-modal-save" onclick="saveJahModal()" style="background:var(--accent);color:#000;">Create Meet →</button>
     </div>
   </div>
 </div>
@@ -453,13 +746,12 @@
 <script>
   async function initPartnerPage() {
     const userId = Auth.getUserId();
-    if (!userId) return; // not logged in — show apply CTA (default state)
+    if (!userId) return;
 
     try {
       const profile = await PartnerAPI.getProfile();
       showDashboard(profile);
-    } catch (e) {
-      // Not a partner yet — show the apply view (default)
+    } catch {
       document.getElementById('partner-apply-view').style.display = '';
       document.getElementById('partner-dashboard-view').style.display = 'none';
     }
@@ -468,11 +760,11 @@
   function showDashboard(profile) {
     document.getElementById('partner-apply-view').style.display = 'none';
     document.getElementById('partner-dashboard-view').style.display = '';
-
-    const badgeRow = document.getElementById('partner-badge-row');
-    badgeRow.innerHTML = `<div class="partner-badge"><div class="partner-badge__dot"></div>Partner account</div>`;
-
+    document.getElementById('partner-badge-row').innerHTML =
+      `<div class="partner-badge"><div class="partner-badge__dot"></div>Partner account</div>`;
     loadStats();
+    loadVenuePins();
+    loadAds();
     loadPartnerEvents();
   }
 
@@ -489,26 +781,194 @@
     }
   }
 
+  /* ── Venue pins ─────────────────────────────── */
+
+  async function loadVenuePins() {
+    const container = document.getElementById('partner-pins-list');
+    try {
+      const pins = await PartnerPinAPI.getMine();
+      if (!pins || pins.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📍</div>
+            <div class="partner-empty__title">No venue pins yet</div>
+            <div class="partner-empty__sub">Add your venue to the map so users can discover you.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = pins.map(pin => {
+        const logoHtml = pin.logoUrl
+          ? `<img src="${escH(pin.logoUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span class=\\"pin-card__logo__initial\\">${escH((pin.name?.[0] ?? 'P').toUpperCase())}</span>'">`
+          : `<span class="pin-card__logo__initial">${escH((pin.name?.[0] ?? 'P').toUpperCase())}</span>`;
+        const inactiveBadge = pin.active === false ? `<span class="pin-inactive-badge">INACTIVE</span>` : '';
+        return `
+          <div class="pin-card">
+            <div class="pin-card__logo">${logoHtml}</div>
+            <div class="pin-card__info">
+              <div class="pin-card__name">${escH(pin.name)}</div>
+              ${pin.description ? `<div class="pin-card__desc">${escH(pin.description)}</div>` : ''}
+            </div>
+            ${inactiveBadge}
+            <div class="pin-card__actions">
+              <button class="pin-card__btn" title="Edit" onclick="openPinModal(${pin.id})">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deletePinConfirm(${pin.id}, '${escH(pin.name)}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load pins.</div></div>`;
+    }
+  }
+
+  function escH(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let _pinEditId = null;
+
+  function openPinModal(pinId) {
+    _pinEditId = pinId;
+    const modal = document.getElementById('pin-modal');
+    const card  = document.getElementById('pin-modal-card');
+    document.getElementById('pin-modal-title').textContent = pinId ? 'Edit venue pin' : 'Add venue pin';
+    document.getElementById('pin-modal-error').style.display = 'none';
+    document.getElementById('pin-modal-save').disabled = false;
+    document.getElementById('pin-modal-save').textContent = 'Save pin →';
+    document.getElementById('pin-logo-input').value = '';
+    resetLogoPreview();
+
+    if (pinId) {
+      PartnerPinAPI.getById(pinId).then(pin => {
+        document.getElementById('pin-name').value = pin.name ?? '';
+        document.getElementById('pin-desc').value = pin.description ?? '';
+        document.getElementById('pin-lat').value  = pin.latitude ?? '';
+        document.getElementById('pin-lng').value  = pin.longitude ?? '';
+        if (pin.logoUrl) {
+          document.getElementById('pin-logo-preview-wrap').innerHTML =
+            `<img src="${escH(pin.logoUrl)}" class="logo-upload-preview" alt="Logo"><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+        }
+      }).catch(() => {});
+    } else {
+      document.getElementById('pin-name').value = '';
+      document.getElementById('pin-desc').value = '';
+      document.getElementById('pin-lat').value  = '';
+      document.getElementById('pin-lng').value  = '';
+    }
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+  }
+
+  function closePinModal() {
+    const modal = document.getElementById('pin-modal');
+    const card  = document.getElementById('pin-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  function resetLogoPreview() {
+    document.getElementById('pin-logo-preview-wrap').innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div class="logo-upload-label">Tap to upload logo<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>`;
+  }
+
+  function previewPinLogo(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+      showToast('Only PNG, JPEG, or WebP images are allowed.', 'error'); return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image must be under 2 MB.', 'error'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('pin-logo-preview-wrap').innerHTML =
+        `<img src="${e.target.result}" class="logo-upload-preview" alt="Logo preview"><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function savePinModal() {
+    const errEl = document.getElementById('pin-modal-error');
+    const btn   = document.getElementById('pin-modal-save');
+    const name  = document.getElementById('pin-name').value.trim();
+    const desc  = document.getElementById('pin-desc').value.trim();
+    const lat   = parseFloat(document.getElementById('pin-lat').value);
+    const lng   = parseFloat(document.getElementById('pin-lng').value);
+    const file  = document.getElementById('pin-logo-input').files?.[0];
+
+    errEl.style.display = 'none';
+
+    if (!name) { errEl.textContent = 'Venue name is required.'; errEl.style.display = 'block'; return; }
+    if (isNaN(lat) || lat < -90  || lat > 90)  { errEl.textContent = 'Latitude must be between −90 and 90.';   errEl.style.display = 'block'; return; }
+    if (isNaN(lng) || lng < -180 || lng > 180) { errEl.textContent = 'Longitude must be between −180 and 180.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    try {
+      let pin;
+      const dto = { name, description: desc || null, latitude: lat, longitude: lng };
+      if (_pinEditId) {
+        pin = await PartnerPinAPI.update(_pinEditId, dto);
+      } else {
+        pin = await PartnerPinAPI.create(dto);
+      }
+      if (file && pin?.id) {
+        await PartnerPinAPI.uploadLogo(pin.id, file);
+      }
+      closePinModal();
+      showToast(_pinEditId ? 'Pin updated.' : 'Pin added to the map.', 'success');
+      loadVenuePins();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save pin.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save pin →';
+    }
+  }
+
+  async function deletePinConfirm(pinId, pinName) {
+    if (!confirm(`Delete "${pinName}"? This will also remove all events attached to this pin.`)) return;
+    try {
+      await PartnerPinAPI.delete(pinId);
+      showToast('Pin deleted.', 'default');
+      loadVenuePins();
+    } catch (e) {
+      showToast(e.message || 'Could not delete pin.', 'error');
+    }
+  }
+
+  /* ── Partner events ─────────────────────────── */
+
   async function loadPartnerEvents() {
     const container = document.getElementById('partner-events-list');
     try {
-      const listings = await PartnerAPI.getListings();
-      if (!listings || listings.length === 0) {
+      const events = await PartnerEventAPI.getMine('upcoming');
+      if (!events || events.length === 0) {
         container.innerHTML = `
           <div class="partner-empty">
             <div class="partner-empty__icon">📅</div>
             <div class="partner-empty__title">No events yet</div>
-            <div class="partner-empty__sub">Create your first event listing to start attracting guests.</div>
+            <div class="partner-empty__sub">Create your first event on one of your venue pins.</div>
           </div>`;
         return;
       }
-      container.innerHTML = listings.map(l => {
-        const d = new Date(l.meetingDate);
-        const day = d.getDate();
-        const mon = d.toLocaleString('en', { month: 'short' }).toUpperCase();
-        const booked = l.bookedCount ?? 0;
-        const max    = l.maxGuests   ?? '?';
-        const isFull = booked >= max;
+      container.innerHTML = events.map(ev => {
+        const start = new Date(ev.startDatetime);
+        const day = start.getDate();
+        const mon = start.toLocaleString('en', { month: 'short' }).toUpperCase();
+        const pinLabel = ev.pinName ? escH(ev.pinName) : '';
+        const ticketBadge = ev.ticketVendorUrl
+          ? `<span class="partner-event-card__badge" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.28);color:#60a5fa;cursor:pointer;" onclick="window.open('${escH(ev.ticketVendorUrl)}','_blank','noopener')">TICKETS</span>`
+          : '';
         return `
           <div class="partner-event-card">
             <div class="partner-event-card__date">
@@ -516,10 +976,21 @@
               <div class="partner-event-card__mon">${mon}</div>
             </div>
             <div class="partner-event-card__info">
-              <div class="partner-event-card__title">${l.description ?? l.city ?? 'Untitled event'}</div>
-              <div class="partner-event-card__sub">${l.city ?? ''} · ${booked}/${max} guests</div>
+              <div class="partner-event-card__title">${escH(ev.title)}</div>
+              <div class="partner-event-card__sub">${pinLabel}</div>
             </div>
-            <span class="partner-event-card__badge">${isFull ? 'FULL' : 'OPEN'}</span>
+            ${ticketBadge}
+            <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              <button class="pin-card__btn" title="Join as host" style="color:var(--accent);border-color:rgba(0,201,167,0.28);" onclick="openJahModal(${ev.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              </button>
+              <button class="pin-card__btn" title="Edit" onclick="openEventModal(${ev.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deleteEventConfirm(${ev.id}, '${escH(ev.title)}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
           </div>`;
       }).join('');
     } catch {
@@ -527,11 +998,209 @@
     }
   }
 
+  let _eventEditId = null;
+  let _cachedPins  = [];
+
+  async function openEventModal(eventId) {
+    _eventEditId = eventId;
+    const modal = document.getElementById('event-modal');
+    const card  = document.getElementById('event-modal-card');
+    document.getElementById('event-modal-title').textContent = eventId ? 'Edit event' : 'Add event';
+    document.getElementById('event-modal-error').style.display = 'none';
+    document.getElementById('event-modal-save').disabled = false;
+    document.getElementById('event-modal-save').textContent = 'Save event →';
+
+    // Populate pin dropdown
+    try {
+      _cachedPins = await PartnerPinAPI.getMine();
+      const sel = document.getElementById('ev-pin');
+      sel.innerHTML = '<option value="">Select a venue pin…</option>' +
+        _cachedPins.filter(p => p.active !== false).map(p => `<option value="${p.id}">${escH(p.name)}</option>`).join('');
+    } catch { /* can't load pins — disable dropdown gracefully */ }
+
+    if (eventId) {
+      try {
+        const ev = await PartnerEventAPI.getById(eventId);
+        document.getElementById('ev-pin').value   = ev.partnerPinId ?? '';
+        document.getElementById('ev-title').value = ev.title ?? '';
+        document.getElementById('ev-desc').value  = ev.description ?? '';
+        document.getElementById('ev-start').value = ev.startDatetime?.slice(0, 16) ?? '';
+        document.getElementById('ev-end').value   = ev.endDatetime?.slice(0, 16)   ?? '';
+        document.getElementById('ev-tickets').value = ev.ticketVendorUrl ?? '';
+      } catch { /* ignore, modal still opens */ }
+    } else {
+      document.getElementById('ev-pin').value     = _cachedPins[0]?.id ?? '';
+      document.getElementById('ev-title').value   = '';
+      document.getElementById('ev-desc').value    = '';
+      document.getElementById('ev-start').value   = '';
+      document.getElementById('ev-end').value     = '';
+      document.getElementById('ev-tickets').value = '';
+    }
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+  }
+
+  function closeEventModal() {
+    const modal = document.getElementById('event-modal');
+    const card  = document.getElementById('event-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  async function saveEventModal() {
+    const errEl  = document.getElementById('event-modal-error');
+    const btn    = document.getElementById('event-modal-save');
+    const pinId  = document.getElementById('ev-pin').value;
+    const title  = document.getElementById('ev-title').value.trim();
+    const desc   = document.getElementById('ev-desc').value.trim();
+    const start  = document.getElementById('ev-start').value;
+    const end    = document.getElementById('ev-end').value;
+    const tickets = document.getElementById('ev-tickets').value.trim();
+
+    errEl.style.display = 'none';
+
+    if (!pinId)  { errEl.textContent = 'Select a venue pin.';         errEl.style.display = 'block'; return; }
+    if (!title)  { errEl.textContent = 'Event title is required.';     errEl.style.display = 'block'; return; }
+    if (!start)  { errEl.textContent = 'Start date/time is required.'; errEl.style.display = 'block'; return; }
+    if (!end)    { errEl.textContent = 'End date/time is required.';   errEl.style.display = 'block'; return; }
+    if (new Date(end) <= new Date(start)) { errEl.textContent = 'End must be after start.'; errEl.style.display = 'block'; return; }
+    if (new Date(start) < new Date())    { errEl.textContent = 'Start date must be in the future.'; errEl.style.display = 'block'; return; }
+    if (tickets && !/^https?:\/\/.+/.test(tickets)) { errEl.textContent = 'Ticket URL must start with http:// or https://'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const dto = {
+      title,
+      description: desc || null,
+      ticketVendorUrl: tickets || null,
+      startDatetime: start + ':00',
+      endDatetime:   end   + ':00',
+    };
+
+    try {
+      if (_eventEditId) {
+        await PartnerEventAPI.update(_eventEditId, dto);
+      } else {
+        await PartnerEventAPI.createForPin(pinId, dto);
+      }
+      closeEventModal();
+      showToast(_eventEditId ? 'Event updated.' : 'Event created.', 'success');
+      loadPartnerEvents();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save event.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save event →';
+    }
+  }
+
+  async function deleteEventConfirm(eventId, title) {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await PartnerEventAPI.delete(eventId);
+      showToast('Event deleted.', 'default');
+      loadPartnerEvents();
+    } catch (e) {
+      showToast(e.message || 'Could not delete event.', 'error');
+    }
+  }
+
+  /* ── Join as host (from partner dashboard) ──── */
+
+  let _jahEventId = null;
+
+  async function openJahModal(eventId) {
+    _jahEventId = eventId;
+    const modal = document.getElementById('jah-modal');
+    const card  = document.getElementById('jah-modal-card');
+    document.getElementById('jah-modal-event').textContent = '';
+    document.getElementById('jah-modal-error').style.display = 'none';
+    document.getElementById('jah-modal-save').disabled = false;
+    document.getElementById('jah-modal-save').textContent = 'Create Meet →';
+    document.getElementById('jah-city').value    = '';
+    document.getElementById('jah-desc').value    = '';
+    document.getElementById('jah-guests').value  = '8';
+    document.getElementById('jah-use-time').checked = false;
+    document.getElementById('jah-override-wrap').style.display = 'none';
+    document.getElementById('jah-override').value = '';
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+
+    try {
+      const ev = await PartnerEventAPI.getById(eventId);
+      document.getElementById('jah-modal-event').textContent = ev.title ?? '';
+      if (ev.description) document.getElementById('jah-desc').value = ev.description;
+      if (ev.startDatetime) document.getElementById('jah-override').value = ev.startDatetime.slice(0, 16);
+      if (ev.partnerPinId) {
+        try {
+          const pin = await PartnerPinAPI.getById(ev.partnerPinId);
+          if (pin.city) document.getElementById('jah-city').value = pin.city;
+        } catch { /* city stays blank */ }
+      }
+    } catch { /* modal open anyway, user fills manually */ }
+  }
+
+  function closeJahModal() {
+    const modal = document.getElementById('jah-modal');
+    const card  = document.getElementById('jah-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  async function saveJahModal() {
+    const errEl  = document.getElementById('jah-modal-error');
+    const btn    = document.getElementById('jah-modal-save');
+    const city   = document.getElementById('jah-city').value.trim();
+    const desc   = document.getElementById('jah-desc').value.trim();
+    const guests = parseInt(document.getElementById('jah-guests').value, 10);
+    const useTime = document.getElementById('jah-use-time').checked;
+    const dateVal = document.getElementById('jah-override').value;
+
+    errEl.style.display = 'none';
+    if (!city)  { errEl.textContent = 'City is required.';         errEl.style.display = 'block'; return; }
+    if (!desc)  { errEl.textContent = 'Description is required.';  errEl.style.display = 'block'; return; }
+    if (!guests || guests < 1 || guests > 100) { errEl.textContent = 'Max guests must be 1–100.'; errEl.style.display = 'block'; return; }
+    if (useTime && !dateVal) { errEl.textContent = 'Enter a date/time or uncheck the override.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    const dto = {
+      partnerEventId: _jahEventId,
+      city,
+      tourDescription: desc,
+      maxGuests: guests,
+      overrideMeetingDate: useTime && dateVal ? dateVal + ':00' : null,
+      overrideLatitude: null,
+      overrideLongitude: null,
+    };
+
+    try {
+      await TourListingAPI.createFromEvent(dto);
+      closeJahModal();
+      showToast('Meet created! Check My Meets.', 'success');
+      setTimeout(() => { window.location.href = '/tours'; }, 1200);
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not create meet.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create Meet →';
+    }
+  }
+
+  /* ── Apply form ─────────────────────────────── */
+
   function showApplyForm() {
     if (!Auth.getUserId()) { window.location.href = '/login'; return; }
     const info = document.getElementById('cta-info');
     const form = document.getElementById('cta-form');
-
     info.classList.add('cta-exit');
     info.addEventListener('animationend', () => {
       info.style.display = 'none';
@@ -545,7 +1214,6 @@
   function hideApplyForm() {
     const info = document.getElementById('cta-info');
     const form = document.getElementById('cta-form');
-
     form.style.animation = 'ctaExitRight 0.18s ease-in forwards';
     form.addEventListener('animationend', () => {
       form.style.display = 'none';
@@ -554,7 +1222,6 @@
       info.classList.add('cta-enter');
       info.addEventListener('animationend', () => info.classList.remove('cta-enter'), { once: true });
     }, { once: true });
-
     document.getElementById('apply-error').style.display = 'none';
     document.getElementById('apply-error').textContent = '';
   }
@@ -568,7 +1235,6 @@
     const btn   = document.getElementById('apply-submit-btn');
 
     errEl.style.display = 'none';
-
     if (!name || !city || !email) {
       errEl.textContent = 'Please fill in all required fields.';
       errEl.style.display = 'block';
@@ -584,35 +1250,226 @@
     btn.textContent = 'Submitting…';
 
     try {
-      await PartnerAPI.apply({ userId: Auth.getUserId(), venueName: name, city, contactEmail: email, description: desc });
+      await PartnerAPI.apply({ companyName: name, contactEmail: email, website: '' });
     } catch { /* backend pending — still show success */ }
 
     showToast('Application submitted — we\'ll review and get back to you soon.', 'success');
-    // Replace CTA with a thank-you state
     document.getElementById('partner-apply-view').innerHTML = `
       <div class="partner-cta" style="text-align:center;">
         <div class="partner-cta__icon" style="background:rgba(37,99,235,0.14);border-color:rgba(37,99,235,0.30);">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div class="partner-cta__title">Application received</div>
-        <div class="partner-cta__sub">We've got your application for <strong>${name}</strong> in ${city}. We'll reach out to ${email} within a few days.</div>
+        <div class="partner-cta__sub">We've got your application for <strong>${escH(name)}</strong> in ${escH(city)}. We'll reach out to ${escH(email)} within a few days.</div>
       </div>`;
   }
 
-  function openAdEditor() {
-    const modal = document.getElementById('ad-editor-modal');
+  /* ── Promoted ads ───────────────────────────── */
+
+  function _adStatusBadge(ad) {
+    const now = Date.now();
+    if (!ad.active) return `<span class="partner-event-card__badge" style="background:rgba(100,100,100,0.12);border-color:rgba(150,150,150,0.22);color:var(--text-3);">PAUSED</span>`;
+    const from  = ad.activeFrom  ? new Date(ad.activeFrom).getTime()  : null;
+    const until = ad.activeUntil ? new Date(ad.activeUntil).getTime() : null;
+    if (from  && now < from)  return `<span class="partner-event-card__badge" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.28);color:#60a5fa;">SCHEDULED</span>`;
+    if (until && now > until) return `<span class="partner-event-card__badge" style="background:rgba(100,100,100,0.1);border-color:rgba(100,100,100,0.2);color:var(--text-3);">EXPIRED</span>`;
+    return `<span class="partner-event-card__badge">RUNNING</span>`;
+  }
+
+  async function loadAds() {
+    const container = document.getElementById('partner-ads-list');
+    try {
+      const ads = await PromotedAdAPI.getMine();
+      if (!ads || ads.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📢</div>
+            <div class="partner-empty__title">No ads yet</div>
+            <div class="partner-empty__sub">Create a promoted ad to appear in the Explore feed.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = ads.map(ad => {
+        const thumb = ad.imageUrl
+          ? `<img src="${escH(ad.imageUrl)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;" alt="">`
+          : `<div style="width:40px;height:40px;border-radius:8px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+        const pauseLabel = ad.active ? 'Pause' : 'Resume';
+        return `
+          <div class="partner-event-card">
+            ${thumb}
+            <div class="partner-event-card__info">
+              <div class="partner-event-card__title">${escH(ad.title)}</div>
+              <div class="partner-event-card__sub">${ad.description ? escH(ad.description.slice(0,60)) : '—'}</div>
+            </div>
+            ${_adStatusBadge(ad)}
+            <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              <button class="pin-card__btn" title="${pauseLabel}" onclick="toggleAdPause(${ad.id}, ${ad.active})">
+                ${ad.active
+                  ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+                  : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`}
+              </button>
+              <button class="pin-card__btn" title="Edit" onclick="openAdModal(${ad.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deleteAdConfirm(${ad.id}, '${escH(ad.title)}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load ads.</div></div>`;
+    }
+  }
+
+  async function toggleAdPause(adId, currentlyActive) {
+    try {
+      await PromotedAdAPI.update(adId, { active: !currentlyActive });
+      showToast(currentlyActive ? 'Ad paused.' : 'Ad resumed.', 'default');
+      loadAds();
+    } catch (e) {
+      showToast(e.message || 'Could not update ad.', 'error');
+    }
+  }
+
+  let _adEditId = null;
+
+  async function openAdModal(adId) {
+    _adEditId = adId;
+    const modal = document.getElementById('ad-modal');
+    const card  = document.getElementById('ad-modal-card');
+    document.getElementById('ad-modal-title').textContent = adId ? 'Edit ad' : 'New promoted ad';
+    document.getElementById('ad-modal-error').style.display = 'none';
+    document.getElementById('ad-modal-save').disabled = false;
+    document.getElementById('ad-modal-save').textContent = 'Save ad →';
+    document.getElementById('ad-img-input').value = '';
+    document.getElementById('ad-img-preview-wrap').innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div class="logo-upload-label">Tap to upload image<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>`;
+
+    if (adId) {
+      try {
+        const ad = await PromotedAdAPI.getMine().then(list => list.find(a => a.id === adId));
+        if (ad) {
+          document.getElementById('ad-title').value = ad.title ?? '';
+          document.getElementById('ad-desc').value  = ad.description ?? '';
+          document.getElementById('ad-link').value  = ad.linkUrl ?? '';
+          document.getElementById('ad-from').value  = ad.activeFrom?.slice(0, 16)  ?? '';
+          document.getElementById('ad-until').value = ad.activeUntil?.slice(0, 16) ?? '';
+          if (ad.imageUrl) {
+            document.getElementById('ad-img-preview-wrap').innerHTML =
+              `<img src="${escH(ad.imageUrl)}" class="logo-upload-preview" alt=""><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+          }
+        }
+      } catch { /* open modal anyway */ }
+    } else {
+      document.getElementById('ad-title').value = '';
+      document.getElementById('ad-desc').value  = '';
+      document.getElementById('ad-link').value  = '';
+      document.getElementById('ad-from').value  = '';
+      document.getElementById('ad-until').value = '';
+    }
+
     modal.style.opacity = '1';
     modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
   }
 
-  function closeAdEditor() {
-    const modal = document.getElementById('ad-editor-modal');
+  function closeAdModal() {
+    const modal = document.getElementById('ad-modal');
+    const card  = document.getElementById('ad-modal-card');
+    card.style.transform = 'translateY(30px)';
     modal.style.opacity = '0';
-    modal.style.pointerEvents = 'none';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
   }
 
-  document.getElementById('ad-editor-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeAdEditor();
+  function previewAdImage(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+      showToast('Only PNG, JPEG, or WebP images are allowed.', 'error'); return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image must be under 2 MB.', 'error'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('ad-img-preview-wrap').innerHTML =
+        `<img src="${e.target.result}" class="logo-upload-preview" alt=""><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveAdModal() {
+    const errEl = document.getElementById('ad-modal-error');
+    const btn   = document.getElementById('ad-modal-save');
+    const title = document.getElementById('ad-title').value.trim();
+    const desc  = document.getElementById('ad-desc').value.trim();
+    const link  = document.getElementById('ad-link').value.trim();
+    const from  = document.getElementById('ad-from').value;
+    const until = document.getElementById('ad-until').value;
+    const file  = document.getElementById('ad-img-input').files?.[0];
+
+    errEl.style.display = 'none';
+    if (!title) { errEl.textContent = 'Ad title is required.'; errEl.style.display = 'block'; return; }
+    if (link && !/^https?:\/\/.+/.test(link)) { errEl.textContent = 'Link URL must start with http:// or https://'; errEl.style.display = 'block'; return; }
+    if (from && until && new Date(until) <= new Date(from)) { errEl.textContent = 'Active until must be after active from.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const dto = {
+      title,
+      description: desc || null,
+      linkUrl: link || null,
+      activeFrom:  from  ? from  + ':00' : null,
+      activeUntil: until ? until + ':00' : null,
+    };
+
+    try {
+      let ad;
+      if (_adEditId) {
+        ad = await PromotedAdAPI.update(_adEditId, dto);
+        ad = ad ?? { id: _adEditId };
+      } else {
+        ad = await PromotedAdAPI.create(dto);
+      }
+      if (file && ad?.id) {
+        await PromotedAdAPI.uploadImage(ad.id, file);
+      }
+      closeAdModal();
+      showToast(_adEditId ? 'Ad updated.' : 'Ad created.', 'success');
+      loadAds();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save ad.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save ad →';
+    }
+  }
+
+  async function deleteAdConfirm(adId, title) {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await PromotedAdAPI.delete(adId);
+      showToast('Ad deleted.', 'default');
+      loadAds();
+    } catch (e) {
+      showToast(e.message || 'Could not delete ad.', 'error');
+    }
+  }
+
+  document.getElementById('ad-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdModal();
+  });
+  document.getElementById('pin-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePinModal();
+  });
+  document.getElementById('event-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeEventModal();
+  });
+  document.getElementById('jah-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeJahModal();
   });
 
   initPartnerPage();

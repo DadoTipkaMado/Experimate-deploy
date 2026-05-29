@@ -25,7 +25,7 @@ const Auth = {
   isExpired:   () => { const p = Auth._decode(); return p ? p.exp * 1000 < Date.now() : true; },
   logout: () => {
     sessionStorage.setItem('explicit_logout', '1');
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true }).catch(() => {});
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
     window.location.href = '/login';
@@ -165,9 +165,10 @@ const TourListingAPI = {
   getAll: (params = {})  => apiFetch('/api/tour-listing' + buildQuery({ size: 1000, ...params })).then(p => p?.content ?? []),
   getMine: (params = {}) => apiFetch('/api/tour-listing/mine' + buildQuery(params)).then(p => p?.content ?? []),
   getById: (id)        => apiFetch(`/api/tour-listing/${id}`),
-  create: (dto)        => apiFetch('/api/tour-listing',        { method: 'POST',   body: JSON.stringify(dto) }),
-  update: (id, dto)    => apiFetch(`/api/tour-listing/${id}`,  { method: 'PATCH',  body: JSON.stringify(dto) }),
-  delete: (id)         => apiFetch(`/api/tour-listing/${id}`,  { method: 'DELETE' }),
+  create: (dto)             => apiFetch('/api/tour-listing',                   { method: 'POST',   body: JSON.stringify(dto) }),
+  createFromEvent: (dto)    => apiFetch('/api/tour-listing/from-partner-event', { method: 'POST',   body: JSON.stringify(dto) }),
+  update: (id, dto)         => apiFetch(`/api/tour-listing/${id}`,              { method: 'PATCH',  body: JSON.stringify(dto) }),
+  delete: (id)              => apiFetch(`/api/tour-listing/${id}`,              { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────
@@ -246,14 +247,58 @@ const PremiumAPI = {
 
 /* ───────────────────────────────────────────────
    PARTNER  /api/partner  (B2B — issue #107)
-   TODO: wire up when David adds backend endpoints
 ─────────────────────────────────────────────── */
 const PartnerAPI = {
-  getProfile:  ()      => apiFetch('/api/partner/profile'),
-  getStats:    ()      => apiFetch('/api/partner/stats'),
-  getListings: ()      => apiFetch('/api/partner/listings'),
-  apply:       (dto)   => apiFetch('/api/partner/apply',  { method: 'POST', body: JSON.stringify(dto) }),
-  updateAd:    (dto)   => apiFetch('/api/partner/ad',     { method: 'PUT',  body: JSON.stringify(dto) }),
+  getProfile: () => apiFetch('/api/partner/profile'),
+  getStats:   () => apiFetch('/api/partner/stats'),
+  apply: (dto) => apiFetch('/api/partner/apply', { method: 'POST', body: JSON.stringify(dto) }),
+};
+
+/* ───────────────────────────────────────────────
+   PARTNER PINS  /api/partner-pins  (issue #130)
+─────────────────────────────────────────────── */
+const PartnerPinAPI = {
+  getAll:    ()         => apiFetch('/api/partner-pins'),
+  getMine:   ()         => apiFetch('/api/partner-pins/mine'),
+  getById:   (id)       => apiFetch(`/api/partner-pins/${id}`),
+  create:    (dto)      => apiFetch('/api/partner-pins',        { method: 'POST',   body: JSON.stringify(dto) }),
+  update:    (id, dto)  => apiFetch(`/api/partner-pins/${id}`,  { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:    (id)       => apiFetch(`/api/partner-pins/${id}`,  { method: 'DELETE' }),
+  uploadLogo:(id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/partner-pins/${id}/logo`, { method: 'POST', body: f }); },
+  logoUrl:   (filename) => filename ? `/api/partner-pins/logo/${filename}` : null,
+};
+
+/* ───────────────────────────────────────────────
+   PARTNER EVENTS  /api/partner-events  (issue #131)
+─────────────────────────────────────────────── */
+const PartnerEventAPI = {
+  createForPin:  (pinId, dto) => apiFetch(`/api/partner-pins/${pinId}/events`, { method: 'POST', body: JSON.stringify(dto) }),
+  listForPin:    (pinId)      => apiFetch(`/api/partner-pins/${pinId}/events`),
+  getUpcoming:   (page = 0, size = 20) => apiFetch(`/api/partner-events/upcoming?page=${page}&size=${size}&sort=startDatetime,asc`),
+  getById:       (id)         => apiFetch(`/api/partner-events/${id}`),
+  update:        (id, dto)    => apiFetch(`/api/partner-events/${id}`,   { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:        (id)         => apiFetch(`/api/partner-events/${id}`,   { method: 'DELETE' }),
+  getMine:       (filter = 'upcoming') => apiFetch(`/api/partner/events?filter=${filter}`),
+};
+
+/* ───────────────────────────────────────────────
+   PROMOTED ADS  /api/promoted-ads  (issue #132)
+─────────────────────────────────────────────── */
+const PromotedAdAPI = {
+  create:      (dto)      => apiFetch('/api/promoted-ads',           { method: 'POST',   body: JSON.stringify(dto) }),
+  getMine:     ()         => apiFetch('/api/promoted-ads/mine'),
+  update:      (id, dto)  => apiFetch(`/api/promoted-ads/${id}`,     { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:      (id)       => apiFetch(`/api/promoted-ads/${id}`,     { method: 'DELETE' }),
+  uploadImage: (id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/promoted-ads/${id}/image`, { method: 'POST', body: f }); },
+  imageUrl:    (filename) => filename ? `/api/promoted-ads/image/${filename}` : null,
+};
+
+/* ───────────────────────────────────────────────
+   FEED  /api/feed  (issue #133)
+─────────────────────────────────────────────── */
+const FeedAPI = {
+  getPage: (page = 0, size = 20, adFrequency = 5) =>
+    apiFetch(`/api/feed?page=${page}&size=${size}&adFrequency=${adFrequency}`),
 };
 
 /* ───────────────────────────────────────────────

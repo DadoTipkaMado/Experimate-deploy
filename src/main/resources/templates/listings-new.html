@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="robots" content="noindex, nofollow">
-  <title>New Tour — Experimate</title>
+  <title>New Meet — Experimate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
@@ -23,9 +26,9 @@
       display: flex; flex-direction: column; gap: 18px;
       margin: 0 16px 24px;
       padding: 20px 18px 22px;
-      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.90) 55%, rgba(10,10,10,0.88) 100%);
       border: 1px solid var(--border-2);
-      border-top-color: rgba(255,255,255,0.10);
+      border-top-color: rgba(0,201,167,0.2);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
       box-shadow:
@@ -61,6 +64,7 @@
       width: 100%; box-sizing: border-box;
       box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
       transition: border-color 0.14s ease, box-shadow 0.14s ease;
+      color-scheme: dark;
     }
     body.light-mode .form-field input, body.light-mode .form-field textarea,
     body.warm-mode  .form-field input, body.warm-mode  .form-field textarea {
@@ -183,6 +187,10 @@
     .location-status--set .location-status__dot { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
     .location-status--set { color: var(--accent); }
 
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .new-listing-header { animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .new-listing-form { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s both; }
+
     /* Stepper */
     .stepper { display: flex; align-items: center; gap: 0; }
     .stepper__btn {
@@ -210,9 +218,31 @@
       border-top-color: rgba(0,0,0,0.45);
       border-bottom-color: rgba(255,255,255,0.06);
       border-left: none; border-right: none;
-      color: var(--text); font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+      color: var(--text); font-family: var(--font-display); font-size: 20px; font-weight: 800;
       text-align: center; display: flex; align-items: center; justify-content: center;
       box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+    }
+
+    /* Focus-within label accent */
+    .form-field:focus-within > label {
+      color: var(--accent);
+      transition: color 0.14s;
+    }
+
+    /* Submit button hover glow */
+    #listing-form button[type="submit"]:hover:not(:disabled) {
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.18), 0 8px 24px rgba(0,201,167,0.16);
+    }
+
+    /* Header ambient glow */
+    .new-listing-header { position: relative; }
+    .new-listing-header::before {
+      content: '';
+      position: absolute;
+      top: -20px; left: 50%; transform: translateX(-50%);
+      width: 280px; height: 90px;
+      background: radial-gradient(ellipse at center, rgba(0,201,167,0.07) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
     }
   </style>
 </head>
@@ -223,7 +253,7 @@
 
   <main class="page-content">
     <div class="new-listing-header">
-      <div class="page-title">New Tour</div>
+      <div class="page-title">New Meet</div>
       <div class="page-subtitle">Create an experience with a Mate</div>
     </div>
 
@@ -301,7 +331,7 @@
 
       <div class="form-actions">
         <a href="/tours" class="btn btn--ghost">Cancel</a>
-        <button type="submit" class="btn btn--primary">Publish</button>
+        <button type="submit" class="btn btn--primary">Create Meet →</button>
       </div>
 
     </form>
@@ -540,7 +570,7 @@
     const meetingDate = `${yyyy}-${mm}-${dd}T${timeVal}:00`;
 
     const btn = document.querySelector('#listing-form button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Publishing...';
+    btn.disabled = true; btn.textContent = 'Creating...';
     try {
       await TourListingAPI.create({
         city:            document.getElementById('city').value,
@@ -550,13 +580,13 @@
         longitude: parseFloat(lngVal),
         maxGuests: parseInt(document.getElementById('maxGuests').value, 10),
       });
-      btn.textContent = 'Published ✓';
-      showToast('Tour published!');
+      btn.textContent = 'Created ✓';
+      showToast('Meet created!');
       setTimeout(() => window.location.href = '/tours', 800);
     } catch (err) {
-      errorEl.textContent = err.message || 'Could not publish — please try again.';
+      errorEl.textContent = err.message || 'Could not create — please try again.';
       errorEl.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Publish';
+      btn.disabled = false; btn.textContent = 'Create Meet →';
     }
   });
 

@@ -8,18 +8,22 @@
   <title>Not Found — ExperiMate</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --accent: #00C9A7;
+      --warm: #ff6b35;
       --text: #efefef;
       --text-2: rgba(239,239,239,0.6);
       --text-3: rgba(239,239,239,0.3);
-      --font-display: 'Georgia', serif;
+      --font-display: 'Syne', sans-serif;
       --font-mono: 'Courier New', monospace;
     }
     body {
-      background: #0a0a0a;
+      background: #020505;
       color: var(--text);
       font-family: var(--font-mono);
       min-height: 100dvh;
@@ -34,42 +38,48 @@
     .orb {
       position: fixed;
       border-radius: 50%;
-      filter: blur(90px);
+      filter: blur(100px);
       pointer-events: none;
       animation: drift linear infinite;
     }
-    .orb-1 { width: 400px; height: 400px; background: var(--accent); opacity: 0.055; top: -120px; left: -80px; animation-duration: 22s; }
-    .orb-2 { width: 280px; height: 280px; background: #ff6b35; opacity: 0.04; bottom: -60px; right: -60px; animation-duration: 28s; animation-delay: -10s; }
+    .orb-1 { width: 440px; height: 440px; background: var(--accent); opacity: 0.18; top: -120px; left: -80px; animation-duration: 22s; }
+    .orb-2 { width: 300px; height: 300px; background: var(--warm); opacity: 0.14; bottom: -60px; right: -60px; animation-duration: 28s; animation-delay: -10s; }
     @keyframes drift {
       0%   { transform: translate(0,0) scale(1); }
-      50%  { transform: translate(20px,-14px) scale(1.06); }
+      33%  { transform: translate(20px,-15px) scale(1.04); }
+      66%  { transform: translate(-12px,18px) scale(0.97); }
       100% { transform: translate(0,0) scale(1); }
     }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
 
     .container {
       position: relative; z-index: 1;
       display: flex; flex-direction: column; align-items: center;
       text-align: center; gap: 20px; max-width: 360px;
+      animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
     }
 
     .code {
       font-family: var(--font-display);
-      font-size: clamp(72px, 20vw, 120px);
-      font-weight: 900;
+      font-size: clamp(80px, 22vw, 130px);
+      font-weight: 800;
       line-height: 1;
       letter-spacing: -0.04em;
       color: transparent;
-      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,201,167,0.3) 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,201,167,0.25) 100%);
       -webkit-background-clip: text;
       background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 40px rgba(0,201,167,0.25));
     }
 
     .title {
       font-family: var(--font-display);
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 19px;
+      font-weight: 800;
       color: var(--text);
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
     }
 
     .sub {
