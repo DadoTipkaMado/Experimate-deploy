@@ -217,15 +217,54 @@
     /* ── Empty state ── */
     .meet-empty {
       display: flex; flex-direction: column; align-items: center;
-      padding: 56px 24px; gap: 12px; text-align: center;
+      padding: 56px 24px 48px; gap: 14px; text-align: center;
+    }
+    .meet-empty__icon-wrap {
+      position: relative; width: 64px; height: 64px;
+    }
+    .meet-empty__icon-wrap::before {
+      content: '';
+      position: absolute; inset: -14px;
+      background: radial-gradient(ellipse at center, rgba(0,201,167,0.12) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
     }
     .meet-empty__icon {
-      width: 60px; height: 60px; border-radius: 18px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center; color: var(--text-3);
+      width: 64px; height: 64px; border-radius: 20px;
+      background: linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.10), 0 6px 18px rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center; color: var(--accent);
     }
-    .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
-    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.65; max-width: 220px; }
+    .meet-empty__title { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); }
+    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.7; max-width: 230px; }
+    .meet-empty__actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+
+    /* ── Skeleton loaders ── */
+    .meet-skel {
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.08);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.10), 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .meet-skel--upcoming::before {
+      content: ''; display: block; height: 3px;
+      background: linear-gradient(90deg, rgba(0,201,167,0.25) 0%, rgba(0,201,167,0.06) 100%);
+    }
+    .meet-skel__body { display: flex; align-items: center; gap: 14px; padding: 16px 16px 12px; }
+    .meet-skel__circle {
+      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface-3, #1f1f1f);
+      animation: skelPulse 1.4s ease infinite;
+    }
+    .meet-skel__lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .meet-skel__line {
+      height: 11px; border-radius: 6px;
+      background: var(--surface-3, #1f1f1f);
+      animation: skelPulse 1.4s ease infinite;
+    }
+    @keyframes skelPulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.65; } }
 
     /* ── FAB ── */
     .fab {
@@ -423,12 +462,19 @@
         <button class="fchip fchip--active" id="fchip-upcoming" onclick="setMeetFilter('timeframe','upcoming')">Upcoming</button>
         <button class="fchip"              id="fchip-past"     onclick="setMeetFilter('timeframe','past')">Past</button>
       </div>
-      <div id="meets-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="meets-list" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- skeleton -->
+        <div class="meet-skel meet-skel--upcoming"><div class="meet-skel__body"><div class="meet-skel__circle"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:55%;"></div><div class="meet-skel__line" style="width:38%;"></div></div></div></div>
+        <div class="meet-skel meet-skel--upcoming"><div class="meet-skel__body"><div class="meet-skel__circle"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:48%;"></div><div class="meet-skel__line" style="width:30%;"></div></div></div></div>
+      </div>
     </div>
 
     <!-- ── MY LISTINGS ── -->
     <div class="tab-panel" id="panel-listings">
-      <div id="listings-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="listings-list" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- skeleton -->
+        <div class="meet-skel"><div class="meet-skel__body"><div class="meet-skel__circle" style="border-radius:8px;width:44px;height:44px;"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:50%;"></div><div class="meet-skel__line" style="width:36%;"></div></div></div></div>
+      </div>
     </div>
 
     <!-- ── REQUESTS ── -->
@@ -440,7 +486,10 @@
         <button class="fchip fchip--active" id="fchip-pending"  onclick="setReqFilter('status','PENDING')">Pending</button>
         <button class="fchip"              id="fchip-declined" onclick="setReqFilter('status','DECLINED')">Declined</button>
       </div>
-      <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- skeleton -->
+        <div class="meet-skel"><div class="meet-skel__body"><div class="meet-skel__circle"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:45%;"></div><div class="meet-skel__line" style="width:28%;"></div></div></div></div>
+      </div>
     </div>
 
   </main>
@@ -717,10 +766,12 @@
   /* ── Empty state ── */
   function emptyState(icon, title, sub, cta) {
     return `<div class="meet-empty">
-      <div class="meet-empty__icon">${icon}</div>
+      <div class="meet-empty__icon-wrap">
+        <div class="meet-empty__icon">${icon}</div>
+      </div>
       <div class="meet-empty__title">${title}</div>
       <div class="meet-empty__sub">${sub}</div>
-      ${cta || ''}
+      ${cta ? `<div class="meet-empty__actions">${cta}</div>` : ''}
     </div>`;
   }
 
@@ -740,13 +791,22 @@
 
     if (!items.length) {
       const icon = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
-      const msg = isPast
-        ? (isJoined ? 'No past meets yet.' : 'No past hosted meets yet.')
-        : (isJoined ? 'No upcoming meets.' : 'No upcoming Mates.');
-      const cta = !isPast && isJoined
-        ? `<a href="/map" class="btn btn--ghost" style="height:38px;padding:0 20px;font-size:12px;margin-top:4px;">Browse the map →</a>`
-        : '';
-      el.innerHTML = emptyState(icon, msg, isJoined ? 'Join a meet from the map or Explore tab.' : 'Create a listing to start hosting.', cta);
+      let title, sub, cta;
+      if (isPast) {
+        title = isJoined ? 'No past meets yet' : 'No past hosting yet';
+        sub   = isJoined ? 'Your completed meets will appear here.' : 'Meets you\'ve hosted will archive here after they end.';
+        cta   = '';
+      } else if (isJoined) {
+        title = 'Nothing booked yet';
+        sub   = 'Find a local guide and book your first meet — it only takes a tap.';
+        cta   = `<a href="/explore" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;">Browse Mates →</a>
+                 <a href="/map" class="btn btn--ghost" style="height:38px;padding:0 20px;font-size:12px;">View map</a>`;
+      } else {
+        title = 'No upcoming hosting';
+        sub   = 'Create a listing to host your first Meet Day with a local.';
+        cta   = `<a href="/listings/new" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;">+ New Meet</a>`;
+      }
+      el.innerHTML = emptyState(icon, title, sub, cta);
       return;
     }
 
