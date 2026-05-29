@@ -1446,3 +1446,56 @@ window.DatePicker = DatePicker;
     document.head.appendChild(lnk);
   });
 })();
+
+/* ── PWA Install Banner ───────────────────────────────────────────────── */
+(function () {
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+  if (navigator.standalone) return; // iOS already installed
+  if (sessionStorage.getItem('_pwa_dismissed')) return;
+
+  let _prompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _prompt = e;
+    _show(false);
+  });
+
+  // iOS Safari: no beforeinstallprompt — show manual hint after a short delay
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone) {
+    setTimeout(() => _show(true), 4000);
+  }
+
+  function _show(isIOS) {
+    if (document.getElementById('_pwa-banner')) return;
+    const wrap = document.createElement('div');
+    wrap.id = '_pwa-banner';
+    wrap.innerHTML = `<div class="pwa-banner">
+      <div class="pwa-banner__icon"><img src="/icons/icon.svg" width="28" height="28" alt=""></div>
+      <div class="pwa-banner__text">
+        <div class="pwa-banner__title">ExperiMate</div>
+        <div class="pwa-banner__sub">${isIOS ? 'Tap Share → "Add to Home Screen"' : 'Add to your home screen'}</div>
+      </div>
+      ${!isIOS ? '<button class="pwa-banner__btn" id="_pwa-install">Install</button>' : ''}
+      <button class="pwa-banner__close" id="_pwa-dismiss" aria-label="Dismiss">✕</button>
+    </div>`;
+    document.body.appendChild(wrap);
+
+    if (!isIOS) {
+      document.getElementById('_pwa-install').addEventListener('click', () => {
+        if (!_prompt) return;
+        _prompt.prompt();
+        _prompt.userChoice.then(() => { _prompt = null; _dismiss(); });
+      });
+    }
+    document.getElementById('_pwa-dismiss').addEventListener('click', _dismiss);
+  }
+
+  function _dismiss() {
+    const wrap = document.getElementById('_pwa-banner');
+    if (!wrap) return;
+    wrap.querySelector('.pwa-banner').classList.add('pwa-banner--out');
+    setTimeout(() => wrap.remove(), 320);
+    sessionStorage.setItem('_pwa_dismissed', '1');
+  }
+})();
