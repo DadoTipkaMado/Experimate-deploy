@@ -27,6 +27,14 @@ public interface BookingRequestRepo extends JpaRepository<BookingRequest, Intege
             @Param("listingId") Integer listingId,
             @Param("status") BookingRequestStatus status);
 
+    /**
+     * Returns the guest IDs for the given booking request IDs.
+     * Used after auto-declining pending requests to determine which guests to notify via push.
+     * Never call with an empty list — {@code IN ()} is invalid SQL.
+     */
+    @Query("SELECT r.guest.id FROM BookingRequest r WHERE r.id IN :ids")
+    List<Integer> findGuestIdsByIdIn(@Param("ids") List<Integer> ids);
+
     @Query(value = "UPDATE BookingRequest r SET r.status = :status WHERE r.id IN :ids")
     @Modifying
     Integer updateStatusByIds(@Param("ids") List<Integer> ids,
