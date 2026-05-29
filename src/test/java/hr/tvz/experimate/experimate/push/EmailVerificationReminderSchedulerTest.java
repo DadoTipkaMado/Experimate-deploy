@@ -28,8 +28,10 @@ class EmailVerificationReminderSchedulerTest {
 
     @Test
     void sendVerificationReminders_whenUsersUnverified_sendsReminderToEachUser() {
+        EmailVerificationToken firstToken = tokenForUser(10);
+        EmailVerificationToken secondToken = tokenForUser(20);
         when(emailVerificationTokenRepo.findAllByExpirationDateTimeAfter(any()))
-                .thenReturn(List.of(tokenForUser(10), tokenForUser(20)));
+                .thenReturn(List.of(firstToken, secondToken));
 
         scheduler.sendVerificationReminders();
 
