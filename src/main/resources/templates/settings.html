@@ -481,10 +481,11 @@
       desc.classList.remove('skeleton');
       if (res.status === 'COMPLETED') {
         const dateStr = res.completedAt
-          ? new Date(res.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+          ? new Date(res.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : null;
         desc.textContent = dateStr ? `Completed · ${dateStr}` : 'Completed';
-        action.innerHTML = `<a href="/onboarding" style="font-size:11px;color:var(--accent);letter-spacing:0.04em;text-decoration:none;white-space:nowrap;">Retake</a>`;
+        desc.style.whiteSpace = 'nowrap';
+        action.innerHTML = `<a href="/onboarding?retake=true" style="font-size:11px;color:var(--accent);letter-spacing:0.04em;text-decoration:none;white-space:nowrap;">Retake</a>`;
       } else {
         desc.textContent = res.status === 'CANCELLED' ? 'Skipped' : 'Not started yet';
         action.innerHTML = `<a href="/onboarding" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;white-space:nowrap;">Take quiz</a>`;
