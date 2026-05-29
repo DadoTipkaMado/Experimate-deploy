@@ -49,6 +49,9 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
 
     long countByTourListing_IdAndStatusIn(Integer listingId, Collection<ReservationStatus> statuses);
 
+    /** Returns all reservations whose tour starts after {@code meetingDateAfter} and have one of the given statuses. Used on startup to re-schedule tour reminders that would be lost after a server restart. */
+    List<Reservation> findAllByStatusInAndTourListing_MeetingDateAfter(Collection<ReservationStatus> statuses, LocalDateTime meetingDateAfter);
+
     List<Reservation> findAllByTourListing_Id(Integer listingId);
 
     long countByTourListing_IdAndStatus(Integer listingId, ReservationStatus status);

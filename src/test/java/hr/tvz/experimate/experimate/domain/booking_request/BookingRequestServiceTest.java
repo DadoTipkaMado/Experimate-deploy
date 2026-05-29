@@ -7,6 +7,7 @@ import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
+import hr.tvz.experimate.experimate.shared.event.BookingRequestDeclinedEvent;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
@@ -227,29 +228,74 @@ class BookingRequestServiceTest {
         verify(bookingRequestRepo, never()).updateStatusByIds(any(), any());
     }
 
-    // ──────────────── declineBookingRequest ────────────────
-
+    /**
+     * #2 — auto-declined gosti trebaju dobiti push notifikaciju.
+     * Kad accept popuni listing, preostali pending requestovi se batch-declined
+     * bez ikakvog publishEvent poziva — ovaj test verificira da to nije slučaj.
+     */
     @Test
-    void declineBookingRequest_happyPath_setsStatusDeclined() {
-        Integer requestId = 1;
+    void acceptBookingRequest_whenListingFull_publishesDeclinedEventForEachAutoDeclinedGuest() {
+        Integer acceptedId = 1;
         Integer hostId = 7;
+        Integer listingId = 5;
 
         BookingRequest request = mock(BookingRequest.class);
         TourListing listing = mock(TourListing.class);
         User host = mock(User.class);
+        User guest = mock(User.class);
+
+        when(bookingRequestRepo.findById(acceptedId)).thenReturn(Optional.of(request));
+        when(request.getListing()).thenReturn(listing);
+        when(request.getGuest()).thenReturn(guest);
+        when(listing.getHost()).thenReturn(host);
+        when(listing.getId()).thenReturn(listingId);
+        when(host.getId()).thenReturn(hostId);
+        when(guest.getId()).thenReturn(11);
+        when(reservationRepo.countByTourListing_IdAndStatusIn(eq(listingId), eq(List.of(ReservationStatus.CONFIRMED)))).thenReturn(1L);
+        when(listing.getMaxGuests()).thenReturn(1);
+        // IDs 2 i 3 su pending i bit će auto-declined kad se listing popuni
+        when(bookingRequestRepo.findBookingRequestIdsByTourListingIdAndStatus(listingId, BookingRequestStatus.PENDING))
+                .thenReturn(List.of(2, 3));
+        // metoda koja još ne postoji — test neće kompajlirati dok je ne dodamo u repo
+        when(bookingRequestRepo.findGuestIdsByIdIn(List.of(2, 3)))
+                .thenReturn(List.of(20, 30));
+
+        service.acceptBookingRequest(acceptedId, hostId);
+
+        // svaki auto-declined gost mora dobiti declined push notifikaciju
+        verify(publisher).publishEvent(new BookingRequestDeclinedEvent(20));
+        verify(publisher).publishEvent(new BookingRequestDeclinedEvent(30));
+    }
+
+    // ──────────────── declineBookingRequest ────────────────
+
+    @Test
+    void declineBookingRequest_happyPath_setsStatusDeclinedAndNotifiesGuest() {
+        Integer requestId = 1;
+        Integer hostId = 7;
+        Integer guestId = 20;
+
+        BookingRequest request = mock(BookingRequest.class);
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+        User guest = mock(User.class);
 
         when(bookingRequestRepo.findById(requestId)).thenReturn(Optional.of(request));
         when(request.getListing()).thenReturn(listing);
         when(listing.getHost()).thenReturn(host);
         when(host.getId()).thenReturn(hostId);
+        when(request.getGuest()).thenReturn(guest);
+        when(guest.getId()).thenReturn(guestId);
         when(bookingRequestRepo.save(request)).thenReturn(request);
 
         service.declineBookingRequest(requestId, hostId);
 
         verify(request).setStatus(BookingRequestStatus.DECLINED);
         verify(bookingRequestRepo).save(request);
-        // declining a single request must not trigger the accept-side event
-        verify(publisher, never()).publishEvent(any());
+        // guest must be notified when host manually declines their request
+        verify(publisher).publishEvent(new BookingRequestDeclinedEvent(guestId));
+        // accept-side event must never fire on a decline
+        verify(publisher, never()).publishEvent(any(BookingRequestAcceptedEvent.class));
     }
 
     @Test

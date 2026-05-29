@@ -94,6 +94,14 @@ public class ReservationService {
                 ));
         log.info("Created reservation with id {}", reservation.getId());
 
+        publisher.publishEvent(new ReservationConfirmedEvent(
+                reservation.getId(),
+                guest.getId(),
+                listing.getHost().getId(),
+                listing.getId(),
+                listing.getMeetingDate()
+        ));
+
         return createReservationResponse(reservation);
     }
 
@@ -293,6 +301,12 @@ public class ReservationService {
         log.info("Reservation with id {} has been cancelled by user with id {}",
                 reservation.getId(),
                 user.getId());
+
+        publisher.publishEvent(new ReservationCancelledEvent(
+                reservationId,
+                reservation.getTourListing().getId(),
+                reservation.getTourListing().getMeetingDate()
+        ));
 
         return new CancelTourResponse(
                 reservation.getId(),
