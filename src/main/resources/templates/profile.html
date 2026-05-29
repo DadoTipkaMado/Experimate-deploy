@@ -8,82 +8,157 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Profile — Experimate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
+    @keyframes profileFadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes orbDrift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%       { transform: translate(8px, -6px) scale(1.06); }
+    }
+
     /* ── Cover banner ── */
     .profile-cover {
-      height: 120px; position: relative; overflow: hidden; flex-shrink: 0;
+      height: 160px; position: relative; overflow: hidden; flex-shrink: 0;
     }
     .profile-cover__bg { position: absolute; inset: 0; }
     .profile-cover__orb {
-      position: absolute; border-radius: 50%; filter: blur(40px); opacity: 0.18;
+      position: absolute; border-radius: 50%; filter: blur(52px); opacity: 0.38;
+      animation: orbDrift 7s ease-in-out infinite;
     }
+    .profile-cover__orb:nth-child(3) { animation-delay: -3s; }
+    .profile-cover__orb:nth-child(4) { animation-delay: -5s; animation-duration: 9s; }
     .profile-cover__fade {
       position: absolute; inset: 0;
-      background: linear-gradient(to bottom, transparent 30%, var(--bg) 100%);
+      background: linear-gradient(to bottom, transparent 20%, var(--bg) 100%);
+    }
+    .profile-cover__shine {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      pointer-events: none;
     }
 
     /* ── Hero ── */
     .profile-hero {
-      padding: 0 20px 22px;
+      padding: 0 20px 24px;
       display: flex; flex-direction: column; align-items: center;
-      text-align: center;
-      position: relative; z-index: 1;
+      text-align: center; position: relative; z-index: 1;
+      animation: profileFadeUp 0.5s ease both;
     }
-    .profile-avatar-wrap { margin-top: -46px; position: relative; margin-bottom: 14px; }
+    .profile-avatar-wrap {
+      margin-top: -50px; position: relative; margin-bottom: 16px;
+    }
+    .profile-avatar-glow {
+      position: absolute; inset: -16px; border-radius: 50%;
+      opacity: 0.5; filter: blur(20px);
+      pointer-events: none;
+    }
     .profile-avatar {
-      width: 92px; height: 92px; border-radius: 50%;
+      width: 100px; height: 100px; border-radius: 50%;
       background: var(--surface-2); border: 3px solid var(--bg);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; position: relative; z-index: 1;
     }
     .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .profile-avatar__ring {
-      position: absolute; inset: -5px; border-radius: 50%;
-      border: 2.5px solid transparent;
+      position: absolute; inset: -6px; border-radius: 50%;
+      border: 3px solid transparent;
       background: linear-gradient(var(--bg), var(--bg)) padding-box,
                   linear-gradient(135deg, var(--accent), var(--warm)) border-box;
     }
 
     .profile-name {
-      font-family: var(--font-display); font-weight: 800; font-size: 22px;
-      letter-spacing: -0.01em; color: var(--text); margin-bottom: 3px;
+      font-family: var(--font-display); font-weight: 800; font-size: 24px;
+      letter-spacing: -0.02em; color: var(--text); margin-bottom: 3px;
     }
-    .profile-handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.06em; margin-bottom: 12px; }
+    .profile-handle {
+      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em;
+      margin-bottom: 16px; font-family: var(--font-mono);
+    }
 
-    /* ── Trait pills ── */
-    .profile-traits { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
-    .profile-trait { font-size: 10px; letter-spacing: 0.06em; padding: 4px 12px; border-radius: 20px; font-family: var(--font-mono); }
-    .profile-trait--teal { background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.3); color: #00c9a7; }
-    .profile-trait--warm { background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.3); color: var(--warm); }
-    .profile-trait--muted { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); }
+    /* ── Trait cards ── */
+    .profile-traits {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      width: 100%; margin-bottom: 16px;
+    }
+    .profile-trait {
+      display: flex; flex-direction: column; gap: 7px;
+      padding: 16px; border-radius: 18px;
+      position: relative; overflow: hidden;
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+      animation: profileFadeUp 0.5s ease both;
+    }
+    .profile-trait:nth-child(1) { animation-delay: 0.06s; }
+    .profile-trait:nth-child(2) { animation-delay: 0.12s; }
+    .profile-trait:nth-child(3) { animation-delay: 0.18s; }
+    .profile-trait:active { transform: scale(0.97); }
+    .profile-trait__icon { font-size: 26px; line-height: 1; }
+    .profile-trait__name {
+      font-family: var(--font-display); font-weight: 800; font-size: 13px;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .profile-trait:last-child:nth-child(odd) { grid-column: span 2; }
+    .profile-trait__desc { font-size: 11px; color: var(--text-3); line-height: 1.4; }
+    .profile-trait--teal {
+      background: rgba(0,201,167,0.08); border: 1px solid rgba(0,201,167,0.22);
+      box-shadow: inset 0 1px 0 rgba(0,201,167,0.1);
+    }
+    .profile-trait--teal .profile-trait__name { color: var(--accent); }
+    .profile-trait--warm {
+      background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.22);
+      box-shadow: inset 0 1px 0 rgba(255,107,53,0.1);
+    }
+    .profile-trait--warm .profile-trait__name { color: var(--warm); }
+    .profile-trait--muted {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
 
     /* ── Stats card ── */
     .profile-stats {
       display: flex; width: 100%;
-      background: var(--surface); border: 1px solid var(--border-2); border-radius: 16px;
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 18px;
       overflow: hidden; margin-bottom: 14px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      animation: profileFadeUp 0.5s 0.22s ease both;
     }
-    .profile-stat { flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid var(--border); }
+    .profile-stat {
+      flex: 1; text-align: center; padding: 18px 8px 16px;
+      border-right: 1px solid var(--border); position: relative;
+    }
     .profile-stat:last-child { border-right: none; }
-    .profile-stat__num { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--text); line-height: 1; margin-bottom: 4px; }
-    .profile-stat__num--accent { color: var(--accent); }
-    .profile-stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.09em; text-transform: uppercase; }
+    .profile-stat__icon { font-size: 16px; margin-bottom: 8px; opacity: 0.75; }
+    .profile-stat__num {
+      font-family: var(--font-display); font-weight: 800; font-size: 26px;
+      color: var(--text); line-height: 1; margin-bottom: 5px;
+    }
+    .profile-stat__num--accent {
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(0,201,167,0.35);
+    }
+    .profile-stat__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+    }
 
     /* ── Actions ── */
-    .profile-actions { display: flex; gap: 8px; width: 100%; }
+    .profile-actions {
+      display: flex; gap: 8px; width: 100%;
+      animation: profileFadeUp 0.5s 0.28s ease both;
+    }
 
     /* ── Content sections ── */
-    .profile-section {
-      padding: 18px 20px; border-bottom: 1px solid var(--border);
-    }
+    .profile-section { padding: 18px 20px; border-bottom: 1px solid var(--border); }
     .profile-section__label {
       font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--text-3); margin-bottom: 8px;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
     }
-    .profile-section__text { font-size: 13px; line-height: 1.75; color: var(--text-2); }
+    .profile-section__text { font-size: 13px; line-height: 1.8; color: var(--text-2); }
     .profile-section__empty { font-size: 13px; color: var(--text-3); font-style: italic; }
 
     /* ── Memories map ── */
@@ -104,23 +179,25 @@
     .profile-section-label { padding: 18px 20px 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
     .profile-listings { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 40px; }
     .profile-listing-card {
-      background: var(--surface); border: 1px solid var(--border-2); border-radius: 16px;
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 18px;
       padding: 16px; display: flex; flex-direction: column; gap: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
     }
+    .profile-listing-card:active { transform: scale(0.98); }
     .profile-listing-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-    .profile-listing-card__city { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); }
+    .profile-listing-card__city { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
     .profile-listing-card__date { font-size: 10px; color: var(--text-3); letter-spacing: 0.05em; flex-shrink: 0; font-family: var(--font-mono); }
     .profile-listing-card__desc { font-size: 12px; color: var(--text-2); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .profile-listing-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .profile-listing-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent); flex-shrink: 0; }
+    .profile-listing-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); flex-shrink: 0; }
     .profile-listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
     .profile-listing-card__actions { display: flex; gap: 6px; }
 
     /* ── Review cards ── */
     .profile-reviews { padding: 0 16px 8px; display: flex; flex-direction: column; gap: 10px; }
     .review-card {
-      background: var(--surface); border: 1px solid var(--border-2); border-radius: 16px;
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 18px;
       padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04);
     }
@@ -149,9 +226,9 @@
 
   <main class="page-content" id="profile-main" style="overflow-y:auto;">
     <!-- Initial skeleton -->
-    <div style="height:120px;background:var(--surface-2);"></div>
+    <div style="height:160px;background:var(--surface-2);"></div>
     <div style="padding:0 20px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;">
-      <div class="skeleton" style="width:92px;height:92px;border-radius:50%;margin-top:-46px;"></div>
+      <div class="skeleton" style="width:100px;height:100px;border-radius:50%;margin-top:-50px;"></div>
       <div class="skeleton skeleton-line skeleton-line--lg" style="width:140px;"></div>
       <div class="skeleton skeleton-line skeleton-line--sm" style="width:90px;"></div>
     </div>
@@ -171,6 +248,29 @@
     sessionStorage.setItem('mapFlyTo', JSON.stringify({ lat: parseFloat(btn.dataset.lat), lng: parseFloat(btn.dataset.lng), zoom: 16 }));
     window.location.href = '/map';
   }
+
+  const TRAIT_META = {
+    'Curious':        { icon: '🔍', desc: 'Always asking why' },
+    'Adventurous':    { icon: '🧭', desc: 'Ready for anything' },
+    'Calm':           { icon: '🌊', desc: 'Cool under pressure' },
+    'Thoughtful':     { icon: '💭', desc: 'Reads between the lines' },
+    'Warm':           { icon: '☀️', desc: 'Brings good energy' },
+    'Creative':       { icon: '✨', desc: 'Sees things differently' },
+    'Bold':           { icon: '⚡', desc: 'Never holds back' },
+    'Organised':      { icon: '📋', desc: 'Always one step ahead' },
+    'Grounded':       { icon: '🌱', desc: 'Steady and real' },
+    'Enthusiastic':   { icon: '🔥', desc: 'Energy for everything' },
+    'Direct':         { icon: '🎯', desc: 'Says it like it is' },
+    'Empathetic':     { icon: '🤝', desc: 'Feels what others feel' },
+    'Analytical':     { icon: '🔬', desc: 'Breaks it all down' },
+    'Spontaneous':    { icon: '🎲', desc: 'Decides in the moment' },
+    'Reliable':       { icon: '🔒', desc: 'Always shows up' },
+    'Open-minded':    { icon: '🌍', desc: 'Every view has merit' },
+    'Introverted':    { icon: '🎧', desc: 'Recharges in quiet' },
+    'Extroverted':    { icon: '🎉', desc: 'Fuelled by people' },
+    'Funny':          { icon: '😄', desc: 'Finds the laugh in it' },
+    'Serious':        { icon: '🧠', desc: 'Depth over surface' },
+  };
 
   function _seedTraits(username) {
     const pool = ['Curious','Adventurous','Calm','Thoughtful','Warm','Creative','Bold','Organised','Spontaneous','Empathetic'];
@@ -206,9 +306,10 @@
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       const photoUrl = UserAPI.photoUrl(user.profilePhotoUrl) || localStorage.getItem('photo_' + user.id);
 
+      const initialsHtml = `<span style="font-family:var(--font-display);font-weight:800;font-size:30px;color:hsl(${hue},60%,72%);">${initials}</span>`;
       const avatarInner = photoUrl
-        ? `<img src="${photoUrl}" alt="">`
-        : `<span style="font-family:var(--font-display);font-weight:800;font-size:30px;color:hsl(${hue},60%,72%);">${initials}</span>`;
+        ? `<img src="${photoUrl}" alt="" onerror="this.parentElement.style.background='hsl(${hue},35%,22%)';this.replaceWith(Object.assign(document.createElement('span'),{innerHTML:'${initials}',style:'font-family:var(--font-display);font-weight:800;font-size:30px;color:hsl(${hue},60%,72%)'}))">`
+        : initialsHtml;
       const avatarBg = photoUrl ? '' : `background:hsl(${hue},35%,22%);`;
 
       const isOwnProfile = Auth.getUsername() === user.username;
@@ -220,7 +321,14 @@
           if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 3);
         } catch(e) {}
       }
-      const traitPills = traits.map((t, i) => `<span class="profile-trait ${_traitClass(i)}">${t}</span>`).join('');
+      const traitPills = traits.map((t, i) => {
+        const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
+        return `<div class="profile-trait ${_traitClass(i)}">
+          <div class="profile-trait__icon">${meta.icon}</div>
+          <div class="profile-trait__name">${t}</div>
+          <div class="profile-trait__desc">${meta.desc}</div>
+        </div>`;
+      }).join('');
 
       const ratingDisplay = user.rating > 0 ? Number(user.rating).toFixed(1) : '—';
       const editLink = isOwnProfile ? `<a href="/account/edit" class="btn btn--ghost" style="height:36px;font-size:11px;flex:1;">Edit Profile</a>` : '';
@@ -233,7 +341,7 @@
         <div class="profile-section">
           <div class="profile-section__label">About</div>
           ${user.bio
-            ? `<div class="profile-section__text">${user.bio}</div>`
+            ? `<div class="profile-section__text" style="border-left:3px solid var(--accent);padding-left:14px;">${user.bio}</div>`
             : isOwnProfile
               ? `<div class="profile-section__empty">No bio yet. <a href="/account/edit" style="color:var(--accent);text-decoration:none;">Add one →</a></div>`
               : `<div class="profile-section__empty">This user hasn't written a bio yet.</div>`
@@ -254,15 +362,19 @@
 
       main.innerHTML = `
         <div class="profile-cover">
-          <div class="profile-cover__bg" style="background:linear-gradient(135deg,hsl(${hue},45%,12%) 0%,hsl(${hue},30%,16%) 50%,hsl(${(hue+40)%360},35%,10%) 100%);"></div>
-          <div class="profile-cover__orb" style="width:160px;height:160px;top:10px;left:28%;background:hsl(${hue},60%,40%);"></div>
+          <div class="profile-cover__bg" style="background:radial-gradient(ellipse at 50% 80%, hsl(${hue},60%,20%) 0%, hsl(${hue},45%,11%) 45%, hsl(${(hue+40)%360},30%,7%) 100%);"></div>
+          <div class="profile-cover__orb" style="width:200px;height:200px;top:-30px;left:15%;background:hsl(${hue},70%,48%);"></div>
+          <div class="profile-cover__orb" style="width:130px;height:130px;top:10px;right:8%;background:hsl(${(hue+60)%360},65%,42%);"></div>
+          <div class="profile-cover__orb" style="width:80px;height:80px;bottom:-10px;left:55%;background:hsl(${(hue+180)%360},55%,50%);animation-delay:-1s;"></div>
+          <div class="profile-cover__shine"></div>
           <div class="profile-cover__fade"></div>
         </div>
 
         <div class="profile-hero">
           <div class="profile-avatar-wrap">
+            <div class="profile-avatar-glow" style="background:radial-gradient(circle, hsl(${hue},65%,45%) 0%, transparent 70%);"></div>
             <div class="profile-avatar" style="${avatarBg}">${avatarInner}</div>
-            <div class="profile-avatar__ring" style="background:linear-gradient(var(--bg),var(--bg)) padding-box,linear-gradient(135deg,hsl(${hue},60%,55%),hsl(${(hue+60)%360},55%,55%)) border-box;"></div>
+            <div class="profile-avatar__ring" style="background:linear-gradient(var(--bg),var(--bg)) padding-box,linear-gradient(135deg,hsl(${hue},70%,60%),hsl(${(hue+60)%360},65%,58%)) border-box;"></div>
           </div>
           <div class="profile-name">${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)}</div>
           <div class="profile-handle">@${escapeHtml(user.username)}</div>
@@ -270,12 +382,19 @@
 
           <div class="profile-stats">
             <div class="profile-stat">
+              <div class="profile-stat__icon">🤝</div>
               <div class="profile-stat__num">${userListings.length}</div>
               <div class="profile-stat__label">Days</div>
             </div>
             <div class="profile-stat">
-              <div class="profile-stat__num profile-stat__num--accent">★ ${ratingDisplay}</div>
+              <div class="profile-stat__icon">⭐</div>
+              <div class="profile-stat__num profile-stat__num--accent">${ratingDisplay}</div>
               <div class="profile-stat__label">Rating</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat__icon">📍</div>
+              <div class="profile-stat__num" style="font-size:14px;letter-spacing:-0.01em;">${escapeHtml(user.city || '—')}</div>
+              <div class="profile-stat__label">City</div>
             </div>
           </div>
 
@@ -355,7 +474,7 @@
           return `
             <div class="profile-listing-card">
               <div class="profile-listing-card__head">
-                <div class="profile-listing-card__city">${escapeHtml(listing.city)}</div>
+                <div class="profile-listing-card__city" style="color:hsl(${hue},55%,62%);">${escapeHtml(listing.city)}</div>
                 <div class="profile-listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
               </div>
               <div class="profile-listing-card__desc">${escapeHtml(listing.tourDescription)}</div>

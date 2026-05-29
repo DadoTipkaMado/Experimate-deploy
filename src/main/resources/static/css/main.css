@@ -10,7 +10,7 @@
    7. Animations
 ═══════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+/* Fonts are loaded via <link> in each page <head> — @import here was render-blocking */
 
 /* ───────────────────────────────────────────────
    1. TOKENS & RESET
@@ -41,6 +41,15 @@
   /* Typography */
   --font-display:   'Syne', sans-serif;
   --font-mono:      'DM Mono', monospace;
+
+  /* Type scale — use these for consistent sizing across pages */
+  --fs-xs:    9px;   /* captions, tiny badges */
+  --fs-sm:    11px;  /* meta, handles, secondary labels */
+  --fs-base:  13px;  /* body copy, descriptions */
+  --fs-md:    15px;  /* card titles, list items */
+  --fs-lg:    18px;  /* section headings */
+  --fs-xl:    24px;  /* page titles (mobile) */
+  --fs-2xl:   28px;  /* page titles (desktop) */
 
   /* Spacing */
   --space-xs:       4px;
@@ -658,9 +667,9 @@ svg { display: block; flex-shrink: 0; }
   gap: 8px;
   border-radius: var(--radius-pill);
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 12px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
   transition: opacity var(--t-fast), transform var(--t-fast), background var(--t-fast);
@@ -778,8 +787,8 @@ svg { display: block; flex-shrink: 0; }
 /* — Section label — */
 .section-label {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-sm);  /* 11px */
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 10px;
@@ -789,18 +798,18 @@ svg { display: block; flex-shrink: 0; }
 .page-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 24px;
-  letter-spacing: -0.02em;
+  font-size: var(--fs-xl);  /* 24px */
+  letter-spacing: -0.025em;
   color: var(--text);
   margin-bottom: 5px;
-  line-height: 1.15;
+  line-height: 1.12;
 }
 
 .page-subtitle {
-  font-size: 12px;
+  font-size: var(--fs-base);  /* 13px — was 12px, too small relative to body */
   color: var(--text-2);
-  letter-spacing: 0.03em;
-  line-height: 1.5;
+  letter-spacing: 0.02em;
+  line-height: 1.55;
 }
 
 /* — Tab bar — */
@@ -854,9 +863,9 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .settings-row__value {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-2);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 /* — Card base — */
@@ -1306,7 +1315,7 @@ svg { display: block; flex-shrink: 0; }
      GENERAL CONTENT PADDING
   ─────────────────────────────────────────── */
   .page-title {
-    font-size: 28px;
+    font-size: var(--fs-2xl);  /* 28px */
   }
 
   .u-pad {
@@ -1910,6 +1919,7 @@ svg { display: block; flex-shrink: 0; }
 /* ═══════════════════════════════════════════════
    CUSTOM DATE PICKER (shared, used everywhere)
 ═══════════════════════════════════════════════ */
+/* ── Date Picker ───────────────────────────────────────────────────────── */
 .dp-wrap {
   position: fixed; z-index: 9999;
   background: var(--surface);
@@ -1921,22 +1931,44 @@ svg { display: block; flex-shrink: 0; }
 }
 @keyframes dp-in { from { opacity:0; transform:translateY(-6px) scale(0.97); } to { opacity:1; transform:none; } }
 
+/* Header */
 .dp-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px 10px;
+  padding: 10px 10px 10px;
   border-bottom: 1px solid var(--border);
+  gap: 4px;
 }
-.dp-title {
-  font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text);
+.dp-header--sub { padding: 10px 12px; }
+
+.dp-header-selectors { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; }
+
+.dp-sel {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  color: var(--text); padding: 4px 8px; border-radius: 6px;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
 }
+.dp-sel:hover { background: var(--surface-2); color: var(--accent); }
+
+.dp-sub-title {
+  font-family: var(--font-display); font-weight: 600; font-size: 13px;
+  color: var(--text-2); flex: 1; text-align: center;
+}
+.dp-sel--year-link {
+  font-size: 12px; font-weight: 600; color: var(--accent); padding: 2px 6px;
+}
+.dp-sel--year-link:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+
 .dp-nav {
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
   background: none; border: none; color: var(--text-2); font-size: 18px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   transition: background 0.12s, color 0.12s;
 }
 .dp-nav:hover { background: var(--surface-2); color: var(--text); }
 
+/* Day grid */
 .dp-dow-row {
   display: grid; grid-template-columns: repeat(7,1fr);
   padding: 8px 10px 2px;
@@ -1946,7 +1978,6 @@ svg { display: block; flex-shrink: 0; }
   letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--font-mono);
   padding: 4px 0;
 }
-
 .dp-grid {
   display: grid; grid-template-columns: repeat(7,1fr);
   padding: 2px 10px 12px; gap: 2px;
@@ -1957,20 +1988,60 @@ svg { display: block; flex-shrink: 0; }
   cursor: pointer; transition: background 0.1s, color 0.1s;
   font-family: var(--font-mono);
 }
-.dp-cell:hover:not(.dp-cell--disabled):not(.dp-cell--empty) {
-  background: var(--surface-2); color: var(--text);
-}
-.dp-cell--today { color: var(--accent); font-weight: 700; box-shadow: inset 0 0 0 1px var(--accent-border); }
+.dp-cell:hover:not(.dp-cell--disabled):not(.dp-cell--empty) { background: var(--surface-2); color: var(--text); }
+.dp-cell--today    { color: var(--accent); font-weight: 700; box-shadow: inset 0 0 0 1px var(--accent-border); }
 .dp-cell--selected { background: var(--accent) !important; color: #000 !important; font-weight: 700; }
 .dp-cell--disabled { color: var(--text-3); opacity: 0.3; cursor: default; }
-.dp-cell--empty { cursor: default; }
+.dp-cell--empty    { cursor: default; }
+
+/* Month grid */
+.dp-month-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  padding: 10px 10px 14px; gap: 4px;
+}
+.dp-month-cell {
+  padding: 10px 4px; text-align: center;
+  border-radius: 8px; font-size: 13px; color: var(--text-2);
+  cursor: pointer; transition: background 0.1s, color 0.1s;
+  font-family: var(--font-display); font-weight: 500;
+}
+.dp-month-cell:hover    { background: var(--surface-2); color: var(--text); }
+.dp-month-cell--selected { background: var(--accent) !important; color: #000 !important; font-weight: 700; }
+
+/* Year list */
+.dp-year-list {
+  max-height: 224px; overflow-y: auto;
+  padding: 6px 0 10px;
+  scroll-behavior: smooth;
+}
+.dp-year-list::-webkit-scrollbar { width: 3px; }
+.dp-year-list::-webkit-scrollbar-track { background: transparent; }
+.dp-year-list::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+.dp-year-item {
+  padding: 9px 0; text-align: center;
+  font-size: 14px; color: var(--text-2);
+  cursor: pointer; transition: background 0.1s, color 0.1s;
+  font-family: var(--font-mono);
+}
+.dp-year-item:hover { background: var(--surface-2); color: var(--text); }
+.dp-year-item--selected {
+  color: var(--accent); font-weight: 700; font-size: 17px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
 
 /* ── Cross-document View Transitions ──────────────────────────────────── */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: _vt-out 0.22s cubic-bezier(0.4,0,1,1) both; }
-::view-transition-new(root) { animation: _vt-in  0.22s cubic-bezier(0,0,0.2,1)  both; }
-@keyframes _vt-out { to   { opacity: 0; transform: scale(0.985) translateY(5px); } }
-@keyframes _vt-in  { from { opacity: 0; transform: scale(0.985) translateY(5px); } }
+/* Pure opacity — no scale/translate avoids compositor layer jank on mobile */
+::view-transition-old(root) { animation: _vt-out 0.18s ease both; }
+::view-transition-new(root) { animation: _vt-in  0.22s ease both; }
+@keyframes _vt-out { to   { opacity: 0; } }
+@keyframes _vt-in  { from { opacity: 0; } }
+
+/* Fallback: smooth body entry for browsers without View Transitions support */
+@supports not (view-transition-name: none) {
+  body { animation: _page-in 0.2s ease both; }
+}
+@keyframes _page-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── Navigation progress bar ──────────────────────────────────────────── */
 #np {

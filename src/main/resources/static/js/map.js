@@ -106,13 +106,16 @@ function loadPins() {
     ? BookingRequestAPI.getMine({ flowDirection: 'outgoing', status: 'ACCEPTED' }).catch(() => [])
     : Promise.resolve([]);
 
-  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise, myAcceptedPromise])
-    .then(([listingsResult, usersResult, myResResult, myListingsResult, myAcceptedResult]) => {
-      const listings    = listingsResult.status    === 'fulfilled' ? (listingsResult.value    || []) : [];
-      const users       = usersResult.status       === 'fulfilled' ? (usersResult.value       || []) : [];
-      const myRes       = myResResult.status       === 'fulfilled' ? (myResResult.value       || []) : [];
-      const myListings  = myListingsResult.status  === 'fulfilled' ? (myListingsResult.value  || []) : [];
-      const myAccepted  = myAcceptedResult.status  === 'fulfilled' ? (myAcceptedResult.value  || []) : [];
+  const partnerPinsPromise = PartnerPinAPI.getAll().catch(() => []);
+
+  Promise.allSettled([TourListingAPI.getAll(), UserAPI.getAll(), myResPromise, myListingsPromise, myAcceptedPromise, partnerPinsPromise])
+    .then(([listingsResult, usersResult, myResResult, myListingsResult, myAcceptedResult, partnerPinsResult]) => {
+      const listings     = listingsResult.status     === 'fulfilled' ? (listingsResult.value     || []) : [];
+      const users        = usersResult.status        === 'fulfilled' ? (usersResult.value        || []) : [];
+      const myRes        = myResResult.status        === 'fulfilled' ? (myResResult.value        || []) : [];
+      const myListings   = myListingsResult.status   === 'fulfilled' ? (myListingsResult.value   || []) : [];
+      const myAccepted   = myAcceptedResult.status   === 'fulfilled' ? (myAcceptedResult.value   || []) : [];
+      const partnerPins  = partnerPinsResult.status  === 'fulfilled' ? (partnerPinsResult.value  || []) : [];
 
       (users || []).forEach(u => { if (u.username) MapState.userCache[u.username] = u; });
 
@@ -138,12 +141,17 @@ function loadPins() {
         const isFull = (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1);
         if (isFull && !MapState.unlockedIds.has(listing.id)) return;
         seenIds.add(listing.id);
-        const isPartner = listing.host?.partner === true || listing.host?.role === 'PARTNER';
-        const pinType = MapState.myMeetMap[listing.id]
-          ?? (isPartner ? 'partner' : 'default');
+        const pinType = MapState.myMeetMap[listing.id] ?? 'default';
         const marker = buildMarker(listing, pinType);
         MapState.allMarkers.push({ marker, listing, pinType });
         MapState.clusterGroup.addLayer(marker);
+      });
+
+      // Partner venue pins — separate layer, not clustered with TourListings
+      partnerPins.filter(p => p.active !== false).forEach(pin => {
+        if (pin.latitude == null || pin.longitude == null) return;
+        const marker = buildPartnerPinMarker(pin);
+        MapState.map.addLayer(marker);
       });
 
       const count = MapState.allMarkers.length;
@@ -215,6 +223,176 @@ function buildMarker(listing, pinType = 'default') {
   const marker = L.marker([markerLat, markerLng], { icon });
   marker.on('click', () => openMapPopup(listing, pinType));
   return marker;
+}
+
+function buildPartnerPinMarker(pin) {
+  let iconHtml;
+  if (pin.logoUrl) {
+    iconHtml = `<div class="map-pin--partner-logo"><img src="${escapeHtml(pin.logoUrl)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>'"></div>`;
+  } else {
+    const initial = (pin.name?.[0] ?? 'P').toUpperCase();
+    iconHtml = `<div class="map-pin--partner-logo"><span class="map-pin--partner-logo__initials">${initial}</span></div>`;
+  }
+  const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [36, 36], iconAnchor: [18, 36] });
+  const marker = L.marker([pin.latitude, pin.longitude], { icon });
+  marker.on('click', () => openPartnerPinPopup(pin));
+  return marker;
+}
+
+function openPartnerPinPopup(pin) {
+  const logoHtml = pin.logoUrl
+    ? `<img src="${escapeHtml(pin.logoUrl)}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;" alt="">`
+    : `<div style="width:36px;height:36px;border-radius:10px;background:rgba(37,99,235,0.18);border:1px solid rgba(37,99,235,0.35);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#60a5fa;flex-shrink:0;">${(pin.name?.[0] ?? 'P').toUpperCase()}</div>`;
+
+  const body = document.getElementById('map-popup-body');
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      ${logoHtml}
+      <div>
+        <div class="popup-name" style="margin:0;">${escapeHtml(pin.name)}</div>
+        ${pin.partnerCompanyName ? `<div style="font-size:10px;color:var(--text-3);margin-top:2px;">${escapeHtml(pin.partnerCompanyName)}</div>` : ''}
+      </div>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;margin-bottom:10px;">PARTNER VENUE</div>
+    ${pin.description ? `<div class="popup-desc">${escapeHtml(pin.description)}</div>` : ''}
+    <div id="pin-events-list" style="margin-top:10px;"><div style="font-size:10px;color:var(--text-3);">Loading events…</div></div>
+  `;
+  document.getElementById('map-popup-footer').innerHTML = '';
+  document.getElementById('map-bottom-sheet').classList.add('map-bs--open');
+  document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
+  document.getElementById('pill-date')?.classList.remove('pill--active');
+
+  PartnerEventAPI.listForPin(pin.id).then(events => {
+    const el = document.getElementById('pin-events-list');
+    if (!el) return;
+    if (!events || events.length === 0) {
+      el.innerHTML = `<div style="font-size:10px;color:var(--text-3);">No upcoming events at this venue.</div>`;
+      return;
+    }
+    el.innerHTML = `<div style="font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Upcoming events</div>` +
+      events.map(ev => {
+        const start = new Date(ev.startDatetime);
+        const dateStr = start.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+        const timeStr = start.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+        const ticketBtn = ev.ticketVendorUrl
+          ? `<button onclick="window.open('${escapeHtml(ev.ticketVendorUrl)}','_blank','noopener')" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">Tickets</button>`
+          : '';
+        const evJson = escapeHtml(JSON.stringify({ id: ev.id, title: ev.title, startDatetime: ev.startDatetime, pinLatitude: ev.pinLatitude, pinLongitude: ev.pinLongitude }));
+        const joinBtn = Auth.getToken()
+          ? `<button onclick="openJoinAsHostForm(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify({ id: ev.id, title: ev.title, startDatetime: ev.startDatetime, pinLatitude: ev.pinLatitude, pinLongitude: ev.pinLongitude }))}')),this)" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">Join as host</button>`
+          : '';
+        return `
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="min-width:38px;text-align:center;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.22);border-radius:8px;padding:4px 0;">
+              <div style="font-size:14px;font-weight:800;color:#60a5fa;line-height:1;">${start.getDate()}</div>
+              <div style="font-size:8px;color:rgba(96,165,250,0.65);text-transform:uppercase;">${dateStr.split(' ')[0]}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:12px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(ev.title)}</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:1px;">${timeStr}</div>
+            </div>
+            <div style="display:flex;gap:5px;flex-shrink:0;">
+              ${ticketBtn}
+              ${joinBtn}
+            </div>
+          </div>`;
+      }).join('');
+  }).catch(() => {
+    const el = document.getElementById('pin-events-list');
+    if (el) el.innerHTML = '';
+  });
+}
+
+function openJoinAsHostForm(ev, triggerBtn) {
+  if (triggerBtn) { triggerBtn.disabled = true; triggerBtn.textContent = '…'; }
+  const body   = document.getElementById('map-popup-body');
+  const footer = document.getElementById('map-popup-footer');
+  const startIso = ev.startDatetime?.slice(0, 16) ?? '';
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <button id="jah-back" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;font-size:11px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:15px;color:var(--text);">Join as host</div>
+    </div>
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;line-height:1.55;">
+      Creating a Meet linked to: <strong style="color:var(--text);">${escapeHtml(ev.title)}</strong>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <div style="font-size:9px;color:var(--text-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">City *</div>
+        <input id="jah-city" type="text" placeholder="e.g. Zagreb" autocomplete="address-level2" style="background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.07);border-top-color:rgba(0,0,0,0.45);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;width:100%;box-sizing:border-box;box-shadow:inset 0 1px 4px rgba(0,0,0,0.38);">
+      </div>
+      <div>
+        <div style="font-size:9px;color:var(--text-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">Description *</div>
+        <textarea id="jah-desc" placeholder="What will you offer guests at this event?" rows="3" style="background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.07);border-top-color:rgba(0,0,0,0.45);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;width:100%;box-sizing:border-box;resize:vertical;line-height:1.5;box-shadow:inset 0 1px 4px rgba(0,0,0,0.38);"></textarea>
+      </div>
+      <div>
+        <div style="font-size:9px;color:var(--text-2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;">Max guests *</div>
+        <input id="jah-guests" type="number" value="2" min="1" max="20" style="background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.07);border-top-color:rgba(0,0,0,0.45);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;width:100%;box-sizing:border-box;box-shadow:inset 0 1px 4px rgba(0,0,0,0.38);">
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+          <div style="font-size:9px;color:var(--text-2);letter-spacing:0.08em;text-transform:uppercase;">Meeting time</div>
+          <label style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text-3);cursor:pointer;">
+            <input type="checkbox" id="jah-override-time" onchange="document.getElementById('jah-time-row').style.display=this.checked?'block':'none'"> Use different time
+          </label>
+        </div>
+        <div style="font-size:11px;color:var(--text-3);">${escapeHtml(startIso.replace('T', ' '))}</div>
+        <div id="jah-time-row" style="display:none;margin-top:8px;">
+          <input id="jah-date" type="datetime-local" value="${escapeHtml(startIso)}" style="background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.07);border-top-color:rgba(0,0,0,0.45);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;width:100%;box-sizing:border-box;box-shadow:inset 0 1px 4px rgba(0,0,0,0.38);">
+        </div>
+      </div>
+    </div>
+    <div id="jah-error" style="display:none;background:rgba(255,80,80,0.08);border:1px solid rgba(255,80,80,0.22);border-radius:8px;padding:8px 12px;font-size:11px;color:rgba(255,110,110,0.9);margin-top:10px;"></div>
+  `;
+
+  footer.innerHTML = `<button class="popup-action" style="width:100%;background:var(--accent);color:#000;" id="jah-submit">Create Meet →</button>`;
+
+  document.getElementById('jah-back').addEventListener('click', closeMapPopup);
+  document.getElementById('jah-submit').addEventListener('click', async () => {
+    const city    = document.getElementById('jah-city').value.trim();
+    const desc    = document.getElementById('jah-desc').value.trim();
+    const guests  = parseInt(document.getElementById('jah-guests').value, 10);
+    const useTime = document.getElementById('jah-override-time').checked;
+    const dateVal = useTime ? document.getElementById('jah-date').value : null;
+    const errEl   = document.getElementById('jah-error');
+    const btn     = document.getElementById('jah-submit');
+
+    errEl.style.display = 'none';
+    if (!city)        { errEl.textContent = 'City is required.';              errEl.style.display = 'block'; return; }
+    if (!desc)        { errEl.textContent = 'Description is required.';       errEl.style.display = 'block'; return; }
+    if (!guests || guests < 1) { errEl.textContent = 'Enter a valid guest count.'; errEl.style.display = 'block'; return; }
+    if (useTime && (!dateVal || new Date(dateVal) < new Date())) {
+      errEl.textContent = 'Override date must be in the future.'; errEl.style.display = 'block'; return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Creating…';
+
+    const dto = {
+      partnerEventId: ev.id,
+      city,
+      tourDescription: desc,
+      maxGuests: guests,
+      overrideMeetingDate: useTime && dateVal ? dateVal + ':00' : null,
+      overrideLatitude: null,
+      overrideLongitude: null,
+    };
+
+    try {
+      await TourListingAPI.createFromEvent(dto);
+      closeMapPopup();
+      showToast('Meet created! Check My Meets.', 'success');
+      setTimeout(() => { window.location.href = '/tours'; }, 1200);
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not create Meet.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Create Meet →';
+    }
+  });
 }
 
 function openMapPopup(listing, pinType = 'default') {
