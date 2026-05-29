@@ -2,6 +2,7 @@ package hr.tvz.experimate.experimate;
 
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
+import hr.tvz.experimate.experimate.push.PushGateway;
 import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
 import hr.tvz.experimate.experimate.domain.partner.ApplyPartnerRequest;
@@ -86,6 +87,14 @@ public abstract class AbstractIntegrationTest {
 
     @MockitoBean
     protected ChatClient chatClient;
+
+    /**
+     * Mocked so no actual HTTP calls are made to push services during tests.
+     * Returns 0 (not 410) by default, so the 410-cleanup path in PushNotificationService
+     * is never triggered during tests.
+     */
+    @MockitoBean
+    protected PushGateway pushGateway;
 
     protected static final String LISTING_URL     = "/api/tour-listing";
     protected static final String BOOKING_URL     = "/api/booking-request";
