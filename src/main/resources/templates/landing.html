@@ -17,6 +17,7 @@
   <meta name="twitter:image" content="/images/og-card.png">
   <title>ExperiMate — Meet a local, not a tourist</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap">
@@ -30,7 +31,7 @@
         .catch(() => {});
     }
   </script>
-  <script>(function(){ if(localStorage.getItem('theme')==='light') document.documentElement.classList.add('light-mode'); })();</script>
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');else if(t==='warm')document.body.classList.add('warm-mode');else if(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)document.body.classList.add('light-mode');})();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -83,9 +84,9 @@
 
     /* ── ORBS ── */
     .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; animation: orb-drift linear infinite; }
-    .orb-1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.05; top: -200px; left: -150px; animation-duration: 28s; }
-    .orb-2 { width: 500px; height: 500px; background: var(--warm); opacity: 0.04; bottom: -100px; right: -120px; animation-duration: 35s; animation-delay: -14s; }
-    .orb-3 { width: 350px; height: 350px; background: var(--accent); opacity: 0.028; top: 60vh; left: 40vw; animation-duration: 42s; animation-delay: -22s; }
+    .orb-1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.10; top: -200px; left: -150px; animation-duration: 28s; }
+    .orb-2 { width: 500px; height: 500px; background: var(--warm); opacity: 0.08; bottom: -100px; right: -120px; animation-duration: 35s; animation-delay: -14s; }
+    .orb-3 { width: 350px; height: 350px; background: var(--accent); opacity: 0.05; top: 60vh; left: 40vw; animation-duration: 42s; animation-delay: -22s; }
     @keyframes orb-drift {
       0%   { transform: translate(0,0) scale(1); }
       33%  { transform: translate(20px,-25px) scale(1.05); }

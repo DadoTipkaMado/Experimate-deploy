@@ -6,28 +6,50 @@
   <meta name="theme-color" content="#0a0a0a">
   <meta name="robots" content="noindex, nofollow">
   <title>Meets — Experimate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
 
+    /* ── Page header ── */
+    .meets-header {
+      padding: 22px 20px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .meets-header::before {
+      content: '';
+      position: absolute;
+      top: -70px; left: -50px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(0,201,167,0.10) 0%, transparent 68%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
     /* ── Segmented tab bar ── */
     .seg-tabs {
-      display: flex; padding: 12px 16px;
+      display: flex; padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       gap: 6px; background: #0a0c0c; position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
     .seg-tab {
-      flex: 1; height: 36px; border-radius: var(--radius-pill);
+      flex: 1; height: 38px; border-radius: var(--radius-pill);
       border: 1px solid var(--border-2); background: transparent;
       color: var(--text-3); font-family: var(--font-mono); font-size: 10px;
       letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer;
       transition: all var(--t-fast); position: relative;
     }
     .seg-tab--active {
-      background: var(--surface-2); border-color: var(--accent-border);
+      background: var(--surface-2);
+      border-color: rgba(0,201,167,0.55);
       color: var(--accent);
+      box-shadow: 0 0 10px rgba(0,201,167,0.14), inset 0 1px 0 rgba(0,201,167,0.10);
     }
     .seg-tab__badge {
       position: absolute; top: -4px; right: -4px;
@@ -57,9 +79,9 @@
 
     /* ── Meet card ── */
     .meet-card {
-      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0c0e0e 100%);
       border: 1px solid var(--border-2);
-      border-top-color: rgba(255,255,255,0.10);
+      border-top-color: rgba(255,255,255,0.11);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
       overflow: hidden;
@@ -67,8 +89,8 @@
       box-shadow:
         inset 0 1.5px 0 rgba(255,255,255,0.13),
         inset 0 -1px 0 rgba(0,0,0,0.45),
-        0 8px 20px rgba(0,0,0,0.55),
-        0 2px 6px rgba(0,0,0,0.4);
+        0 8px 24px rgba(0,0,0,0.55),
+        0 2px 8px rgba(0,0,0,0.4);
       transition: box-shadow var(--t-fast), transform var(--t-fast), border-color var(--t-fast);
       position: relative;
       -webkit-tap-highlight-color: transparent;
@@ -79,15 +101,23 @@
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.07),
         inset 0 2px 8px rgba(0,0,0,0.35);
-      transform: scale(0.98);
+      transform: scale(0.985);
     }
-    .meet-card--upcoming { border-color: var(--border-2); }
-    .meet-card--past { opacity: 0.5; }
+    .meet-card--upcoming {
+      border-color: rgba(255,255,255,0.07);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 8px 24px rgba(0,0,0,0.55),
+        0 2px 8px rgba(0,0,0,0.4),
+        0 0 0 1px rgba(0,201,167,0.04);
+    }
+    .meet-card--past { opacity: 0.45; }
 
     /* Accent strip top */
     .meet-card--upcoming::before {
-      content: ''; display: block; height: 3px;
-      background: linear-gradient(90deg, var(--accent) 0%, rgba(0,201,167,0.3) 100%);
+      content: ''; display: block; height: 2px;
+      background: linear-gradient(90deg, rgba(0,201,167,0.85) 0%, rgba(0,201,167,0.22) 60%, transparent 100%);
     }
 
     .meet-card__body {
@@ -98,14 +128,16 @@
       background: var(--surface-2); border: 2px solid var(--border-2);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden; font-family: var(--font-display); font-weight: 800;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
     }
     .meet-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
     .meet-card__info { flex: 1; min-width: 0; }
     .meet-card__name {
       font-family: var(--font-display); font-weight: 800; font-size: 15px;
       color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: -0.01em;
     }
-    .meet-card__handle { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .meet-card__handle { font-size: 11px; color: var(--text-3); margin-top: 2px; font-family: var(--font-mono); }
     .meet-card__meta {
       display: flex; align-items: center; gap: 6px; margin-top: 8px;
     }
@@ -214,15 +246,54 @@
     /* ── Empty state ── */
     .meet-empty {
       display: flex; flex-direction: column; align-items: center;
-      padding: 56px 24px; gap: 12px; text-align: center;
+      padding: 56px 24px 48px; gap: 14px; text-align: center;
+    }
+    .meet-empty__icon-wrap {
+      position: relative; width: 64px; height: 64px;
+    }
+    .meet-empty__icon-wrap::before {
+      content: '';
+      position: absolute; inset: -14px;
+      background: radial-gradient(ellipse at center, rgba(0,201,167,0.12) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
     }
     .meet-empty__icon {
-      width: 60px; height: 60px; border-radius: 18px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center; color: var(--text-3);
+      width: 64px; height: 64px; border-radius: 20px;
+      background: linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.10), 0 6px 18px rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center; color: var(--accent);
     }
-    .meet-empty__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
-    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.65; max-width: 220px; }
+    .meet-empty__title { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: var(--text); }
+    .meet-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.7; max-width: 230px; }
+    .meet-empty__actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; justify-content: center; }
+
+    /* ── Skeleton loaders ── */
+    .meet-skel {
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.08);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.10), 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .meet-skel--upcoming::before {
+      content: ''; display: block; height: 3px;
+      background: linear-gradient(90deg, rgba(0,201,167,0.25) 0%, rgba(0,201,167,0.06) 100%);
+    }
+    .meet-skel__body { display: flex; align-items: center; gap: 14px; padding: 16px 16px 12px; }
+    .meet-skel__circle {
+      width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface-3, #1f1f1f);
+      animation: skelPulse 1.4s ease infinite;
+    }
+    .meet-skel__lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .meet-skel__line {
+      height: 11px; border-radius: 6px;
+      background: var(--surface-3, #1f1f1f);
+      animation: skelPulse 1.4s ease infinite;
+    }
+    @keyframes skelPulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.65; } }
 
     /* ── FAB ── */
     .fab {
@@ -246,38 +317,49 @@
     /* ── Meet detail sheet ── */
     .detail-backdrop {
       display: none; position: fixed; inset: 0; z-index: 400;
-      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     }
     .detail-backdrop--open { display: block; }
     .detail-sheet {
       position: fixed; bottom: -100%; left: 0; right: 0; z-index: 401;
-      background: var(--surface); border-radius: 20px 20px 0 0;
-      border: 1px solid var(--border-2); border-bottom: none;
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 35%, #0c0e0e 100%);
+      border-radius: 24px 24px 0 0;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      border-left: 1px solid rgba(255,255,255,0.06);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      border-bottom: none;
+      box-shadow: 0 -12px 48px rgba(0,0,0,0.65), 0 -2px 12px rgba(0,0,0,0.4);
       max-height: 85dvh; overflow-y: auto;
-      transition: bottom 0.3s cubic-bezier(0.32,0.72,0,1);
+      transition: bottom 0.32s cubic-bezier(0.32,0.72,0,1);
       padding-bottom: calc(var(--navbar-h) + 16px);
     }
     .detail-sheet--open { bottom: 0; }
-    .detail-sheet__drag { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 14px auto 0; }
+    .detail-sheet__drag { width: 40px; height: 4px; background: rgba(255,255,255,0.14); border-radius: 2px; margin: 14px auto 0; }
     .detail-sheet__hero {
       display: flex; flex-direction: column; align-items: center;
       padding: 20px 20px 22px; gap: 6px; border-bottom: 1px solid var(--border);
     }
     .detail-sheet__avatar {
-      width: 72px; height: 72px; border-radius: 50%;
+      width: 76px; height: 76px; border-radius: 50%;
       background: var(--surface-2); overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       font-family: var(--font-display); font-weight: 800;
-      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+      box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px rgba(0,201,167,0.6), 0 4px 16px rgba(0,0,0,0.45);
     }
     .detail-sheet__avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); }
-    .detail-sheet__handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; margin-bottom: 6px; }
+    .detail-sheet__name { font-family: var(--font-display); font-weight: 800; font-size: 21px; color: var(--text); letter-spacing: -0.01em; }
+    .detail-sheet__handle { font-size: 12px; color: var(--text-3); letter-spacing: 0.04em; margin-bottom: 6px; font-family: var(--font-mono); }
     .detail-sheet__body { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
     .detail-row { display: flex; align-items: flex-start; gap: 12px; }
-    .detail-row__icon { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
-    .detail-row__label { font-size: 10px; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
-    .detail-row__value { font-size: 14px; color: var(--text); line-height: 1.5; }
+    .detail-row__icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(140deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border-2); display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); flex-shrink: 0; margin-top: 1px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .detail-row__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.09em; text-transform: uppercase; margin-bottom: 3px; font-family: var(--font-mono); }
+    .detail-row__value { font-size: 14px; color: var(--text); line-height: 1.55; }
     .detail-sheet__foot { padding: 12px 20px 0; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); }
 
     /* ── Countdown bar ── */
@@ -323,7 +405,7 @@
       width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 14px;
     }
     .modal-handle { width: 36px; height: 3px; background: var(--border-2); border-radius: 2px; margin: 0 auto 6px; }
-    .modal-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--text); }
+    .modal-title { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text); letter-spacing: -0.01em; }
     .modal-sub { font-size: 12px; color: var(--text-3); line-height: 1.6; margin-top: -6px; }
     .modal-card textarea {
       background: var(--surface-2); border: 1px solid var(--border-2);
@@ -345,8 +427,10 @@
     /* ── Light / Warm mode ── */
     body.light-mode .page-content { background: #f0eeea; }
     body.warm-mode  .page-content { background: #ECEDF2; }
-    body.light-mode .seg-tabs { background: #f0eeea; border-bottom-color: rgba(0,0,0,0.10); }
-    body.warm-mode  .seg-tabs { background: #ECEDF2; border-bottom-color: rgba(0,0,0,0.08); }
+    body.light-mode .seg-tabs { background: rgba(240,238,234,0.95); border-bottom-color: rgba(0,0,0,0.10); }
+    body.warm-mode  .seg-tabs { background: rgba(236,237,242,0.95); border-bottom-color: rgba(0,0,0,0.08); }
+    body.light-mode .meets-header::before { background: radial-gradient(circle, rgba(0,110,88,0.08) 0%, transparent 68%); }
+    body.warm-mode  .meets-header::before { background: radial-gradient(circle, rgba(235,101,71,0.07) 0%, transparent 68%); }
     body.light-mode .meet-card,
     body.light-mode .listing-card,
     body.light-mode .req-card {
@@ -393,11 +477,9 @@
   <main class="page-content">
 
     <!-- ── Header ── -->
-    <div style="padding:18px 18px 0; display:flex; align-items:center; justify-content:space-between;">
-      <div>
-        <div class="page-title" style="margin:0;">Meets</div>
-        <div class="page-subtitle" style="margin:0;">Your days, your people</div>
-      </div>
+    <div class="meets-header">
+      <div class="page-title">Meets</div>
+      <div class="page-subtitle">Your days, your people</div>
     </div>
 
     <!-- ── Segmented tabs ── -->
@@ -420,12 +502,19 @@
         <button class="fchip fchip--active" id="fchip-upcoming" onclick="setMeetFilter('timeframe','upcoming')">Upcoming</button>
         <button class="fchip"              id="fchip-past"     onclick="setMeetFilter('timeframe','past')">Past</button>
       </div>
-      <div id="meets-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="meets-list" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- skeleton -->
+        <div class="meet-skel meet-skel--upcoming"><div class="meet-skel__body"><div class="meet-skel__circle"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:55%;"></div><div class="meet-skel__line" style="width:38%;"></div></div></div></div>
+        <div class="meet-skel meet-skel--upcoming"><div class="meet-skel__body"><div class="meet-skel__circle"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:48%;"></div><div class="meet-skel__line" style="width:30%;"></div></div></div></div>
+      </div>
     </div>
 
     <!-- ── MY LISTINGS ── -->
     <div class="tab-panel" id="panel-listings">
-      <div id="listings-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="listings-list" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- skeleton -->
+        <div class="meet-skel"><div class="meet-skel__body"><div class="meet-skel__circle" style="border-radius:8px;width:44px;height:44px;"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:50%;"></div><div class="meet-skel__line" style="width:36%;"></div></div></div></div>
+      </div>
     </div>
 
     <!-- ── REQUESTS ── -->
@@ -437,7 +526,10 @@
         <button class="fchip fchip--active" id="fchip-pending"  onclick="setReqFilter('status','PENDING')">Pending</button>
         <button class="fchip"              id="fchip-declined" onclick="setReqFilter('status','DECLINED')">Declined</button>
       </div>
-      <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="requests-list" style="display:flex;flex-direction:column;gap:10px;">
+        <!-- skeleton -->
+        <div class="meet-skel"><div class="meet-skel__body"><div class="meet-skel__circle"></div><div class="meet-skel__lines"><div class="meet-skel__line" style="width:45%;"></div><div class="meet-skel__line" style="width:28%;"></div></div></div></div>
+      </div>
     </div>
 
   </main>
@@ -714,10 +806,12 @@
   /* ── Empty state ── */
   function emptyState(icon, title, sub, cta) {
     return `<div class="meet-empty">
-      <div class="meet-empty__icon">${icon}</div>
+      <div class="meet-empty__icon-wrap">
+        <div class="meet-empty__icon">${icon}</div>
+      </div>
       <div class="meet-empty__title">${title}</div>
       <div class="meet-empty__sub">${sub}</div>
-      ${cta || ''}
+      ${cta ? `<div class="meet-empty__actions">${cta}</div>` : ''}
     </div>`;
   }
 
@@ -737,13 +831,22 @@
 
     if (!items.length) {
       const icon = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
-      const msg = isPast
-        ? (isJoined ? 'No past meets yet.' : 'No past hosted meets yet.')
-        : (isJoined ? 'No upcoming meets.' : 'No upcoming Mates.');
-      const cta = !isPast && isJoined
-        ? `<a href="/map" class="btn btn--ghost" style="height:38px;padding:0 20px;font-size:12px;margin-top:4px;">Browse the map →</a>`
-        : '';
-      el.innerHTML = emptyState(icon, msg, isJoined ? 'Join a meet from the map or Explore tab.' : 'Create a listing to start hosting.', cta);
+      let title, sub, cta;
+      if (isPast) {
+        title = isJoined ? 'No past meets yet' : 'No past hosting yet';
+        sub   = isJoined ? 'Your completed meets will appear here.' : 'Meets you\'ve hosted will archive here after they end.';
+        cta   = '';
+      } else if (isJoined) {
+        title = 'Nothing booked yet';
+        sub   = 'Find a local guide and book your first meet — it only takes a tap.';
+        cta   = `<a href="/explore" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;">Browse Mates →</a>
+                 <a href="/map" class="btn btn--ghost" style="height:38px;padding:0 20px;font-size:12px;">View map</a>`;
+      } else {
+        title = 'No upcoming hosting';
+        sub   = 'Create a listing to host your first Meet Day with a local.';
+        cta   = `<a href="/listings/new" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;">+ New Meet</a>`;
+      }
+      el.innerHTML = emptyState(icon, title, sub, cta);
       return;
     }
 

@@ -1149,21 +1149,27 @@ function _showReminder(res) {
    CUSTOM DATE PICKER — shared across all pages
    Usage: DatePicker.open(inputEl, { min, max })
    Writes DD/MM/YYYY into inputEl.value and fires input + change events.
+   - Typed input with DD/MM/YYYY auto-formatting
+   - Click month → month grid; click year → scrollable year list
+   - Mouse wheel on month/year labels scrolls them
 ═══════════════════════════════════════════════ */
 const DatePicker = (() => {
-  const _MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const _DAYS   = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+  const MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS         = ['Mo','Tu','We','Th','Fr','Sa','Su'];
 
-  let _el    = null;   // active input element
-  let _opts  = {};     // { min: Date|null, max: Date|null }
-  let _view  = null;   // { year, month }
-  let _wrap  = null;   // DOM overlay element
+  let _el   = null;
+  let _opts = {};
+  let _view = null;   // { year, month }
+  let _mode = 'days'; // 'days' | 'months' | 'years'
+  let _wrap = null;
 
   function open(inputEl, opts = {}) {
     _el   = inputEl;
     _opts = opts;
+    _mode = 'days';
+    inputEl._dpOpts = opts;
 
-    // Parse current value to set view
     const parts = (inputEl.value || '').split('/');
     const today = new Date();
     if (parts.length === 3 && parts[2].length === 4) {
@@ -1181,52 +1187,177 @@ const DatePicker = (() => {
       document.addEventListener('click', _outsideClick, true);
       document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     }
+
+    if (!inputEl.dataset.dpWired) {
+      inputEl.dataset.dpWired = '1';
+      inputEl.removeAttribute('readonly');
+      inputEl.style.cursor = '';
+      inputEl.addEventListener('keydown', _handleKeydown);
+      inputEl.addEventListener('input',   _handleInput);
+      inputEl.addEventListener('focus', function () {
+        if (_wrap && _wrap.style.display !== 'none' && _el === this) return;
+        open(this, this._dpOpts || {});
+      });
+    }
+
     _render();
     _position();
     _wrap.style.display = 'block';
   }
 
+  function _handleKeydown(e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const nav = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Tab','Home','End','Enter'];
+    if (!nav.includes(e.key) && !/^\d$/.test(e.key)) e.preventDefault();
+  }
+
+  function _handleInput(e) {
+    const input  = e.target;
+    const digits = input.value.replace(/\D/g, '').slice(0, 8);
+    let formatted = digits.slice(0, 2);
+    if (digits.length > 2) formatted += '/' + digits.slice(2, 4);
+    if (digits.length > 4) formatted += '/' + digits.slice(4, 8);
+    if (formatted !== input.value) input.value = formatted;
+
+    const parts = formatted.split('/');
+    if (parts.length === 3 && parts[2].length === 4) {
+      const y = parseInt(parts[2]), m = parseInt(parts[1]) - 1;
+      if (!isNaN(y) && m >= 0 && m <= 11) {
+        _view = { year: y, month: m };
+        _mode = 'days';
+        if (_wrap && _wrap.style.display !== 'none') _render();
+      }
+    }
+  }
+
   function _render() {
+    if (_mode === 'days')   _renderDays();
+    if (_mode === 'months') _renderMonths();
+    if (_mode === 'years')  _renderYears();
+  }
+
+  function _renderDays() {
     const { year, month } = _view;
     const today     = new Date(); today.setHours(0,0,0,0);
     const selParts  = (_el.value || '').split('/');
-    const selDate   = selParts.length === 3 ? new Date(parseInt(selParts[2]), parseInt(selParts[1])-1, parseInt(selParts[0])) : null;
+    const selDate   = selParts.length === 3 && selParts[2].length === 4
+      ? new Date(parseInt(selParts[2]), parseInt(selParts[1])-1, parseInt(selParts[0]))
+      : null;
     const firstDay  = new Date(year, month, 1);
     const daysInMon = new Date(year, month + 1, 0).getDate();
-    let dow = firstDay.getDay() - 1; if (dow < 0) dow = 6; // Mon=0
+    let dow = firstDay.getDay() - 1; if (dow < 0) dow = 6;
 
     let cells = '';
     for (let i = 0; i < dow; i++) cells += '<div class="dp-cell dp-cell--empty"></div>';
     for (let d = 1; d <= daysInMon; d++) {
-      const date = new Date(year, month, d);
-      const isToday    = date.getTime() === today.getTime();
-      const isSelected = selDate && date.getTime() === selDate.getTime();
-      const disabled   = (_opts.min && date < _opts.min) || (_opts.max && date > _opts.max);
-      cells += `<div class="dp-cell${isToday ? ' dp-cell--today' : ''}${isSelected ? ' dp-cell--selected' : ''}${disabled ? ' dp-cell--disabled' : ''}"
+      const date     = new Date(year, month, d);
+      const isToday  = date.getTime() === today.getTime();
+      const isSel    = selDate && date.getTime() === selDate.getTime();
+      const disabled = (_opts.min && date < _opts.min) || (_opts.max && date > _opts.max);
+      cells += `<div class="dp-cell${isToday ? ' dp-cell--today' : ''}${isSel ? ' dp-cell--selected' : ''}${disabled ? ' dp-cell--disabled' : ''}"
         ${!disabled ? `data-y="${year}" data-m="${month}" data-d="${d}"` : ''}>${d}</div>`;
     }
 
     _wrap.innerHTML = `
       <div class="dp-header">
-        <button class="dp-nav" id="dp-prev">&#8249;</button>
-        <span class="dp-title">${_MONTHS[month]} ${year}</span>
-        <button class="dp-nav" id="dp-next">&#8250;</button>
+        <button class="dp-nav dp-nav--m-prev" type="button" title="Previous month">&#8249;</button>
+        <div class="dp-header-selectors">
+          <button class="dp-sel dp-sel--month" type="button">${MONTHS_LONG[month]}</button>
+          <button class="dp-sel dp-sel--year" type="button">${year}</button>
+        </div>
+        <button class="dp-nav dp-nav--m-next" type="button" title="Next month">&#8250;</button>
       </div>
-      <div class="dp-dow-row">${_DAYS.map(d => `<div class="dp-dow">${d}</div>`).join('')}</div>
+      <div class="dp-dow-row">${DAYS.map(d => `<div class="dp-dow">${d}</div>`).join('')}</div>
       <div class="dp-grid">${cells}</div>
     `;
 
-    _wrap.querySelector('#dp-prev').addEventListener('click', e => { e.stopPropagation(); _nav(-1); });
-    _wrap.querySelector('#dp-next').addEventListener('click', e => { e.stopPropagation(); _nav(1); });
+    _wrap.querySelector('.dp-nav--m-prev').addEventListener('click', e => { e.stopPropagation(); _navMonth(-1); });
+    _wrap.querySelector('.dp-nav--m-next').addEventListener('click', e => { e.stopPropagation(); _navMonth(1); });
+
+    const mBtn = _wrap.querySelector('.dp-sel--month');
+    const yBtn = _wrap.querySelector('.dp-sel--year');
+    mBtn.addEventListener('click', e => { e.stopPropagation(); _mode = 'months'; _render(); });
+    yBtn.addEventListener('click', e => { e.stopPropagation(); _mode = 'years'; _render(); });
+    mBtn.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); _navMonth(e.deltaY > 0 ? 1 : -1); }, { passive: false });
+    yBtn.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); _navYear(e.deltaY > 0 ? 1 : -1); }, { passive: false });
+
     _wrap.querySelectorAll('.dp-cell[data-d]').forEach(cell => {
       cell.addEventListener('click', e => { e.stopPropagation(); _pick(cell); });
     });
   }
 
-  function _nav(dir) {
+  function _renderMonths() {
+    const cells = MONTHS_SHORT.map((m, i) =>
+      `<div class="dp-month-cell${i === _view.month ? ' dp-month-cell--selected' : ''}" data-m="${i}">${m}</div>`
+    ).join('');
+
+    _wrap.innerHTML = `
+      <div class="dp-header dp-header--sub">
+        <button class="dp-nav dp-nav--back" type="button">&#8249;</button>
+        <span class="dp-sub-title">Month · <button class="dp-sel dp-sel--year-link" type="button">${_view.year} &#8250;</button></span>
+        <span></span>
+      </div>
+      <div class="dp-month-grid">${cells}</div>
+    `;
+
+    _wrap.querySelector('.dp-nav--back').addEventListener('click', e => { e.stopPropagation(); _mode = 'days'; _render(); });
+    _wrap.querySelector('.dp-sel--year-link').addEventListener('click', e => { e.stopPropagation(); _mode = 'years'; _render(); });
+    _wrap.querySelectorAll('.dp-month-cell').forEach(cell => {
+      cell.addEventListener('click', e => {
+        e.stopPropagation();
+        _view.month = parseInt(cell.dataset.m);
+        _mode = 'days';
+        _render();
+      });
+    });
+  }
+
+  function _renderYears() {
+    const today   = new Date();
+    const minYear = _opts.min ? _opts.min.getFullYear() : 1900;
+    const maxYear = _opts.max ? _opts.max.getFullYear() : today.getFullYear() + 10;
+    const selYear = _view.year;
+
+    let items = '';
+    for (let y = maxYear; y >= minYear; y--) {
+      items += `<div class="dp-year-item${y === selYear ? ' dp-year-item--selected' : ''}" data-y="${y}">${y}</div>`;
+    }
+
+    _wrap.innerHTML = `
+      <div class="dp-header dp-header--sub">
+        <button class="dp-nav dp-nav--back" type="button">&#8249;</button>
+        <span class="dp-sub-title">Select year</span>
+        <span></span>
+      </div>
+      <div class="dp-year-list" id="dp-year-list">${items}</div>
+    `;
+
+    _wrap.querySelector('.dp-nav--back').addEventListener('click', e => { e.stopPropagation(); _mode = 'days'; _render(); });
+    _wrap.querySelectorAll('.dp-year-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        _view.year = parseInt(item.dataset.y);
+        _mode = 'months';
+        _render();
+      });
+    });
+
+    requestAnimationFrame(() => {
+      const list = document.getElementById('dp-year-list');
+      const sel  = list && list.querySelector('.dp-year-item--selected');
+      if (list && sel) list.scrollTop = sel.offsetTop - list.clientHeight / 2 + sel.clientHeight / 2;
+    });
+  }
+
+  function _navMonth(dir) {
     _view.month += dir;
     if (_view.month < 0)  { _view.month = 11; _view.year--; }
     if (_view.month > 11) { _view.month = 0;  _view.year++; }
+    _render();
+  }
+
+  function _navYear(dir) {
+    _view.year += dir;
     _render();
   }
 
@@ -1245,7 +1376,7 @@ const DatePicker = (() => {
     const spaceBelow = window.innerHeight - rect.bottom;
     _wrap.style.left = Math.min(rect.left, window.innerWidth - 310) + 'px';
     if (spaceBelow >= 340) {
-      _wrap.style.top  = (rect.bottom + 6) + 'px';
+      _wrap.style.top    = (rect.bottom + 6) + 'px';
       _wrap.style.bottom = 'auto';
     } else {
       _wrap.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
@@ -1314,4 +1445,57 @@ window.DatePicker = DatePicker;
     lnk.rel = 'prefetch'; lnk.href = a.href;
     document.head.appendChild(lnk);
   });
+})();
+
+/* ── PWA Install Banner ───────────────────────────────────────────────── */
+(function () {
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+  if (navigator.standalone) return; // iOS already installed
+  if (sessionStorage.getItem('_pwa_dismissed')) return;
+
+  let _prompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _prompt = e;
+    _show(false);
+  });
+
+  // iOS Safari: no beforeinstallprompt — show manual hint after a short delay
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone) {
+    setTimeout(() => _show(true), 4000);
+  }
+
+  function _show(isIOS) {
+    if (document.getElementById('_pwa-banner')) return;
+    const wrap = document.createElement('div');
+    wrap.id = '_pwa-banner';
+    wrap.innerHTML = `<div class="pwa-banner">
+      <div class="pwa-banner__icon"><img src="/icons/icon.svg" width="28" height="28" alt=""></div>
+      <div class="pwa-banner__text">
+        <div class="pwa-banner__title">ExperiMate</div>
+        <div class="pwa-banner__sub">${isIOS ? 'Tap Share → "Add to Home Screen"' : 'Add to your home screen'}</div>
+      </div>
+      ${!isIOS ? '<button class="pwa-banner__btn" id="_pwa-install">Install</button>' : ''}
+      <button class="pwa-banner__close" id="_pwa-dismiss" aria-label="Dismiss">✕</button>
+    </div>`;
+    document.body.appendChild(wrap);
+
+    if (!isIOS) {
+      document.getElementById('_pwa-install').addEventListener('click', () => {
+        if (!_prompt) return;
+        _prompt.prompt();
+        _prompt.userChoice.then(() => { _prompt = null; _dismiss(); });
+      });
+    }
+    document.getElementById('_pwa-dismiss').addEventListener('click', _dismiss);
+  }
+
+  function _dismiss() {
+    const wrap = document.getElementById('_pwa-banner');
+    if (!wrap) return;
+    wrap.querySelector('.pwa-banner').classList.add('pwa-banner--out');
+    setTimeout(() => wrap.remove(), 320);
+    sessionStorage.setItem('_pwa_dismissed', '1');
+  }
 })();
