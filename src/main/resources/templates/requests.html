@@ -9,11 +9,20 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Booking Requests — ExperiMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: none; }
+    }
+
     .requests-header {
       padding: 22px 18px 16px;
       border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
     }
     .section-divider {
       display: flex; align-items: center; gap: 10px;
@@ -23,19 +32,25 @@
     }
     .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .req-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 14px 16px;
+      background: linear-gradient(160deg, rgba(24,24,24,0.95) 0%, rgba(16,16,16,0.90) 100%);
+      border: 1px solid var(--border);
+      border-top-color: rgba(255,255,255,0.08);
+      border-radius: 16px;
+      box-shadow: inset 0 1.5px 0 rgba(255,255,255,0.07), 0 6px 18px rgba(0,0,0,0.45), 0 2px 5px rgba(0,0,0,0.35);
+      padding: 14px 16px;
       display: flex; flex-direction: column; gap: 8px;
       margin: 0 18px 10px;
     }
-    .req-card--pending { box-shadow: inset 3px 0 0 var(--accent); }
+    .req-card--pending {
+      box-shadow: inset 3px 0 0 var(--accent), inset 0 1.5px 0 rgba(255,255,255,0.07), 0 6px 18px rgba(0,0,0,0.45), 0 2px 5px rgba(0,0,0,0.35);
+    }
     .req-empty__icon { width: 52px; height: 52px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-3); }
     .req-card__name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
     .req-card__meta { font-size: 11px; color: var(--text-2); }
     .req-card__actions { display: flex; gap: 8px; margin-top: 4px; }
     .req-btn { flex: 1; height: 42px; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border: 1px solid; transition: background var(--t-base), color var(--t-base); }
     .req-btn--accept { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
-    .req-btn--accept:hover { background: var(--accent); color: #000; }
+    .req-btn--accept:hover { background: var(--accent); color: #000; box-shadow: 0 0 0 3px rgba(0,201,167,0.18); }
     .req-btn--decline { background: transparent; border-color: var(--border-2); color: var(--text-3); }
     .req-btn--decline:hover { border-color: rgba(255,80,80,0.3); color: rgba(255,80,80,0.7); }
     .req-status-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 10px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -58,7 +73,7 @@
 
     <div class="requests-header">
       <div style="display:flex;align-items:center;gap:10px;">
-        <a href="/account" style="color:var(--text-3);text-decoration:none;font-size:36px;line-height:1;">‹</a>
+        <a href="/account" style="width:36px;height:36px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--text-2);text-decoration:none;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></a>
         <div>
           <div class="page-title">Meet Requests</div>
           <div class="page-subtitle">Manage incoming requests for your meets</div>
