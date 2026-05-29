@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
-  <title>Your Vibe — ExperiMate</title>
+  <title>Personality Quiz — ExperiMate</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -415,6 +415,8 @@
   const VERTICES  = [[100, 30], [166.6, 78.4], [141.1, 156.6], [58.9, 156.6], [33.4, 78.4]];
   const DIM_KEYS  = ['openness', 'extraversion', 'agreeableness', 'conscientiousness', 'neuroticism'];
 
+  const isRetake = new URLSearchParams(location.search).has('retake');
+
   let QUESTIONS = [];   // filled by backend
   let current   = 0;
   let answers   = [];
@@ -523,18 +525,10 @@
     const startTime = Date.now();
     let response;
     try {
+      // On retake, clear old data first so the backend accepts a fresh submission.
+      if (isRetake) await OnboardingAPI.deleteData();
       response = await OnboardingAPI.submit(answers);
     } catch (err) {
-      // 409 = already completed; backend doesn't allow re-submission yet.
-      // Fall back to stored personality scores so the result screen still shows.
-      const stored = localStorage.getItem('personality_scores');
-      if (stored) {
-        const vector = JSON.parse(stored);
-        const elapsed = Date.now() - startTime;
-        if (elapsed < 2600) await new Promise(r => setTimeout(r, 2600 - elapsed));
-        showResult(vector, null);
-        return;
-      }
       document.getElementById('analyzing').classList.remove('analyzing--visible');
       document.getElementById('progress-wrap').style.opacity = '';
       alert(err.message || 'Could not save results — please try again.');
@@ -612,18 +606,18 @@
     try {
       const questionsRes = await OnboardingAPI.getQuestions();
 
-      // getStatus may 404 for users created before quiz_result rows existed —
-      // treat any error as AWAITING so the quiz still loads.
-      let quizStatus = 'AWAITING';
-      try {
-        const statusRes = await OnboardingAPI.getStatus();
-        quizStatus = statusRes.status;
-      } catch (_) { /* no quiz_result row yet — proceed as new */ }
+      // On retake, skip the COMPLETED check so the quiz always loads.
+      if (!isRetake) {
+        let quizStatus = 'AWAITING';
+        try {
+          const statusRes = await OnboardingAPI.getStatus();
+          quizStatus = statusRes.status;
+        } catch (_) { /* no quiz_result row yet — proceed as new */ }
 
-      // Already completed — skip straight to explore
-      if (quizStatus === 'COMPLETED') {
-        window.location.href = '/explore';
-        return;
+        if (quizStatus === 'COMPLETED') {
+          window.location.href = '/explore';
+          return;
+        }
       }
 
       QUESTIONS = questionsRes.map(q => q.text);
