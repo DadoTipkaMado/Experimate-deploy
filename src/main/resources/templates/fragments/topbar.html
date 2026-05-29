@@ -9,7 +9,7 @@
   Avatar is rendered client-side from localStorage / API fallback.
 -->
 <header th:fragment="topbar" class="topbar">
-  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');else if(t==='warm')document.body.classList.add('warm-mode');})();</script>
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');else if(t==='warm')document.body.classList.add('warm-mode');else if(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)document.body.classList.add('light-mode');})();</script>
 
   <!-- Back button (shown when nav history exists) -->
   <button class="topbar__back" id="back-btn" aria-label="Go back">
@@ -146,8 +146,10 @@
     const updateIcon = () => btn.innerHTML = document.body.classList.contains('light-mode') ? MOON_SVG : SUN_SVG;
     updateIcon();
     btn.addEventListener('click', () => {
-      const isLight = document.body.classList.toggle('light-mode');
-      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      const wasLight = document.body.classList.contains('light-mode') || document.body.classList.contains('warm-mode');
+      document.body.classList.remove('light-mode', 'warm-mode');
+      if (!wasLight) document.body.classList.add('light-mode');
+      localStorage.setItem('theme', wasLight ? 'dark' : 'light');
       updateIcon();
     });
   })();
