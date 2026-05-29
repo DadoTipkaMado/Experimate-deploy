@@ -31,7 +31,7 @@
         .catch(() => {});
     }
   </script>
-  <script>(function(){ if(localStorage.getItem('theme')==='light') document.documentElement.classList.add('light-mode'); })();</script>
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');else if(t==='warm')document.body.classList.add('warm-mode');else if(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)document.body.classList.add('light-mode');})();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
