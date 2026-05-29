@@ -293,6 +293,14 @@ const PromotedAdAPI = {
 };
 
 /* ───────────────────────────────────────────────
+   FEED  /api/feed  (issue #133)
+─────────────────────────────────────────────── */
+const FeedAPI = {
+  getPage: (page = 0, size = 20, adFrequency = 5) =>
+    apiFetch(`/api/feed?page=${page}&size=${size}&adFrequency=${adFrequency}`),
+};
+
+/* ───────────────────────────────────────────────
    SHARED USER CACHE HELPER
    Saves initials, hue, and photo to localStorage.
    Called after login and auto-redirect so the
