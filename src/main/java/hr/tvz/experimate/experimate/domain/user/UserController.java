@@ -61,6 +61,19 @@ public class UserController {
         );
     }
 
+    /**
+     * Returns the full profile of the currently authenticated user, including their role.
+     *
+     * <p>Intended as the canonical "who am I?" call — typically made once after login
+     * so the frontend can resolve the user's id and role without a separate lookup.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal AppUserDetails userDetails) {
+        return userService.getUserById(userDetails.getId())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PatchMapping(value = "/{id}")
     public ResponseEntity<UserResponse> patchUser(@PathVariable @Positive Integer id,
                                                   @Valid @RequestBody UpdateUserDto dto,
