@@ -144,6 +144,20 @@
         </dependency>
 
         <dependency>
+            <groupId>nl.martijndwars</groupId>
+            <artifactId>web-push</artifactId>
+            <version>5.1.1</version>
+        </dependency>
+
+        <!-- Required by nl.martijndwars:web-push for EC P-256 key operations.
+             web-push declares BouncyCastle as optional so it must be listed explicitly. -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.80</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-restclient</artifactId>
         </dependency>

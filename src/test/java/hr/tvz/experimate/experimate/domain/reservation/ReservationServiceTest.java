@@ -557,6 +557,7 @@ class ReservationServiceTest {
         Integer userId = 10;
 
         Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
         User caller = mock(User.class);
         User guest = mock(User.class);
 
@@ -567,6 +568,10 @@ class ReservationServiceTest {
         when(reservation.getGuest()).thenReturn(guest);
         when(guest.getId()).thenReturn(userId);
         when(caller.getUsername()).thenReturn("david");
+        // cancelTour now publishes ReservationCancelledEvent which needs listing id + meetingDate
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getId()).thenReturn(5);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusDays(1));
 
         CancelTourResponse response = service.cancelTour(userId, 1);
 
@@ -580,6 +585,7 @@ class ReservationServiceTest {
         Integer userId = 10;
 
         Reservation reservation = mock(Reservation.class);
+        TourListing listing = mock(TourListing.class);
         User caller = mock(User.class);
         User guest = mock(User.class);
 
@@ -590,6 +596,10 @@ class ReservationServiceTest {
         when(reservation.getStatus()).thenReturn(ReservationStatus.ACTIVE);
         when(reservation.getGuest()).thenReturn(guest);
         when(guest.getId()).thenReturn(userId);
+        // cancelTour now publishes ReservationCancelledEvent which needs listing id + meetingDate
+        when(reservation.getTourListing()).thenReturn(listing);
+        when(listing.getId()).thenReturn(5);
+        when(listing.getMeetingDate()).thenReturn(LocalDateTime.now().plusDays(1));
 
         service.cancelTour(userId, 1);
 

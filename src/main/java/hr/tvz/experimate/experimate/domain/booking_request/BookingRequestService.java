@@ -11,6 +11,8 @@ import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBoo
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
+import hr.tvz.experimate.experimate.shared.event.BookingRequestCreatedEvent;
+import hr.tvz.experimate.experimate.shared.event.BookingRequestDeclinedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedEvent;
 import hr.tvz.experimate.experimate.domain.tour_listing.*;
@@ -129,6 +131,8 @@ public class BookingRequestService {
         BookingRequest request = bookingRequestRepo.save(new BookingRequest(guest, listing));
         log.info("Created booking request with id {}", request.getId());
 
+        publisher.publishEvent(new BookingRequestCreatedEvent(listing.getHost().getId(), guest.getUsername()));
+
         return createBookingRequestResponse(request);
     }
 
@@ -219,6 +223,10 @@ public class BookingRequestService {
                     .findBookingRequestIdsByTourListingIdAndStatus(
                             acceptedRequest.getListing().getId(), BookingRequestStatus.PENDING);
             updateBookingRequests(declinedIds, BookingRequestStatus.DECLINED);
+            if (!declinedIds.isEmpty()) {
+                bookingRequestRepo.findGuestIdsByIdIn(declinedIds)
+                        .forEach(guestId -> publisher.publishEvent(new BookingRequestDeclinedEvent(guestId)));
+            }
         }
 
         log.info("Booking request accepted with id {}", acceptedId);
@@ -235,6 +243,8 @@ public class BookingRequestService {
 
         request = updateBookingRequest(id, BookingRequestStatus.DECLINED);
         log.info("Booking request declined with id {}", id);
+
+        publisher.publishEvent(new BookingRequestDeclinedEvent(request.getGuest().getId()));
 
         return createBookingRequestResponse(request);
     }
