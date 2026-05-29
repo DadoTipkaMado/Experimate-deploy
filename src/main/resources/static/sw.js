@@ -1,4 +1,4 @@
-const CACHE = 'experimate-v8';
+const CACHE = 'experimate-v9';
 
 const STATIC = [
   '/css/main.css',
