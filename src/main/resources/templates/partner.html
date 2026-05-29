@@ -692,6 +692,51 @@
   </div>
 </div>
 
+<div id="jah-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:904;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="jah-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(0,201,167,0.18);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65),0 -4px 24px rgba(0,201,167,0.06);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Join as host</div>
+        <div id="jah-modal-event" style="font-size:12px;color:var(--accent);margin-top:3px;font-family:var(--font-mono);"></div>
+      </div>
+      <button onclick="closeJahModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="jah-city">City *</label>
+      <input type="text" id="jah-city" placeholder="e.g. Zagreb" maxlength="80">
+    </div>
+    <div class="partner-form-field">
+      <label for="jah-desc">Description for your meet *</label>
+      <textarea id="jah-desc" placeholder="What will you do with guests?" style="min-height:72px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label for="jah-guests">Max guests *</label>
+      <input type="number" id="jah-guests" value="8" min="1" max="100">
+    </div>
+
+    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2);cursor:pointer;user-select:none;">
+      <input type="checkbox" id="jah-use-time" onchange="document.getElementById('jah-override-wrap').style.display=this.checked?'':'none'" style="accent-color:var(--accent);width:15px;height:15px;">
+      Override meeting date/time
+    </label>
+    <div id="jah-override-wrap" style="display:none;">
+      <div class="partner-form-field" style="margin:0;">
+        <label for="jah-override">Meeting date &amp; time</label>
+        <input type="datetime-local" id="jah-override">
+      </div>
+    </div>
+
+    <div class="partner-form-error" id="jah-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeJahModal()">Cancel</button>
+      <button class="btn--partner" id="jah-modal-save" onclick="saveJahModal()" style="background:var(--accent);color:#000;">Create Meet →</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
@@ -933,6 +978,9 @@
             </div>
             ${ticketBadge}
             <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              <button class="pin-card__btn" title="Join as host" style="color:var(--accent);border-color:rgba(0,201,167,0.28);" onclick="openJahModal(${ev.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              </button>
               <button class="pin-card__btn" title="Edit" onclick="openEventModal(${ev.id})">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
@@ -1055,6 +1103,92 @@
       loadPartnerEvents();
     } catch (e) {
       showToast(e.message || 'Could not delete event.', 'error');
+    }
+  }
+
+  /* ── Join as host (from partner dashboard) ──── */
+
+  let _jahEventId = null;
+
+  async function openJahModal(eventId) {
+    _jahEventId = eventId;
+    const modal = document.getElementById('jah-modal');
+    const card  = document.getElementById('jah-modal-card');
+    document.getElementById('jah-modal-event').textContent = '';
+    document.getElementById('jah-modal-error').style.display = 'none';
+    document.getElementById('jah-modal-save').disabled = false;
+    document.getElementById('jah-modal-save').textContent = 'Create Meet →';
+    document.getElementById('jah-city').value    = '';
+    document.getElementById('jah-desc').value    = '';
+    document.getElementById('jah-guests').value  = '8';
+    document.getElementById('jah-use-time').checked = false;
+    document.getElementById('jah-override-wrap').style.display = 'none';
+    document.getElementById('jah-override').value = '';
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+
+    try {
+      const ev = await PartnerEventAPI.getById(eventId);
+      document.getElementById('jah-modal-event').textContent = ev.title ?? '';
+      if (ev.description) document.getElementById('jah-desc').value = ev.description;
+      if (ev.startDatetime) document.getElementById('jah-override').value = ev.startDatetime.slice(0, 16);
+      if (ev.partnerPinId) {
+        try {
+          const pin = await PartnerPinAPI.getById(ev.partnerPinId);
+          if (pin.city) document.getElementById('jah-city').value = pin.city;
+        } catch { /* city stays blank */ }
+      }
+    } catch { /* modal open anyway, user fills manually */ }
+  }
+
+  function closeJahModal() {
+    const modal = document.getElementById('jah-modal');
+    const card  = document.getElementById('jah-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  async function saveJahModal() {
+    const errEl  = document.getElementById('jah-modal-error');
+    const btn    = document.getElementById('jah-modal-save');
+    const city   = document.getElementById('jah-city').value.trim();
+    const desc   = document.getElementById('jah-desc').value.trim();
+    const guests = parseInt(document.getElementById('jah-guests').value, 10);
+    const useTime = document.getElementById('jah-use-time').checked;
+    const dateVal = document.getElementById('jah-override').value;
+
+    errEl.style.display = 'none';
+    if (!city)  { errEl.textContent = 'City is required.';         errEl.style.display = 'block'; return; }
+    if (!desc)  { errEl.textContent = 'Description is required.';  errEl.style.display = 'block'; return; }
+    if (!guests || guests < 1 || guests > 100) { errEl.textContent = 'Max guests must be 1–100.'; errEl.style.display = 'block'; return; }
+    if (useTime && !dateVal) { errEl.textContent = 'Enter a date/time or uncheck the override.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    const dto = {
+      partnerEventId: _jahEventId,
+      city,
+      tourDescription: desc,
+      maxGuests: guests,
+      overrideMeetingDate: useTime && dateVal ? dateVal + ':00' : null,
+      overrideLatitude: null,
+      overrideLongitude: null,
+    };
+
+    try {
+      await TourListingAPI.createFromEvent(dto);
+      closeJahModal();
+      showToast('Meet created! Check My Meets.', 'success');
+      setTimeout(() => { window.location.href = '/tours'; }, 1200);
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not create meet.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create Meet →';
     }
   }
 
@@ -1330,6 +1464,9 @@
   });
   document.getElementById('event-modal').addEventListener('click', function(e) {
     if (e.target === this) closeEventModal();
+  });
+  document.getElementById('jah-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeJahModal();
   });
 
   initPartnerPage();
