@@ -261,6 +261,7 @@ public class UserService {
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
+                user.getRole().name(),
                 user.getFirstName(),
                 user.getLastName(),
                 user.getBio(),
