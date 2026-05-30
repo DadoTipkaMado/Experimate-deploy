@@ -1000,7 +1000,15 @@
   async function loadPartnerEvents() {
     const container = document.getElementById('partner-events-list');
     try {
-      const events = await PartnerEventAPI.getMine('upcoming');
+      const [events, myAds] = await Promise.all([
+        PartnerEventAPI.getMine('upcoming'),
+        PromotedAdAPI.getMine().catch(() => []),
+      ]);
+      const now = new Date();
+      const promotedEventIds = new Set(
+        (myAds || []).filter(a => a.eventId != null && new Date(a.activeUntil) > now).map(a => a.eventId)
+      );
+
       if (!events || events.length === 0) {
         container.innerHTML = `
           <div class="partner-empty">
@@ -1018,6 +1026,10 @@
         const ticketBadge = ev.ticketVendorUrl
           ? `<span class="partner-event-card__badge" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.28);color:#60a5fa;cursor:pointer;" onclick="window.open('${escH(ev.ticketVendorUrl)}','_blank','noopener')">TICKETS</span>`
           : '';
+        const isPromoted = promotedEventIds.has(ev.id);
+        const promoteBtn = isPromoted
+          ? `<button class="pin-card__btn" title="Remove from Explore feed" style="color:#60a5fa;border-color:rgba(37,99,235,0.35);" onclick="togglePromote(${ev.id}, true)">★</button>`
+          : `<button class="pin-card__btn" title="Promote in Explore feed" onclick="togglePromote(${ev.id}, false)">☆</button>`;
         return `
           <div class="partner-event-card">
             <div class="partner-event-card__date">
@@ -1030,6 +1042,7 @@
             </div>
             ${ticketBadge}
             <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              ${promoteBtn}
               <button class="pin-card__btn" title="Join as host" style="color:var(--accent);border-color:rgba(0,201,167,0.28);" onclick="openJahModal(${ev.id})">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
               </button>
@@ -1045,6 +1058,23 @@
     } catch {
       container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load events.</div></div>`;
     }
+  }
+
+  async function togglePromote(eventId, isPromoted) {
+    try {
+      if (isPromoted) await PartnerEventAPI.unpromote(eventId);
+      else await PartnerEventAPI.promote(eventId);
+      showToast(isPromoted ? 'Removed from Explore feed.' : 'Event promoted in Explore feed!', 'success');
+    } catch (e) {
+      const msg = e.message ?? '';
+      showToast(
+        msg.includes('Already exists') ? 'This event is already promoted.'
+          : msg.includes('permission')  ? 'You can only promote your own events.'
+          : msg || 'Could not update promotion.',
+        'error'
+      );
+    }
+    loadPartnerEvents();
   }
 
   let _eventEditId = null;

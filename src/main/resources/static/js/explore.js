@@ -269,6 +269,9 @@ function renderFeed(items) {
 ─────────────────────────────────────────────── */
 function renderAdCard(ad, idx) {
   const animDelay = Math.min(idx * 55, 380);
+  const isEvent = ad.eventId != null;
+  const label   = isEvent ? 'Sponsored event' : 'Sponsored';
+  const ctaText = isEvent ? 'Get tickets →'   : 'Visit →';
   const imgHtml = ad.imageUrl
     ? `<div class="explore-ad__img"><img src="${escapeHtml(ad.imageUrl)}" alt="${escapeHtml(ad.title)}" loading="lazy"></div>`
     : '';
@@ -279,14 +282,15 @@ function renderAdCard(ad, idx) {
     ? `onclick="window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')"`
     : '';
   return `
-    <div class="explore-card explore-ad" ${cardClick} style="animation-delay:${animDelay}ms;cursor:${ad.linkUrl ? 'pointer' : 'default'};">
-      <div class="explore-ad__label">Sponsored</div>
+    <div class="explore-card explore-ad${isEvent ? ' explore-ad--event' : ''}" ${cardClick}
+         style="animation-delay:${animDelay}ms;cursor:${ad.linkUrl ? 'pointer' : 'default'};">
+      <div class="explore-ad__label">${label}</div>
       ${imgHtml}
       <div class="explore-ad__body">
         <div class="explore-ad__title">${escapeHtml(ad.title)}</div>
         ${ad.description ? `<div class="explore-ad__desc">${escapeHtml(ad.description)}</div>` : ''}
       </div>
-      ${ad.linkUrl ? `<div class="explore-ad__footer"><button class="explore-card__join explore-card__join--join" ${ctaClick} style="pointer-events:none;">Visit →</button></div>` : ''}
+      ${ad.linkUrl ? `<div class="explore-ad__footer"><button class="explore-card__join explore-card__join--join" ${ctaClick} style="pointer-events:none;">${ctaText}</button></div>` : ''}
     </div>`;
 }
 

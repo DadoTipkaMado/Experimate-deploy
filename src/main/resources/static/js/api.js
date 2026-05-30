@@ -283,6 +283,8 @@ const PartnerEventAPI = {
   update:        (id, dto)    => apiFetch(`/api/partner-events/${id}`,   { method: 'PUT',    body: JSON.stringify(dto) }),
   delete:        (id)         => apiFetch(`/api/partner-events/${id}`,   { method: 'DELETE' }),
   getMine:       (filter = 'upcoming') => apiFetch(`/api/partner/events?filter=${filter}`),
+  promote:       (id, dto = {}) => apiFetch(`/api/partner-events/${id}/promote`, { method: 'POST',   body: JSON.stringify(dto) }),
+  unpromote:     (id)           => apiFetch(`/api/partner-events/${id}/promote`, { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────
