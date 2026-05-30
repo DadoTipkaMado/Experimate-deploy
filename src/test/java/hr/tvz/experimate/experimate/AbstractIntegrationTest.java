@@ -14,6 +14,7 @@ import hr.tvz.experimate.experimate.domain.promoted_ad.CreatePromotedAdRequest;
 import hr.tvz.experimate.experimate.domain.promoted_ad.PromotedAdResponse;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
+import hr.tvz.experimate.experimate.shared.RateLimiterService;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
@@ -109,6 +110,19 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
+    /**
+     * Clears all in-memory rate-limit buckets before each test.
+     * Without this, the shared bucket for 127.0.0.1 (used by every login request)
+     * would be exhausted after the first few tests, causing subsequent login calls to return 429.
+     */
+    @BeforeEach
+    void resetRateLimitBuckets() {
+        rateLimiterService.clearBuckets();
+    }
 
     /**
      * Truncates every user table (everything except {@code flyway_schema_history}) before each test,

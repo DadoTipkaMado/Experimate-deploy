@@ -37,6 +37,15 @@ public class RateLimiterService {
             throw new RateLimitException("Rate limit exceeded. Please slow down and try again later.");
     }
 
+    /**
+     * Removes all cached buckets, resetting every rate-limit counter to zero.
+     * Intended for integration tests only — each test starts from a clean state
+     * so that bucket exhaustion in one test does not bleed into the next.
+     */
+    public void clearBuckets() {
+        buckets.clear();
+    }
+
     private Bucket createBucket(RateLimitOperation operation) {
         LocalBucketBuilder builder = Bucket.builder();
         operation.limits.forEach(builder::addLimit);
