@@ -143,7 +143,9 @@ function loadPins() {
         seenIds.add(listing.id);
         const pinType = MapState.myMeetMap[listing.id] ?? 'default';
         const marker = buildMarker(listing, pinType);
-        MapState.allMarkers.push({ marker, listing, pinType });
+        const circle = buildRadiusCircle(listing.lat, listing.lng, listing.radiusMeters);
+        if (circle) circle.addTo(MapState.map);
+        MapState.allMarkers.push({ marker, listing, pinType, circle });
         MapState.clusterGroup.addLayer(marker);
       });
 
@@ -176,18 +178,22 @@ function loadPins() {
 }
 
 
-function _approxCoords(lat, lng, id) {
-  // ~300m deterministic offset for listings where exact location is not yet unlocked
-  const dlat = ((id * 17) % 11 - 5) * 0.0015;
-  const dlng = ((id * 13) % 9  - 4) * 0.0015;
-  return [lat + dlat, lng + dlng];
+function buildRadiusCircle(lat, lng, radiusMeters) {
+  if (!radiusMeters) return null;
+  return L.circle([lat, lng], {
+    radius: radiusMeters,
+    color: '#00c9a7',
+    weight: 1.5,
+    opacity: 0.30,
+    fillColor: '#00c9a7',
+    fillOpacity: 0.05,
+    interactive: false,
+  });
 }
 
 function buildMarker(listing, pinType = 'default') {
-  const unlocked = MapState.unlockedIds.has(listing.id);
-  const [markerLat, markerLng] = unlocked
-    ? [listing.lat, listing.lng]
-    : _approxCoords(listing.lat, listing.lng, listing.id);
+  // Backend returns masked coords when radiusMeters != null — always use as-is
+  const [markerLat, markerLng] = [listing.lat, listing.lng];
 
   const pinClass = pinType === 'due-soon' ? 'map-pin--due-soon'
                  : pinType === 'my-meet'  ? 'map-pin--my-meet'
@@ -484,7 +490,7 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
     badgeHtml = `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(168,85,247,0.15);border:1px solid #a855f7;border-radius:6px;padding:3px 8px;font-size:11px;color:#a855f7;letter-spacing:0.08em;font-weight:700;">✓ GOING</div>`;
   }
 
-  const cityLabel = unlocked ? escapeHtml(listing.city) : `Near ${escapeHtml(listing.city)}`;
+  const cityLabel = listing.radiusMeters == null ? escapeHtml(listing.city) : `Near ${escapeHtml(listing.city)}`;
 
   return `
     <div class="popup-name">${cityLabel}</div>
@@ -511,7 +517,8 @@ function mapFilterAvailable() {
 
 function applyMarkerFilter() {
   MapState.clusterGroup.clearLayers();
-  MapState.allMarkers.forEach(({ marker, listing }) => {
+  MapState.allMarkers.forEach(({ circle }) => { if (circle) MapState.map.removeLayer(circle); });
+  MapState.allMarkers.forEach(({ marker, listing, circle }) => {
     if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
     if (MapState.dateFrom || MapState.dateTo) {
       const d = new Date(listing.meetingDate);
@@ -522,6 +529,7 @@ function applyMarkerFilter() {
       }
     }
     MapState.clusterGroup.addLayer(marker);
+    if (circle) circle.addTo(MapState.map);
   });
 }
 
@@ -578,12 +586,20 @@ if (searchInput) {
   searchInput.addEventListener('input', e => {
     const lower = e.target.value.trim().toLowerCase();
     MapState.clusterGroup.clearLayers();
-    MapState.allMarkers.forEach(({ marker, listing }) => {
+    MapState.allMarkers.forEach(({ circle }) => { if (circle) MapState.map.removeLayer(circle); });
+    MapState.allMarkers.forEach(({ marker, listing, circle }) => {
       if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
-      if (!lower) { MapState.clusterGroup.addLayer(marker); return; }
+      if (!lower) {
+        MapState.clusterGroup.addLayer(marker);
+        if (circle) circle.addTo(MapState.map);
+        return;
+      }
       const text = [listing.city, listing.host?.firstName, listing.host?.lastName, listing.host?.username]
         .filter(Boolean).join(' ').toLowerCase();
-      if (text.includes(lower)) MapState.clusterGroup.addLayer(marker);
+      if (text.includes(lower)) {
+        MapState.clusterGroup.addLayer(marker);
+        if (circle) circle.addTo(MapState.map);
+      }
     });
   });
 }
@@ -697,9 +713,10 @@ function _applyProximityFilter() {
   const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
 
   if (!activeKeys.length) {
-    // No filter active — show all meets
-    MapState.allMarkers.forEach(({ marker }) => {
+    // No filter active — show all meets and their circles
+    MapState.allMarkers.forEach(({ marker, circle }) => {
       if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
+      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
     });
     return;
   }
@@ -707,19 +724,21 @@ function _applyProximityFilter() {
   // Gather all venue coords across active categories
   const allVenues = activeKeys.flatMap(k => _venueCoords[k] || []);
 
-  MapState.allMarkers.forEach(({ marker, listing }) => {
+  MapState.allMarkers.forEach(({ marker, listing, circle }) => {
     const mLat = listing.lat ?? listing.latitude;
     const mLng = listing.lng ?? listing.longitude;
     if (mLat == null || mLng == null) {
-      // No coords — hide when filtering
       MapState.clusterGroup.removeLayer(marker);
+      if (circle) MapState.map.removeLayer(circle);
       return;
     }
     const near = allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M);
     if (near) {
       if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
+      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
     } else {
       MapState.clusterGroup.removeLayer(marker);
+      if (circle) MapState.map.removeLayer(circle);
     }
   });
 }
@@ -827,7 +846,7 @@ window.MapAPI = {
       bookedCount: 0, maxGuests: 1,
     };
     const marker = buildMarker(listing);
-    MapState.allMarkers.push({ marker, listing });
+    MapState.allMarkers.push({ marker, listing, circle: null });
     MapState.clusterGroup.addLayer(marker);
   },
 };
