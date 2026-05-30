@@ -386,7 +386,17 @@ function initSearch() {
       showMatchPanelLoading();
       MatchAPI.findMatches(_searchQuery)
         .then(matches => openMatchPanel(matches, _searchQuery))
-        .catch(() => openMatchPanel([], _searchQuery));
+        .catch(err => {
+          const msg = err?.message ?? '';
+          if (msg.includes('permission')) {
+            openMatchPanelPremium();
+          } else if (msg.includes('slow down')) {
+            openMatchPanelError('Too many searches. Please wait a moment and try again.');
+          } else {
+            closeMatchPanel();
+            showToast('AI search failed — check your connection.', 'error');
+          }
+        });
     }
   });
 
@@ -441,6 +451,32 @@ function showMatchPanelLoading() {
 function closeMatchPanel() {
   document.getElementById('match-panel').classList.remove('match-panel--open');
   document.getElementById('match-panel-backdrop').classList.remove('match-panel-backdrop--visible');
+}
+
+function openMatchPanelPremium() {
+  document.getElementById('match-panel-title').textContent = 'Premium feature';
+  document.getElementById('match-panel-list').innerHTML = `
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:32px;margin-bottom:14px;filter:drop-shadow(0 0 8px rgba(234,179,8,0.4));">✦</div>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);margin-bottom:8px;">AI search is Premium</div>
+      <div style="font-size:12px;color:var(--text-3);line-height:1.65;max-width:220px;margin:0 auto 20px;">
+        Find deeper personality matches with natural-language search — available on Premium.
+      </div>
+      <a href="/premium" style="display:inline-flex;align-items:center;height:38px;padding:0 20px;background:linear-gradient(135deg,#fbbf24 0%,#d97706 100%);color:#1a0e00;border-radius:var(--radius-pill);font-family:var(--font-display);font-weight:800;font-size:13px;text-decoration:none;box-shadow:0 4px 14px rgba(217,119,6,0.35);">Upgrade to Premium →</a>
+    </div>`;
+  document.getElementById('match-panel').classList.add('match-panel--open');
+  document.getElementById('match-panel-backdrop').classList.add('match-panel-backdrop--visible');
+}
+
+function openMatchPanelError(message) {
+  document.getElementById('match-panel-title').textContent = 'Search unavailable';
+  document.getElementById('match-panel-list').innerHTML = `
+    <div style="text-align:center;padding:36px 16px;color:var(--text-3);">
+      <div style="font-size:28px;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:12px;line-height:1.65;">${escapeHtml(message)}</div>
+    </div>`;
+  document.getElementById('match-panel').classList.add('match-panel--open');
+  document.getElementById('match-panel-backdrop').classList.add('match-panel-backdrop--visible');
 }
 
 function renderMatchCard(m) {
@@ -498,7 +534,9 @@ async function toggleExplain(btn) {
     const res = await MatchAPI.explainMatch(userId, _matchQuery || null);
     textEl.textContent = res.explanation || 'No explanation available.';
     textEl.dataset.loaded = '1';
-  } catch {
-    textEl.textContent = 'Could not load explanation — try again.';
+  } catch (err) {
+    textEl.textContent = (err?.message ?? '').includes('permission')
+      ? 'AI explanations are a Premium feature.'
+      : 'Could not load explanation — try again.';
   }
 }
