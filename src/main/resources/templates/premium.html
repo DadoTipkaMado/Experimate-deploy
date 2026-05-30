@@ -293,61 +293,67 @@
         </div>
         <div>
           <div class="premium-active__label">Active</div>
-          <div class="premium-active__plan" id="active-plan-name">Premium Monthly</div>
-          <div class="premium-active__renews" id="active-renews">Renews —</div>
+          <div class="premium-active__plan">ExperiMate Premium</div>
+          <div class="premium-active__renews" id="active-expires">Active</div>
         </div>
       </div>
-      <button class="premium-active__cancel" onclick="openCancelModal()">Cancel subscription</button>
     </div>
 
-    <!-- Plan toggle — hidden when already premium -->
+    <!-- Plan cards — always shown; CTA changes to "Extend" when already premium -->
     <div id="upgrade-section">
 
-      <div style="display:flex;justify-content:center;margin-bottom:20px;">
-        <div class="plan-toggle">
-          <button class="plan-toggle__btn plan-toggle__btn--active" id="toggle-monthly" onclick="selectBilling('monthly')">Monthly</button>
-          <button class="plan-toggle__btn" id="toggle-annual" onclick="selectBilling('annual')">
-            Annual
-            <span class="plan-toggle__save">−33%</span>
-          </button>
-        </div>
-      </div>
+      <div style="text-align:center;font-size:9px;color:var(--text-3);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px;" id="plan-section-label">Choose your plan</div>
 
       <!-- Plan cards -->
       <div class="plan-cards">
 
-        <div class="plan-card plan-card--selected" id="card-monthly" onclick="selectCard('monthly')">
+        <div class="plan-card" id="card-WEEK" onclick="selectCard('WEEK')">
           <div class="plan-card__shine"></div>
           <div class="plan-card__header">
             <div>
-              <div class="plan-card__name">Monthly</div>
+              <div class="plan-card__name">1 Week</div>
               <div class="plan-card__price">
                 <span class="plan-card__currency">€</span>
-                <span class="plan-card__amount" id="price-monthly">9.99</span>
-                <span class="plan-card__period">/mo</span>
+                <span class="plan-card__amount">2.99</span>
               </div>
-              <div class="plan-card__per-month">Billed monthly · cancel anytime</div>
+              <div class="plan-card__per-month">One-time · 7 days access</div>
             </div>
             <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
           </div>
         </div>
 
-        <div class="plan-card" id="card-annual" onclick="selectCard('annual')">
+        <div class="plan-card plan-card--selected" id="card-MONTH" onclick="selectCard('MONTH')">
           <div class="plan-card__shine"></div>
           <div class="plan-card__header">
             <div>
-              <div class="plan-card__name">Annual</div>
+              <div class="plan-card__name">1 Month</div>
               <div class="plan-card__price">
                 <span class="plan-card__currency">€</span>
-                <span class="plan-card__amount">6.66</span>
-                <span class="plan-card__period">/mo</span>
+                <span class="plan-card__amount">7.99</span>
               </div>
-              <div class="plan-card__per-month">€79.99 billed once a year</div>
+              <div class="plan-card__per-month">One-time · 30 days access</div>
             </div>
             <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
           </div>
           <hr class="plan-card__divider">
-          <div class="plan-card__savings">Save €39.89 vs monthly</div>
+          <div class="plan-card__savings">Most popular</div>
+        </div>
+
+        <div class="plan-card" id="card-YEAR" onclick="selectCard('YEAR')">
+          <div class="plan-card__shine"></div>
+          <div class="plan-card__header">
+            <div>
+              <div class="plan-card__name">1 Year</div>
+              <div class="plan-card__price">
+                <span class="plan-card__currency">€</span>
+                <span class="plan-card__amount">59.99</span>
+              </div>
+              <div class="plan-card__per-month">One-time · 365 days access</div>
+            </div>
+            <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
+          </div>
+          <hr class="plan-card__divider">
+          <div class="plan-card__savings">Save €35.89 vs monthly</div>
         </div>
 
       </div>
@@ -415,11 +421,11 @@
 
       <!-- CTA -->
       <div class="premium-cta-wrap">
-        <button class="btn--premium" id="upgrade-btn" onclick="goToPayment()">
-          Continue to payment →
+        <button class="btn--premium" id="upgrade-btn" onclick="doPurchase()">
+          Get Premium →
         </button>
-        <div class="premium-cta__note" id="cta-note">
-          You'll be taken to our secure payment page.<br>Cancel anytime — no hidden fees.
+        <div class="premium-cta__note">
+          One-time purchase — no subscription, no auto-renewal.
         </div>
       </div>
 
@@ -431,83 +437,73 @@
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 </div>
 
-<!-- Cancel subscription modal -->
-<div id="cancel-modal" class="modal-backdrop">
-  <div class="modal-card">
-    <div class="modal-title">Cancel subscription?</div>
-    <div class="modal-sub">Your Premium access stays active until the end of the current billing period. After that your account reverts to the free plan.</div>
-    <div class="modal-actions">
-      <button onclick="closeCancelModal()" class="btn btn--ghost">Keep Premium</button>
-      <button onclick="confirmCancel()" class="btn btn--danger">Cancel subscription</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
-<script>
-  const PAYMENT_URL_MONTHLY = '#'; // TODO: wire Stripe/external checkout URL
-  const PAYMENT_URL_ANNUAL  = '#';
+<script th:inline="none">
+  let _selectedPkg = 'MONTH';
 
-  let selectedPlan = 'monthly';
-
-  function selectBilling(plan) {
-    selectedPlan = plan;
-    document.getElementById('toggle-monthly').classList.toggle('plan-toggle__btn--active', plan === 'monthly');
-    document.getElementById('toggle-annual').classList.toggle('plan-toggle__btn--active', plan === 'annual');
-    if (plan === 'monthly') selectCard('monthly'); else selectCard('annual');
+  function selectCard(pkg) {
+    _selectedPkg = pkg;
+    ['WEEK', 'MONTH', 'YEAR'].forEach(p => {
+      document.getElementById('card-' + p).classList.toggle('plan-card--selected', p === pkg);
+    });
   }
 
-  function selectCard(plan) {
-    selectedPlan = plan;
-    document.getElementById('card-monthly').classList.toggle('plan-card--selected', plan === 'monthly');
-    document.getElementById('card-annual').classList.toggle('plan-card--selected', plan === 'annual');
-    document.getElementById('toggle-monthly').classList.toggle('plan-toggle__btn--active', plan === 'monthly');
-    document.getElementById('toggle-annual').classList.toggle('plan-toggle__btn--active', plan === 'annual');
-  }
-
-  function goToPayment() {
+  async function doPurchase() {
     if (!Auth.getUserId()) { window.location.href = '/login'; return; }
-    const url = selectedPlan === 'annual' ? PAYMENT_URL_ANNUAL : PAYMENT_URL_MONTHLY;
-    if (url === '#') {
-      showToast('Payment page coming soon — stay tuned!', 'info');
-      return;
+    const btn = document.getElementById('upgrade-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing…';
+    try {
+      const res = await PremiumAPI.purchase(_selectedPkg);
+      const until = res.premiumUntil
+        ? new Date(res.premiumUntil).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' })
+        : null;
+      showToast(until ? `Premium active until ${until}!` : 'Premium activated!', 'success');
+      _showActivePremium(until);
+      // Refresh JWT so new role takes effect on next API call
+      fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d?.token) Auth.saveToken(d.token); })
+        .catch(() => {});
+    } catch (e) {
+      showToast(e.message || 'Purchase failed — please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = _isPremium ? 'Extend Premium →' : 'Get Premium →';
     }
-    window.location.href = url;
   }
 
-  function openCancelModal() {
-    document.getElementById('cancel-modal').classList.add('modal-backdrop--open');
-  }
-  function closeCancelModal() {
-    document.getElementById('cancel-modal').classList.remove('modal-backdrop--open');
-  }
-  async function confirmCancel() {
-    closeCancelModal();
-    try {
-      await PremiumAPI.cancel();
-      showToast('Subscription cancelled. Access continues until end of billing period.', 'success');
-      document.getElementById('premium-active-card').classList.remove('visible');
-      document.getElementById('upgrade-section').style.display = '';
-    } catch {
-      showToast('Could not cancel — please try again.', 'error');
-    }
+  let _isPremium = false;
+
+  function _showActivePremium(untilLabel) {
+    _isPremium = true;
+    const card = document.getElementById('premium-active-card');
+    const expiresEl = document.getElementById('active-expires');
+    expiresEl.textContent = untilLabel ? `Active until ${untilLabel}` : 'Active';
+    card.classList.add('visible');
+    document.getElementById('plan-section-label').textContent = 'Extend your premium';
+    document.getElementById('upgrade-btn').disabled = false;
+    document.getElementById('upgrade-btn').textContent = 'Extend Premium →';
   }
 
   async function initPremiumPage() {
-    if (!Auth.getUserId()) return; // guest — show upgrade UI as-is
+    const userId = Auth.getUserId();
+    if (!userId) return;
     try {
-      const status = await PremiumAPI.getStatus();
-      if (status?.active) {
-        const planLabel = status.plan === 'annual' ? 'Premium Annual' : 'Premium Monthly';
-        const renewsDate = status.renewsAt ? new Date(status.renewsAt).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
-        document.getElementById('active-plan-name').textContent = planLabel;
-        document.getElementById('active-renews').textContent = `Renews ${renewsDate}`;
-        document.getElementById('premium-active-card').classList.add('visible');
-        document.getElementById('upgrade-section').style.display = 'none';
+      const user = await UserAPI.getById(userId);
+      if (user?.role === 'ROLE_PREMIUM_USER') {
+        // Try status endpoint for expiry date; fall back gracefully if not yet available
+        let untilLabel = null;
+        try {
+          const status = await PremiumAPI.getStatus();
+          const raw = status?.premiumUntil ?? status?.renewsAt ?? status?.expiresAt ?? null;
+          if (raw) untilLabel = new Date(raw).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' });
+        } catch { /* status endpoint not yet shipped — show active without date */ }
+        _showActivePremium(untilLabel);
       }
-    } catch { /* not premium or backend pending — show upgrade UI */ }
+    } catch { /* not logged in or network error — show upgrade UI */ }
   }
 
   initPremiumPage();
