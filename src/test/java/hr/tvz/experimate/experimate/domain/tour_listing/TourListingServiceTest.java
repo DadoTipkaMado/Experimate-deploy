@@ -21,11 +21,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
+import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -240,6 +246,174 @@ class TourListingServiceTest {
         ArgumentCaptor<TourListing> captor = ArgumentCaptor.forClass(TourListing.class);
         verify(listingRepo).save(captor.capture());
         assertEquals(overrideDate, captor.getValue().getMeetingDate());
+    }
+
+    // ──────────────── getListingById — coordinate reveal ────────────────
+
+    @Test
+    void getListingById_whenViewerHasNoReservation_returnsApproximatedCoordinates() {
+        Integer listingId = 5;
+        Integer viewerId  = 20;
+        double realLat = 45.8;
+        double realLng = 15.9;
+
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+
+        when(listingRepo.findById(listingId)).thenReturn(Optional.of(listing));
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+        when(listing.getId()).thenReturn(listingId);
+        when(listing.getLatitude()).thenReturn(realLat);
+        when(listing.getLongitude()).thenReturn(realLng);
+        when(reservationRepo.existsByGuest_IdAndTourListing_IdAndStatusIn(
+                eq(viewerId), eq(listingId), anyList())).thenReturn(false);
+
+        TourListingResponse response = service.getListingById(listingId, viewerId).orElseThrow();
+
+        assertEquals(500, response.radiusMeters());
+        assertNotEquals(realLat, response.lat());
+        assertNotEquals(realLng, response.lng());
+    }
+
+    @Test
+    void getListingById_whenViewerHasActiveReservation_returnsExactCoordinates() {
+        Integer listingId = 5;
+        Integer viewerId  = 20;
+        double realLat = 45.8;
+        double realLng = 15.9;
+
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+
+        when(listingRepo.findById(listingId)).thenReturn(Optional.of(listing));
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+        when(listing.getId()).thenReturn(listingId);
+        when(listing.getLatitude()).thenReturn(realLat);
+        when(listing.getLongitude()).thenReturn(realLng);
+        when(reservationRepo.existsByGuest_IdAndTourListing_IdAndStatusIn(
+                eq(viewerId), eq(listingId), anyList())).thenReturn(true);
+
+        TourListingResponse response = service.getListingById(listingId, viewerId).orElseThrow();
+
+        assertNull(response.radiusMeters());
+        assertEquals(realLat, response.lat());
+        assertEquals(realLng, response.lng());
+    }
+
+    @Test
+    void getListingById_whenViewerIsHost_returnsExactCoordinatesWithoutCheckingReservations() {
+        Integer listingId = 5;
+        Integer hostId    = 20;
+        double realLat = 45.8;
+        double realLng = 15.9;
+
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+
+        when(listingRepo.findById(listingId)).thenReturn(Optional.of(listing));
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(hostId);   // viewer == host
+        when(listing.getLatitude()).thenReturn(realLat);
+        when(listing.getLongitude()).thenReturn(realLng);
+
+        TourListingResponse response = service.getListingById(listingId, hostId).orElseThrow();
+
+        assertNull(response.radiusMeters());
+        assertEquals(realLat, response.lat());
+        assertEquals(realLng, response.lng());
+        // host check short-circuits before the reservation query is ever issued
+        verify(reservationRepo, never()).existsByGuest_IdAndTourListing_IdAndStatusIn(anyInt(), anyInt(), anyList());
+    }
+
+    @Test
+    void getListingById_whenViewerHasPendingRequestButNoReservation_returnsApproximatedCoordinates() {
+        // A PENDING booking request must not unlock exact coordinates — only a CONFIRMED/ACTIVE
+        // reservation does. The reservation repo returns false because PENDING is not in the
+        // checked statuses, so the viewer gets approximate coordinates regardless.
+        Integer listingId = 5;
+        Integer viewerId  = 20;
+        double realLat = 45.8;
+        double realLng = 15.9;
+
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+
+        when(listingRepo.findById(listingId)).thenReturn(Optional.of(listing));
+        when(listing.getHost()).thenReturn(host);
+        when(host.getId()).thenReturn(99);
+        when(listing.getId()).thenReturn(listingId);
+        when(listing.getLatitude()).thenReturn(realLat);
+        when(listing.getLongitude()).thenReturn(realLng);
+        when(reservationRepo.existsByGuest_IdAndTourListing_IdAndStatusIn(
+                eq(viewerId), eq(listingId), anyList())).thenReturn(false);
+
+        TourListingResponse response = service.getListingById(listingId, viewerId).orElseThrow();
+
+        assertEquals(500, response.radiusMeters());
+    }
+
+    // ──────────────── getAllListings — coordinate reveal (batch path) ────────────────
+
+    @Test
+    void getAllListings_whenViewerHasNoReservationForListing_returnsApproximatedCoordinates() {
+        Integer viewerId  = 20;
+        Integer listingId = 5;
+        double realLat = 45.8;
+        double realLng = 15.9;
+
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+        Pageable pageable = PageRequest.of(0, 20);
+
+        when(listing.getId()).thenReturn(listingId);
+        when(listing.getHost()).thenReturn(host);
+
+        when(listing.getLatitude()).thenReturn(realLat);
+        when(listing.getLongitude()).thenReturn(realLng);
+        when(listingRepo.findAllByHost_IdNot(viewerId, pageable))
+                .thenReturn(new PageImpl<>(List.of(listing), pageable, 1));
+        when(reservationRepo.countByListingIdsAndStatusIn(anyList(), anyList()))
+                .thenReturn(List.of());
+        when(reservationRepo.findListingIdsWithReservationByViewer(anyInt(), anyList(), anyList()))
+                .thenReturn(List.of());   // viewer not in revealedIds
+
+        TourListingResponse response = service.getAllListings(viewerId, pageable).getContent().get(0);
+
+        assertEquals(500, response.radiusMeters());
+        assertNotEquals(realLat, response.lat());
+        assertNotEquals(realLng, response.lng());
+    }
+
+    @Test
+    void getAllListings_whenViewerHasReservationForListing_returnsExactCoordinates() {
+        Integer viewerId  = 20;
+        Integer listingId = 5;
+        double realLat = 45.8;
+        double realLng = 15.9;
+
+        TourListing listing = mock(TourListing.class);
+        User host = mock(User.class);
+        Pageable pageable = PageRequest.of(0, 20);
+
+        when(listing.getId()).thenReturn(listingId);
+        when(listing.getHost()).thenReturn(host);
+
+        when(listing.getLatitude()).thenReturn(realLat);
+        when(listing.getLongitude()).thenReturn(realLng);
+        when(listingRepo.findAllByHost_IdNot(viewerId, pageable))
+                .thenReturn(new PageImpl<>(List.of(listing), pageable, 1));
+        when(reservationRepo.countByListingIdsAndStatusIn(anyList(), anyList()))
+                .thenReturn(List.of());
+        when(reservationRepo.findListingIdsWithReservationByViewer(anyInt(), anyList(), anyList()))
+                .thenReturn(List.of(listingId));  // viewer is in revealedIds
+
+        TourListingResponse response = service.getAllListings(viewerId, pageable).getContent().get(0);
+
+        assertNull(response.radiusMeters());
+        assertEquals(realLat, response.lat());
+        assertEquals(realLng, response.lng());
     }
 
     @Test

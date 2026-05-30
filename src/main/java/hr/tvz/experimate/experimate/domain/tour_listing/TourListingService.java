@@ -31,11 +31,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import hr.tvz.experimate.experimate.shared.util.LocationObfuscator;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,7 +93,7 @@ public class TourListingService {
         );
         log.info("Created TourListing with id {}", saved.getId());
 
-        return createListingResponse(saved);
+        return createListingResponse(saved, 0, true);
     }
 
     /**
@@ -138,23 +141,26 @@ public class TourListingService {
         return createListing(dto, hostId);
     }
 
-    public Optional<TourListingResponse> getListingById(Integer id) {
-        return listingRepo.findById(id)
-                .map(this::createListingResponse);
+    public Optional<TourListingResponse> getListingById(Integer listingId, Integer viewerId) {
+        return listingRepo.findById(listingId)
+                .map(listing -> {
+                    boolean exact = canViewExactLocation(listing, viewerId);
+                    return createListingResponse(listing, 0, exact);
+                });
     }
 
-    private List<TourListingResponse> getListingsByHost(Integer hostId, Sort sort) {
+    /*private List<TourListingResponse> getListingsByHost(Integer hostId, Sort sort) {
         return listingRepo.findAllByHost_Id(hostId, sort)
                 .stream()
-                .map(this::createListingResponse)
+                .map(l -> createListingResponse(l, 0, false))
                 .toList();
-    }
+    }*/
 
     public Page<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction, Pageable pageable) {
         Sort sort = Sort.by(direction, "meetingDate");
         Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         return listingRepo.findAllByHost_Id(userId, pageableWithSort)
-                .map(this::createListingResponse);
+                .map(listing -> createListingResponse(listing, 0, true));
     }
 
     public Page<TourListingResponse> getAllListings(Integer resourceOwnerId, Pageable pageable) {
@@ -162,13 +168,20 @@ public class TourListingService {
 
         List<Integer> ids = page.stream().map(TourListing::getId).toList();
         List<ReservationStatus> activeStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
+
         Map<Integer, Long> bookedCounts = reservationRepo.countByListingIdsAndStatusIn(ids, activeStatuses)
                 .stream()
                 .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
 
+        // Single query: which listings on this page does the viewer have a reservation for?
+        Set<Integer> revealedIds = Set.copyOf(
+                reservationRepo.findListingIdsWithReservationByViewer(resourceOwnerId, ids, activeStatuses)
+        );
+
         return page.map(listing -> createListingResponse(
                 listing,
-                bookedCounts.getOrDefault(listing.getId(), 0L).intValue()
+                bookedCounts.getOrDefault(listing.getId(), 0L).intValue(),
+                revealedIds.contains(listing.getId())
         ));
     }
 
@@ -185,7 +198,7 @@ public class TourListingService {
         applyListingUpdate(listing, dto);
         TourListing saved = listingRepo.save(listing);
         log.info("Updated TourListing with id {}", saved.getId());
-        return createListingResponse(saved);
+        return createListingResponse(saved, 0, true);
     }
 
     // For internal/event use — no ownership check needed (trusted system operation)
@@ -199,7 +212,7 @@ public class TourListingService {
         applyListingUpdate(listing, dto);
         TourListing saved = listingRepo.save(listing);
         log.info("Updated TourListing with id {}", saved.getId());
-        return createListingResponse(saved);
+        return createListingResponse(saved, 0, true);
     }
 
     private void applyListingUpdate(TourListing listing, UpdateTourListingDto dto) {
@@ -309,16 +322,40 @@ public class TourListingService {
         log.info("Tour manually started for listing {}", listingId);
     }
 
-    private TourListingResponse createListingResponse(TourListing listing) {
-        return createListingResponse(listing, 0);
+    /**
+     * Returns true if {@code viewerId} may receive the exact coordinates of {@code listing}.
+     * Exact coordinates are revealed when the viewer is the host, or holds a CONFIRMED/ACTIVE
+     * reservation for that listing.
+     */
+    private boolean canViewExactLocation(TourListing listing, Integer viewerId) {
+        if (listing.getHost().getId().equals(viewerId)) return true;
+        List<ReservationStatus> activeStatuses = List.of(ReservationStatus.CONFIRMED, ReservationStatus.ACTIVE);
+        return reservationRepo.existsByGuest_IdAndTourListing_IdAndStatusIn(viewerId, listing.getId(), activeStatuses);
     }
 
-    private TourListingResponse createListingResponse(TourListing listing, int bookedCount) {
+    private TourListingResponse createListingResponse(TourListing listing, int bookedCount, boolean exact) {
+        Double lat;
+        Double lng;
+        Integer radiusMeters;
+
+        if (exact) {
+            lat = listing.getLatitude();
+            lng = listing.getLongitude();
+            radiusMeters = null;
+        } else {
+            LocationObfuscator.ObfuscatedLocation fuzzed =
+                    LocationObfuscator.obfuscate(listing.getLatitude(), listing.getLongitude(), listing.getId());
+            lat = fuzzed.latitude();
+            lng = fuzzed.longitude();
+            radiusMeters = fuzzed.radiusMeters();
+        }
+
         return new TourListingResponse(
                 listing.getId(),
                 listing.getCity(),
-                listing.getLongitude(),
-                listing.getLatitude(),
+                lng,
+                lat,
+                radiusMeters,
                 listing.getMeetingDate(),
                 listing.getPostDate(),
                 listing.getTourDescription(),

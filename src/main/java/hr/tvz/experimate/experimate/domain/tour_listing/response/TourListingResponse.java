@@ -12,6 +12,7 @@ public record TourListingResponse(
         String city,
         Double lng,
         Double lat,
+        Integer radiusMeters,
         LocalDateTime meetingDate,
         LocalDateTime postDate,
         String tourDescription,
