@@ -61,6 +61,25 @@ public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
                                                     @Param("status") ReservationStatus status,
                                                     @Param("guestCheckedIn") Boolean guestCheckedIn);
 
+    /**
+     * Returns true if the given user holds a CONFIRMED or ACTIVE reservation for the given listing.
+     * Used to decide whether to reveal the listing's exact coordinates to that viewer.
+     */
+    boolean existsByGuest_IdAndTourListing_IdAndStatusIn(Integer guestId, Integer listingId, Collection<ReservationStatus> statuses);
+
+    /**
+     * Returns the subset of the given listing IDs for which the viewer holds a reservation
+     * with one of the specified statuses. Used for batch coordinate-reveal decisions so that
+     * a page of listings requires only one query instead of one per listing.
+     */
+    @Query("SELECT r.tourListing.id FROM Reservation r " +
+           "WHERE r.guest.id = :viewerId " +
+           "AND r.tourListing.id IN :listingIds " +
+           "AND r.status IN :statuses")
+    List<Integer> findListingIdsWithReservationByViewer(@Param("viewerId") Integer viewerId,
+                                                        @Param("listingIds") List<Integer> listingIds,
+                                                        @Param("statuses") Collection<ReservationStatus> statuses);
+
     @Query("SELECT r.tourListing.id, COUNT(r) FROM Reservation r " +
            "WHERE r.tourListing.id IN :ids AND r.status IN :statuses " +
            "GROUP BY r.tourListing.id")

@@ -32,7 +32,7 @@ class FeedServiceTest {
     // ──────────────── helpers ────────────────
 
     private TourListingResponse listing(int id) {
-        return new TourListingResponse(id, null, null, null, null, null, null, null, 0, null);
+        return new TourListingResponse(id, null, null, null, null, null, null, null, null, 0, null);
     }
 
     private PromotedAdResponse ad(int id) {
