@@ -10,6 +10,7 @@
 -->
 <header th:fragment="topbar" class="topbar">
   <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');else if(t==='warm')document.body.classList.add('warm-mode');else if(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)document.body.classList.add('light-mode');})();</script>
+  <script th:src="@{/js/push-setup.js}" defer></script>
 
   <!-- Back button (shown when nav history exists) -->
   <button class="topbar__back" id="back-btn" aria-label="Go back">

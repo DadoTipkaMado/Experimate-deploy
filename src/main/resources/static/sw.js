@@ -1,9 +1,10 @@
-const CACHE = 'experimate-v9';
+const CACHE = 'experimate-v10';
 
 const STATIC = [
   '/css/main.css',
   '/js/api.js',
   '/js/main.js',
+  '/js/push-setup.js',
   '/js/explore.js',
   '/js/map.js',
   '/js/tour.js',
@@ -49,5 +50,29 @@ self.addEventListener('fetch', e => {
   // Network-first for everything else (HTML pages, fonts, etc.)
   e.respondWith(
     fetch(request).catch(() => caches.match(request))
+  );
+});
+
+self.addEventListener('push', e => {
+  const { title, body, url } = e.data.json();
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon:  '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data:  { url },
+    })
+  );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url ?? '/';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => 'focus' in c);
+      if (existing) return existing.focus().then(c => c.navigate(url));
+      return clients.openWindow(url);
+    })
   );
 });
