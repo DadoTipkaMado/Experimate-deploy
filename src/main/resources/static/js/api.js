@@ -23,8 +23,9 @@ const Auth = {
   },
   getUsername: () => { const p = Auth._decode(); return p?.sub ?? null; },
   isExpired:   () => { const p = Auth._decode(); return p ? p.exp * 1000 < Date.now() : true; },
-  logout: () => {
+  logout: async () => {
     sessionStorage.setItem('explicit_logout', '1');
+    if (typeof unsubscribeFromPush === 'function') await unsubscribeFromPush();
     fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true }).catch(() => {});
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');

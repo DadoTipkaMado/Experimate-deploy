@@ -468,6 +468,9 @@
         if (!res.ok) throw new Error(data.message || 'Google sign-in failed.');
         if (data.status === 'LOGGED_IN') {
           Auth.saveToken(data.accessToken);
+          if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+            Notification.requestPermission().then(p => { if (p === 'granted' && typeof subscribeToPush === 'function') subscribeToPush(); });
+          }
           _showGoogleSyncModal(response.credential);
         } else if (data.status === 'REGISTRATION_REQUIRED') {
           sessionStorage.setItem('google_profile', JSON.stringify({
@@ -552,6 +555,9 @@
           if (me) _cacheUser(me, uid);
         }
         btn.textContent = 'Welcome back ✓';
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+          Notification.requestPermission().then(p => { if (p === 'granted' && typeof subscribeToPush === 'function') subscribeToPush(); });
+        }
         window.location.href = '/map';
       } catch (err) {
         errorEl.textContent = err.message;
