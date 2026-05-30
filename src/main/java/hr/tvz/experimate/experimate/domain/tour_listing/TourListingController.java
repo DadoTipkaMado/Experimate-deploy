@@ -52,8 +52,10 @@ public class TourListingController {
     }
 
     @GetMapping(value="/{id}")
-    public ResponseEntity<TourListingResponse> getTourListingById(@PathVariable @Positive Integer id) {
-        return tourListingService.getListingById(id)
+    public ResponseEntity<TourListingResponse> getTourListingById(
+            @PathVariable @Positive Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return tourListingService.getListingById(id, userDetails.getId())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
