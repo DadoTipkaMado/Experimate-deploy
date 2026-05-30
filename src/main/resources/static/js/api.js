@@ -250,6 +250,7 @@ const PremiumAPI = {
    PARTNER  /api/partner  (B2B — issue #107)
 ─────────────────────────────────────────────── */
 const PartnerAPI = {
+  getStatus:  () => apiFetch('/api/partner/status'),
   getProfile: () => apiFetch('/api/partner/profile'),
   getStats:   () => apiFetch('/api/partner/stats'),
   apply: (dto) => apiFetch('/api/partner/apply', { method: 'POST', body: JSON.stringify(dto) }),
