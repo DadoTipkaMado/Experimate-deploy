@@ -1,5 +1,8 @@
 package hr.tvz.experimate.experimate.domain.partner_event;
 
+import hr.tvz.experimate.experimate.domain.promoted_ad.PromoteEventRequest;
+import hr.tvz.experimate.experimate.domain.promoted_ad.PromotedAdResponse;
+import hr.tvz.experimate.experimate.domain.promoted_ad.PromotedAdService;
 import hr.tvz.experimate.experimate.security.AppUserDetails;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -38,9 +41,12 @@ import java.util.List;
 public class PartnerEventController {
 
     private final PartnerEventService partnerEventService;
+    private final PromotedAdService promotedAdService;
 
-    public PartnerEventController(PartnerEventService partnerEventService) {
+    public PartnerEventController(PartnerEventService partnerEventService,
+                                  PromotedAdService promotedAdService) {
         this.partnerEventService = partnerEventService;
+        this.promotedAdService = promotedAdService;
     }
 
     @PostMapping("/api/partner-pins/{pinId}/events")
@@ -85,6 +91,34 @@ public class PartnerEventController {
             @PathVariable Integer id,
             @AuthenticationPrincipal AppUserDetails userDetails) {
         partnerEventService.deleteEvent(id, userDetails.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Promotes this event into the public feed as a sponsored ad.
+     * Send an empty object {@code {}} to promote with no overrides.
+     * Requires {@code ROLE_PARTNER} and ownership of the event's pin.
+     */
+    @PostMapping("/api/partner-events/{id}/promote")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<PromotedAdResponse> promoteEvent(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @RequestBody PromoteEventRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(promotedAdService.promoteEvent(userDetails.getId(), id, req));
+    }
+
+    /**
+     * Removes this event's promotion from the feed.
+     * Requires {@code ROLE_PARTNER} and ownership of the event's pin.
+     */
+    @DeleteMapping("/api/partner-events/{id}/promote")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<Void> unpromoteEvent(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        promotedAdService.unpromoteEvent(userDetails.getId(), id);
         return ResponseEntity.noContent().build();
     }
 }

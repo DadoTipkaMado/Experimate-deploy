@@ -118,6 +118,27 @@ public class PartnerService {
         return events.stream().map(this::toPartnerEventResponse).toList();
     }
 
+    /**
+     * Returns the partner status for the given user.
+     *
+     * <p>Uses the role already loaded in {@code AppUserDetails} to avoid a database
+     * round-trip for non-partners. The profile is fetched only when the user is a partner.
+     *
+     * @param userId the authenticated user's ID
+     * @param role   the user's current role, taken from {@code AppUserDetails}
+     * @return status with {@code isPartner=true} and a populated profile, or
+     *         {@code isPartner=false} with a {@code null} profile
+     */
+    public PartnerStatusResponse getStatus(Integer userId, Role role) {
+        if (role != Role.PARTNER) {
+            return new PartnerStatusResponse(false, null);
+        }
+        PartnerProfileResponse profile = partnerProfileRepository.findByUserId(userId)
+                .map(this::toResponse)
+                .orElseThrow(() -> new IllegalStateException("Partner profile not found for user " + userId));
+        return new PartnerStatusResponse(true, profile);
+    }
+
     private PartnerProfileResponse toResponse(PartnerProfile profile) {
         return new PartnerProfileResponse(
                 profile.getId(),

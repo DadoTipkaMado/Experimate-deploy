@@ -21,7 +21,8 @@ import java.util.List;
  * ({@code /partner} route, {@code PartnerAPI} in api.js).
  *
  * <p>Endpoints: {@code /apply} (any authenticated user), {@code /profile}, {@code /stats},
- * {@code /events} (all require {@code ROLE_PARTNER}).
+ * {@code /events} (all require {@code ROLE_PARTNER}), and {@code /status} (any authenticated
+ * user — returns partner status and profile in one call).
  * {@code /events} accepts an optional {@code ?filter=upcoming} query parameter.
  * Ad management is handled separately by {@code PromotedAdController}.
  */
@@ -33,6 +34,12 @@ public class PartnerController {
 
     public PartnerController(PartnerService partnerService) {
         this.partnerService = partnerService;
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<PartnerStatusResponse> getStatus(
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(partnerService.getStatus(userDetails.getId(), userDetails.getRole()));
     }
 
     @PostMapping("/apply")
