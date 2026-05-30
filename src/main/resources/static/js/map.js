@@ -141,7 +141,8 @@ function loadPins() {
         const isFull = (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1);
         if (isFull && !MapState.unlockedIds.has(listing.id)) return;
         seenIds.add(listing.id);
-        const pinType = MapState.myMeetMap[listing.id] ?? 'default';
+        const pinType = MapState.myMeetMap[listing.id]
+          ?? (listing.host?.role === 'PARTNER' ? 'partner' : 'default');
         const marker = buildMarker(listing, pinType);
         const circle = buildRadiusCircle(listing.lat, listing.lng, listing.radiusMeters);
         if (circle) circle.addTo(MapState.map);
