@@ -37,6 +37,7 @@ public class User extends Person {
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(20)", nullable = false)
     private Role role = Role.USER;
+    private LocalDateTime premiumUntil;
     private double rating = 0.0;
     private String profilePhotoFilename;
 
@@ -140,6 +141,38 @@ public class User extends Person {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    /**
+     * Grants premium status until the given moment by flipping the role to
+     * {@link Role#PREMIUM_USER} and recording the expiry.
+     *
+     * <p>The role and {@code premiumUntil} are always written together so the entity
+     * can never hold an inconsistent state. Called by {@code PremiumService} after a
+     * successful payment. Re-purchasing extends the period, so {@code until} is
+     * computed by the service from the later of {@code now} and the current expiry.
+     *
+     * @param until the moment premium access expires
+     */
+    public void grantPremium(LocalDateTime until) {
+        this.role = Role.PREMIUM_USER;
+        this.premiumUntil = until;
+    }
+
+    /**
+     * Reverts premium status, returning the user to a regular {@link Role#USER}
+     * and clearing the expiry timestamp.
+     *
+     * <p>Called by {@code PremiumExpiryScheduler} once {@code premiumUntil} has passed.
+     */
+    public void revokePremium() {
+        this.role = Role.USER;
+        this.premiumUntil = null;
+    }
+
+    /** @return the moment premium access expires, or {@code null} if the user is not premium. */
+    public LocalDateTime getPremiumExpiryDate() {
+        return premiumUntil;
     }
 
     public String getBio() {

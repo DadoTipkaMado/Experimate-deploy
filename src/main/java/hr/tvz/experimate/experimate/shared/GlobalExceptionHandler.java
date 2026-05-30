@@ -1,4 +1,5 @@
 package hr.tvz.experimate.experimate.shared;
+import hr.tvz.experimate.experimate.domain.premium.PaymentFailedException;
 import hr.tvz.experimate.experimate.security.google.exception.IncompleteGoogleProfileException;
 import hr.tvz.experimate.experimate.shared.exception.AppAuthException;
 import hr.tvz.experimate.experimate.shared.exception.ConflictException;
@@ -99,6 +100,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidTokenException(InvalidTokenException ex) {
         ErrorResponse invalidToken = createErrorResponse(HttpStatus.BAD_REQUEST, ex);
         return new ResponseEntity<>(invalidToken, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PaymentFailedException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentFailedException(PaymentFailedException ex) {
+        ErrorResponse paymentFailed = createErrorResponse(HttpStatus.PAYMENT_REQUIRED, ex);
+        return new ResponseEntity<>(paymentFailed, HttpStatus.PAYMENT_REQUIRED);
     }
 
     @ExceptionHandler(RateLimitException.class)
