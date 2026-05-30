@@ -743,7 +743,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
-<script>
+<script th:inline="none">
   async function initPartnerPage() {
     const userId = Auth.getUserId();
     if (!userId) return;
@@ -1251,17 +1251,14 @@
 
     try {
       await PartnerAPI.apply({ companyName: name, contactEmail: email, website: '' });
-    } catch { /* backend pending — still show success */ }
-
-    showToast('Application submitted — we\'ll review and get back to you soon.', 'success');
-    document.getElementById('partner-apply-view').innerHTML = `
-      <div class="partner-cta" style="text-align:center;">
-        <div class="partner-cta__icon" style="background:rgba(37,99,235,0.14);border-color:rgba(37,99,235,0.30);">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="partner-cta__title">Application received</div>
-        <div class="partner-cta__sub">We've got your application for <strong>${escH(name)}</strong> in ${escH(city)}. We'll reach out to ${escH(email)} within a few days.</div>
-      </div>`;
+      showToast('Welcome to the Partner program! Loading your dashboard…', 'success');
+      setTimeout(() => { window.location.reload(); }, 1200);
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not submit application. Please try again.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit application →';
+    }
   }
 
   /* ── Promoted ads ───────────────────────────── */
