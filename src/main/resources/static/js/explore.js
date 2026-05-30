@@ -222,6 +222,8 @@ function renderFeed(items) {
       joinClass = 'explore-card__join--pending'; joinLabel = 'Pending'; joinClick = '';
     } else if (reqStatus === 'ACCEPTED') {
       joinClass = 'explore-card__join--accepted'; joinLabel = 'Going'; joinClick = '';
+    } else if (currentUserId && new Date(l.meetingDate).toDateString() === new Date().toDateString()) {
+      joinClass = 'explore-card__join--full'; joinLabel = 'Today'; joinClick = '';
     } else if (currentUserId) {
       joinClass = 'explore-card__join--join'; joinLabel = 'Join';
       joinClick = `onclick="event.stopPropagation();cardJoin(event,${l.id})"`;
