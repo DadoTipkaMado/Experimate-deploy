@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PromotedAdRepository extends JpaRepository<PromotedAd, Integer> {
 
@@ -14,6 +15,18 @@ public interface PromotedAdRepository extends JpaRepository<PromotedAd, Integer>
      * Used by {@code GET /api/promoted-ads/mine}.
      */
     List<PromotedAd> findAllByPartnerProfile_Id(Integer partnerProfileId);
+
+    /**
+     * Returns whether the given event already has a promotion.
+     * Used to reject duplicate promotion of the same event.
+     */
+    boolean existsByPartnerEvent_Id(Integer partnerEventId);
+
+    /**
+     * Returns the ad promoting the given event, if any.
+     * Used to remove an event's promotion (unpromote).
+     */
+    Optional<PromotedAd> findByPartnerEvent_Id(Integer partnerEventId);
 
     /**
      * Returns all currently active ads that fall within their scheduling window at {@code now}.

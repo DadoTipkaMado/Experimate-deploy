@@ -36,7 +36,7 @@ class FeedServiceTest {
     }
 
     private PromotedAdResponse ad(int id) {
-        return new PromotedAdResponse(id, "Ad " + id, null, null, null, true, 0, null, null, null);
+        return new PromotedAdResponse(id, "Ad " + id, null, null, null, true, 0, null, null, null, null);
     }
 
     // ──────────────── buildFeed ────────────────
