@@ -242,8 +242,9 @@ const RatingAPI = {
    PREMIUM  /api/premium
 ─────────────────────────────────────────────── */
 const PremiumAPI = {
-  getStatus: ()       => apiFetch('/api/premium/status'),
-  cancel:    ()       => apiFetch('/api/premium/cancel', { method: 'POST' }),
+  getStatus: ()                  => apiFetch('/api/premium/status'),
+  purchase:  (premiumPackage)    => apiFetch('/api/premium/purchase', { method: 'POST', body: JSON.stringify({ premiumPackage }) }),
+  cancel:    ()                  => apiFetch('/api/premium/cancel',   { method: 'POST' }),
 };
 
 /* ───────────────────────────────────────────────
