@@ -744,15 +744,16 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script th:inline="none">
   async function initPartnerPage() {
-    const userId = Auth.getUserId();
-    if (!userId) return;
-
+    if (!Auth.getUserId()) return;
     try {
-      const profile = await PartnerAPI.getProfile();
-      showDashboard(profile);
+      const status = await PartnerAPI.getStatus();
+      if (status.isPartner) showDashboard(status.profile);
     } catch {
-      document.getElementById('partner-apply-view').style.display = '';
-      document.getElementById('partner-dashboard-view').style.display = 'none';
+      // fallback if status endpoint unavailable
+      try {
+        const profile = await PartnerAPI.getProfile();
+        showDashboard(profile);
+      } catch { /* not a partner — apply view stays shown */ }
     }
   }
 

@@ -492,7 +492,7 @@
     const userId = Auth.getUserId();
     if (!userId) return;
     try {
-      const user = await UserAPI.getById(userId);
+      const user = await UserAPI.getMe();
       if (user?.role === 'ROLE_PREMIUM_USER') {
         // Try status endpoint for expiry date; fall back gracefully if not yet available
         let untilLabel = null;

@@ -148,6 +148,7 @@ const AuthAPI = {
 ─────────────────────────────────────────────── */
 const UserAPI = {
   getAll: ()               => apiFetch('/api/user'),
+  getMe:  ()               => apiFetch('/api/user/me'),
   getById: (id)            => apiFetch(`/api/user/${id}`),
   getByUsername: (username) => apiFetch(`/api/user/by-username/${username}`),
   search: (query)          => apiFetch(`/api/user/search?query=${encodeURIComponent(query)}`),
