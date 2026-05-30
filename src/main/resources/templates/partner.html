@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     .page-content { background: #0a0c0c; }
     body.light-mode .page-content { background: #f0eeea; }
@@ -616,16 +617,13 @@
       <label for="pin-desc">Description</label>
       <textarea id="pin-desc" placeholder="What happens here? What makes this venue special?" style="min-height:72px;"></textarea>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="partner-form-field">
-        <label for="pin-lat">Latitude *</label>
-        <input type="number" id="pin-lat" placeholder="45.815" step="0.000001" min="-90" max="90">
-      </div>
-      <div class="partner-form-field">
-        <label for="pin-lng">Longitude *</label>
-        <input type="number" id="pin-lng" placeholder="15.982" step="0.000001" min="-180" max="180">
-      </div>
+    <div class="partner-form-field">
+      <label>Venue location *</label>
+      <div id="pin-map-picker" style="height:210px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
+      <div id="pin-map-hint" style="font-size:10px;color:var(--text-3);margin-top:6px;text-align:center;letter-spacing:0.04em;">Tap the map to place your venue pin</div>
     </div>
+    <input type="hidden" id="pin-lat">
+    <input type="hidden" id="pin-lng">
 
     <div class="partner-form-field">
       <label>Logo (optional)</label>
@@ -743,6 +741,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script th:inline="none">
   async function initPartnerPage() {
     const userId = Auth.getUserId();
@@ -829,6 +828,46 @@
   }
 
   let _pinEditId = null;
+  let _pinMap    = null;
+  let _pinMarker = null;
+
+  function _pinMarkerIcon() {
+    return L.divIcon({
+      className: '',
+      html: '<div style="width:14px;height:14px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 2px 8px rgba(37,99,235,0.7);"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+    });
+  }
+
+  function _initPinMap() {
+    if (!_pinMap) {
+      const dark = !document.body.classList.contains('light-mode') && !document.body.classList.contains('warm-mode');
+      _pinMap = L.map('pin-map-picker', { center: [45.815, 15.977], zoom: 13, zoomControl: true, attributionControl: false });
+      L.tileLayer(
+        dark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+             : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        { maxZoom: 19 }
+      ).addTo(_pinMap);
+      _pinMap.on('click', e => {
+        const { lat, lng } = e.latlng;
+        document.getElementById('pin-lat').value = lat.toFixed(6);
+        document.getElementById('pin-lng').value = lng.toFixed(6);
+        document.getElementById('pin-map-hint').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        if (_pinMarker) { _pinMarker.setLatLng([lat, lng]); }
+        else { _pinMarker = L.marker([lat, lng], { icon: _pinMarkerIcon() }).addTo(_pinMap); }
+      });
+    }
+    setTimeout(() => _pinMap.invalidateSize(), 300);
+  }
+
+  function _setPinMapLocation(lat, lng) {
+    _initPinMap();
+    _pinMap.setView([lat, lng], 15);
+    if (_pinMarker) { _pinMarker.setLatLng([lat, lng]); }
+    else { _pinMarker = L.marker([lat, lng], { icon: _pinMarkerIcon() }).addTo(_pinMap); }
+    document.getElementById('pin-map-hint').textContent = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
+  }
 
   function openPinModal(pinId) {
     _pinEditId = pinId;
@@ -839,14 +878,20 @@
     document.getElementById('pin-modal-save').disabled = false;
     document.getElementById('pin-modal-save').textContent = 'Save pin →';
     document.getElementById('pin-logo-input').value = '';
+    document.getElementById('pin-lat').value = '';
+    document.getElementById('pin-lng').value = '';
+    document.getElementById('pin-map-hint').textContent = 'Tap the map to place your venue pin';
     resetLogoPreview();
 
     if (pinId) {
       PartnerPinAPI.getById(pinId).then(pin => {
         document.getElementById('pin-name').value = pin.name ?? '';
         document.getElementById('pin-desc').value = pin.description ?? '';
-        document.getElementById('pin-lat').value  = pin.latitude ?? '';
-        document.getElementById('pin-lng').value  = pin.longitude ?? '';
+        if (pin.latitude != null && pin.longitude != null) {
+          document.getElementById('pin-lat').value = pin.latitude;
+          document.getElementById('pin-lng').value = pin.longitude;
+          _setPinMapLocation(pin.latitude, pin.longitude);
+        }
         if (pin.logoUrl) {
           document.getElementById('pin-logo-preview-wrap').innerHTML =
             `<img src="${escH(pin.logoUrl)}" class="logo-upload-preview" alt="Logo"><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
@@ -855,13 +900,15 @@
     } else {
       document.getElementById('pin-name').value = '';
       document.getElementById('pin-desc').value = '';
-      document.getElementById('pin-lat').value  = '';
-      document.getElementById('pin-lng').value  = '';
+      if (_pinMarker) { _pinMap?.removeLayer(_pinMarker); _pinMarker = null; }
     }
 
     modal.style.opacity = '1';
     modal.style.pointerEvents = 'all';
-    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+    requestAnimationFrame(() => {
+      card.style.transform = 'translateY(0)';
+      _initPinMap();
+    });
   }
 
   function closePinModal() {
@@ -907,8 +954,9 @@
     errEl.style.display = 'none';
 
     if (!name) { errEl.textContent = 'Venue name is required.'; errEl.style.display = 'block'; return; }
-    if (isNaN(lat) || lat < -90  || lat > 90)  { errEl.textContent = 'Latitude must be between −90 and 90.';   errEl.style.display = 'block'; return; }
-    if (isNaN(lng) || lng < -180 || lng > 180) { errEl.textContent = 'Longitude must be between −180 and 180.'; errEl.style.display = 'block'; return; }
+    if (isNaN(lat) || isNaN(lng)) { errEl.textContent = 'Tap the map to set your venue location.'; errEl.style.display = 'block'; return; }
+    if (lat < -90  || lat > 90)   { errEl.textContent = 'Invalid latitude — tap a valid location on the map.';  errEl.style.display = 'block'; return; }
+    if (lng < -180 || lng > 180)  { errEl.textContent = 'Invalid longitude — tap a valid location on the map.'; errEl.style.display = 'block'; return; }
 
     btn.disabled = true;
     btn.textContent = 'Saving…';
