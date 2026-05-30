@@ -242,14 +242,16 @@ const RatingAPI = {
    PREMIUM  /api/premium
 ─────────────────────────────────────────────── */
 const PremiumAPI = {
-  getStatus: ()       => apiFetch('/api/premium/status'),
-  cancel:    ()       => apiFetch('/api/premium/cancel', { method: 'POST' }),
+  getStatus: ()                  => apiFetch('/api/premium/status'),
+  purchase:  (premiumPackage)    => apiFetch('/api/premium/purchase', { method: 'POST', body: JSON.stringify({ premiumPackage }) }),
+  cancel:    ()                  => apiFetch('/api/premium/cancel',   { method: 'POST' }),
 };
 
 /* ───────────────────────────────────────────────
    PARTNER  /api/partner  (B2B — issue #107)
 ─────────────────────────────────────────────── */
 const PartnerAPI = {
+  getStatus:  () => apiFetch('/api/partner/status'),
   getProfile: () => apiFetch('/api/partner/profile'),
   getStats:   () => apiFetch('/api/partner/stats'),
   apply: (dto) => apiFetch('/api/partner/apply', { method: 'POST', body: JSON.stringify(dto) }),
