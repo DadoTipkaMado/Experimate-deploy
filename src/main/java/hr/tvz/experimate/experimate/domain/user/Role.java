@@ -10,9 +10,16 @@ package hr.tvz.experimate.experimate.domain.user;
  * <p>{@link #USER} is the default for newly registered accounts. {@link #PARTNER}
  * is granted self-serve via {@code POST /api/partner/apply}. {@link #ADMIN} is
  * reserved for future use and is not currently issued by any flow.
+ *
+ * <p>{@link #PREMIUM_USER} is a dynamic, time-limited flag layered on top of a regular
+ * {@link #USER}: {@code PremiumService} flips a user to it after a successful purchase,
+ * and {@code PremiumExpiryScheduler} reverts it back to {@link #USER} once the paid
+ * period ends. Only a {@link #USER} can become premium — {@link #PARTNER} and
+ * {@link #ADMIN} are never premium. See {@link User#grantPremium} / {@link User#revokePremium}.
  */
 public enum Role {
     USER,
     PARTNER,
-    ADMIN
+    ADMIN,
+    PREMIUM_USER
 }
