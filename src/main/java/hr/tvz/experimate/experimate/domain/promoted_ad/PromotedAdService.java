@@ -2,12 +2,16 @@ package hr.tvz.experimate.experimate.domain.promoted_ad;
 
 import hr.tvz.experimate.experimate.domain.partner.PartnerProfile;
 import hr.tvz.experimate.experimate.domain.partner.PartnerProfileRepository;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEvent;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventNotFoundException;
+import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
 import hr.tvz.experimate.experimate.shared.FileStorageService;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -29,13 +33,16 @@ public class PromotedAdService {
 
     private final PromotedAdRepository promotedAdRepository;
     private final PartnerProfileRepository partnerProfileRepository;
+    private final PartnerEventRepository partnerEventRepository;
     private final FileStorageService fileStorageService;
 
     public PromotedAdService(PromotedAdRepository promotedAdRepository,
                              PartnerProfileRepository partnerProfileRepository,
+                             PartnerEventRepository partnerEventRepository,
                              FileStorageService fileStorageService) {
         this.promotedAdRepository = promotedAdRepository;
         this.partnerProfileRepository = partnerProfileRepository;
+        this.partnerEventRepository = partnerEventRepository;
         this.fileStorageService = fileStorageService;
     }
 
@@ -127,6 +134,62 @@ public class PromotedAdService {
     }
 
     /**
+     * Promotes a partner event into the feed by creating a {@link PromotedAd} that wraps it.
+     *
+     * <p>Title, description and link default to the event's title, description and ticket vendor
+     * URL; each is overridable via the request, and blank overrides fall back to the event value.
+     * The promotion starts immediately ({@code activeFrom = null}) and runs until the event ends
+     * ({@code activeUntil = event.endDatetime}).
+     *
+     * @param userId  the authenticated partner's user ID
+     * @param eventId the event to promote
+     * @param req     optional field overrides
+     * @return the created promotion as an ad response
+     * @throws PartnerEventNotFoundException if the event does not exist
+     * @throws ForbiddenActionException      if the user does not own the event's pin
+     * @throws EventAlreadyPromotedException if the event already has a promotion
+     */
+    @Transactional
+    public PromotedAdResponse promoteEvent(Integer userId, Integer eventId, PromoteEventRequest req) {
+        PartnerProfile profile = resolveProfile(userId);
+        PartnerEvent event = partnerEventRepository.findById(eventId)
+                .orElseThrow(() -> new PartnerEventNotFoundException(eventId));
+        checkEventOwnership(event, profile);
+
+        if (promotedAdRepository.existsByPartnerEvent_Id(eventId)) {
+            throw new EventAlreadyPromotedException(eventId);
+        }
+
+        String title = StringUtils.hasText(req.overrideTitle()) ? req.overrideTitle() : event.getTitle();
+        String description = StringUtils.hasText(req.overrideDescription())
+                ? req.overrideDescription() : event.getDescription();
+        String linkUrl = StringUtils.hasText(req.overrideLinkUrl())
+                ? req.overrideLinkUrl() : event.getTicketVendorUrl();
+
+        PromotedAd ad = new PromotedAd(
+                profile, title, description, linkUrl, null, event.getEndDatetime(), LocalDateTime.now());
+        ad.setPartnerEvent(event);
+        return toResponse(promotedAdRepository.save(ad));
+    }
+
+    /**
+     * Removes an event's promotion from the feed.
+     * The requesting user must own the pin the event belongs to.
+     *
+     * @param userId  the authenticated partner's user ID
+     * @param eventId the event whose promotion to remove
+     * @throws PromotedAdNotFoundException if the event has no promotion
+     * @throws ForbiddenActionException    if the user does not own the event's pin
+     */
+    @Transactional
+    public void unpromoteEvent(Integer userId, Integer eventId) {
+        PromotedAd ad = promotedAdRepository.findByPartnerEvent_Id(eventId)
+                .orElseThrow(() -> PromotedAdNotFoundException.forEvent(eventId));
+        checkEventOwnership(ad.getPartnerEvent(), resolveProfile(userId));
+        promotedAdRepository.delete(ad);
+    }
+
+    /**
      * Stores a new image for the given ad and removes the previous one if present.
      * The requesting user must own the ad.
      *
@@ -176,10 +239,17 @@ public class PromotedAdService {
         }
     }
 
+    private void checkEventOwnership(PartnerEvent event, PartnerProfile profile) {
+        if (!event.getPartnerPin().getPartnerProfile().getId().equals(profile.getId())) {
+            throw new ForbiddenActionException("You do not own this partner event.");
+        }
+    }
+
     private PromotedAdResponse toResponse(PromotedAd ad) {
         String imageUrl = ad.getImageFilename() != null
                 ? "/api/promoted-ads/image/" + ad.getImageFilename()
                 : null;
+        Integer eventId = ad.getPartnerEvent() != null ? ad.getPartnerEvent().getId() : null;
         return new PromotedAdResponse(
                 ad.getId(),
                 ad.getTitle(),
@@ -188,6 +258,7 @@ public class PromotedAdService {
                 ad.getLinkUrl(),
                 ad.getActive(),
                 ad.getViewCount(),
+                eventId,
                 ad.getActiveFrom(),
                 ad.getActiveUntil(),
                 ad.getCreatedAt()
