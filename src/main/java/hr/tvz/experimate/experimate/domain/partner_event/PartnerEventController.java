@@ -81,7 +81,7 @@ public class PartnerEventController {
     public ResponseEntity<PartnerEventResponse> updateEvent(
             @PathVariable Integer id,
             @AuthenticationPrincipal AppUserDetails userDetails,
-            @RequestBody UpdatePartnerEventRequest req) {
+            @Valid @RequestBody UpdatePartnerEventRequest req) {
         return ResponseEntity.ok(partnerEventService.updateEvent(id, userDetails.getId(), req));
     }
 
