@@ -390,7 +390,7 @@ function initSearch() {
         .then(matches => openMatchPanel(matches, _searchQuery))
         .catch(err => {
           const msg = err?.message ?? '';
-          if (msg.includes('permission')) {
+          if (err?.status === 403 || msg.includes('permission') || msg.includes('premium')) {
             openMatchPanelPremium();
           } else if (msg.includes('slow down')) {
             openMatchPanelError('Too many searches. Please wait a moment and try again.');
@@ -537,7 +537,8 @@ async function toggleExplain(btn) {
     textEl.textContent = res.explanation || 'No explanation available.';
     textEl.dataset.loaded = '1';
   } catch (err) {
-    textEl.textContent = (err?.message ?? '').includes('permission')
+    const _m = err?.message ?? '';
+    textEl.textContent = (err?.status === 403 || _m.includes('permission') || _m.includes('premium'))
       ? 'AI explanations are a Premium feature.'
       : 'Could not load explanation — try again.';
   }
