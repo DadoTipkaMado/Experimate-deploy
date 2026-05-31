@@ -244,6 +244,31 @@
       background: radial-gradient(ellipse at center, rgba(0,201,167,0.07) 0%, transparent 70%);
       pointer-events: none; z-index: 0;
     }
+
+    /* ── Wizard ── */
+    .wizard-progress {
+      display: flex; align-items: center; margin-bottom: 4px;
+    }
+    .wizard-pill {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-3); font-family: var(--font-mono);
+      white-space: nowrap; flex-shrink: 0;
+      transition: color 0.14s;
+    }
+    .wizard-pill span {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700;
+      transition: background 0.14s, border-color 0.14s, color 0.14s;
+    }
+    .wizard-pill--active { color: var(--accent); }
+    .wizard-pill--active span { background: var(--accent-dim); border-color: var(--accent-border); color: var(--accent); }
+    .wizard-pill--done span { background: var(--accent); border-color: var(--accent); color: #000; }
+    .wizard-progress__line { flex: 1; height: 1px; background: var(--border-2); margin: 0 8px; }
+    .wizard-step { display: none; flex-direction: column; gap: 18px; }
+    .wizard-step--active { display: flex; animation: fadeUp 0.25s cubic-bezier(0.16,1,0.3,1) both; }
   </style>
 </head>
 <body>
@@ -260,77 +285,91 @@
     <form id="listing-form" class="new-listing-form">
 
       <div id="form-error" class="form-error" style="display:none;"></div>
-
       <input type="hidden" id="city" name="city">
-
-      <div class="form-field">
-        <label for="meetingDateInput">Meeting date</label>
-        <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
-               data-date-format="date" autocomplete="off" required
-               onclick="(function(el){const t=new Date();t.setHours(0,0,0,0);DatePicker.open(el,{min:t});})(this)">
-        <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
-      </div>
-
-      <div class="form-field">
-        <label>Meeting time</label>
-        <div class="time-picker" id="timePicker">
-          <div class="time-picker__fade time-picker__fade--top"></div>
-          <div class="time-picker__col" id="tp-hours"></div>
-          <div class="time-picker__sep">:</div>
-          <div class="time-picker__col" id="tp-minutes"></div>
-          <div class="time-picker__highlight"></div>
-          <div class="time-picker__fade time-picker__fade--bottom"></div>
-        </div>
-        <input type="hidden" id="meetingTimeInput">
-      </div>
-
-      <!-- Hidden combined field sent to server -->
       <input type="hidden" id="meetingDate" name="meetingDate">
 
-      <div class="form-field">
-        <label for="tourDescription">Description</label>
-        <textarea id="tourDescription" name="tourDescription"
-                  placeholder="Describe the experience — what will guests see, do, and feel?"
-                  required minlength="200" maxlength="2000"
-                  oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
-        <div style="display:flex;justify-content:space-between;">
-          <span class="form-field__hint">Min 200 characters — describe to Mates what they'll see, do, and experience</span>
-          <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
-        </div>
+      <!-- Step indicator -->
+      <div class="wizard-progress">
+        <div class="wizard-pill wizard-pill--active"><span>1</span> When</div>
+        <div class="wizard-progress__line"></div>
+        <div class="wizard-pill"><span>2</span> Where</div>
+        <div class="wizard-progress__line"></div>
+        <div class="wizard-pill"><span>3</span> Details</div>
       </div>
 
-      <div class="form-field">
-        <label>Max guests</label>
-        <div class="stepper">
-          <button type="button" class="stepper__btn" onclick="stepGuests(-1)">−</button>
-          <div class="stepper__val" id="maxGuestsDisplay">1</div>
-          <button type="button" class="stepper__btn" onclick="stepGuests(1)">+</button>
+      <!-- Step 1: When -->
+      <section class="wizard-step wizard-step--active" id="wizard-step-1">
+        <div class="form-field">
+          <label for="meetingDateInput">Meeting date</label>
+          <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
+                 data-date-format="date" autocomplete="off" required
+                 onclick="(function(el){const t=new Date();t.setHours(0,0,0,0);DatePicker.open(el,{min:t});})(this)">
+          <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
         </div>
-        <span class="form-field__hint">How many Mates can join (1 – 20)</span>
-        <input type="hidden" id="maxGuests" value="1">
-      </div>
+        <div class="form-field">
+          <label>Meeting time</label>
+          <div class="time-picker" id="timePicker">
+            <div class="time-picker__fade time-picker__fade--top"></div>
+            <div class="time-picker__col" id="tp-hours"></div>
+            <div class="time-picker__sep">:</div>
+            <div class="time-picker__col" id="tp-minutes"></div>
+            <div class="time-picker__highlight"></div>
+            <div class="time-picker__fade time-picker__fade--bottom"></div>
+          </div>
+          <input type="hidden" id="meetingTimeInput">
+        </div>
+      </section>
 
-      <!-- Location search picker -->
-      <div class="form-field">
-        <label>Meeting location <span style="color:rgba(255,80,80,0.7);">*</span></label>
-        <div class="location-search-wrap">
-          <input type="text" id="location-search" autocomplete="off"
-                 placeholder="Search address, landmark, or neighbourhood…">
-          <div id="location-suggestions"></div>
+      <!-- Step 2: Where -->
+      <section class="wizard-step" id="wizard-step-2">
+        <div class="form-field">
+          <label>Meeting location <span style="color:rgba(255,80,80,0.7);">*</span></label>
+          <div class="location-search-wrap">
+            <input type="text" id="location-search" autocomplete="off"
+                   placeholder="Search address, landmark, or neighbourhood…">
+            <div id="location-suggestions"></div>
+          </div>
+          <span class="form-field__error" id="location-error">Please select a meeting location.</span>
+          <div id="location-map"></div>
+          <div class="location-status" id="location-status">
+            <div class="location-status__dot"></div>
+            <span id="location-status-text">Search and select a location above</span>
+          </div>
         </div>
-        <span class="form-field__error" id="location-error">Please select a meeting location.</span>
-        <div id="location-map"></div>
-        <div class="location-status" id="location-status">
-          <div class="location-status__dot"></div>
-          <span id="location-status-text">Search and select a location above</span>
+        <input type="hidden" id="listingLat">
+        <input type="hidden" id="listingLng">
+      </section>
+
+      <!-- Step 3: Details -->
+      <section class="wizard-step" id="wizard-step-3">
+        <div class="form-field">
+          <label for="tourDescription">Description</label>
+          <textarea id="tourDescription" name="tourDescription"
+                    placeholder="Describe the experience — what will guests see, do, and feel?"
+                    required minlength="200" maxlength="2000"
+                    oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
+          <div style="display:flex;justify-content:space-between;">
+            <span class="form-field__hint">Min 200 characters — describe to Mates what they'll see, do, and experience</span>
+            <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
+          </div>
         </div>
-      </div>
-      <input type="hidden" id="listingLat">
-      <input type="hidden" id="listingLng">
+        <div class="form-field">
+          <label>Max guests</label>
+          <div class="stepper">
+            <button type="button" class="stepper__btn" onclick="stepGuests(-1)">−</button>
+            <div class="stepper__val" id="maxGuestsDisplay">1</div>
+            <button type="button" class="stepper__btn" onclick="stepGuests(1)">+</button>
+          </div>
+          <span class="form-field__hint">How many Mates can join (1 – 20)</span>
+          <input type="hidden" id="maxGuests" value="1">
+        </div>
+      </section>
 
       <div class="form-actions">
-        <a href="/tours" class="btn btn--ghost">Cancel</a>
-        <button type="submit" class="btn btn--primary">Create Meet →</button>
+        <a href="/tours" class="btn btn--ghost" id="wizard-cancel">Cancel</a>
+        <button type="button" class="btn btn--ghost" id="wizard-prev" onclick="wizardGo(-1)" style="display:none;">← Back</button>
+        <button type="button" class="btn btn--primary" id="wizard-next" onclick="wizardGo(1)">Next →</button>
+        <button type="submit" class="btn btn--primary" id="wizard-submit" style="display:none;">Create Meet →</button>
       </div>
 
     </form>
@@ -588,6 +627,50 @@
       btn.disabled = false; btn.textContent = 'Create Meet →';
     }
   });
+
+  /* ── WIZARD ── */
+  let _wizardStep = 1;
+
+  function wizardGo(dir) {
+    if (dir > 0 && !_wizardValidate(_wizardStep)) return;
+    const next = _wizardStep + dir;
+    if (next < 1 || next > 3) return;
+
+    document.getElementById('wizard-step-' + _wizardStep).classList.remove('wizard-step--active');
+    _wizardStep = next;
+    document.getElementById('wizard-step-' + _wizardStep).classList.add('wizard-step--active');
+
+    // Leaflet needs size refresh when the map container becomes visible
+    if (_wizardStep === 2 && locationMap) setTimeout(() => locationMap.invalidateSize(), 60);
+
+    document.querySelectorAll('.wizard-pill').forEach((p, i) => {
+      p.classList.toggle('wizard-pill--active', i + 1 === _wizardStep);
+      p.classList.toggle('wizard-pill--done',   i + 1 <  _wizardStep);
+    });
+    document.getElementById('wizard-cancel').style.display = _wizardStep === 1 ? '' : 'none';
+    document.getElementById('wizard-prev').style.display   = _wizardStep === 1 ? 'none' : '';
+    document.getElementById('wizard-next').style.display   = _wizardStep === 3 ? 'none' : '';
+    document.getElementById('wizard-submit').style.display = _wizardStep === 3 ? '' : 'none';
+    document.getElementById('form-error').style.display    = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function _wizardValidate(step) {
+    if (step === 1) {
+      const v = document.getElementById('meetingDateInput').value.trim();
+      if (!v || document.getElementById('meetingDateInput').classList.contains('input--error')) {
+        showToast('Please set a valid meeting date.', 'error'); return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      if (!document.getElementById('listingLat').value) {
+        showToast('Please select a meeting location.', 'error'); return false;
+      }
+      return true;
+    }
+    return true;
+  }
 
   /* ── PRE-FILL FROM RE-DO ── */
   (function() {
