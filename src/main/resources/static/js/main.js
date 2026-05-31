@@ -966,9 +966,9 @@ async function _loadMeetGraphic(resId) {
 
   let colorIdx = null, symbolIdx = null;
   try {
-    const presence = await ReservationAPI.getPresence(resId);
-    if (presence?.colorIndex  != null) colorIdx  = presence.colorIndex;
-    if (presence?.symbolIndex != null) symbolIdx = presence.symbolIndex;
+    const reservation = await ReservationAPI.getById(resId);
+    if (reservation?.listing?.colorIndex  != null) colorIdx  = reservation.listing.colorIndex;
+    if (reservation?.listing?.symbolIndex != null) symbolIdx = reservation.listing.symbolIndex;
   } catch { /* backend pending — use fallback */ }
 
   // Deterministic fallback from resId so testing always shows something
