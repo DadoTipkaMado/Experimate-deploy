@@ -247,9 +247,9 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
 (function() {
-  let _allUsers   = [];
   let _liked      = new Set(JSON.parse(localStorage.getItem('liked_users') || '[]'));
   let _myUsername = typeof Auth !== 'undefined' ? Auth.getUsername() : null;
+  let _searchTimer = null;
 
   const searchInput  = document.getElementById('cm-search-input');
   const listEl       = document.getElementById('cm-list');
@@ -321,25 +321,32 @@
     return div;
   }
 
+  function renderLikedChip(u) {
+    const photoUrl = u.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
+    const initials = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?';
+    const hue = (u.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const inner = photoUrl
+      ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+    return `
+      <a class="cm-liked-chip" href="/profile/${encodeURIComponent(u.username)}">
+        <div class="cm-liked-chip__ring">
+          <div class="cm-liked-chip__inner">${inner}</div>
+        </div>
+        <div class="cm-liked-chip__name">${escapeHtml(u.firstName || u.username)}</div>
+      </a>`;
+  }
+
   function renderLiked() {
-    const likedUsers = _allUsers.filter(u => _liked.has(u.username));
-    if (!likedUsers.length) { likedSection.style.display = 'none'; return; }
+    if (!_liked.size) { likedSection.style.display = 'none'; return; }
     likedSection.style.display = '';
-    likedRow.innerHTML = likedUsers.map(u => {
-      const photoUrl = u.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
-      const initials = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?';
-      const hue = (u.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
-      const inner = photoUrl
-        ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">`
-        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
-      return `
-        <a class="cm-liked-chip" href="/profile/${encodeURIComponent(u.username)}">
-          <div class="cm-liked-chip__ring">
-            <div class="cm-liked-chip__inner">${inner}</div>
-          </div>
-          <div class="cm-liked-chip__name">${escapeHtml(u.firstName || u.username)}</div>
-        </a>`;
-    }).join('');
+    // Fetch each liked user by username (no longer holding all users in memory)
+    Promise.all([..._liked].map(un => UserAPI.getByUsername(un).catch(() => null)))
+      .then(users => {
+        const valid = users.filter(Boolean).filter(u => u.username !== _myUsername);
+        if (!valid.length) { likedSection.style.display = 'none'; return; }
+        likedRow.innerHTML = valid.map(renderLikedChip).join('');
+      });
   }
 
   function renderList(users) {
@@ -351,27 +358,35 @@
     users.forEach((u, i) => listEl.appendChild(renderCard(u, i)));
   }
 
-  function filter(query) {
-    const q = query.trim().toLowerCase();
-    if (!q) { labelEl.textContent = 'People'; renderList(_allUsers); return; }
-    const results = _allUsers.filter(u =>
-      (u.firstName + ' ' + u.lastName).toLowerCase().includes(q) ||
-      u.username.toLowerCase().includes(q) ||
-      (u.bio || '').toLowerCase().includes(q)
-    );
-    labelEl.textContent = `Results for "${query.trim()}"`;
-    renderList(results);
+  function doSearch(query) {
+    const q = query.trim();
+    if (!q) {
+      labelEl.textContent = 'People';
+      listEl.innerHTML = `<div class="cm-empty" style="opacity:0.55;"><div class="cm-empty__icon">🔍</div>Search for people…</div>`;
+      return;
+    }
+    labelEl.textContent = `Results for "${q}"`;
+    listEl.innerHTML = `
+      <div class="cm-card skeleton" style="height:120px;border-radius:18px;"></div>
+      <div class="cm-card skeleton" style="height:120px;border-radius:18px;"></div>`;
+    UserAPI.search(q)
+      .then(users => {
+        const filtered = (users || []).filter(u => u.username !== _myUsername);
+        renderList(filtered);
+      })
+      .catch(() => {
+        listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">⚠️</div>Could not search — check your connection.</div>`;
+      });
   }
 
-  searchInput.addEventListener('input', function() { filter(this.value); });
-
-  UserAPI.getAll().then(users => {
-    _allUsers = (users || []).filter(u => u.username !== _myUsername);
-    renderList(_allUsers);
-    renderLiked();
-  }).catch(() => {
-    listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">⚠️</div>Could not load people — check your connection.</div>`;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => doSearch(this.value), 320);
   });
+
+  // Show empty prompt on load; liked row is populated independently
+  listEl.innerHTML = `<div class="cm-empty" style="opacity:0.55;"><div class="cm-empty__icon">🔍</div>Search for people…</div>`;
+  renderLiked();
 })();
 </script>
 </body>

@@ -272,12 +272,6 @@
     'Serious':        { icon: '🧠', desc: 'Depth over surface' },
   };
 
-  function _seedTraits(username) {
-    const pool = ['Curious','Adventurous','Calm','Thoughtful','Warm','Creative','Bold','Organised','Spontaneous','Empathetic'];
-    const h = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return [pool[h % pool.length], pool[(h * 3 + 1) % pool.length], pool[(h * 7 + 5) % pool.length]]
-      .filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
-  }
   function _traitClass(i) {
     return ['profile-trait--teal', 'profile-trait--warm', 'profile-trait--muted'][i % 3];
   }
@@ -314,21 +308,28 @@
 
       const isOwnProfile = Auth.getUsername() === user.username;
 
-      let traits = _seedTraits(user.username);
+      // Real traits only — no fabricated data from username hash
+      // TODO (David): add personalityTraits: string[] + onboardingCompleted: boolean to UserResponse
+      // so other users' trait pills can also be shown
+      let traitPills = '';
+      let quizCta = '';
       if (isOwnProfile) {
         try {
           const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
-          if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 3);
+          if (Array.isArray(stored) && stored.length) {
+            traitPills = stored.slice(0, 3).map((t, i) => {
+              const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
+              return `<div class="profile-trait ${_traitClass(i)}">
+                <div class="profile-trait__icon">${meta.icon}</div>
+                <div class="profile-trait__name">${t}</div>
+                <div class="profile-trait__desc">${meta.desc}</div>
+              </div>`;
+            }).join('');
+          } else {
+            quizCta = `<a href="/onboarding" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none;letter-spacing:0.04em;border:1px solid var(--accent-border);border-radius:20px;padding:4px 14px;background:var(--accent-dim);">Take personality quiz →</a>`;
+          }
         } catch(e) {}
       }
-      const traitPills = traits.map((t, i) => {
-        const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
-        return `<div class="profile-trait ${_traitClass(i)}">
-          <div class="profile-trait__icon">${meta.icon}</div>
-          <div class="profile-trait__name">${t}</div>
-          <div class="profile-trait__desc">${meta.desc}</div>
-        </div>`;
-      }).join('');
 
       const ratingDisplay = user.rating > 0 ? Number(user.rating).toFixed(1) : '—';
       const editLink = isOwnProfile ? `<a href="/account/edit" class="btn btn--ghost" style="height:36px;font-size:11px;flex:1;">Edit Profile</a>` : '';
@@ -378,13 +379,13 @@
           </div>
           <div class="profile-name">${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)}</div>
           <div class="profile-handle">@${escapeHtml(user.username)}</div>
-          <div class="profile-traits">${traitPills}</div>
+          ${traitPills ? `<div class="profile-traits">${traitPills}</div>` : quizCta ? `<div style="margin-bottom:14px;">${quizCta}</div>` : ''}
 
           <div class="profile-stats">
             <div class="profile-stat">
               <div class="profile-stat__icon">🤝</div>
               <div class="profile-stat__num">${userListings.length}</div>
-              <div class="profile-stat__label">Days</div>
+              <div class="profile-stat__label">Meets</div>
             </div>
             <div class="profile-stat">
               <div class="profile-stat__icon">⭐</div>
@@ -414,7 +415,7 @@
           </div>
         </div>
 
-        <div class="profile-section-label">Upcoming Days</div>
+        <div class="profile-section-label">Upcoming Meets</div>
         <div class="profile-listings" id="profile-listings"></div>
 
         <div class="profile-section-label" id="reviews-label" style="display:none;">Reviews</div>
