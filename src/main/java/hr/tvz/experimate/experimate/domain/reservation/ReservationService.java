@@ -50,17 +50,20 @@ public class ReservationService {
     private final TourListingRepo tourListingRepo;
     private final ApplicationEventPublisher publisher;
     private final DetailsMapper detailsMapper;
+    private final MeetGraphicAssigner meetGraphicAssigner;
 
     public ReservationService(ReservationRepo reservationRepo,
                               UserRepo userRepo,
                               TourListingRepo tourListingRepo,
                               ApplicationEventPublisher publisher,
-                              DetailsMapper detailsMapper) {
+                              DetailsMapper detailsMapper,
+                              MeetGraphicAssigner meetGraphicAssigner) {
         this.reservationRepo = reservationRepo;
         this.userRepo = userRepo;
         this.tourListingRepo = tourListingRepo;
         this.publisher = publisher;
         this.detailsMapper = detailsMapper;
+        this.meetGraphicAssigner = meetGraphicAssigner;
     }
 
     @Transactional
@@ -214,6 +217,8 @@ public class ReservationService {
             throw new IllegalArgumentException("User with id %d is not a participant of reservation with id %d"
                     .formatted(userId, reservationId));
         }
+
+        if (listing.getColorIndex() == null) meetGraphicAssigner.assign(listing);
 
         reservationRepo.save(reservation);
 
