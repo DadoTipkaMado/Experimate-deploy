@@ -554,8 +554,12 @@ window.toggleDatePanel = function(btn) {
 window.applyDateFilter = function() {
   const fromVal = document.getElementById('date-from').value;
   const toVal   = document.getElementById('date-to').value;
-  MapState.dateFrom = fromVal ? new Date(fromVal) : null;
-  MapState.dateTo   = toVal   ? new Date(toVal)   : null;
+  if (fromVal && toVal && toVal < fromVal) {
+    showToast('End date must be after start date.', 'error');
+    return;
+  }
+  MapState.dateFrom = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  MapState.dateTo   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
   const hasFilter = !!(fromVal || toVal);
   document.getElementById('pill-date').classList.toggle('pill--active', hasFilter);
   document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
