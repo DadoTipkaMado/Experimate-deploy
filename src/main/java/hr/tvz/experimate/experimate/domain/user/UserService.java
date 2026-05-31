@@ -168,6 +168,29 @@ public class UserService {
     }
 
     /**
+     * Removes the given user's profile photo, deleting the stored file and clearing
+     * the reference on the user. No-op on the file system if the user has no photo.
+     *
+     * @param id       the user's ID
+     * @param callerId the ID of the authenticated caller, used to enforce that users
+     *                 can only modify their own profile
+     *
+     * @throws ForbiddenActionException if {@code callerId} does not match {@code id}
+     * @throws UserNotFoundException    if no user exists with the given ID
+     */
+    public void deleteProfilePhoto(Integer id, Integer callerId) {
+        if (!callerId.equals(id))
+            throw new ForbiddenActionException("You can only remove the photo from your own profile.");
+        User user = findEntityById(id);
+        String filename = user.getProfilePhotoFilename();
+        if (filename == null) return;
+        user.setProfilePhotoFilename(null);
+        fileStorageService.delete(filename, profilePhotosDir);
+        userRepo.save(user);
+        log.info("Profile photo removed for user {}", id);
+    }
+
+    /**
      * Fetches a {@link User} entity by ID, shared internally to avoid duplicating
      * the not-found handling across service methods.
      *
