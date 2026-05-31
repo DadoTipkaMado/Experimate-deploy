@@ -517,17 +517,28 @@ function mapFilterAvailable() {
 }
 
 function applyMarkerFilter() {
+  // Collect active proximity state — defined later in file, safe at call time
+  const activePoiKeys = typeof _poiActive !== 'undefined'
+    ? Object.keys(_poiActive).filter(k => _poiActive[k])
+    : [];
+  const allVenues = activePoiKeys.flatMap(k => (_venueCoords?.[k]) || []);
+
   MapState.clusterGroup.clearLayers();
   MapState.allMarkers.forEach(({ circle }) => { if (circle) MapState.map.removeLayer(circle); });
+
   MapState.allMarkers.forEach(({ marker, listing, circle }) => {
-    if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
+    // Date filter
     if (MapState.dateFrom || MapState.dateTo) {
       const d = new Date(listing.meetingDate);
       if (MapState.dateFrom && d < MapState.dateFrom) return;
-      if (MapState.dateTo) {
-        const to = new Date(MapState.dateTo); to.setHours(23, 59, 59);
-        if (d > to) return;
-      }
+      if (MapState.dateTo && d > MapState.dateTo) return;
+    }
+    // Proximity (venue) filter — composable with date filter in a single pass
+    if (activePoiKeys.length) {
+      const mLat = listing.lat ?? listing.latitude;
+      const mLng = listing.lng ?? listing.longitude;
+      if (mLat == null || mLng == null) return;
+      if (!allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M)) return;
     }
     MapState.clusterGroup.addLayer(marker);
     if (circle) circle.addTo(MapState.map);
@@ -711,37 +722,8 @@ function _updateLegendVenues() {
 }
 
 function _applyProximityFilter() {
-  const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
-
-  if (!activeKeys.length) {
-    // No filter active — show all meets and their circles
-    MapState.allMarkers.forEach(({ marker, circle }) => {
-      if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
-      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
-    });
-    return;
-  }
-
-  // Gather all venue coords across active categories
-  const allVenues = activeKeys.flatMap(k => _venueCoords[k] || []);
-
-  MapState.allMarkers.forEach(({ marker, listing, circle }) => {
-    const mLat = listing.lat ?? listing.latitude;
-    const mLng = listing.lng ?? listing.longitude;
-    if (mLat == null || mLng == null) {
-      MapState.clusterGroup.removeLayer(marker);
-      if (circle) MapState.map.removeLayer(circle);
-      return;
-    }
-    const near = allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M);
-    if (near) {
-      if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
-      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
-    } else {
-      MapState.clusterGroup.removeLayer(marker);
-      if (circle) MapState.map.removeLayer(circle);
-    }
-  });
+  // Delegate to the unified filter pass so date + proximity always compose correctly
+  applyMarkerFilter();
 }
 
 function _fetchPoisForActive() {
