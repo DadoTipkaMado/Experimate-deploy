@@ -579,11 +579,6 @@ window.clearDateFilter = function() {
   applyMarkerFilter();
 };
 
-/* ── Legend toggle ── */
-window.toggleLegend = function() {
-  document.getElementById('map-legend').classList.toggle('map-legend--collapsed');
-};
-
 /* ── Venue strip collapse ── */
 window.toggleVenueStrip = function() {
   document.getElementById('map-venues-strip').classList.toggle('map-venues-strip--collapsed');
@@ -781,13 +776,16 @@ async function _doFetchPois() {
         if (lat == null || lng == null) return;
         coords.push({ lat, lng });
 
-        // Dim background venue dot (context only, not clickable)
-        const icon = L.divIcon({
+        // Small venue pin — clickable, shows venue name on hover
+        const venueName = el.tags?.name;
+        const venueIcon = L.divIcon({
           className: '',
-          html: `<div style="width:8px;height:8px;border-radius:50%;background:${cat.color};opacity:0.35;"></div>`,
-          iconSize: [8, 8], iconAnchor: [4, 4],
+          html: `<div style="width:10px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${cat.color};border:2px solid rgba(255,255,255,0.55);box-shadow:0 1px 6px rgba(0,0,0,0.45);cursor:pointer;"></div>`,
+          iconSize: [10, 14], iconAnchor: [5, 14],
         });
-        group.addLayer(L.marker([lat, lng], { icon, zIndexOffset: -200, interactive: false }));
+        const venueMarker = L.marker([lat, lng], { icon: venueIcon, zIndexOffset: -200 });
+        if (venueName) venueMarker.bindTooltip(venueName, { permanent: false, direction: 'top', offset: [0, -16], className: 'poi-tooltip' });
+        group.addLayer(venueMarker);
       });
 
       _venueCoords[catKey] = coords;
