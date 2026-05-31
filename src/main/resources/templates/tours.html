@@ -479,7 +479,7 @@
     <!-- ── Header ── -->
     <div class="meets-header">
       <div class="page-title">Meets</div>
-      <div class="page-subtitle">Your days, your people</div>
+      <div class="page-subtitle">Your meets, your people</div>
     </div>
 
     <!-- ── Segmented tabs ── -->
@@ -582,8 +582,8 @@
   <div style="font-family:var(--font-display);font-weight:800;font-size:30px;color:var(--text);letter-spacing:-0.02em;">Day is live</div>
   <div class="tour-takeover__pulse">🤝</div>
   <div id="takeover-info" style="font-size:14px;color:var(--text-2);line-height:1.75;"></div>
-  <div style="font-size:12px;color:var(--text-3);max-width:250px;line-height:1.65;margin-top:-4px;">Tap End Day when you're both done.</div>
-  <button id="end-tour-btn" class="btn btn--primary" style="height:52px;padding:0 40px;font-size:14px;margin-top:12px;" onclick="endActiveTour()">End Day</button>
+  <div style="font-size:12px;color:var(--text-3);max-width:250px;line-height:1.65;margin-top:-4px;">Tap End Meet when you're both done.</div>
+  <button id="end-tour-btn" class="btn btn--primary" style="height:52px;padding:0 40px;font-size:14px;margin-top:12px;" onclick="endActiveTour()">End Meet</button>
 </div>
 
 <!-- ── CANCEL MODAL ── -->
@@ -595,7 +595,7 @@
     <textarea id="cancel-reason" placeholder="Reason for cancellation…" maxlength="300"></textarea>
     <div class="modal-actions">
       <button onclick="closeCancelModal()" class="btn btn--ghost">Keep it</button>
-      <button onclick="confirmCancel()" class="btn btn--danger">Cancel day</button>
+      <button onclick="confirmCancel()" class="btn btn--danger">Cancel meet</button>
     </div>
   </div>
 </div>
@@ -843,7 +843,7 @@
                  <a href="/map" class="btn btn--ghost" style="height:38px;padding:0 20px;font-size:12px;">View map</a>`;
       } else {
         title = 'No upcoming hosting';
-        sub   = 'Create a listing to host your first Meet Day with a local.';
+        sub   = 'Create a listing to host your first meet with a local.';
         cta   = `<a href="/listings/new" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;">+ New Meet</a>`;
       }
       el.innerHTML = emptyState(icon, title, sub, cta);
@@ -909,7 +909,7 @@
     const items = _loadedData.myListings || [];
     if (!items.length) {
       const icon = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
-      el.innerHTML = emptyState(icon, 'No listings yet', 'Create a listing to host your first Meet Day.',
+      el.innerHTML = emptyState(icon, 'No listings yet', 'Create a listing to host your first meet.',
         `<a href="/listings/new" class="btn btn--primary" style="height:38px;padding:0 20px;font-size:12px;margin-top:4px;">+ New Meet</a>`);
       return;
     }
@@ -1071,7 +1071,7 @@
         showToast('Meet ended! Rate your Mate below.', 'success');
         setTimeout(() => window.location.reload(), 1200);
       })
-      .catch(err => { btn.disabled = false; btn.textContent = 'End Day'; showToast(err.message || 'Could not end day — try again.', 'error'); });
+      .catch(err => { btn.disabled = false; btn.textContent = 'End Meet'; showToast(err.message || 'Could not end meet — try again.', 'error'); });
   }
 
   /* ── Check-in ── */
@@ -1088,7 +1088,7 @@
           localStorage.setItem('activeTour', JSON.stringify(active));
           _activeTourResId = resId;
           showTakeover(active);
-          showToast('Both checked in — day is live!', 'success');
+          showToast('Both checked in — meet is live!', 'success');
         } else {
           btn.textContent = 'Waiting…';
           showToast('Checked in! Waiting for your Mate.', 'success');
