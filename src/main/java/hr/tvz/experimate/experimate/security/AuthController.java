@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -37,6 +38,9 @@ public class AuthController {
     private final String REFRESH_COOKIE = "refresh_token";
     @Value("${refresh-token.expiration}")
     private long refreshTokenExpirationMS;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     public AuthController(AuthService authService,
                           GoogleAuthService googleAuthService,
@@ -109,6 +113,18 @@ public class AuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new AuthResponse(tokenResponse.accessToken()));
+    }
+
+    /**
+     * Exposes the public Google OAuth client ID so the browser can initialise the Google
+     * Sign-In SDK before opening the consent popup. The client ID is not secret — it ships
+     * in the page either way — so this endpoint is unauthenticated.
+     *
+     * @return the configured {@code google.client-id} as plain text
+     */
+    @GetMapping(value = "/google-client-id", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> googleClientId() {
+        return ResponseEntity.ok(googleClientId);
     }
 
     /**
