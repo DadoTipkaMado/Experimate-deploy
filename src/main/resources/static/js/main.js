@@ -1419,9 +1419,11 @@ window.DatePicker = DatePicker;
     void b.offsetWidth;
     b.style.cssText = 'width:82%;opacity:1;transition:width 0.5s cubic-bezier(0.1,0.5,0.5,1)';
     sessionStorage.setItem('_np', '1');
+    _t = setTimeout(npDone, 8000); // failsafe: auto-complete if navigation never fires
   }
 
   function npDone() {
+    clearTimeout(_t); // cancel failsafe if real navigation beat it
     const b = bar();
     b.style.cssText = 'width:100%;opacity:1;transition:width 0.15s ease';
     _t = setTimeout(() => {
@@ -1436,8 +1438,9 @@ window.DatePicker = DatePicker;
     requestAnimationFrame(() => requestAnimationFrame(npDone));
   }
 
-  // Start on any internal nav click
+  // Start on any internal nav click — skip if the click target is a button inside the link
   document.addEventListener('click', e => {
+    if (e.target.closest('button,[data-no-nav]')) return;
     const a = e.target.closest('a[href]');
     if (!a || a.target === '_blank' || !a.href.startsWith(location.origin) || a.href === location.href) return;
     npStart();
