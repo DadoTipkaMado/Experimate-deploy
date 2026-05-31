@@ -13,6 +13,12 @@ import java.util.Collection;
 import java.util.List;
 
 public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
+
+    /** Projection used by {@link MeetGraphicAssigner} to read only the graphic pair — avoids loading the full entity. */
+    interface MeetGraphicProjection {
+        Integer getColorIndex();
+        Integer getSymbolIndex();
+    }
     boolean existsByHost_Id(Integer id);
     int deleteAllByHost_Id(Integer id);
 
@@ -61,6 +67,39 @@ public interface TourListingRepo extends JpaRepository<TourListing, Integer> {
      * @param activeStatuses reservation statuses that count as an occupied slot (CONFIRMED, ACTIVE)
      * @return list of candidate listings ordered by meeting date ascending
      */
+    /**
+     * Returns the graphic pair of all nearby listings that already have a meet graphic assigned.
+     * Used by {@link MeetGraphicAssigner} to determine which pairs are taken before running first-fit.
+     *
+     * <p>Bounding-box filter (not a circle) — conservative pre-inclusion is intentional.
+     *
+     * @param excludeId the listing being assigned (excluded from results)
+     * @param start     lower bound of the meeting-date window
+     * @param end       upper bound of the meeting-date window
+     * @param minLat    southern edge of the bounding box
+     * @param maxLat    northern edge of the bounding box
+     * @param minLng    western edge of the bounding box
+     * @param maxLng    eastern edge of the bounding box
+     */
+    @Query("""
+        SELECT l.colorIndex AS colorIndex, l.symbolIndex AS symbolIndex
+        FROM TourListing l
+        WHERE l.id != :excludeId
+        AND l.colorIndex IS NOT NULL
+        AND l.meetingDate BETWEEN :start AND :end
+        AND l.latitude BETWEEN :minLat AND :maxLat
+        AND l.longitude BETWEEN :minLng AND :maxLng
+        """)
+    List<MeetGraphicProjection> findNearbyAssignedGraphics(
+            @Param("excludeId") Integer excludeId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("minLat") double minLat,
+            @Param("maxLat") double maxLat,
+            @Param("minLng") double minLng,
+            @Param("maxLng") double maxLng
+    );
+
     @Query("""
         SELECT l FROM TourListing l
         WHERE l.host.id != :viewerId
