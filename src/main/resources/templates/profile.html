@@ -495,18 +495,80 @@
         const reviewsEl = document.getElementById('profile-reviews');
         if (!reviewsEl || !forThisUser.length) return;
         document.getElementById('reviews-label').style.display = '';
-        reviewsEl.innerHTML = forThisUser.map(r => {
-          const stars = Array.from({ length: 5 }, (_, i) =>
-            `<span class="review-card__star${i < r.score ? ' review-card__star--lit' : ''}">★</span>`
+        const myUsername = Auth.getUsername();
+
+        function mkStars(score) {
+          return Array.from({ length: 5 }, (_, i) =>
+            `<span class="review-card__star${i < score ? ' review-card__star--lit' : ''}">★</span>`
           ).join('');
+        }
+
+        function renderCard(r) {
+          const isOwn = myUsername && r.rater?.username === myUsername;
           const from = r.rater
-            ? `<div class="review-card__from">From <a href="/profile/${r.rater.username}" style="display:flex;align-items:center;gap:4px;color:inherit;text-decoration:none;margin-left:4px;"><span class="review-card__from-name">${r.rater.firstName} ${r.rater.lastName}</span></a></div>`
+            ? `<div class="review-card__from">From <a href="/profile/${r.rater.username}" style="display:flex;align-items:center;gap:4px;color:inherit;text-decoration:none;margin-left:4px;"><span class="review-card__from-name">${escapeHtml(r.rater.firstName)} ${escapeHtml(r.rater.lastName)}</span></a></div>`
             : '';
           const text = r.review
             ? `<div class="review-card__text">"${escapeHtml(r.review)}"</div>`
             : `<div class="review-card__empty-text">No written review.</div>`;
-          return `<div class="review-card"><div class="review-card__stars">${stars}</div>${from}${text}</div>`;
-        }).join('');
+          const actions = isOwn ? `
+            <div class="review-card__actions" style="display:flex;gap:8px;margin-top:8px;">
+              <button onclick="_editRating(${r.id},${r.score},${JSON.stringify(r.review||'')})" style="background:none;border:1px solid var(--border-2);border-radius:20px;padding:3px 12px;font-size:10px;color:var(--text-2);cursor:pointer;font-family:var(--font-mono);letter-spacing:0.04em;transition:border-color 0.14s,color 0.14s;" onmouseover="this.style.borderColor='var(--accent-border)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border-2)';this.style.color='var(--text-2)'">Edit</button>
+              <button onclick="_deleteRating(${r.id})" style="background:none;border:1px solid rgba(255,80,80,0.22);border-radius:20px;padding:3px 12px;font-size:10px;color:rgba(255,100,100,0.6);cursor:pointer;font-family:var(--font-mono);letter-spacing:0.04em;transition:border-color 0.14s,color 0.14s;" onmouseover="this.style.borderColor='rgba(255,80,80,0.45)';this.style.color='rgba(255,100,100,0.9)'" onmouseout="this.style.borderColor='rgba(255,80,80,0.22)';this.style.color='rgba(255,100,100,0.6)'">Delete</button>
+            </div>` : '';
+          return `<div class="review-card" id="review-card-${r.id}"><div class="review-card__stars">${mkStars(r.score)}</div>${from}${text}${actions}</div>`;
+        }
+
+        reviewsEl.innerHTML = forThisUser.map(renderCard).join('');
+
+        window._editRating = function(id, currentScore, currentReview) {
+          const card = document.getElementById('review-card-' + id);
+          if (!card) return;
+          card._score = currentScore;
+          card.innerHTML = `
+            <div style="display:flex;gap:6px;margin-bottom:10px;">
+              ${Array.from({length:5},(_,i)=>`<span data-v="${i+1}" style="font-size:22px;cursor:pointer;color:${i<currentScore?'var(--accent)':'var(--border-3)'};transition:color 0.1s;">★</span>`).join('')}
+            </div>
+            <textarea id="edit-review-${id}" placeholder="Write a review... (optional)" style="width:100%;background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;padding:8px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;resize:none;min-height:72px;line-height:1.5;box-sizing:border-box;" maxlength="500">${escapeHtml(currentReview)}</textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button onclick="_saveRating(${id})" style="flex:1;height:34px;border-radius:20px;background:var(--accent);border:none;color:#000;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.04em;">Save</button>
+              <button onclick="_cancelEditRating(${id})" style="flex:1;height:34px;border-radius:20px;background:none;border:1px solid var(--border-2);color:var(--text-2);font-family:var(--font-mono);font-size:11px;cursor:pointer;">Cancel</button>
+            </div>`;
+          card.querySelectorAll('[data-v]').forEach(star => {
+            star.addEventListener('click', () => {
+              card._score = parseInt(star.dataset.v);
+              card.querySelectorAll('[data-v]').forEach((s, i) => s.style.color = i < card._score ? 'var(--accent)' : 'var(--border-3)');
+            });
+          });
+        };
+
+        window._saveRating = function(id) {
+          const card = document.getElementById('review-card-' + id);
+          const score = card._score || 1;
+          const review = document.getElementById('edit-review-' + id)?.value.trim() || null;
+          RatingAPI.update(id, { score, review })
+            .then(updated => {
+              const r = forThisUser.find(x => x.id === id);
+              if (r) { r.score = updated.score; r.review = updated.review; }
+              card.outerHTML = renderCard(r || updated);
+              showToast('Review updated!', 'success');
+            })
+            .catch(err => showToast(err.message || 'Could not save — try again.', 'error'));
+        };
+
+        window._deleteRating = function(id) {
+          const card = document.getElementById('review-card-' + id);
+          if (!card) return;
+          card.style.opacity = '0.5';
+          RatingAPI.delete(id)
+            .then(() => { card.remove(); showToast('Review deleted.'); })
+            .catch(err => { card.style.opacity = ''; showToast(err.message || 'Could not delete.', 'error'); });
+        };
+
+        window._cancelEditRating = function(id) {
+          const r = forThisUser.find(x => x.id === id);
+          if (r) document.getElementById('review-card-' + id).outerHTML = renderCard(r);
+        };
       }).catch(() => {});
     })
     .catch(() => {
