@@ -35,6 +35,9 @@ public class TourListing {
     private LocalDateTime hostCheckInTimestamp;
     private LocalDateTime tourStartedAt;
 
+    private Integer colorIndex;
+    private Integer symbolIndex;
+
     //For hibernate
     protected TourListing() {
     }
@@ -119,6 +122,23 @@ public class TourListing {
     /** Records the moment the tour begins; used as the single source of truth for the ACTIVE transition. */
     public void startTour() {
         this.tourStartedAt = LocalDateTime.now();
+    }
+
+    public Integer getColorIndex() {
+        return colorIndex;
+    }
+
+    public Integer getSymbolIndex() {
+        return symbolIndex;
+    }
+
+    /**
+     * Persists the meet graphic assigned by {@link MeetGraphicAssigner}.
+     * Called at most once per listing — the assigner checks {@link #getColorIndex()} before calling.
+     */
+    public void assignMeetGraphic(int colorIndex, int symbolIndex) {
+        this.colorIndex = colorIndex;
+        this.symbolIndex = symbolIndex;
     }
 
     public void setMeetingDate(LocalDateTime meetingDate) {

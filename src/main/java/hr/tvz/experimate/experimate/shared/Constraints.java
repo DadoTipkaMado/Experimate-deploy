@@ -32,4 +32,12 @@ public class Constraints {
         public static final int RATING_WINDOW_HOURS = 48;
         public static final int CONFIRMED_EXPIRY_HOURS = 1;
     }
+
+    public static final class MeetGraphicConstraints {
+        // Must stay in sync with MEET_COLORS (20) and MEET_SYMBOLS (30) in main.js
+        public static final int COLOR_COUNT = 20;
+        public static final int SYMBOL_COUNT = 30;
+        public static final int PROXIMITY_METERS = 300;
+        public static final int TIME_WINDOW_HOURS = 3;
+    }
 }
