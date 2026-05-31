@@ -669,14 +669,16 @@ function _joinFromDetail(btn) {
    Skipped on profile/auth pages so user can check
    the host's profile and navigate back freely.
 ─────────────────────────────────────────────── */
-let _pmsResId    = null;
-let _pmsOther    = null;
-let _pmsMeetDate = null;
-let _pmsTimer    = null;
-let _pmsChatWs   = null;
+let _pmsResId      = null;
+let _pmsOther      = null;
+let _pmsMeetDate   = null;
+let _pmsTimer      = null;
+let _pmsChatWs     = null;
 let _pmsChatMyUsername = null;
 let _pmsGraphicColor  = null;
 let _pmsGraphicSymbol = null;
+let _pmsListingId  = null;
+let _pmsIsHost     = false;
 
 const MEET_COLORS = [
   { hex: '#EF4444', name: 'Red' },       { hex: '#F97316', name: 'Orange' },
@@ -858,9 +860,11 @@ function _ensurePreMeetScreen() {
 
 function _showPreMeetScreen(res) {
   _ensurePreMeetScreen();
-  _pmsResId    = res.id;
-  _pmsMeetDate = new Date(res.tourListing.meetingDate);
-  _pmsOther    = res._isGuest ? res.tourListing.host : res.guest;
+  _pmsResId     = res.id;
+  _pmsMeetDate  = new Date(res.tourListing.meetingDate);
+  _pmsOther     = res._isGuest ? res.tourListing.host : res.guest;
+  _pmsListingId = res.tourListing.id ?? null;
+  _pmsIsHost    = !res._isGuest;
 
   const handle = _pmsOther?.username ?? '';
   const name   = _pmsOther ? ((_pmsOther.firstName ?? '') + ' ' + (_pmsOther.lastName ?? '')).trim() || handle : handle;
@@ -919,6 +923,7 @@ function _pmsCheckIn() {
   ReservationAPI.checkIn(_pmsResId)
     .then(res => {
       if (res && res.guestCheckedIn && res.hostCheckedIn) {
+        if (_pmsIsHost && _pmsListingId) TourListingAPI.startTour(_pmsListingId).catch(() => {});
         const city     = document.getElementById('pms-city').textContent.replace('📍 ', '');
         const hostName = document.getElementById('pms-name').textContent;
         localStorage.setItem('activeTour', JSON.stringify({ resId: _pmsResId, city, hostName }));
@@ -1022,7 +1027,8 @@ function _pmsClose() {
   if (toast) toast.style.bottom = '';
   if (_pmsTimer) { clearInterval(_pmsTimer); _pmsTimer = null; }
   _pmsChatDisconnect();
-  _pmsResId = _pmsOther = _pmsMeetDate = null;
+  _pmsResId = _pmsOther = _pmsMeetDate = _pmsListingId = null;
+  _pmsIsHost = false;
 }
 
 /* ───────────────────────────────────────────────
