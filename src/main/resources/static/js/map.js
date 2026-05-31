@@ -7,7 +7,6 @@ const MapState = {
   map: null,
   clusterGroup: null,
   allMarkers: [],       // { marker, listing, pinType } — full list for filtering
-  availableOnly: false,
   dateFrom: null,       // Date | null
   dateTo: null,         // Date | null
   userCache: {},        // username → UserResponse (for popup photos)
@@ -511,10 +510,6 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
    FILTERS
 ─────────────────────────────────────────────── */
 
-function mapFilterAvailable() {
-  MapState.availableOnly = !MapState.availableOnly;
-  applyMarkerFilter();
-}
 
 function applyMarkerFilter() {
   // Collect active proximity state — defined later in file, safe at call time
@@ -600,7 +595,6 @@ if (searchInput) {
     MapState.clusterGroup.clearLayers();
     MapState.allMarkers.forEach(({ circle }) => { if (circle) MapState.map.removeLayer(circle); });
     MapState.allMarkers.forEach(({ marker, listing, circle }) => {
-      if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
       if (!lower) {
         MapState.clusterGroup.addLayer(marker);
         if (circle) circle.addTo(MapState.map);
