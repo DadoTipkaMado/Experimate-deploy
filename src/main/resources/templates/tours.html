@@ -425,15 +425,15 @@
     .star-picker__star:hover { transform: scale(1.12); }
 
     /* ── Light / Warm mode ── */
-    body.light-mode .page-content { background: #f0eeea; }
-    body.warm-mode  .page-content { background: #ECEDF2; }
-    body.light-mode .seg-tabs { background: rgba(240,238,234,0.95); border-bottom-color: rgba(0,0,0,0.10); }
-    body.warm-mode  .seg-tabs { background: rgba(236,237,242,0.95); border-bottom-color: rgba(0,0,0,0.08); }
-    body.light-mode .meets-header::before { background: radial-gradient(circle, rgba(0,110,88,0.08) 0%, transparent 68%); }
-    body.warm-mode  .meets-header::before { background: radial-gradient(circle, rgba(235,101,71,0.07) 0%, transparent 68%); }
-    body.light-mode .meet-card,
-    body.light-mode .listing-card,
-    body.light-mode .req-card {
+    body.theme-light .page-content { background: #f0eeea; }
+    body.theme-warm  .page-content { background: #ECEDF2; }
+    body.theme-light .seg-tabs { background: rgba(240,238,234,0.95); border-bottom-color: rgba(0,0,0,0.10); }
+    body.theme-warm  .seg-tabs { background: rgba(236,237,242,0.95); border-bottom-color: rgba(0,0,0,0.08); }
+    body.theme-light .meets-header::before { background: radial-gradient(circle, rgba(0,110,88,0.08) 0%, transparent 68%); }
+    body.theme-warm  .meets-header::before { background: radial-gradient(circle, rgba(235,101,71,0.07) 0%, transparent 68%); }
+    body.theme-light .meet-card,
+    body.theme-light .listing-card,
+    body.theme-light .req-card {
       background: #fff;
       border-color: rgba(0,0,0,0.07);
       border-top-color: rgba(255,255,255,0.9);
@@ -443,9 +443,9 @@
         0 4px 14px rgba(20,20,30,0.08),
         0 1px 4px rgba(20,20,30,0.05);
     }
-    body.warm-mode  .meet-card,
-    body.warm-mode  .listing-card,
-    body.warm-mode  .req-card {
+    body.theme-warm  .meet-card,
+    body.theme-warm  .listing-card,
+    body.theme-warm  .req-card {
       background: var(--surface);
       border-color: rgba(0,0,0,0.06);
       border-top-color: rgba(255,255,255,0.82);
@@ -455,18 +455,18 @@
         0 4px 14px rgba(18,18,30,0.09),
         0 1px 4px rgba(18,18,30,0.06);
     }
-    body.light-mode .meet-card:active,
-    body.warm-mode  .meet-card:active {
+    body.theme-light .meet-card:active,
+    body.theme-warm  .meet-card:active {
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.6),
         inset 0 2px 6px rgba(0,0,0,0.08);
     }
-    body.light-mode .meet-card__btn--danger,
-    body.warm-mode  .meet-card__btn--danger { border-color: rgba(185,28,28,0.25); color: rgba(185,28,28,0.75); }
-    body.light-mode .req-btn--decline:hover,
-    body.warm-mode  .req-btn--decline:hover { border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78); }
-    body.light-mode .req-status-badge--declined,
-    body.warm-mode  .req-status-badge--declined { background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80); }
+    body.theme-light .meet-card__btn--danger,
+    body.theme-warm  .meet-card__btn--danger { border-color: rgba(185,28,28,0.25); color: rgba(185,28,28,0.75); }
+    body.theme-light .req-btn--decline:hover,
+    body.theme-warm  .req-btn--decline:hover { border-color: rgba(185,28,28,0.35); color: rgba(185,28,28,0.78); }
+    body.theme-light .req-status-badge--declined,
+    body.theme-warm  .req-status-badge--declined { background: rgba(185,28,28,0.08); border-color: rgba(185,28,28,0.22); color: rgba(185,28,28,0.80); }
   </style>
 </head>
 <body>

@@ -31,7 +31,7 @@
         .catch(() => {});
     }
   </script>
-  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('light-mode');else if(t==='warm')document.body.classList.add('warm-mode');else if(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme:light)').matches)document.body.classList.add('light-mode');})();</script>
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('theme-light');else if(t==='warm')document.body.classList.add('theme-warm');else if(t==='cyber')document.body.classList.add('theme-cyber');})();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -57,7 +57,7 @@
       --radius-pill: 999px;
       --t: 0.2s;
     }
-    html.light-mode {
+    html.theme-light {
       --bg: #f5f6fa; --surface: #ffffff; --surface-2: #eef0f5;
       --border: rgba(0,0,0,0.08); --border-2: rgba(0,0,0,0.13);
       --text: #111218; --text-2: rgba(17,18,24,0.60); --text-3: rgba(17,18,24,0.34);
@@ -102,19 +102,19 @@
       border-bottom: 1px solid var(--border);
       background: rgba(13,14,22,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     }
-    html.light-mode nav { background: rgba(245,246,250,0.92); border-bottom-color: rgba(0,0,0,0.08); }
-    html.light-mode .btn-nav-ghost:hover { border-color: rgba(0,0,0,0.22); color: var(--text); }
-    html.light-mode .btn-hero-ghost:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
-    html.light-mode .hamburger:hover { background: rgba(0,0,0,0.06); }
-    html.light-mode .mobile-menu { background: rgba(245,246,250,0.98); }
-    html.light-mode footer { background: #e8eaf0; }
-    html.light-mode .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
-    html.light-mode .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
-    html.light-mode .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
-    html.light-mode .radar-axis { stroke: rgba(0,0,0,0.12); }
-    html.light-mode .radar-ring  { stroke: rgba(0,0,0,0.10); }
-    html.light-mode .radar-dot   { fill:   rgba(0,0,0,0.28); }
-    html.light-mode .radar-label { fill:   rgba(17,18,24,0.45); }
+    html.theme-light nav { background: rgba(245,246,250,0.92); border-bottom-color: rgba(0,0,0,0.08); }
+    html.theme-light .btn-nav-ghost:hover { border-color: rgba(0,0,0,0.22); color: var(--text); }
+    html.theme-light .btn-hero-ghost:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
+    html.theme-light .hamburger:hover { background: rgba(0,0,0,0.06); }
+    html.theme-light .mobile-menu { background: rgba(245,246,250,0.98); }
+    html.theme-light footer { background: #e8eaf0; }
+    html.theme-light .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
+    html.theme-light .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+    html.theme-light .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
+    html.theme-light .radar-axis { stroke: rgba(0,0,0,0.12); }
+    html.theme-light .radar-ring  { stroke: rgba(0,0,0,0.10); }
+    html.theme-light .radar-dot   { fill:   rgba(0,0,0,0.28); }
+    html.theme-light .radar-label { fill:   rgba(17,18,24,0.45); }
     .nav-brand { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
     .nav-brand span { color: var(--accent); }
     .nav-right { display: flex; align-items: center; gap: clamp(12px,3vw,32px); }
@@ -895,10 +895,10 @@
     (function() {
       const btn = document.getElementById('landing-theme-btn');
       if (!btn) return;
-      const update = () => btn.innerHTML = document.documentElement.classList.contains('light-mode') ? MOON : SUN;
+      const update = () => btn.innerHTML = document.documentElement.classList.contains('theme-light') ? MOON : SUN;
       update();
       btn.addEventListener('click', () => {
-        const isLight = document.documentElement.classList.toggle('light-mode');
+        const isLight = document.documentElement.classList.toggle('theme-light');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         update();
       });

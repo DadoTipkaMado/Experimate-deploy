@@ -34,7 +34,7 @@ function initMap() {
     attributionControl: false,
   });
 
-  const tileUrl = () => document.body.classList.contains('light-mode')
+  const tileUrl = () => document.body.classList.contains('theme-light') || document.body.classList.contains('theme-warm')
     ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
     : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 

@@ -20,8 +20,8 @@
     }
 
     .page-content { background: #0a0c0c; }
-    body.light-mode .page-content { background: #f0eeea; }
-    body.warm-mode  .page-content { background: #ECEDF2; }
+    body.theme-light .page-content { background: var(--bg); }
+    body.theme-warm  .page-content { background: var(--bg); }
 
     .edit-header {
       padding: 22px 20px 14px;
@@ -47,14 +47,14 @@
         0 24px 60px rgba(0,0,0,0.65),
         0 8px 20px rgba(0,0,0,0.4);
     }
-    body.light-mode .edit-form {
+    body.theme-light .edit-form {
       background: #fff;
       border-color: rgba(0,0,0,0.07);
       border-top-color: rgba(255,255,255,0.9);
       border-bottom-color: rgba(0,0,0,0.10);
       box-shadow: 0 2px 8px rgba(20,20,30,0.07), 0 1px 3px rgba(20,20,30,0.04);
     }
-    body.warm-mode  .edit-form {
+    body.theme-warm  .edit-form {
       background: var(--surface);
       border-color: rgba(0,0,0,0.06);
       border-top-color: rgba(255,255,255,0.82);
@@ -79,8 +79,8 @@
       transition: border-color 0.14s ease, box-shadow 0.14s ease;
       color-scheme: dark;
     }
-    body.light-mode .form-field input, body.light-mode .form-field textarea,
-    body.warm-mode  .form-field input, body.warm-mode  .form-field textarea {
+    body.theme-light .form-field input, body.theme-light .form-field textarea,
+    body.theme-warm  .form-field input, body.theme-warm  .form-field textarea {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.12);
       border-top-color: rgba(0,0,0,0.18);
@@ -94,7 +94,7 @@
       border-top-color: rgba(0,201,167,0.3);
       box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(0,201,167,0.12);
     }
-    body.warm-mode .form-field input:focus, body.warm-mode .form-field textarea:focus {
+    body.theme-warm .form-field input:focus, body.theme-warm .form-field textarea:focus {
       border-color: rgba(235,101,71,0.52);
       border-top-color: rgba(235,101,71,0.30);
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 0 0 0 3px rgba(235,101,71,0.13);
