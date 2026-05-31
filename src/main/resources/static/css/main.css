@@ -91,15 +91,27 @@
   --focus-ring:         rgba(0, 201, 167, 0.50);   /* :focus-visible outline */
   --accent-shadow:      rgba(0, 201, 167, 0.28);   /* btn--primary hover glow */
   --search-focus-glow:  rgba(0, 201, 167, 0.08);  /* search bar focus ring */
+
+  /* ─ Per-theme component tokens — each theme overrides only what changes ─ */
+  --accent-muted:             rgba(0, 201, 167, 0.82);
+  --card-badge-border:        var(--border-2);
+  --pill-active-bg:           var(--accent-dim);
+  --pill-active-color:        var(--accent);
+  --pill-warm-active-bg:      var(--warm-dim);
+  --pill-warm-active-color:   var(--warm);
+  --pill-personalized-bg:     linear-gradient(90deg, rgba(0,201,167,0.18), rgba(0,201,167,0.08));
+  --pill-personalized-border: rgba(0,201,167,0.45);
+  --badge-ai-bg:              rgba(0,201,167,0.12);
+  --badge-ai-border:          rgba(0,201,167,0.25);
+  --badge-ai-color:           rgba(0,201,167,0.80);
 }
 
-/* ── Light mode overrides ── */
-body.light-mode {
+/* ── Light warm theme ── */
+body.theme-light {
   color-scheme: light;
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
 
-  /* Warm ivory palette — feels like the same brand in daylight, not sterile clinical white */
   --bg:             #f6f4ef;
   --surface:        #fdfcf8;
   --surface-2:      #eeece6;
@@ -118,19 +130,16 @@ body.light-mode {
   --accent-border:  rgba(0, 110, 88, 0.35);
   --accent-glow:    rgba(0, 110, 88, 1);
 
-  /* Warm orange darkened for same contrast reason */
   --warm:           #b84200;
   --warm-dim:       rgba(184, 66, 0, 0.10);
   --warm-border:    rgba(184, 66, 0, 0.28);
 
-  /* Warm-tinted shadows */
   --shadow-sm:      0 1px 4px rgba(30, 20, 10, 0.08);
   --shadow-md:      0 4px 16px rgba(30, 20, 10, 0.10);
   --shadow-lg:      0 8px 32px rgba(30, 20, 10, 0.14);
   --shadow-glow:    0 0 0 3px rgba(0, 110, 88, 0.14);
   --shadow-glow-warm: 0 0 0 3px rgba(184, 66, 0, 0.12);
 
-  /* Semantic token overrides */
   --surface-overlay:    rgba(253, 252, 248, 0.97);
   --card-gradient-end:  rgba(246, 244, 239, 0.96);
   --card-badge-bg:      rgba(255, 255, 255, 0.82);
@@ -143,65 +152,30 @@ body.light-mode {
   --focus-ring:         rgba(0, 110, 88, 0.50);
   --accent-shadow:      rgba(0, 110, 88, 0.22);
   --search-focus-glow:  rgba(0, 110, 88, 0.08);
-}
 
-/* Light mode — explore card text: use vars directly, no override needed */
-
-/* Light mode — rating/match badge border on light card-badge-bg */
-body.light-mode .explore-card__rating,
-body.light-mode .explore-card__match-pct {
-  border-color: rgba(0, 110, 88, 0.30);
-  color: #006e58;
+  /* ─ Component tokens ─ */
+  --accent-muted:             var(--accent);
+  --card-badge-border:        var(--accent-border);
+  --pill-active-bg:           var(--accent);
+  --pill-active-color:        #fff;
+  --pill-warm-active-bg:      var(--warm);
+  --pill-warm-active-color:   #fff;
+  --pill-personalized-bg:     linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
+  --pill-personalized-border: rgba(0,110,88,0.38);
+  --badge-ai-bg:              rgba(0,110,88,0.10);
+  --badge-ai-border:          rgba(0,110,88,0.22);
+  --badge-ai-color:           rgba(0,110,88,0.80);
 }
-
-/* Light mode — active filter pill: solid filled so on/off is instantly clear */
-body.light-mode .pill--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-body.light-mode .pill--warm.pill--active {
-  background: var(--warm);
-  border-color: var(--warm);
-  color: #fff;
-}
-
-/* Light mode — personalized pill */
-body.light-mode .pill--personalized {
-  background: linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
-  border-color: rgba(0,110,88,0.38);
-  color: var(--accent);
-}
-
-/* Light mode — AI search badge */
-body.light-mode .search-ai-badge {
-  background: rgba(0,110,88,0.10);
-  border-color: rgba(0,110,88,0.22);
-  color: rgba(0,110,88,0.80);
-}
-
-/* Light mode — explore card traits */
-body.light-mode .explore-card__trait {
-  background: rgba(0,110,88,0.10);
-  border-color: rgba(0,110,88,0.25);
-  color: var(--accent);
-}
-
-/* Light mode — side action labels */
-body.light-mode .side-action__label,
-body.light-mode .scroll-hint__label { color: var(--text-2); }
 
 /* ═══════════════════════════════════════════════
-   WARM MODE — David's palette
-   Activated via body.warm-mode class
+   WARM THEME — cool lavender base, coral accent
    localStorage key 'theme' = 'warm'
 ═══════════════════════════════════════════════ */
-body.warm-mode {
+body.theme-warm {
   color-scheme: light;
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
 
-  /* Cool lavender-gray base — character stays in the surface tint, not white */
   --bg:             #ECEDF2;
   --surface:        #F6F6FB;
   --surface-2:      #DEE5E5;
@@ -210,23 +184,19 @@ body.warm-mode {
   --border-2:       #BAC3C5;
   --border-3:       #A5B0B2;
 
-  /* Cool blue-gray ink — distinct from light mode's brown-black */
   --text:           #16161D;
   --text-2:         #3A3A47;
   --text-3:         #5A5A68;
 
-  /* Coral-orange accent — the heat against the cool base */
   --accent:         #EB6547;
   --accent-dim:     rgba(235, 101, 71, 0.12);
   --accent-border:  rgba(235, 101, 71, 0.38);
   --accent-glow:    rgba(235, 101, 71, 1);
 
-  /* Amber secondary — darkened enough for legibility on light surfaces */
   --warm:           #C4870A;
   --warm-dim:       rgba(196, 135, 10, 0.12);
   --warm-border:    rgba(196, 135, 10, 0.30);
 
-  /* Shadows carry a hint of cool-lavender */
   --shadow-sm:      0 1px 4px rgba(18, 18, 30, 0.07);
   --shadow-md:      0 4px 16px rgba(18, 18, 30, 0.09);
   --shadow-lg:      0 8px 32px rgba(18, 18, 30, 0.13);
@@ -245,46 +215,81 @@ body.warm-mode {
   --focus-ring:         rgba(235, 101, 71, 0.52);
   --accent-shadow:      rgba(235, 101, 71, 0.20);
   --search-focus-glow:  rgba(235, 101, 71, 0.08);
+
+  /* ─ Component tokens ─ */
+  --accent-muted:             rgba(235, 101, 71, 0.82);
+  --card-badge-border:        var(--accent-border);
+  --pill-active-bg:           var(--accent);
+  --pill-active-color:        #fff;
+  --pill-warm-active-bg:      var(--warm);
+  --pill-warm-active-color:   #fff;
+  --pill-personalized-bg:     linear-gradient(90deg, rgba(235,101,71,0.11), rgba(235,101,71,0.04));
+  --pill-personalized-border: rgba(235,101,71,0.30);
+  --badge-ai-bg:              rgba(235,101,71,0.09);
+  --badge-ai-border:          rgba(235,101,71,0.20);
+  --badge-ai-color:           #c44030;
 }
 
-/* Warm mode — explore cards: let vars handle text, no override */
-body.warm-mode .explore-card__rating,
-body.warm-mode .explore-card__match-pct {
-  border-color: rgba(235, 101, 71, 0.35);
-  color: #c44030;
-}
+/* ═══════════════════════════════════════════════
+   CYBER THEME — dark electric blue, cyan accent
+   localStorage key 'theme' = 'cyber'
+═══════════════════════════════════════════════ */
+body.theme-cyber {
+  color-scheme: dark;
 
-body.warm-mode .pill--active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-body.warm-mode .pill--warm.pill--active {
-  background: var(--warm);
-  border-color: var(--warm);
-  color: #fff;
-}
+  --bg:             #060a12;
+  --surface:        #0d1520;
+  --surface-2:      #141e2e;
+  --surface-3:      #1a263a;
+  --border:         #1e2d42;
+  --border-2:       #253650;
+  --border-3:       #2e4160;
 
-body.warm-mode .pill--personalized {
-  background: linear-gradient(90deg, rgba(235,101,71,0.11), rgba(235,101,71,0.04));
-  border-color: rgba(235,101,71,0.30);
-  color: var(--accent);
-}
+  --text:           #d8eaf5;
+  --text-2:         #8ab0cc;
+  --text-3:         #5a7a96;
 
-body.warm-mode .search-ai-badge {
-  background: rgba(235,101,71,0.09);
-  border-color: rgba(235,101,71,0.20);
-  color: #c44030;
-}
+  --accent:         #00d9ff;
+  --accent-dim:     rgba(0, 217, 255, 0.10);
+  --accent-border:  rgba(0, 217, 255, 0.85);
+  --accent-glow:    rgba(0, 217, 255, 1);
 
-body.warm-mode .explore-card__trait {
-  background: rgba(235,101,71,0.10);
-  border-color: rgba(235,101,71,0.26);
-  color: #c44030;
-}
+  --warm:           #8b6cf6;
+  --warm-dim:       rgba(139, 108, 246, 0.12);
+  --warm-border:    rgba(139, 108, 246, 0.30);
 
-body.warm-mode .side-action__label,
-body.warm-mode .scroll-hint__label { color: var(--text-2); }
+  --shadow-sm:      0 1px 4px rgba(0,20,40,0.6);
+  --shadow-md:      0 4px 16px rgba(0,20,40,0.65);
+  --shadow-lg:      0 8px 32px rgba(0,20,40,0.75);
+  --shadow-glow:    0 0 0 3px rgba(0, 217, 255, 0.18);
+  --shadow-glow-warm: 0 0 0 3px rgba(139, 108, 246, 0.16);
+
+  --surface-overlay:    rgba(6, 10, 18, 0.97);
+  --card-gradient-end:  rgba(6, 10, 18, 0.97);
+  --card-badge-bg:      rgba(13, 21, 32, 0.85);
+  --btn-ghost-bg:       rgba(255, 255, 255, 0.05);
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.09);
+  --divider-subtle:     rgba(255, 255, 255, 0.04);
+  --backdrop:           rgba(0, 10, 25, 0.65);
+  --side-action-bg:     rgba(255, 255, 255, 0.07);
+  --side-action-bg-hover: rgba(255, 255, 255, 0.13);
+  --focus-ring:         rgba(0, 217, 255, 0.50);
+  --accent-shadow:      rgba(0, 217, 255, 0.28);
+  --search-focus-glow:  rgba(0, 217, 255, 0.09);
+
+  /* ─ Component tokens ─ */
+  --accent-muted:             rgba(0, 217, 255, 0.82);
+  --card-badge-border:        var(--border-2);
+  --pill-active-bg:           var(--accent-dim);
+  --pill-active-color:        var(--accent);
+  --pill-warm-active-bg:      var(--warm-dim);
+  --pill-warm-active-color:   var(--warm);
+  --pill-personalized-bg:     linear-gradient(90deg, rgba(0,217,255,0.18), rgba(0,217,255,0.08));
+  --pill-personalized-border: rgba(0,217,255,0.45);
+  --badge-ai-bg:              rgba(0,217,255,0.12);
+  --badge-ai-border:          rgba(0,217,255,0.25);
+  --badge-ai-color:           rgba(0,217,255,0.80);
+}
 
 *, *::before, *::after {
   margin: 0;
@@ -395,7 +400,7 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .topbar__logo span {
-  color: rgb(0 201 167);
+  color: var(--accent);
 }
 
 .topbar__right {
@@ -616,15 +621,15 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .pill--active {
-  background: var(--accent-dim);
+  background: var(--pill-active-bg);
   border-color: var(--accent-border);
-  color: var(--accent);
+  color: var(--pill-active-color);
 }
 
 .pill--warm.pill--active {
-  background: var(--warm-dim);
+  background: var(--pill-warm-active-bg);
   border-color: var(--warm-border);
-  color: var(--warm);
+  color: var(--pill-warm-active-color);
 }
 
 /* — Badge — */
@@ -1155,7 +1160,7 @@ svg { display: block; flex-shrink: 0; }
   }
 
   .navbar__brand span {
-    color: rgb(0 201 167);
+    color: var(--accent);
   }
 
   .navbar__item {
@@ -1328,9 +1333,10 @@ svg { display: block; flex-shrink: 0; }
   }
 }
 
-/* Light mode — strengthen sidebar separator */
+/* Light themes — strengthen sidebar separator */
 @media (min-width: 900px) {
-  body.light-mode .navbar {
+  body.theme-light .navbar,
+  body.theme-warm .navbar {
     box-shadow: 1px 0 0 var(--border), 4px 0 18px rgba(20,15,5,0.07);
   }
 }
@@ -1394,14 +1400,14 @@ svg { display: block; flex-shrink: 0; }
 }
 .explore-card__rating {
   position: absolute; top: 14px; left: 14px; z-index: 3;
-  background: var(--card-badge-bg); border: 1px solid var(--border-2);
+  background: var(--card-badge-bg); border: 1px solid var(--card-badge-border);
   border-radius: var(--radius-pill); padding: 4px 11px;
   font-size: 11px; color: var(--accent); letter-spacing: 0.05em;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
 .explore-card__match-pct {
   position: absolute; top: 14px; left: 14px; z-index: 3;
-  background: var(--card-badge-bg); border: 1px solid rgba(0,201,167,0.4);
+  background: var(--card-badge-bg); border: 1px solid var(--accent-border);
   border-radius: var(--radius-pill); padding: 4px 11px;
   font-size: 11px; color: var(--accent); letter-spacing: 0.05em;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -1433,13 +1439,13 @@ svg { display: block; flex-shrink: 0; }
   line-height: 1.05; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em;
 }
 .explore-card__handle { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; margin-bottom: 8px; }
-.explore-card__why { font-size: 10px; color: rgba(0,201,167,0.85); letter-spacing: 0.04em; margin-bottom: 8px; display: none; }
+.explore-card__why { font-size: 10px; color: var(--accent-muted); letter-spacing: 0.04em; margin-bottom: 8px; display: none; }
 .explore-card--personalized .explore-card__why { display: block; }
 .explore-card__traits { display: none; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
 .explore-card--personalized .explore-card__traits { display: flex; }
 .explore-card__trait {
   font-size: 11px; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 10px;
-  background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.25); color: rgba(0,201,167,0.85);
+  background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent-muted);
 }
 .explore-card__desc {
   font-size: 11px; color: var(--text-3); line-height: 1.65; margin-bottom: 16px;
@@ -1459,8 +1465,8 @@ svg { display: block; flex-shrink: 0; }
 
 /* Personalized pill */
 .pill--personalized {
-  background: linear-gradient(90deg, rgba(0,201,167,0.18), rgba(0,201,167,0.08));
-  border-color: rgba(0,201,167,0.45);
+  background: var(--pill-personalized-bg);
+  border-color: var(--pill-personalized-border);
   color: var(--accent);
 }
 .pill--personalized::before { content: '✦ '; font-size: 8px; }
@@ -1468,8 +1474,8 @@ svg { display: block; flex-shrink: 0; }
 /* AI search badge */
 .search-ai-badge {
   font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase;
-  background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.25);
-  color: rgba(0,201,167,0.8); border-radius: 4px; padding: 1px 5px; flex-shrink: 0;
+  background: var(--badge-ai-bg); border: 1px solid var(--badge-ai-border);
+  color: var(--badge-ai-color); border-radius: 4px; padding: 1px 5px; flex-shrink: 0;
 }
 
 /* Scroll hint */
@@ -1496,8 +1502,8 @@ svg { display: block; flex-shrink: 0; }
   transition: border-color 0.14s, background 0.14s;
 }
 .auth-register-link:hover {
-  border-color: var(--accent, #00c9a7);
-  background: rgba(0,201,167,0.06);
+  border-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 /* ── Match panel (AI search results) ── */
@@ -1615,14 +1621,14 @@ svg { display: block; flex-shrink: 0; }
 .listing-detail-overlay--visible .listing-detail-card { transform: scale(1); }
 .listing-detail-card::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
-  background: linear-gradient(to bottom, #00c9a7 0%, rgba(0,201,167,0) 90%);
+  background: linear-gradient(to bottom, var(--accent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 90%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none; z-index: 2;
 }
 .listing-detail-card::after {
   content: ''; position: absolute; inset: -4px; border-radius: inherit;
-  background: linear-gradient(to bottom, rgba(0,201,167,0.35) 0%, rgba(0,201,167,0) 85%);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--accent) 35%, transparent) 0%, color-mix(in srgb, var(--accent) 0%, transparent) 85%);
   filter: blur(10px); pointer-events: none; z-index: -1;
 }
 .listing-detail-card__close {
@@ -1688,7 +1694,7 @@ svg { display: block; flex-shrink: 0; }
   display: block; width: 80px; height: 80px; border-radius: 50%;
   overflow: hidden; flex-shrink: 0;
   border: 2px solid var(--accent);
-  box-shadow: 0 0 0 5px rgba(0,201,167,0.12), 0 0 20px rgba(0,201,167,0.2);
+  box-shadow: 0 0 0 5px var(--accent-dim), 0 0 20px var(--accent-shadow);
   margin-bottom: 10px; text-decoration: none;
 }
 .premeet-screen__avatar-link img,
@@ -1704,7 +1710,7 @@ svg { display: block; flex-shrink: 0; }
   display: inline-block; margin-top: 8px;
   font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--accent); font-family: var(--font-mono);
-  border: 1px solid rgba(0,201,167,0.35); border-radius: 20px; padding: 3px 10px;
+  border: 1px solid var(--accent-border); border-radius: 20px; padding: 3px 10px;
 }
 .premeet-screen__details {
   width: 100%; margin-top: 20px;
@@ -2036,7 +2042,7 @@ svg { display: block; flex-shrink: 0; }
   color: #000; font-size: 12px; font-weight: 700; font-family: var(--font-display);
   cursor: pointer; transition: transform 0.12s, box-shadow 0.12s;
 }
-.pwa-banner__btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(0,201,167,0.3); }
+.pwa-banner__btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px var(--accent-shadow); }
 .pwa-banner__close {
   background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0;
   color: var(--text-3); font-size: 16px; line-height: 1;
