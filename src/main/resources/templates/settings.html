@@ -491,9 +491,11 @@
         action.innerHTML = `<a href="/onboarding" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;white-space:nowrap;">Take quiz</a>`;
       }
     } catch {
-      const desc = document.getElementById('quiz-status-desc');
+      const desc   = document.getElementById('quiz-status-desc');
+      const action = document.getElementById('quiz-status-action');
       desc.classList.remove('skeleton');
-      desc.textContent = 'Could not load';
+      desc.textContent = 'Not started yet';
+      action.innerHTML = `<a href="/onboarding" class="btn btn--primary" style="height:30px;padding:0 14px;font-size:11px;white-space:nowrap;">Take quiz</a>`;
     }
   }
   loadQuizStatus();
