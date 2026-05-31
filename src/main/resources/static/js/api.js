@@ -171,6 +171,7 @@ const TourListingAPI = {
   createFromEvent: (dto)    => apiFetch('/api/tour-listing/from-partner-event', { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)         => apiFetch(`/api/tour-listing/${id}`,              { method: 'PATCH',  body: JSON.stringify(dto) }),
   delete: (id)              => apiFetch(`/api/tour-listing/${id}`,              { method: 'DELETE' }),
+  startTour: (id)           => apiFetch(`/api/tour-listing/${id}/start-tour`,   { method: 'POST' }),
 };
 
 /* ───────────────────────────────────────────────
