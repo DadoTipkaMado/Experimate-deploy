@@ -457,6 +457,66 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
 });
 
 /* ───────────────────────────────────────────────
+   QUIZ NUDGE
+   Soft banner for AWAITING users — shown once per session.
+   CANCELLED = user opted out deliberately, never nag them.
+─────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async function _quizNudge() {
+  const path = window.location.pathname;
+  const skip = ['/login', '/register', '/forgot-password', '/onboarding', '/verify-email', '/reset-password'];
+  if (skip.some(p => path.startsWith(p))) return;
+  if (!document.querySelector('.topbar')) return;
+  if (typeof Auth === 'undefined' || !Auth.getToken()) return;
+  if (sessionStorage.getItem('quiz_nudge_dismissed')) return;
+  if (localStorage.getItem('personality_done')) return;
+
+  try {
+    const status = await OnboardingAPI.getStatus();
+    if (status?.status !== 'AWAITING') return;
+  } catch (_) { return; }
+
+  const nudge = document.createElement('div');
+  nudge.id = 'quiz-nudge';
+  nudge.style.cssText = [
+    'display:flex;align-items:center;gap:10px;padding:0 16px',
+    'background:linear-gradient(90deg,rgba(0,201,167,0.12),rgba(0,201,167,0.06))',
+    'border-bottom:1px solid rgba(0,201,167,0.18);color:var(--text)',
+    'font-family:var(--font-mono);flex-shrink:0;line-height:1',
+    'overflow:hidden;max-height:0;opacity:0',
+    'transition:max-height 0.4s cubic-bezier(0.32,0.72,0,1),opacity 0.3s ease',
+  ].join(';');
+
+  nudge.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <div style="flex:1;min-width:0;">
+      <span style="font-size:11px;font-weight:600;">Unlock AI matching</span>
+      <span style="opacity:0.65;font-size:10px;"> — take the personality quiz</span>
+    </div>
+    <a href="/onboarding" style="flex-shrink:0;background:var(--accent);color:#000;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:0.06em;padding:5px 12px;border-radius:20px;white-space:nowrap;">Start quiz →</a>
+    <button id="quiz-nudge-close" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:6px 2px;font-size:15px;line-height:1;flex-shrink:0;">✕</button>
+  `;
+
+  const topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+  topbar.insertAdjacentElement('afterend', nudge);
+
+  requestAnimationFrame(() => {
+    nudge.style.maxHeight = '52px';
+    nudge.style.opacity   = '1';
+    nudge.style.padding   = '8px 16px';
+  });
+
+  document.getElementById('quiz-nudge-close')?.addEventListener('click', () => {
+    sessionStorage.setItem('quiz_nudge_dismissed', '1');
+    nudge.style.transition = 'max-height 0.25s ease,opacity 0.2s ease,padding 0.25s ease';
+    nudge.style.maxHeight  = '0';
+    nudge.style.opacity    = '0';
+    nudge.style.padding    = '0 16px';
+    setTimeout(() => nudge.remove(), 260);
+  });
+});
+
+/* ───────────────────────────────────────────────
    LISTING DETAIL OVERLAY
    Opens a bottom-sheet with full listing info.
    Called from map.js and explore.js.
