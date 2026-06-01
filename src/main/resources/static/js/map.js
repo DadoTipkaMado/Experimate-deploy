@@ -16,6 +16,7 @@ const MapState = {
   userLat: null,
   userLng: null,
   locationMarker: null,
+  activeCircle: null,   // the single radius circle currently shown (only on pin click)
 };
 
 /* ───────────────────────────────────────────────
@@ -145,7 +146,6 @@ function loadPins() {
           ?? (listing.host?.role === 'PARTNER' ? 'partner' : 'default');
         const marker = buildMarker(listing, pinType);
         const circle = buildRadiusCircle(listing.lat, listing.lng, listing.radiusMeters);
-        if (circle) circle.addTo(MapState.map);
         MapState.allMarkers.push({ marker, listing, pinType, circle });
         MapState.clusterGroup.addLayer(marker);
       });
@@ -197,6 +197,26 @@ function buildRadiusCircle(lat, lng, radiusMeters) {
     fillOpacity: 0.05,
     interactive: false,
   });
+}
+
+// Radius circles are shown one-at-a-time, only when a pin is tapped.
+function showListingCircle(listing) {
+  hideListingCircle();
+  const entry = MapState.allMarkers.find(m => m.listing && m.listing.id === listing.id);
+  if (!entry || !entry.circle) return;
+  entry.circle.setStyle({ color: cssAccent(), fillColor: cssAccent() });
+  entry.circle.addTo(MapState.map);
+  entry.circle
+    .bindTooltip('Meet is near here', { permanent: true, direction: 'center', className: 'map-radius-tip' })
+    .openTooltip();
+  MapState.activeCircle = entry.circle;
+}
+
+function hideListingCircle() {
+  if (!MapState.activeCircle) return;
+  MapState.activeCircle.unbindTooltip();
+  MapState.map.removeLayer(MapState.activeCircle);
+  MapState.activeCircle = null;
 }
 
 function buildMarker(listing, pinType = 'default') {
@@ -413,6 +433,7 @@ function openMapPopup(listing, pinType = 'default') {
   MapState._popupListing  = listing;
   MapState._popupPinType  = pinType;
   MapState._popupUnlocked = MapState.unlockedIds.has(listing.id);
+  showListingCircle(listing);   // reveal the meet's radius only now (on pin tap)
   document.getElementById('map-popup-body').innerHTML = buildPopupContent(listing, pinType, MapState._popupUnlocked);
   document.getElementById('map-popup-footer').innerHTML = `<button class="popup-action" style="width:100%;" onclick="openListingDetailFromMap()">See listing →</button>`;
   document.getElementById('map-bottom-sheet').classList.add('map-bs--open');
@@ -423,6 +444,7 @@ function openMapPopup(listing, pinType = 'default') {
 
 function closeMapPopup() {
   document.getElementById('map-bottom-sheet').classList.remove('map-bs--open');
+  hideListingCircle();
 }
 
 function openListingDetailFromMap() {
@@ -537,7 +559,6 @@ function applyMarkerFilter() {
       }
     }
     MapState.clusterGroup.addLayer(marker);
-    if (circle) circle.addTo(MapState.map);
   });
 }
 
@@ -599,14 +620,12 @@ if (searchInput) {
       if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
       if (!lower) {
         MapState.clusterGroup.addLayer(marker);
-        if (circle) circle.addTo(MapState.map);
         return;
       }
       const text = [listing.city, listing.host?.firstName, listing.host?.lastName, listing.host?.username]
         .filter(Boolean).join(' ').toLowerCase();
       if (text.includes(lower)) {
         MapState.clusterGroup.addLayer(marker);
-        if (circle) circle.addTo(MapState.map);
       }
     });
   });
@@ -721,10 +740,9 @@ function _applyProximityFilter() {
   const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
 
   if (!activeKeys.length) {
-    // No filter active — show all meets and their circles
-    MapState.allMarkers.forEach(({ marker, circle }) => {
+    // No filter active — show all meets (radius circles stay hidden until a pin is tapped)
+    MapState.allMarkers.forEach(({ marker }) => {
       if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
-      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
     });
     return;
   }
@@ -743,7 +761,6 @@ function _applyProximityFilter() {
     const near = allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M);
     if (near) {
       if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
-      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
     } else {
       MapState.clusterGroup.removeLayer(marker);
       if (circle) MapState.map.removeLayer(circle);

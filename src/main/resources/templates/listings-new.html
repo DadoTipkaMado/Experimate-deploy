@@ -17,7 +17,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     .page-content { background: #0a0c0c; }
-    body.theme-light .page-content { background: #f0eeea; }
+    body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
     body.theme-warm  .page-content { background: #ECEDF2; }
 
     .new-listing-header { padding: 22px 20px 14px; }
@@ -37,7 +37,7 @@
         0 8px 20px rgba(0,0,0,0.55),
         0 2px 6px rgba(0,0,0,0.4);
     }
-    body.theme-light .new-listing-form {
+    body.theme-light .new-listing-form , body.theme-warm .new-listing-form {
       background: #fff;
       border-color: rgba(0,0,0,0.07);
       border-top-color: rgba(255,255,255,0.9);
@@ -66,7 +66,7 @@
       transition: border-color 0.14s ease, box-shadow 0.14s ease;
       color-scheme: dark;
     }
-    body.theme-light .form-field input, body.theme-light .form-field textarea,
+    body.theme-light .form-field input, body.theme-warm .form-field input, body.theme-light .form-field textarea, body.theme-warm .form-field textarea,
     body.theme-warm  .form-field input, body.theme-warm  .form-field textarea {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.12);
