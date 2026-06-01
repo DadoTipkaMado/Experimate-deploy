@@ -38,9 +38,12 @@ import java.util.List;
 public class PartnerPinController {
 
     private final PartnerPinService partnerPinService;
+    private final PartnerPinSubscriptionService subscriptionService;
 
-    public PartnerPinController(PartnerPinService partnerPinService) {
+    public PartnerPinController(PartnerPinService partnerPinService,
+                                PartnerPinSubscriptionService subscriptionService) {
         this.partnerPinService = partnerPinService;
+        this.subscriptionService = subscriptionService;
     }
 
     @PostMapping
@@ -94,6 +97,42 @@ public class PartnerPinController {
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(partnerPinService.uploadLogo(id, userDetails.getId(), file));
+    }
+
+    /**
+     * Subscribes the pin to highlighting (or resumes/reactivates an existing subscription).
+     * Charges the first billing period immediately via the stub gateway.
+     */
+    @PostMapping("/{id}/subscription")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<PartnerPinSubscriptionResponse> subscribe(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(subscriptionService.subscribe(userDetails.getId(), id));
+    }
+
+    /**
+     * Requests cancellation of the pin's highlight subscription at the end of the current period.
+     * The pin stays highlighted until then.
+     */
+    @DeleteMapping("/{id}/subscription")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<PartnerPinSubscriptionResponse> cancelSubscription(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(subscriptionService.cancel(userDetails.getId(), id));
+    }
+
+    /**
+     * Returns the current highlight subscription state for a pin owned by the requesting partner.
+     */
+    @GetMapping("/{id}/subscription")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<PartnerPinSubscriptionResponse> getSubscription(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return ResponseEntity.ok(subscriptionService.getSubscription(userDetails.getId(), id));
     }
 
     @GetMapping("/logo/{filename}")
