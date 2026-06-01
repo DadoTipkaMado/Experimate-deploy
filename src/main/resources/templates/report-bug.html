@@ -25,7 +25,7 @@
       display: flex; flex-direction: column; gap: 20px;
       background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.90) 55%, rgba(10,10,10,0.88) 100%);
       border: 1px solid var(--border-2);
-      border-top-color: rgba(0,201,167,0.2);
+      border-top-color: var(--accent-a20);
       animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s both;
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
@@ -69,9 +69,9 @@
     }
     .custom-select__trigger--selected { color: var(--text); }
     .custom-select__trigger--open {
-      border-color: rgba(0,201,167,0.5);
-      border-top-color: rgba(0,201,167,0.3);
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(0,201,167,0.12);
+      border-color: var(--accent-a50);
+      border-top-color: var(--accent-a30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px var(--accent-a12);
     }
     .custom-select__chevron { color: var(--text-3); flex-shrink: 0; transition: transform 0.2s; }
     .custom-select__trigger--open .custom-select__chevron { transform: rotate(180deg); }
@@ -120,9 +120,9 @@
     }
     .report-textarea:focus {
       outline: none;
-      border-color: rgba(0,201,167,0.5);
-      border-top-color: rgba(0,201,167,0.3);
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(0,201,167,0.12);
+      border-color: var(--accent-a50);
+      border-top-color: var(--accent-a30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px var(--accent-a12);
     }
 
     .report-hint { font-size: 10px; color: var(--text-3); line-height: 1.5; }

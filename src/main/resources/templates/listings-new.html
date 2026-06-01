@@ -28,7 +28,7 @@
       padding: 20px 18px 22px;
       background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.90) 55%, rgba(10,10,10,0.88) 100%);
       border: 1px solid var(--border-2);
-      border-top-color: rgba(0,201,167,0.2);
+      border-top-color: var(--accent-a20);
       border-bottom-color: rgba(0,0,0,0.55);
       border-radius: 18px;
       box-shadow:
@@ -77,9 +77,9 @@
     }
     .form-field input:focus, .form-field textarea:focus {
       outline: none;
-      border-color: rgba(0,201,167,0.5);
-      border-top-color: rgba(0,201,167,0.3);
-      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(0,201,167,0.12);
+      border-color: var(--accent-a50);
+      border-top-color: var(--accent-a30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px var(--accent-a12);
     }
     body.theme-warm .form-field input:focus, body.theme-warm .form-field textarea:focus {
       border-color: rgba(235,101,71,0.52);
@@ -132,9 +132,9 @@
       position: absolute; left: 0; right: 0;
       top: 50%; transform: translateY(-50%);
       height: 36px; pointer-events: none; z-index: 1;
-      border-top: 1px solid rgba(0,201,167,0.4);
-      border-bottom: 1px solid rgba(0,201,167,0.4);
-      background: rgba(0,201,167,0.06);
+      border-top: 1px solid var(--accent-a40);
+      border-bottom: 1px solid var(--accent-a40);
+      background: var(--accent-a06);
     }
     .time-picker__fade {
       position: absolute; left: 0; right: 0; height: 36px;
@@ -169,7 +169,7 @@
     .location-suggestion__sub { font-size: 11px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #location-map {
       height: 180px; border-radius: 10px; margin-top: 8px;
-      border: 1px solid rgba(0,201,167,0.25);
+      border: 1px solid var(--accent-a25);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 12px rgba(0,0,0,0.4);
       overflow: hidden; display: none;
     }
@@ -231,7 +231,7 @@
 
     /* Submit button hover glow */
     #listing-form button[type="submit"]:hover:not(:disabled) {
-      box-shadow: 0 0 0 3px rgba(0,201,167,0.18), 0 8px 24px rgba(0,201,167,0.16);
+      box-shadow: 0 0 0 3px var(--accent-a18), 0 8px 24px var(--accent-a16);
     }
 
     /* Header ambient glow */
@@ -241,7 +241,7 @@
       position: absolute;
       top: -20px; left: 50%; transform: translateX(-50%);
       width: 280px; height: 90px;
-      background: radial-gradient(ellipse at center, rgba(0,201,167,0.07) 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, var(--accent-a07) 0%, transparent 70%);
       pointer-events: none; z-index: 0;
     }
   </style>
@@ -465,7 +465,7 @@
       locationMarker.setLatLng([lat, lng]);
     } else {
       locationMarker = L.circleMarker([lat, lng], {
-        radius: 8, color: '#00c9a7', fillColor: '#00c9a7', fillOpacity: 0.7, weight: 2,
+        radius: 8, color: 'var(--accent)', fillColor: 'var(--accent)', fillOpacity: 0.7, weight: 2,
       }).addTo(locationMap);
     }
     if (label) {

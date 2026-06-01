@@ -179,14 +179,21 @@ function loadPins() {
 }
 
 
+// Leaflet renders to SVG/canvas where CSS var() can't resolve, so read the
+// active theme's --accent hex at runtime.
+function cssAccent() {
+  return getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#00c9a7';
+}
+
 function buildRadiusCircle(lat, lng, radiusMeters) {
   if (!radiusMeters) return null;
+  const accent = cssAccent();
   return L.circle([lat, lng], {
     radius: radiusMeters,
-    color: '#00c9a7',
+    color: accent,
     weight: 1.5,
     opacity: 0.30,
-    fillColor: '#00c9a7',
+    fillColor: accent,
     fillOpacity: 0.05,
     interactive: false,
   });
@@ -463,8 +470,8 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
   const maxG       = listing.maxGuests ?? 1;
   const curG       = listing.bookedCount ?? 0;
   const isFull     = curG >= maxG;
-  const dotColor   = isFull ? 'rgba(239,239,239,0.3)' : '#00c9a7';
-  const dotGlow    = isFull ? '' : 'box-shadow:0 0 5px #00c9a7;';
+  const dotColor   = isFull ? 'rgba(239,239,239,0.3)' : 'var(--accent)';
+  const dotGlow    = isFull ? '' : 'box-shadow:0 0 5px var(--accent);';
   const statusLabel = isFull
     ? (maxG > 1 ? 'Full' : 'Booked')
     : maxG > 1 ? `${maxG - curG} spot${maxG - curG !== 1 ? 's' : ''} left` : 'Available';

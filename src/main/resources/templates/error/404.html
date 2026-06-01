@@ -67,11 +67,11 @@
       line-height: 1;
       letter-spacing: -0.04em;
       color: transparent;
-      background: linear-gradient(135deg, var(--accent) 0%, rgba(0,201,167,0.25) 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-a25) 100%);
       -webkit-background-clip: text;
       background-clip: text;
       text-shadow: none;
-      filter: drop-shadow(0 0 40px rgba(0,201,167,0.25));
+      filter: drop-shadow(0 0 40px var(--accent-a25));
     }
 
     .title {
@@ -91,14 +91,14 @@
 
     .divider {
       width: 40px; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(0,201,167,0.3), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-a30), transparent);
     }
 
     .btn-home {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 0 24px; height: 44px;
       background: transparent;
-      border: 1px solid rgba(0,201,167,0.35);
+      border: 1px solid var(--accent-a35);
       border-radius: 999px;
       color: var(--accent);
       font-family: var(--font-mono);
@@ -109,8 +109,8 @@
       transition: background 0.2s, border-color 0.2s;
     }
     .btn-home:hover {
-      background: rgba(0,201,167,0.08);
-      border-color: rgba(0,201,167,0.6);
+      background: var(--accent-a08);
+      border-color: var(--accent-a60);
     }
     .btn-home svg { opacity: 0.7; }
 
