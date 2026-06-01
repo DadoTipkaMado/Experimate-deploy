@@ -14,9 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
-    .page-content { background: #0a0c0c; }
-    body.light-mode .page-content { background: #f0eeea; }
-    body.warm-mode  .page-content { background: #ECEDF2; }
+    .page-content { background: var(--bg); }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(18px); }
@@ -27,7 +25,7 @@
       padding: 22px 20px 16px;
       position: relative;
       border-bottom: 1px solid rgba(255,255,255,0.04);
-      background: linear-gradient(180deg, rgba(0,201,167,0.03) 0%, transparent 100%);
+      background: linear-gradient(180deg, var(--accent-a03) 0%, transparent 100%);
       animation: fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
     }
     .settings-header::before {
@@ -35,7 +33,7 @@
       position: absolute;
       top: -10px; left: 50%; transform: translateX(-50%);
       width: 260px; height: 80px;
-      background: radial-gradient(ellipse at center, rgba(0,201,167,0.07) 0%, transparent 70%);
+      background: radial-gradient(ellipse at center, var(--accent-a07) 0%, transparent 70%);
       pointer-events: none;
     }
 
@@ -60,14 +58,14 @@
         0 12px 32px rgba(0,0,0,0.55),
         0 3px 8px rgba(0,0,0,0.4);
     }
-    body.light-mode .settings-section {
+    body.theme-light .settings-section , body.theme-warm .settings-section {
       background: #fff;
       border-color: rgba(0,0,0,0.07);
       border-top-color: rgba(255,255,255,0.9);
       border-bottom-color: rgba(0,0,0,0.10);
       box-shadow: 0 2px 8px rgba(20,20,30,0.07), 0 1px 3px rgba(20,20,30,0.04);
     }
-    body.warm-mode  .settings-section {
+    body.theme-warm .settings-section {
       background: var(--surface);
       border-color: rgba(0,0,0,0.06);
       border-top-color: rgba(255,255,255,0.82);
@@ -79,21 +77,21 @@
       font-size: 10px; color: var(--text-3); letter-spacing: 0.12em;
       text-transform: uppercase; margin-bottom: 14px;
       padding-left: 10px;
-      border-left: 2px solid rgba(0,201,167,0.55);
+      border-left: 2px solid var(--accent-a55);
     }
     .settings-row {
       display: flex; align-items: center; justify-content: space-between;
       padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .settings-row:last-child { border-bottom: none; }
-    body.light-mode .settings-row,
-    body.warm-mode  .settings-row { border-bottom-color: rgba(0,0,0,0.07); }
+    body.theme-light .settings-row, body.theme-warm .settings-row,
+    body.theme-warm  .settings-row { border-bottom-color: rgba(0,0,0,0.07); }
     .settings-row__info { display: flex; flex-direction: column; gap: 3px; }
     .settings-row__title { font-size: 13px; color: var(--text); }
     .settings-row__desc { font-size: 10px; color: var(--text-3); line-height: 1.5; max-width: 220px; }
 
     /* Theme swatch picker */
-    .theme-picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-bottom: 4px; }
+    .theme-picker { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding-bottom: 4px; }
     .theme-swatch {
       display: flex; flex-direction: column; align-items: center; gap: 8px;
       padding: 12px 8px 11px; border-radius: 14px;
@@ -101,31 +99,36 @@
       transition: border-color 0.14s, transform 0.1s;
     }
     .theme-swatch:active { transform: scale(0.96); }
-    .theme-swatch[data-theme="dark"]  { background: #141414; }
-    .theme-swatch[data-theme="light"] { background: #fdfcf8; }
-    .theme-swatch[data-theme="warm"]  { background: #F3F3F7; }
+    .theme-swatch[data-theme="teal-dark"]  { background: #141414; }
+    .theme-swatch[data-theme="teal-light"] { background: #fdfcf9; }
+    .theme-swatch[data-theme="warm-dark"]  { background: #1a1310; }
+    .theme-swatch[data-theme="warm-light"] { background: #fdf6ec; }
     .theme-swatch__preview {
       width: 100%; height: 30px; border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
     }
-    .theme-swatch[data-theme="dark"]  .theme-swatch__preview { background: #0a0a0a; }
-    .theme-swatch[data-theme="light"] .theme-swatch__preview { background: #eeece6; }
-    .theme-swatch[data-theme="warm"]  .theme-swatch__preview { background: #DDE3E3; }
+    .theme-swatch[data-theme="teal-dark"]  .theme-swatch__preview { background: #0a0a0a; }
+    .theme-swatch[data-theme="teal-light"] .theme-swatch__preview { background: #edeae3; }
+    .theme-swatch[data-theme="warm-dark"]  .theme-swatch__preview { background: #0f0b08; }
+    .theme-swatch[data-theme="warm-light"] .theme-swatch__preview { background: #ece0ce; }
     .theme-swatch__dot {
       width: 14px; height: 14px; border-radius: 50%;
     }
-    .theme-swatch[data-theme="dark"]  .theme-swatch__dot { background: #00c9a7; }
-    .theme-swatch[data-theme="light"] .theme-swatch__dot { background: #006e58; }
-    .theme-swatch[data-theme="warm"]  .theme-swatch__dot { background: #EB6547; }
+    .theme-swatch[data-theme="teal-dark"]  .theme-swatch__dot { background: #00c9a7; }
+    .theme-swatch[data-theme="teal-light"] .theme-swatch__dot { background: #007d6a; }
+    .theme-swatch[data-theme="warm-dark"]  .theme-swatch__dot { background: #ff6e40; }
+    .theme-swatch[data-theme="warm-light"] .theme-swatch__dot { background: #d94f2b; }
     .theme-swatch__label {
       font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
     }
-    .theme-swatch[data-theme="dark"]  .theme-swatch__label { color: #c0c0c0; }
-    .theme-swatch[data-theme="light"] .theme-swatch__label { color: #3d3b36; }
-    .theme-swatch[data-theme="warm"]  .theme-swatch__label { color: #42424e; }
-    .theme-swatch--active[data-theme="dark"]  { border-color: #00c9a7; box-shadow: 0 0 0 1px rgba(0,201,167,0.3), 0 4px 14px rgba(0,0,0,0.3); }
-    .theme-swatch--active[data-theme="light"] { border-color: #006e58; box-shadow: 0 0 0 1px rgba(0,110,88,0.2), 0 4px 14px rgba(0,0,0,0.12); }
-    .theme-swatch--active[data-theme="warm"]  { border-color: #EB6547; box-shadow: 0 0 0 1px rgba(235,101,71,0.25), 0 4px 14px rgba(0,0,0,0.15); }
+    .theme-swatch[data-theme="teal-dark"]  .theme-swatch__label { color: #c0c0c0; }
+    .theme-swatch[data-theme="teal-light"] .theme-swatch__label { color: #3c3a35; }
+    .theme-swatch[data-theme="warm-dark"]  .theme-swatch__label { color: #c9bcb0; }
+    .theme-swatch[data-theme="warm-light"] .theme-swatch__label { color: #3d2e1a; }
+    .theme-swatch--active[data-theme="teal-dark"]  { border-color: #00c9a7; box-shadow: 0 0 0 1px rgba(0,201,167,0.3), 0 4px 14px rgba(0,0,0,0.3); }
+    .theme-swatch--active[data-theme="teal-light"] { border-color: #007d6a; box-shadow: 0 0 0 1px rgba(0,125,106,0.2), 0 4px 14px rgba(0,0,0,0.12); }
+    .theme-swatch--active[data-theme="warm-dark"]  { border-color: #ff6e40; box-shadow: 0 0 0 1px rgba(255,110,64,0.30), 0 4px 14px rgba(0,0,0,0.4); }
+    .theme-swatch--active[data-theme="warm-light"] { border-color: #d94f2b; box-shadow: 0 0 0 1px rgba(217,79,43,0.25), 0 4px 14px rgba(0,0,0,0.15); }
 
     /* Link row */
     .settings-link {
@@ -144,10 +147,10 @@
       transform: scale(0.995);
     }
     .settings-link:last-child { border-bottom: none; }
-    body.light-mode .settings-link,
-    body.warm-mode  .settings-link { border-bottom-color: rgba(0,0,0,0.07); }
-    body.light-mode .settings-link:hover,
-    body.warm-mode  .settings-link:hover { background: rgba(0,0,0,0.03); }
+    body.theme-light .settings-link, body.theme-warm .settings-link,
+    body.theme-warm  .settings-link { border-bottom-color: rgba(0,0,0,0.07); }
+    body.theme-light .settings-link:hover, body.theme-warm .settings-link:hover,
+    body.theme-warm  .settings-link:hover { background: rgba(0,0,0,0.03); }
     .settings-link__title { font-size: 13px; }
     .settings-link__arrow { color: var(--text-3); transition: transform 0.14s, color 0.14s; }
     .settings-link:hover .settings-link__arrow { transform: translateX(2px); color: var(--text-2); }
@@ -190,8 +193,8 @@
       border-radius: 10px; padding: 12px 14px;
       margin-top: 10px; margin-bottom: 2px;
     }
-    body.light-mode .why-panel__inner,
-    body.warm-mode  .why-panel__inner {
+    body.theme-light .why-panel__inner, body.theme-warm .why-panel__inner,
+    body.theme-warm  .why-panel__inner {
       background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08);
     }
 
@@ -255,17 +258,21 @@
           <div class="settings-row__desc">Choose your preferred colour scheme.</div>
         </div>
         <div class="theme-picker" id="theme-picker">
-          <button class="theme-swatch" data-theme="dark" type="button">
+          <button class="theme-swatch" data-theme="teal-dark" type="button">
             <div class="theme-swatch__preview"><div class="theme-swatch__dot"></div></div>
-            <span class="theme-swatch__label">Dark</span>
+            <span class="theme-swatch__label">Teal · Dark</span>
           </button>
-          <button class="theme-swatch" data-theme="light" type="button">
+          <button class="theme-swatch" data-theme="teal-light" type="button">
             <div class="theme-swatch__preview"><div class="theme-swatch__dot"></div></div>
-            <span class="theme-swatch__label">Light</span>
+            <span class="theme-swatch__label">Teal · Light</span>
           </button>
-          <button class="theme-swatch" data-theme="warm" type="button">
+          <button class="theme-swatch" data-theme="warm-dark" type="button">
             <div class="theme-swatch__preview"><div class="theme-swatch__dot"></div></div>
-            <span class="theme-swatch__label">Warm</span>
+            <span class="theme-swatch__label">Warm · Dark</span>
+          </button>
+          <button class="theme-swatch" data-theme="warm-light" type="button">
+            <div class="theme-swatch__preview"><div class="theme-swatch__dot"></div></div>
+            <span class="theme-swatch__label">Warm · Light</span>
           </button>
         </div>
       </div>
@@ -438,15 +445,22 @@
 <script th:src="@{/js/api.js}"></script>
 <script>
   // Theme picker
+  // theme key (stored) -> body class. teal-dark is the default (no class).
+  const THEME_CLASS = {
+    'teal-light': 'theme-light',
+    'warm-light': 'theme-warm',
+    'warm-dark':  'theme-warm-dark',
+  };
+
   function applyTheme(name) {
-    document.body.classList.remove('light-mode', 'warm-mode');
-    if (name === 'light') document.body.classList.add('light-mode');
-    else if (name === 'warm') document.body.classList.add('warm-mode');
+    document.body.classList.remove('theme-light', 'theme-warm', 'theme-warm-dark');
+    const cls = THEME_CLASS[name];
+    if (cls) document.body.classList.add(cls);
     localStorage.setItem('theme', name);
   }
 
   (function() {
-    const current = localStorage.getItem('theme') || 'dark';
+    const current = localStorage.getItem('theme') || 'teal-dark';
     const swatches = document.querySelectorAll('.theme-swatch');
     swatches.forEach(sw => {
       sw.classList.toggle('theme-swatch--active', sw.dataset.theme === current);

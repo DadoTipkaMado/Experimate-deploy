@@ -33,13 +33,13 @@
     .rating-score-hero::before {
       content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
       width: 360px; height: 200px;
-      background: radial-gradient(ellipse, rgba(0,201,167,0.10) 0%, transparent 72%);
+      background: radial-gradient(ellipse, var(--accent-a10) 0%, transparent 72%);
       pointer-events: none;
     }
     .rating-score-num {
       font-family: var(--font-display); font-weight: 800; font-size: 52px;
       color: var(--accent);
-      text-shadow: 0 0 40px rgba(0,201,167,0.35), 0 0 80px rgba(0,201,167,0.15);
+      text-shadow: 0 0 40px var(--accent-a35), 0 0 80px var(--accent-a15);
       letter-spacing: -0.03em; line-height: 1; position: relative; z-index: 1;
     }
     .rating-stars { display: flex; gap: 4px; position: relative; z-index: 1; }
