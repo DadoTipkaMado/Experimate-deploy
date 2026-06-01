@@ -66,6 +66,18 @@ public class PromotedAdController {
         return ResponseEntity.ok(promotedAdService.updateAd(id, userDetails.getId(), req));
     }
 
+    /**
+     * Extends the ad's feed display window by purchasing additional days.
+     */
+    @PostMapping("/{id}/extend")
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<PromotedAdResponse> extend(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal AppUserDetails userDetails,
+            @Valid @RequestBody ExtendPromotedAdRequest req) {
+        return ResponseEntity.ok(promotedAdService.extend(id, userDetails.getId(), req));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('PARTNER')")
     public ResponseEntity<Void> deleteAd(

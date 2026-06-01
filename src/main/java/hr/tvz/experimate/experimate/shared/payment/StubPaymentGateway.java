@@ -1,8 +1,7 @@
-package hr.tvz.experimate.experimate.domain.premium;
+package hr.tvz.experimate.experimate.shared.payment;
 
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -10,13 +9,13 @@ import java.util.UUID;
  *
  * <p>Always returns a successful result with a generated reference. Swap this out by
  * writing a new {@code @Service} that implements {@link PaymentGateway} and removing
- * this bean — {@code PremiumService} will pick up the new implementation automatically.
+ * this bean — every calling service will pick up the new implementation automatically.
  */
 @Service
 public class StubPaymentGateway implements PaymentGateway {
 
     @Override
-    public PaymentResult charge(BigDecimal amount, String currency, String description) {
+    public PaymentResult charge(ChargeRequest request) {
         return new PaymentResult(true, "STUB-" + UUID.randomUUID());
     }
 }

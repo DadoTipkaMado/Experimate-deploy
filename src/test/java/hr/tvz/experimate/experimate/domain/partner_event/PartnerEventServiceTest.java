@@ -6,6 +6,7 @@ import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinNotFoundException;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinRepository;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.payment.PaymentGateway;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +25,7 @@ class PartnerEventServiceTest {
     @Mock private PartnerEventRepository partnerEventRepository;
     @Mock private PartnerPinRepository partnerPinRepository;
     @Mock private PartnerProfileRepository partnerProfileRepository;
+    @Mock private PaymentGateway paymentGateway;
 
     @InjectMocks private PartnerEventService service;
 

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,6 +87,30 @@ class PromotedAdIT extends AbstractIntegrationTest {
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    // ──────────────── extend ────────────────
+
+    @Test
+    void extend_returns200AndPushesActiveUntilByPurchasedDays() {
+        String jwt = loginAndGetTokens("partner").get("accessToken");
+        applyAsPartner(jwt);
+        LocalDateTime activeUntil = LocalDateTime.of(2030, 1, 1, 12, 0);
+        Integer adId = restTemplate.exchange(
+                ADS_URL, HttpMethod.POST,
+                new HttpEntity<>(new CreatePromotedAdRequest("Boosted", null, null, null, activeUntil), bearerHeaders(jwt)),
+                PromotedAdResponse.class
+        ).getBody().id();
+
+        ResponseEntity<PromotedAdResponse> response = restTemplate.exchange(
+                ADS_URL + "/" + adId + "/extend", HttpMethod.POST,
+                new HttpEntity<>(new ExtendPromotedAdRequest(7), bearerHeaders(jwt)),
+                PromotedAdResponse.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        // window still in the future, so the 7 days are added onto the existing end
+        assertThat(response.getBody().activeUntil()).isEqualTo(activeUntil.plusDays(7));
     }
 
     // ──────────────── deleteAd ────────────────
