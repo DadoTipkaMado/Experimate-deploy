@@ -3,6 +3,9 @@ package hr.tvz.experimate.experimate.domain.partner_event;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,4 +42,13 @@ public interface PartnerEventRepository extends JpaRepository<PartnerEvent, Inte
      * Used by {@code GET /api/partner/stats} to populate {@code activeEvents}.
      */
     long countByPartnerPin_PartnerProfile_UserIdAndStartDatetimeAfter(Integer userId, LocalDateTime after);
+
+    /**
+     * Deletes all events under any pin belonging to the given partner profile in a single query.
+     * Used by {@link hr.tvz.experimate.experimate.domain.partner.PartnerService#leaveProgram}
+     * when a partner leaves the program and their entire data tree is removed.
+     */
+    @Modifying
+    @Query("DELETE FROM PartnerEvent e WHERE e.partnerPin.partnerProfile.id = :profileId")
+    void deleteAllByPartnerProfileId(@Param("profileId") Integer profileId);
 }
