@@ -9,7 +9,7 @@
   Avatar is rendered client-side from localStorage / API fallback.
 -->
 <header th:fragment="topbar" class="topbar">
-  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('theme-light');else if(t==='warm')document.body.classList.add('theme-warm');else if(t==='cyber')document.body.classList.add('theme-cyber');})();</script>
+  <script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
   <script th:src="@{/js/push-setup.js}" defer></script>
 
   <!-- Back button (shown when nav history exists) -->
@@ -148,7 +148,7 @@
     updateIcon();
     btn.addEventListener('click', () => {
       const wasLight = document.body.classList.contains('theme-light') || document.body.classList.contains('theme-warm');
-      document.body.classList.remove('theme-light', 'theme-warm', 'theme-cyber');
+      document.body.classList.remove('theme-light', 'theme-warm', 'theme-warm-dark');
       if (!wasLight) document.body.classList.add('theme-light');
       localStorage.setItem('theme', wasLight ? 'dark' : 'light');
       updateIcon();

@@ -31,7 +31,7 @@
         .catch(() => {});
     }
   </script>
-  <script>(function(){var t=localStorage.getItem('theme');if(t==='light')document.body.classList.add('theme-light');else if(t==='warm')document.body.classList.add('theme-warm');else if(t==='cyber')document.body.classList.add('theme-cyber');})();</script>
+  <script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -296,7 +296,7 @@
     }
     .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 80px); align-items: center; }
     .radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .radar-svg { width: 100%; max-width: 320px; height: auto; filter: drop-shadow(0 0 40px rgba(0,201,167,0.10)); }
+    .radar-svg { width: 100%; max-width: 320px; height: auto; filter: drop-shadow(0 0 40px var(--accent-a10)); }
     @keyframes radar-breathe-you {
       0%,100% { transform: scale(0.97); opacity: 0.9; }
       50%      { transform: scale(1.0); opacity: 1; }
@@ -328,11 +328,11 @@
     .why { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
     .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
     .why-card { border-radius: var(--radius); padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
-    .why-card--teal { background: linear-gradient(135deg, rgba(0,201,167,0.10) 0%, rgba(0,201,167,0.04) 100%); border: 1px solid rgba(0,201,167,0.18); }
+    .why-card--teal { background: linear-gradient(135deg, var(--accent-a10) 0%, var(--accent-a04) 100%); border: 1px solid var(--accent-a18); }
     .why-card--warm { background: var(--surface); border: 1px solid var(--border); }
     .why-card__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: 6px; width: fit-content; }
     .why-card__label--good { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
-    .why-card__label--bad  { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2); color: var(--warm); }
+    .why-card__label--bad  { background: var(--warm-a08); border: 1px solid var(--warm-a20); color: var(--warm); }
     .why-card__items { display: flex; flex-direction: column; gap: 11px; }
     .why-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-2); line-height: 1.5; }
     .why-item__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
@@ -359,19 +359,19 @@
     .cta-section { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
     .cta-card {
       max-width: 720px; margin: 0 auto;
-      background: linear-gradient(135deg, rgba(0,201,167,0.08) 0%, rgba(0,201,167,0.03) 60%, rgba(255,107,53,0.04) 100%);
-      border: 1px solid rgba(0,201,167,0.2); border-radius: 22px;
+      background: linear-gradient(135deg, var(--accent-a08) 0%, var(--accent-a03) 60%, var(--warm-a04) 100%);
+      border: 1px solid var(--accent-a20); border-radius: 22px;
       padding: clamp(44px, 6vw, 64px); text-align: center; position: relative; overflow: hidden;
     }
-    .cta-card::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; background: radial-gradient(ellipse, rgba(0,201,167,0.10) 0%, transparent 70%); pointer-events: none; }
+    .cta-card::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; background: radial-gradient(ellipse, var(--accent-a10) 0%, transparent 70%); pointer-events: none; }
     .cta-eyebrow { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px; }
     .cta-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.025em; color: var(--text); margin-bottom: 14px; line-height: 1.05; position: relative; z-index: 1; }
     .cta-sub { font-size: 14px; color: var(--text-2); line-height: 1.75; margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
     .cta-actions { display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
     .btn-cta { padding: 0 36px; height: 52px; border-radius: var(--radius-pill); background: var(--accent); border: none; color: #000; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity var(--t), transform 0.15s; }
     .btn-cta:hover { opacity: 0.85; transform: translateY(-2px); }
-    .btn-cta-ghost { padding: 0 28px; height: 52px; border-radius: var(--radius-pill); border: 1px solid rgba(0,201,167,0.3); background: transparent; color: var(--accent); font-size: 13px; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: border-color var(--t), transform 0.15s; }
-    .btn-cta-ghost:hover { border-color: rgba(0,201,167,0.55); transform: translateY(-2px); }
+    .btn-cta-ghost { padding: 0 28px; height: 52px; border-radius: var(--radius-pill); border: 1px solid var(--accent-a30); background: transparent; color: var(--accent); font-size: 13px; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: border-color var(--t), transform 0.15s; }
+    .btn-cta-ghost:hover { border-color: var(--accent-a55); transform: translateY(-2px); }
     .cta-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; margin-top: 20px; position: relative; z-index: 1; }
 
     /* ── FOOTER ── */
@@ -528,7 +528,7 @@
         <!-- Front -->
         <div class="hcard hcard--front">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(0,201,167,0.15),rgba(0,201,167,0.05));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:14px;color:var(--accent);border:1.5px solid var(--accent-border);flex-shrink:0;">AK</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent-a15),var(--accent-a05));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:14px;color:var(--accent);border:1.5px solid var(--accent-border);flex-shrink:0;">AK</div>
             <div style="flex:1;min-width:0;">
               <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);">Ana K.</div>
               <div style="font-size:10px;color:var(--text-3);">Zagreb, Croatia · ★ 4.9</div>
@@ -655,18 +655,18 @@
           <!-- You polygon (teal) -->
           <polygon class="poly-you"
             points="100,40.5 146.6,84.9 120.6,128.3 73.3,136.8 70.1,90.3"
-            fill="rgba(0,201,167,0.22)" stroke="rgba(0,201,167,0.75)" stroke-width="1.5" stroke-linejoin="round"/>
+            fill="var(--accent-a22)" stroke="var(--accent-a75)" stroke-width="1.5" stroke-linejoin="round"/>
           <!-- Ana polygon (warm) -->
           <polygon class="poly-ana"
             points="100,47.5 154.6,82.3 124.7,133.9 77.4,131.1 53.4,84.9"
-            fill="rgba(255,107,53,0.15)" stroke="rgba(255,107,53,0.65)" stroke-width="1.5" stroke-linejoin="round"/>
+            fill="var(--warm-a15)" stroke="var(--warm-a65)" stroke-width="1.5" stroke-linejoin="round"/>
           <!-- Vertex dots -->
           <circle class="radar-dot" cx="100"   cy="30"    r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="166.6" cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="141.1" cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="58.9"  cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="33.4"  cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="100" cy="100" r="3" fill="rgba(0,201,167,0.5)"/>
+          <circle cx="100" cy="100" r="3" fill="var(--accent-a50)"/>
           <!-- Labels -->
           <text class="radar-label" x="100"  y="17"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">CURIOSITY</text>
           <text class="radar-label" x="176"  y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">WARMTH</text>
@@ -676,11 +676,11 @@
         </svg>
         <div class="radar-legend">
           <div class="radar-legend__item">
-            <div class="radar-legend__dot" style="background:rgba(0,201,167,0.8);"></div>
+            <div class="radar-legend__dot" style="background:var(--accent-a80);"></div>
             <span>You</span>
           </div>
           <div class="radar-legend__item">
-            <div class="radar-legend__dot" style="background:rgba(255,107,53,0.8);"></div>
+            <div class="radar-legend__dot" style="background:var(--warm-a80);"></div>
             <span>Ana</span>
           </div>
         </div>
