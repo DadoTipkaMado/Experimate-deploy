@@ -1,0 +1,2 @@
+ALTER TABLE tour_listing ADD COLUMN color_index INTEGER DEFAULT NULL;
+ALTER TABLE tour_listing ADD COLUMN symbol_index INTEGER DEFAULT NULL;

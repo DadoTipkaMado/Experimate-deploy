@@ -127,7 +127,7 @@
     const btn = document.getElementById('back-btn');
     const mainNavPages = ['/map', '/explore', '/community', '/tours', '/account'];
     const isSubPage = !mainNavPages.includes(window.location.pathname);
-    if (!btn || stack.length < 2 || !isSubPage) return;
+    if (!btn || !isSubPage) return;
     btn.style.display = 'flex';
     btn.addEventListener('click', () => {
       const s = JSON.parse(sessionStorage.getItem(KEY) || '[]');

@@ -25,7 +25,7 @@ const Auth = {
   isExpired:   () => { const p = Auth._decode(); return p ? p.exp * 1000 < Date.now() : true; },
   logout: async () => {
     sessionStorage.setItem('explicit_logout', '1');
-    if (typeof unsubscribeFromPush === 'function') await unsubscribeFromPush();
+    if (typeof unsubscribeFromPush === 'function') unsubscribeFromPush().catch(() => {});
     fetch('/api/auth/logout', { method: 'POST', credentials: 'include', keepalive: true }).catch(() => {});
     localStorage.removeItem('jwt');
     localStorage.removeItem('userId');
@@ -127,7 +127,9 @@ async function apiFetch(path, options = {}, _isRetry = false) {
       429: 'Too many requests — slow down and try again shortly.',
       500: 'Server error — try again shortly.',
     };
-    throw new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
+    const error = new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
+    error.status = res.status;
+    throw error;
   }
   if (res.status === 204) return null;
   return res.json();
@@ -171,6 +173,7 @@ const TourListingAPI = {
   createFromEvent: (dto)    => apiFetch('/api/tour-listing/from-partner-event', { method: 'POST',   body: JSON.stringify(dto) }),
   update: (id, dto)         => apiFetch(`/api/tour-listing/${id}`,              { method: 'PATCH',  body: JSON.stringify(dto) }),
   delete: (id)              => apiFetch(`/api/tour-listing/${id}`,              { method: 'DELETE' }),
+  startTour: (id)           => apiFetch(`/api/tour-listing/${id}/start-tour`,   { method: 'POST' }),
 };
 
 /* ───────────────────────────────────────────────
@@ -256,6 +259,7 @@ const PartnerAPI = {
   getProfile: () => apiFetch('/api/partner/profile'),
   getStats:   () => apiFetch('/api/partner/stats'),
   apply: (dto) => apiFetch('/api/partner/apply', { method: 'POST', body: JSON.stringify(dto) }),
+  leave: ()    => apiFetch('/api/partner', { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────

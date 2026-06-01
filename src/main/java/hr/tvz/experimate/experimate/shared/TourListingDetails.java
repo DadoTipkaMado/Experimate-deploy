@@ -6,6 +6,8 @@ public record TourListingDetails(
         Integer id,
         LocalDateTime meetingDate,
         String city,
-        UserDetails host
+        UserDetails host,
+        Integer colorIndex,
+        Integer symbolIndex
 ) {
 }

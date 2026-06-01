@@ -301,7 +301,7 @@
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
     }
-    .pin-card__logo img { width: 100%; height: 100%; object-fit: cover; }
+    .pin-card__logo img { width: 40px; height: 40px; object-fit: cover; display: block; flex-shrink: 0; }
     .pin-card__logo__initial { font-size: 16px; font-weight: 800; color: #60a5fa; }
     .pin-card__info { flex: 1; min-width: 0; }
     .pin-card__name { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -343,6 +343,42 @@
     .logo-upload-area:hover { border-color: rgba(37,99,235,0.6); background: rgba(37,99,235,0.04); }
     .logo-upload-preview { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; margin: 0 auto 8px; display: block; }
     .logo-upload-label { font-size: 11px; color: var(--text-3); }
+
+    /* ── Leave partner program (danger zone) ── */
+    .partner-leave {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px; border-radius: 14px;
+      background: rgba(220,53,69,0.06);
+      border: 1px solid rgba(220,53,69,0.22);
+    }
+    .partner-leave__text { flex: 1; min-width: 0; }
+    .partner-leave__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 3px; }
+    .partner-leave__desc { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+    .btn--leave {
+      flex-shrink: 0; height: 38px; padding: 0 16px;
+      border-radius: var(--radius-pill); cursor: pointer;
+      background: rgba(220,53,69,0.12); color: #ff6b6b;
+      border: 1px solid rgba(220,53,69,0.40);
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+    .btn--leave:hover { background: #dc3545; color: #fff; border-color: #dc3545; }
+    .btn--leave:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .leave-dialog {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,0.72);
+      display: none; align-items: center; justify-content: center; padding: 24px;
+    }
+    .leave-dialog__card {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius); padding: 24px;
+      width: 100%; max-width: 380px;
+      box-shadow: var(--shadow-lg);
+    }
+    .leave-dialog__title { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: var(--text); margin-bottom: 12px; }
+    .leave-dialog__body { font-size: 13px; line-height: 1.65; color: var(--text-2); margin-bottom: 20px; }
+    .leave-dialog__actions { display: flex; gap: 10px; }
   </style>
 </head>
 <body>
@@ -539,10 +575,38 @@
         </div>
       </div>
 
+      <!-- Danger zone -->
+      <div class="partner-section">
+        <div class="partner-section__label">Partner program</div>
+        <div class="partner-leave">
+          <div class="partner-leave__text">
+            <div class="partner-leave__title">Leave partner program</div>
+            <div class="partner-leave__desc">Permanently deletes your venue pins, events and promoted ads. Your account stays and keeps working as a normal user.</div>
+          </div>
+          <button class="btn--leave" onclick="openLeaveDialog()">Leave program</button>
+        </div>
+      </div>
+
     </div>
 
     <div style="height:40px;"></div>
   </main>
+
+  <!-- Leave-program confirmation dialog -->
+  <div id="leave-dialog" class="leave-dialog" style="display:none;">
+    <div class="leave-dialog__card">
+      <div class="leave-dialog__title">Leave partner program?</div>
+      <div class="leave-dialog__body">
+        This permanently deletes <strong>all your venue pins, events, and promoted ads</strong>. It can’t be undone.
+        <br><br>
+        Your account stays active and works as a normal user — your meets and reservations are not affected.
+      </div>
+      <div class="leave-dialog__actions">
+        <button class="btn btn--ghost" style="flex:1;height:46px;" onclick="closeLeaveDialog()">Cancel</button>
+        <button class="btn--leave" id="leave-confirm-btn" style="flex:1;height:46px;" onclick="confirmLeave()">Yes, leave</button>
+      </div>
+    </div>
+  </div>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 </div>
@@ -766,6 +830,28 @@
     loadVenuePins();
     loadAds();
     loadPartnerEvents();
+  }
+
+  /* ── Leave partner program ── */
+  function openLeaveDialog()  { document.getElementById('leave-dialog').style.display = 'flex'; }
+  function closeLeaveDialog() { document.getElementById('leave-dialog').style.display = 'none'; }
+
+  async function confirmLeave() {
+    const btn = document.getElementById('leave-confirm-btn');
+    btn.disabled = true; btn.textContent = 'Leaving…';
+    try {
+      await PartnerAPI.leave();
+      // Refresh the access token so the downgraded role (ROLE_USER) takes effect immediately.
+      try {
+        const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+        if (r.ok) { const d = await r.json(); if (d.token) Auth.saveToken(d.token); }
+      } catch (_) {}
+      showToast('You\'ve left the partner program.', 'success');
+      setTimeout(() => { window.location.href = '/map'; }, 800);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Yes, leave';
+      showToast(e.message || 'Could not leave the program — try again.', 'error');
+    }
   }
 
   async function loadStats() {

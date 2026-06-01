@@ -317,8 +317,8 @@
 
     <form id="login-form" style="display: flex; flex-direction: column; gap: 14px;">
       <div class="auth-field">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" autocomplete="username" required>
+        <label for="username">Username or email</label>
+        <input type="text" id="username" name="username" autocomplete="username" placeholder="username or you@email.com" required>
       </div>
       <div class="auth-field">
         <label for="password">Password</label>
@@ -350,8 +350,26 @@
   <script src="https://accounts.google.com/gsi/client" async></script>
   <script src="/js/api.js"></script>
   <script>
-    if (new URLSearchParams(window.location.search).get('verified') === '1') {
+    const _qs = new URLSearchParams(window.location.search);
+    if (_qs.get('verified') === '1') {
       window.addEventListener('DOMContentLoaded', () => showToast('Email verified — you can now sign in.', 'success'));
+    }
+    if (_qs.get('pending_verification') === '1') {
+      window.addEventListener('DOMContentLoaded', () => {
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:rgba(0,201,167,0.08);border:1px solid rgba(0,201,167,0.22);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:12px;text-align:center;';
+        banner.textContent = 'Account created! Check your email to verify your address, then sign in.';
+        const form = document.querySelector('form') || document.body;
+        form.prepend(banner);
+      });
+
+      // Auto-advance this tab when the user verifies in the (new) email-link tab.
+      const _advance = () => { if (_qs.get('verified') !== '1') window.location.replace('/login?verified=1'); };
+      try {
+        const _bc = new BroadcastChannel('experimate-auth');
+        _bc.onmessage = (e) => { if (e.data && e.data.type === 'email-verified') _advance(); };
+      } catch (_) {}
+      window.addEventListener('storage', (e) => { if (e.key === 'email_verified_at') _advance(); });
     }
 
     let _googleClientId = null;
