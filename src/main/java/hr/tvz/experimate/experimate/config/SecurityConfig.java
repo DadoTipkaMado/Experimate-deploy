@@ -48,6 +48,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/google-client-id").permitAll()
                     /*    .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/google/**").permitAll()*/
                         .requestMatchers(HttpMethod.POST, "/api/user").permitAll()

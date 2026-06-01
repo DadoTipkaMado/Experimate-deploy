@@ -110,6 +110,23 @@ class PartnerEventIT extends AbstractIntegrationTest {
         assertThat(response.getBody().title()).isEqualTo("New Title");
     }
 
+    @Test
+    void updateEvent_whenDatetimeMovedToPast_returns400() {
+        String jwt = loginAndGetTokens("partner").get("accessToken");
+        applyAsPartner(jwt);
+        Integer pinId   = createPin(jwt, 45.0, 16.0);
+        Integer eventId = createEvent(jwt, pinId, LocalDateTime.now().plusDays(1), "Future Event");
+
+        LocalDateTime past = LocalDateTime.now().minusDays(1);
+        ResponseEntity<Void> response = restTemplate.exchange(
+                EVENT_URL + eventId, HttpMethod.PUT,
+                new HttpEntity<>(new UpdatePartnerEventRequest(null, null, null, past, past.plusHours(2)), bearerHeaders(jwt)),
+                Void.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     // ──────────────── deleteEvent ────────────────
 
     @Test

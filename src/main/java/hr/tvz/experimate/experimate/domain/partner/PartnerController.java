@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,6 +71,14 @@ public class PartnerController {
             @AuthenticationPrincipal AppUserDetails userDetails,
             @RequestParam(required = false) String filter) {
         return ResponseEntity.ok(partnerService.getEvents(userDetails.getId(), filter));
+    }
+
+    @DeleteMapping
+    @PreAuthorize("hasRole('PARTNER')")
+    public ResponseEntity<Void> leaveProgram(
+            @AuthenticationPrincipal AppUserDetails userDetails) {
+        partnerService.leaveProgram(userDetails.getId());
+        return ResponseEntity.noContent().build();
     }
 
 }
