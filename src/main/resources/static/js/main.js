@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', async function _completionBubble()
     accountNavItem.style.position = 'relative';
     const dot = document.createElement('div');
     dot.id = 'profile-completion-dot';
-    dot.style.cssText = 'position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#ff6b35;border:2px solid var(--bg,#0a0a0a);pointer-events:none;';
+    dot.style.cssText = 'position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--warm);border:2px solid var(--bg,#0a0a0a);pointer-events:none;';
     accountNavItem.appendChild(dot);
   }
 
@@ -607,8 +607,8 @@ function openListingDetail(listing, opts) {
       `<button class="btn btn--primary popup-action" style="width:100%;" onclick="closeListingDetail()">Got it, remind me later</button>`;
   } else {
     const available  = !reserved;
-    const dotColor   = available ? '#00c9a7' : 'rgba(239,239,239,0.3)';
-    const dotGlow    = available ? 'box-shadow:0 0 5px #00c9a7;' : '';
+    const dotColor   = available ? 'var(--accent)' : 'rgba(239,239,239,0.3)';
+    const dotGlow    = available ? 'box-shadow:0 0 5px var(--accent);' : '';
     const statusLabel = isOwn ? 'Your listing'
       : reserved          ? 'Joined'
       : reqStatus === 'PENDING'  ? 'Pending'

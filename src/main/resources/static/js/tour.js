@@ -62,12 +62,12 @@
       #tour-welcome-card {
         background: linear-gradient(160deg, rgba(22,22,22,0.96) 0%, rgba(14,14,14,0.93) 55%, rgba(8,8,8,0.91) 100%);
         border: 1px solid rgba(255,255,255,0.06);
-        border-top: 2px solid rgba(0,201,167,0.35);
+        border-top: 2px solid var(--accent-a35);
         border-radius: 24px;
         padding: 36px 28px 28px;
         max-width: 320px; width: 100%; text-align: center;
         box-shadow:
-          0 0 0 1px rgba(0,201,167,0.06),
+          0 0 0 1px var(--accent-a06),
           0 40px 80px rgba(0,0,0,0.85),
           0 8px 32px rgba(0,0,0,0.6);
         animation: _tcard .45s cubic-bezier(.16,1,.3,1) .08s both;
@@ -77,7 +77,7 @@
         content: '';
         position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
         width: 200px; height: 120px;
-        background: radial-gradient(ellipse, rgba(0,201,167,0.12) 0%, transparent 70%);
+        background: radial-gradient(ellipse, var(--accent-a12) 0%, transparent 70%);
         pointer-events: none;
       }
       .twc-logo {
@@ -87,7 +87,7 @@
         letter-spacing: 0.08em; text-transform: uppercase;
         margin-bottom: 28px;
       }
-      .twc-logo span { color: rgba(0,201,167,0.7); }
+      .twc-logo span { color: var(--accent-a70); }
       .twc-h {
         font-family: var(--font-display, sans-serif);
         font-weight: 800; font-size: 24px;
@@ -105,7 +105,7 @@
       }
       .twc-cta {
         width: 100%; height: 50px;
-        background: #00c9a7; color: #000;
+        background: var(--accent); color: #000;
         border: none; border-radius: 14px;
         font-family: var(--font-display, sans-serif);
         font-size: 14px; font-weight: 800;
@@ -122,7 +122,7 @@
         transform: skewX(-20deg);
         animation: _shimmer 2.2s ease 0.6s infinite;
       }
-      .twc-cta:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,201,167,0.4); }
+      .twc-cta:hover { transform: scale(1.02); box-shadow: 0 8px 24px var(--accent-a40); }
       .twc-skip {
         background: none; border: none;
         color: rgba(239,239,239,0.25);
@@ -142,7 +142,7 @@
         position: fixed; z-index: 9801; border-radius: 14px;
         pointer-events: none;
         box-shadow: 0 0 0 9999px rgba(0,0,0,0.82);
-        outline: 1.5px solid rgba(0,201,167,0.5);
+        outline: 1.5px solid var(--accent-a50);
         outline-offset: 3px;
         opacity: 0;
         transition:
@@ -158,12 +158,12 @@
         position: fixed; z-index: 9802;
         background: linear-gradient(160deg, rgba(22,22,22,0.97) 0%, rgba(14,14,14,0.95) 100%);
         border: 1px solid rgba(255,255,255,0.06);
-        border-top: 2px solid rgba(0,201,167,0.3);
+        border-top: 2px solid var(--accent-a30);
         border-radius: 18px;
         padding: 20px;
         width: min(280px, calc(100vw - 32px));
         box-shadow:
-          0 0 0 1px rgba(0,201,167,0.05),
+          0 0 0 1px var(--accent-a05),
           0 24px 60px rgba(0,0,0,0.75),
           0 4px 16px rgba(0,0,0,0.4);
         font-family: var(--font-mono, monospace);
@@ -172,7 +172,7 @@
       #tour-tooltip.tt-hidden { opacity: 0; transform: translateY(8px); pointer-events: none; }
       .tt-counter {
         font-size: 10px; letter-spacing: 0.1em;
-        color: rgba(0,201,167,0.7);
+        color: var(--accent-a70);
         font-family: var(--font-mono, monospace);
         margin-bottom: 10px;
         text-transform: uppercase;
@@ -196,20 +196,20 @@
         transition: background .2s, transform .2s, width .2s, border-radius .2s;
       }
       .tt-dot--active {
-        background: #00c9a7;
+        background: var(--accent);
         width: 18px; border-radius: 3px;
         transform: none;
       }
       .tt-btns { display: flex; gap: 8px; align-items: center; }
       .tt-next {
-        background: #00c9a7; color: #000; border: none; border-radius: 20px;
+        background: var(--accent); color: #000; border: none; border-radius: 20px;
         padding: 8px 20px;
         font-family: var(--font-display, sans-serif);
         font-size: 12px; font-weight: 800;
         cursor: pointer; letter-spacing: 0.01em; white-space: nowrap;
         transition: transform .1s ease, box-shadow .1s ease;
       }
-      .tt-next:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(0,201,167,0.35); }
+      .tt-next:hover { transform: scale(1.04); box-shadow: 0 4px 14px var(--accent-a35); }
       .tt-skip {
         background: none; border: none;
         color: rgba(239,239,239,0.25);
