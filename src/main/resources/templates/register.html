@@ -376,7 +376,17 @@
             password,
             email: document.getElementById('email').value.trim(),
           });
-          const loginRes = await AuthAPI.login(username, password);
+          // Account created — now auto-login. A 403 here means email not yet verified.
+          let loginRes;
+          try {
+            loginRes = await AuthAPI.login(username, password);
+          } catch (loginErr) {
+            if ((loginErr.message || '').toLowerCase().includes('verif')) {
+              window.location.href = '/login?pending_verification=1';
+              return;
+            }
+            throw loginErr;
+          }
           Auth.saveToken(loginRes.token);
           const users = await UserAPI.getAll();
           const me = users.find(u => u.username === Auth.getUsername());

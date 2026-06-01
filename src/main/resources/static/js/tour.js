@@ -14,7 +14,7 @@
     {
       sel: '.navbar__item[href="/community"]',
       title: 'Community',
-      body: 'Local groups, events, people nearby. Your city — not an algorithm.'
+      body: 'Local groups, events, people nearby. Your city.'
     },
     {
       sel: '.navbar__item[href="/explore"]',
@@ -29,7 +29,7 @@
     {
       sel: '.navbar__item[href="/account"]',
       title: 'You',
-      body: 'Profile, ratings, join requests. Your reputation on ExperiMate lives here.'
+      body: 'Profile, ratings. Your reputation on ExperiMate lives here.'
     },
     {
       sel: '.map-fab',

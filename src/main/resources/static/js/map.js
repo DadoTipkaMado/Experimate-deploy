@@ -7,7 +7,6 @@ const MapState = {
   map: null,
   clusterGroup: null,
   allMarkers: [],       // { marker, listing, pinType } — full list for filtering
-  availableOnly: false,
   dateFrom: null,       // Date | null
   dateTo: null,         // Date | null
   userCache: {},        // username → UserResponse (for popup photos)
@@ -511,23 +510,30 @@ function buildPopupContent(listing, pinType = 'default', unlocked = false) {
    FILTERS
 ─────────────────────────────────────────────── */
 
-function mapFilterAvailable() {
-  MapState.availableOnly = !MapState.availableOnly;
-  applyMarkerFilter();
-}
 
 function applyMarkerFilter() {
+  // Collect active proximity state — defined later in file, safe at call time
+  const activePoiKeys = typeof _poiActive !== 'undefined'
+    ? Object.keys(_poiActive).filter(k => _poiActive[k])
+    : [];
+  const allVenues = activePoiKeys.flatMap(k => (_venueCoords?.[k]) || []);
+
   MapState.clusterGroup.clearLayers();
   MapState.allMarkers.forEach(({ circle }) => { if (circle) MapState.map.removeLayer(circle); });
+
   MapState.allMarkers.forEach(({ marker, listing, circle }) => {
-    if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
+    // Date filter
     if (MapState.dateFrom || MapState.dateTo) {
       const d = new Date(listing.meetingDate);
       if (MapState.dateFrom && d < MapState.dateFrom) return;
-      if (MapState.dateTo) {
-        const to = new Date(MapState.dateTo); to.setHours(23, 59, 59);
-        if (d > to) return;
-      }
+      if (MapState.dateTo && d > MapState.dateTo) return;
+    }
+    // Proximity (venue) filter — composable with date filter in a single pass
+    if (activePoiKeys.length) {
+      const mLat = listing.lat ?? listing.latitude;
+      const mLng = listing.lng ?? listing.longitude;
+      if (mLat == null || mLng == null) return;
+      if (!allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M)) return;
     }
     MapState.clusterGroup.addLayer(marker);
     if (circle) circle.addTo(MapState.map);
@@ -548,8 +554,12 @@ window.toggleDatePanel = function(btn) {
 window.applyDateFilter = function() {
   const fromVal = document.getElementById('date-from').value;
   const toVal   = document.getElementById('date-to').value;
-  MapState.dateFrom = fromVal ? new Date(fromVal) : null;
-  MapState.dateTo   = toVal   ? new Date(toVal)   : null;
+  if (fromVal && toVal && toVal < fromVal) {
+    showToast('End date must be after start date.', 'error');
+    return;
+  }
+  MapState.dateFrom = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  MapState.dateTo   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
   const hasFilter = !!(fromVal || toVal);
   document.getElementById('pill-date').classList.toggle('pill--active', hasFilter);
   document.getElementById('map-date-panel').classList.remove('map-date-panel--open');
@@ -569,11 +579,6 @@ window.clearDateFilter = function() {
   applyMarkerFilter();
 };
 
-/* ── Legend toggle ── */
-window.toggleLegend = function() {
-  document.getElementById('map-legend').classList.toggle('map-legend--collapsed');
-};
-
 /* ── Venue strip collapse ── */
 window.toggleVenueStrip = function() {
   document.getElementById('map-venues-strip').classList.toggle('map-venues-strip--collapsed');
@@ -589,7 +594,6 @@ if (searchInput) {
     MapState.clusterGroup.clearLayers();
     MapState.allMarkers.forEach(({ circle }) => { if (circle) MapState.map.removeLayer(circle); });
     MapState.allMarkers.forEach(({ marker, listing, circle }) => {
-      if (MapState.availableOnly && (listing.bookedCount ?? 0) >= (listing.maxGuests ?? 1)) return;
       if (!lower) {
         MapState.clusterGroup.addLayer(marker);
         if (circle) circle.addTo(MapState.map);
@@ -711,37 +715,8 @@ function _updateLegendVenues() {
 }
 
 function _applyProximityFilter() {
-  const activeKeys = Object.keys(_poiActive).filter(k => _poiActive[k]);
-
-  if (!activeKeys.length) {
-    // No filter active — show all meets and their circles
-    MapState.allMarkers.forEach(({ marker, circle }) => {
-      if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
-      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
-    });
-    return;
-  }
-
-  // Gather all venue coords across active categories
-  const allVenues = activeKeys.flatMap(k => _venueCoords[k] || []);
-
-  MapState.allMarkers.forEach(({ marker, listing, circle }) => {
-    const mLat = listing.lat ?? listing.latitude;
-    const mLng = listing.lng ?? listing.longitude;
-    if (mLat == null || mLng == null) {
-      MapState.clusterGroup.removeLayer(marker);
-      if (circle) MapState.map.removeLayer(circle);
-      return;
-    }
-    const near = allVenues.some(v => _haversine(mLat, mLng, v.lat, v.lng) <= PROXIMITY_M);
-    if (near) {
-      if (!MapState.clusterGroup.hasLayer(marker)) MapState.clusterGroup.addLayer(marker);
-      if (circle && !MapState.map.hasLayer(circle)) circle.addTo(MapState.map);
-    } else {
-      MapState.clusterGroup.removeLayer(marker);
-      if (circle) MapState.map.removeLayer(circle);
-    }
-  });
+  // Delegate to the unified filter pass so date + proximity always compose correctly
+  applyMarkerFilter();
 }
 
 function _fetchPoisForActive() {
@@ -801,13 +776,16 @@ async function _doFetchPois() {
         if (lat == null || lng == null) return;
         coords.push({ lat, lng });
 
-        // Dim background venue dot (context only, not clickable)
-        const icon = L.divIcon({
+        // Small venue pin — clickable, shows venue name on hover
+        const venueName = el.tags?.name;
+        const venueIcon = L.divIcon({
           className: '',
-          html: `<div style="width:8px;height:8px;border-radius:50%;background:${cat.color};opacity:0.35;"></div>`,
-          iconSize: [8, 8], iconAnchor: [4, 4],
+          html: `<div style="width:10px;height:14px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:${cat.color};border:2px solid rgba(255,255,255,0.55);box-shadow:0 1px 6px rgba(0,0,0,0.45);cursor:pointer;"></div>`,
+          iconSize: [10, 14], iconAnchor: [5, 14],
         });
-        group.addLayer(L.marker([lat, lng], { icon, zIndexOffset: -200, interactive: false }));
+        const venueMarker = L.marker([lat, lng], { icon: venueIcon, zIndexOffset: -200 });
+        if (venueName) venueMarker.bindTooltip(venueName, { permanent: false, direction: 'top', offset: [0, -16], className: 'poi-tooltip' });
+        group.addLayer(venueMarker);
       });
 
       _venueCoords[catKey] = coords;
