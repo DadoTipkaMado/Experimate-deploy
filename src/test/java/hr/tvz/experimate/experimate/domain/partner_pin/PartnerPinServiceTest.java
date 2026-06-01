@@ -23,6 +23,7 @@ class PartnerPinServiceTest {
 
     @Mock private PartnerPinRepository partnerPinRepository;
     @Mock private PartnerProfileRepository partnerProfileRepository;
+    @Mock private PartnerPinSubscriptionRepository subscriptionRepository;
     @Mock private FileStorageService fileStorageService;
 
     @InjectMocks private PartnerPinService service;

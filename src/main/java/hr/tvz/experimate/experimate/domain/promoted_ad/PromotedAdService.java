@@ -7,6 +7,11 @@ import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventNotFoundExc
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
 import hr.tvz.experimate.experimate.shared.FileStorageService;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.payment.ChargeRequest;
+import hr.tvz.experimate.experimate.shared.payment.PaymentFailedException;
+import hr.tvz.experimate.experimate.shared.payment.PaymentGateway;
+import hr.tvz.experimate.experimate.shared.payment.PaymentResult;
+import hr.tvz.experimate.experimate.shared.payment.Pricing;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -14,7 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -24,6 +31,10 @@ import java.util.List;
  * All write operations verify that the requesting user owns the target ad.
  * The {@code findAllActiveBetween} query is used by {@link hr.tvz.experimate.experimate.domain.feed.FeedService FeedService}
  * to populate the interleaved feed.
+ *
+ * <p>Display in the feed is paid for by duration: creating an ad (or promoting an event) charges a
+ * fixed daily rate for the display window via {@link PaymentGateway}, and {@link #extend} charges
+ * again to add more days. Pricing comes from {@link Pricing}.
  */
 @Service
 public class PromotedAdService {
@@ -35,15 +46,18 @@ public class PromotedAdService {
     private final PartnerProfileRepository partnerProfileRepository;
     private final PartnerEventRepository partnerEventRepository;
     private final FileStorageService fileStorageService;
+    private final PaymentGateway paymentGateway;
 
     public PromotedAdService(PromotedAdRepository promotedAdRepository,
                              PartnerProfileRepository partnerProfileRepository,
                              PartnerEventRepository partnerEventRepository,
-                             FileStorageService fileStorageService) {
+                             FileStorageService fileStorageService,
+                             PaymentGateway paymentGateway) {
         this.promotedAdRepository = promotedAdRepository;
         this.partnerProfileRepository = partnerProfileRepository;
         this.partnerEventRepository = partnerEventRepository;
         this.fileStorageService = fileStorageService;
+        this.paymentGateway = paymentGateway;
     }
 
     /**
@@ -52,10 +66,12 @@ public class PromotedAdService {
      * @param userId the authenticated partner's user ID
      * @param req    ad creation data
      * @return the created ad
+     * @throws PaymentFailedException if the charge for the display window is declined
      */
     @Transactional
     public PromotedAdResponse createAd(Integer userId, CreatePromotedAdRequest req) {
         PartnerProfile profile = resolveProfile(userId);
+        chargeForWindow(req.title(), req.activeFrom(), req.activeUntil());
         PromotedAd ad = new PromotedAd(
                 profile, req.title(), req.description(), req.linkUrl(),
                 req.activeFrom(), req.activeUntil(), LocalDateTime.now());
@@ -116,6 +132,37 @@ public class PromotedAdService {
     }
 
     /**
+     * Extends an ad's display window by paying for additional days.
+     *
+     * <p>Mirrors the premium "extend, don't reset" rule: the extra days are added on top of
+     * {@code max(now, activeUntil)}, so an ad that is still running gains time at the end while an
+     * ad that already lapsed starts a fresh window from now. The requesting user must own the ad.
+     *
+     * @param adId   the ad to extend
+     * @param userId the authenticated user's ID
+     * @param req    the number of additional display days to purchase
+     * @return the updated ad with its new {@code activeUntil}
+     * @throws ForbiddenActionException if the user does not own the ad
+     * @throws PaymentFailedException   if the charge for the added days is declined
+     */
+    @Transactional
+    public PromotedAdResponse extend(Integer adId, Integer userId, ExtendPromotedAdRequest req) {
+        PromotedAd ad = findAdOrThrow(adId);
+        checkOwnership(ad, resolveProfile(userId));
+
+        int days = req.additionalDays();
+        charge(days, "ExperiMate promoted ad extension — " + ad.getTitle() + " (" + days + " day(s))");
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = (ad.getActiveUntil() != null && ad.getActiveUntil().isAfter(now))
+                ? ad.getActiveUntil()
+                : now;
+        ad.setActiveUntil(base.plusDays(days));
+
+        return toResponse(promotedAdRepository.save(ad));
+    }
+
+    /**
      * Deletes a promoted ad and its image file (if any).
      * The requesting user must own the ad.
      *
@@ -148,6 +195,7 @@ public class PromotedAdService {
      * @throws PartnerEventNotFoundException if the event does not exist
      * @throws ForbiddenActionException      if the user does not own the event's pin
      * @throws EventAlreadyPromotedException if the event already has a promotion
+     * @throws PaymentFailedException        if the charge for the display window is declined
      */
     @Transactional
     public PromotedAdResponse promoteEvent(Integer userId, Integer eventId, PromoteEventRequest req) {
@@ -165,6 +213,9 @@ public class PromotedAdService {
                 ? req.overrideDescription() : event.getDescription();
         String linkUrl = StringUtils.hasText(req.overrideLinkUrl())
                 ? req.overrideLinkUrl() : event.getTicketVendorUrl();
+
+        // The promotion runs from now until the event ends, so it is billed for that window.
+        chargeForWindow(title, null, event.getEndDatetime());
 
         PromotedAd ad = new PromotedAd(
                 profile, title, description, linkUrl, null, event.getEndDatetime(), LocalDateTime.now());
@@ -223,6 +274,40 @@ public class PromotedAdService {
         return fileStorageService.load(filename, adImagesDir);
     }
 
+    /**
+     * Charges for an ad's display window. The window runs from {@code activeFrom} (or now, if null)
+     * to {@code activeUntil}; an open-ended ad ({@code activeUntil == null}) is billed for
+     * {@link Pricing#PROMOTED_AD_OPEN_ENDED_DAYS} days, since an unbounded window cannot be priced.
+     *
+     * @param title       the ad title, included in the charge description
+     * @param activeFrom  start of the display window, or {@code null} for "starts now"
+     * @param activeUntil end of the display window, or {@code null} for open-ended
+     * @throws PaymentFailedException if the gateway declines the charge
+     */
+    private void chargeForWindow(String title, LocalDateTime activeFrom, LocalDateTime activeUntil) {
+        LocalDateTime start = activeFrom != null ? activeFrom : LocalDateTime.now();
+        LocalDateTime end = activeUntil != null
+                ? activeUntil
+                : start.plusDays(Pricing.PROMOTED_AD_OPEN_ENDED_DAYS);
+        long days = billableDays(start, end);
+        charge(days, "ExperiMate promoted ad — " + title + " (" + days + " day(s))");
+    }
+
+    /**
+     * Charges {@link Pricing#PROMOTED_AD_PER_DAY} for the given number of display days.
+     *
+     * @param days        number of days to bill
+     * @param description charge description forwarded to the gateway
+     * @throws PaymentFailedException if the gateway declines the charge
+     */
+    private void charge(long days, String description) {
+        BigDecimal amount = Pricing.PROMOTED_AD_PER_DAY.multiply(BigDecimal.valueOf(days));
+        PaymentResult result = paymentGateway.charge(new ChargeRequest(amount, Pricing.CURRENCY, description));
+        if (!result.success()) {
+            throw new PaymentFailedException("Payment declined for promoted ad");
+        }
+    }
+
     private PromotedAd findAdOrThrow(Integer adId) {
         return promotedAdRepository.findById(adId)
                 .orElseThrow(() -> new PromotedAdNotFoundException(adId));
@@ -263,5 +348,17 @@ public class PromotedAdService {
                 ad.getActiveUntil(),
                 ad.getCreatedAt()
         );
+    }
+
+    /**
+     * Number of days a display window spans for billing, rounding any partial day up and flooring
+     * at one day (so even a very short window is charged for at least a single day).
+     *
+     * @param start start of the window
+     * @param end   end of the window
+     */
+    private static long billableDays(LocalDateTime start, LocalDateTime end) {
+        long minutes = ChronoUnit.MINUTES.between(start, end);
+        return Math.max(1, (long) Math.ceil(minutes / (60.0 * 24)));
     }
 }
