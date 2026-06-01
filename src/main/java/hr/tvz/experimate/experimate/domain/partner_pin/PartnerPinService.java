@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 /**
  * Business logic for partner venue pins.
@@ -29,13 +31,16 @@ public class PartnerPinService {
 
     private final PartnerPinRepository partnerPinRepository;
     private final PartnerProfileRepository partnerProfileRepository;
+    private final PartnerPinSubscriptionRepository subscriptionRepository;
     private final FileStorageService fileStorageService;
 
     public PartnerPinService(PartnerPinRepository partnerPinRepository,
                              PartnerProfileRepository partnerProfileRepository,
+                             PartnerPinSubscriptionRepository subscriptionRepository,
                              FileStorageService fileStorageService) {
         this.partnerPinRepository = partnerPinRepository;
         this.partnerProfileRepository = partnerProfileRepository;
+        this.subscriptionRepository = subscriptionRepository;
         this.fileStorageService = fileStorageService;
     }
 
@@ -51,7 +56,8 @@ public class PartnerPinService {
         PartnerProfile profile = resolveProfile(userId);
         PartnerPin pin = new PartnerPin(profile, req.name(), req.description(),
                 req.latitude(), req.longitude(), LocalDateTime.now());
-        return toResponse(partnerPinRepository.save(pin));
+        // A freshly created pin has no subscription yet, so it cannot be highlighted.
+        return toResponse(partnerPinRepository.save(pin), false);
     }
 
     /**
@@ -62,10 +68,7 @@ public class PartnerPinService {
     @Transactional(readOnly = true)
     public List<PartnerPinResponse> getMyPins(Integer userId) {
         PartnerProfile profile = resolveProfile(userId);
-        return partnerPinRepository.findAllByPartnerProfile_Id(profile.getId())
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return toResponses(partnerPinRepository.findAllByPartnerProfile_Id(profile.getId()));
     }
 
     /**
@@ -73,10 +76,7 @@ public class PartnerPinService {
      */
     @Transactional(readOnly = true)
     public List<PartnerPinResponse> getAllActivePins() {
-        return partnerPinRepository.findAllByActiveTrue()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return toResponses(partnerPinRepository.findAllByActiveTrue());
     }
 
     /**
@@ -87,7 +87,7 @@ public class PartnerPinService {
      */
     @Transactional(readOnly = true)
     public PartnerPinResponse getPinById(Integer pinId) {
-        return toResponse(findPinOrThrow(pinId));
+        return toResponse(findPinOrThrow(pinId), isHighlighted(pinId));
     }
 
     /**
@@ -111,7 +111,7 @@ public class PartnerPinService {
         if (req.longitude() != null) pin.setLongitude(req.longitude());
         if (req.active() != null) pin.setActive(req.active());
 
-        return toResponse(partnerPinRepository.save(pin));
+        return toResponse(partnerPinRepository.save(pin), isHighlighted(pinId));
     }
 
     /**
@@ -153,7 +153,7 @@ public class PartnerPinService {
         pin.setLogoFilename(newFilename);
         if (oldFilename != null) fileStorageService.delete(oldFilename, partnerLogosDir);
 
-        return toResponse(partnerPinRepository.save(pin));
+        return toResponse(partnerPinRepository.save(pin), isHighlighted(pinId));
     }
 
     /**
@@ -182,7 +182,29 @@ public class PartnerPinService {
         }
     }
 
-    private PartnerPinResponse toResponse(PartnerPin pin) {
+    /**
+     * Whether the given pin currently has an active, in-period highlight subscription.
+     * Used for single-pin responses; list responses use {@link #toResponses(List)} to avoid an
+     * N+1 query.
+     */
+    private boolean isHighlighted(Integer pinId) {
+        return subscriptionRepository.existsByPartnerPin_IdAndStatusAndCurrentPeriodEndAfter(
+                pinId, SubscriptionStatus.ACTIVE, LocalDateTime.now());
+    }
+
+    /**
+     * Maps a list of pins to responses, resolving the {@code highlighted} flag for the whole batch
+     * with a single query for currently highlighted pin IDs.
+     */
+    private List<PartnerPinResponse> toResponses(List<PartnerPin> pins) {
+        Set<Integer> highlightedIds = new HashSet<>(subscriptionRepository
+                .findHighlightedPinIds(SubscriptionStatus.ACTIVE, LocalDateTime.now()));
+        return pins.stream()
+                .map(pin -> toResponse(pin, highlightedIds.contains(pin.getId())))
+                .toList();
+    }
+
+    private PartnerPinResponse toResponse(PartnerPin pin, boolean highlighted) {
         String logoUrl = pin.getLogoFilename() != null
                 ? "/api/partner-pins/logo/" + pin.getLogoFilename()
                 : null;
@@ -194,6 +216,7 @@ public class PartnerPinService {
                 pin.getLatitude(),
                 pin.getLongitude(),
                 pin.getActive(),
+                highlighted,
                 pin.getCreatedAt(),
                 pin.getPartnerProfile().getCompanyName()
         );

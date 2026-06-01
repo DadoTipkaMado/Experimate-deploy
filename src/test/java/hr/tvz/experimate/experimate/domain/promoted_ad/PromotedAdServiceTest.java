@@ -4,6 +4,7 @@ import hr.tvz.experimate.experimate.domain.partner.PartnerProfile;
 import hr.tvz.experimate.experimate.domain.partner.PartnerProfileRepository;
 import hr.tvz.experimate.experimate.shared.FileStorageService;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.payment.PaymentGateway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,7 @@ class PromotedAdServiceTest {
     @Mock private PromotedAdRepository promotedAdRepository;
     @Mock private PartnerProfileRepository partnerProfileRepository;
     @Mock private FileStorageService fileStorageService;
+    @Mock private PaymentGateway paymentGateway;
 
     @InjectMocks private PromotedAdService service;
 

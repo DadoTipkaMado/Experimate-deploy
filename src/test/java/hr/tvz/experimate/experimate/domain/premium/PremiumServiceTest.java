@@ -3,6 +3,9 @@ package hr.tvz.experimate.experimate.domain.premium;
 import hr.tvz.experimate.experimate.domain.user.Role;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.shared.payment.PaymentFailedException;
+import hr.tvz.experimate.experimate.shared.payment.PaymentGateway;
+import hr.tvz.experimate.experimate.shared.payment.PaymentResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,7 +37,7 @@ class PremiumServiceTest {
         User user = mock(User.class);
         when(user.getRole()).thenReturn(Role.USER);
         when(userRepo.findById(1)).thenReturn(Optional.of(user));
-        when(paymentGateway.charge(any(), any(), any()))
+        when(paymentGateway.charge(any()))
                 .thenReturn(new PaymentResult(false, "DECLINED"));
 
         assertThrows(PaymentFailedException.class,
@@ -51,7 +54,7 @@ class PremiumServiceTest {
         when(user.getRole()).thenReturn(Role.PREMIUM_USER);
         when(user.getPremiumExpiryDate()).thenReturn(existingExpiry);
         when(userRepo.findById(1)).thenReturn(Optional.of(user));
-        when(paymentGateway.charge(any(), any(), any()))
+        when(paymentGateway.charge(any()))
                 .thenReturn(new PaymentResult(true, "TXN-123"));
 
         premiumService.purchase(1, PremiumPackage.MONTH);

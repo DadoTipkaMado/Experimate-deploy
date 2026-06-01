@@ -6,12 +6,19 @@ import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinNotFoundException;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinRepository;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.payment.ChargeRequest;
+import hr.tvz.experimate.experimate.shared.payment.PaymentFailedException;
+import hr.tvz.experimate.experimate.shared.payment.PaymentGateway;
+import hr.tvz.experimate.experimate.shared.payment.PaymentResult;
+import hr.tvz.experimate.experimate.shared.payment.Pricing;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 /**
@@ -20,6 +27,10 @@ import java.util.List;
  * <p>Events are scoped to a {@link PartnerPin}. All write operations verify that
  * the requesting user owns the pin the event belongs to before making changes.
  * Read operations are open to all authenticated users.
+ *
+ * <p>Creating an event is a paid action (an advertising fee): the partner is charged a fixed
+ * daily rate for the event's duration via {@link PaymentGateway}. The charge happens after
+ * validation and before persistence, so a declined payment leaves no event behind.
  */
 @Service
 public class PartnerEventService {
@@ -27,13 +38,16 @@ public class PartnerEventService {
     private final PartnerEventRepository partnerEventRepository;
     private final PartnerPinRepository partnerPinRepository;
     private final PartnerProfileRepository partnerProfileRepository;
+    private final PaymentGateway paymentGateway;
 
     public PartnerEventService(PartnerEventRepository partnerEventRepository,
                                PartnerPinRepository partnerPinRepository,
-                               PartnerProfileRepository partnerProfileRepository) {
+                               PartnerProfileRepository partnerProfileRepository,
+                               PaymentGateway paymentGateway) {
         this.partnerEventRepository = partnerEventRepository;
         this.partnerPinRepository = partnerPinRepository;
         this.partnerProfileRepository = partnerProfileRepository;
+        this.paymentGateway = paymentGateway;
     }
 
     /**
@@ -46,6 +60,7 @@ public class PartnerEventService {
      * @return the created event
      * @throws IllegalArgumentException if end is not after start
      * @throws ForbiddenActionException if the user does not own the pin
+     * @throws PaymentFailedException   if the advertising fee charge is declined
      */
     @Transactional
     public PartnerEventResponse createEvent(Integer pinId, Integer userId, CreatePartnerEventRequest req) {
@@ -55,6 +70,8 @@ public class PartnerEventService {
         if (!req.endDatetime().isAfter(req.startDatetime())) {
             throw new IllegalArgumentException("endDatetime must be after startDatetime");
         }
+
+        chargeAdvertisingFee(req.title(), req.startDatetime(), req.endDatetime());
 
         PartnerEvent event = new PartnerEvent(
                 pin, req.title(), req.description(), req.ticketVendorUrl(),
@@ -161,6 +178,27 @@ public class PartnerEventService {
         partnerEventRepository.delete(event);
     }
 
+    /**
+     * Charges the partner the advertising fee for an event:
+     * {@link Pricing#EVENT_ADVERTISING_PER_DAY} times the event's duration in days
+     * (rounded up, minimum one day).
+     *
+     * @param title the event title, included in the charge description
+     * @param start the event start
+     * @param end   the event end
+     * @throws PaymentFailedException if the gateway declines the charge
+     */
+    private void chargeAdvertisingFee(String title, LocalDateTime start, LocalDateTime end) {
+        long days = billableDays(start, end);
+        BigDecimal amount = Pricing.EVENT_ADVERTISING_PER_DAY.multiply(BigDecimal.valueOf(days));
+        PaymentResult result = paymentGateway.charge(new ChargeRequest(
+                amount, Pricing.CURRENCY,
+                "ExperiMate event advertising — " + title + " (" + days + " day(s))"));
+        if (!result.success()) {
+            throw new PaymentFailedException("Payment declined for event advertising");
+        }
+    }
+
     private PartnerPin findPinOrThrow(Integer pinId) {
         return partnerPinRepository.findById(pinId)
                 .orElseThrow(() -> new PartnerPinNotFoundException(pinId));
@@ -197,5 +235,17 @@ public class PartnerEventService {
                 event.getEndDatetime(),
                 event.getCreatedAt()
         );
+    }
+
+    /**
+     * Number of days an event spans for billing, rounding any partial day up and flooring at one
+     * day (so even a short event is charged for at least a single day).
+     *
+     * @param start the event start
+     * @param end   the event end (must be after start)
+     */
+    private static long billableDays(LocalDateTime start, LocalDateTime end) {
+        long minutes = ChronoUnit.MINUTES.between(start, end);
+        return Math.max(1, (long) Math.ceil(minutes / (60.0 * 24)));
     }
 }

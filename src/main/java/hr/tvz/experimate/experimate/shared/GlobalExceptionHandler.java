@@ -1,5 +1,5 @@
 package hr.tvz.experimate.experimate.shared;
-import hr.tvz.experimate.experimate.domain.premium.PaymentFailedException;
+import hr.tvz.experimate.experimate.shared.payment.PaymentFailedException;
 import hr.tvz.experimate.experimate.security.google.exception.IncompleteGoogleProfileException;
 import hr.tvz.experimate.experimate.shared.exception.AppAuthException;
 import hr.tvz.experimate.experimate.shared.exception.ConflictException;
