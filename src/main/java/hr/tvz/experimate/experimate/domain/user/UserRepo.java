@@ -21,6 +21,13 @@ public interface UserRepo extends JpaRepository<User, Integer> {
 
     Optional<User> findByEmail(String email);
 
+    /**
+     * Looks up a user by username or email in a single query.
+     * Both parameters receive the same input value, so the caller can pass
+     * the login field without knowing which one the user typed.
+     */
+    Optional<User> findByUsernameOrEmail(String username, String email);
+
     Optional<User> findByGoogleSub(String googleSub);
 
     /**

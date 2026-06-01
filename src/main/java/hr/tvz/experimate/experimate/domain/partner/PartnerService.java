@@ -3,10 +3,16 @@ package hr.tvz.experimate.experimate.domain.partner;
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEvent;
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventResponse;
+import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
+import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPinRepository;
+import hr.tvz.experimate.experimate.domain.promoted_ad.PromotedAd;
+import hr.tvz.experimate.experimate.domain.promoted_ad.PromotedAdRepository;
 import hr.tvz.experimate.experimate.domain.user.Role;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.shared.FileStorageService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,16 +28,31 @@ import java.util.List;
 @Service
 public class PartnerService {
 
+    @Value("${app.upload.partner-logos-dir}")
+    private String partnerLogosDir;
+
+    @Value("${app.upload.promoted-ad-images-dir}")
+    private String adImagesDir;
+
     private final PartnerProfileRepository partnerProfileRepository;
     private final UserRepo userRepo;
     private final PartnerEventRepository partnerEventRepository;
+    private final PartnerPinRepository partnerPinRepository;
+    private final PromotedAdRepository promotedAdRepository;
+    private final FileStorageService fileStorageService;
 
     public PartnerService(PartnerProfileRepository partnerProfileRepository,
                           UserRepo userRepo,
-                          PartnerEventRepository partnerEventRepository) {
+                          PartnerEventRepository partnerEventRepository,
+                          PartnerPinRepository partnerPinRepository,
+                          PromotedAdRepository promotedAdRepository,
+                          FileStorageService fileStorageService) {
         this.partnerProfileRepository = partnerProfileRepository;
         this.userRepo = userRepo;
         this.partnerEventRepository = partnerEventRepository;
+        this.partnerPinRepository = partnerPinRepository;
+        this.promotedAdRepository = promotedAdRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -137,6 +158,50 @@ public class PartnerService {
                 .map(this::toResponse)
                 .orElseThrow(() -> new IllegalStateException("Partner profile not found for user " + userId));
         return new PartnerStatusResponse(true, profile);
+    }
+
+    /**
+     * Removes a partner from the program by deleting all partner-related data and
+     * reverting the user's role to {@link Role#USER}. The user account itself is kept intact.
+     *
+     * <p>Deletion order respects FK constraints:
+     * <ol>
+     *   <li>Promoted ads (reference both the profile and events) — image files cleaned up first</li>
+     *   <li>Partner events (reference pins) — bulk delete via JPQL</li>
+     *   <li>Partner pins (reference the profile) — logo files cleaned up first</li>
+     *   <li>Partner profile</li>
+     *   <li>User role reverted to USER</li>
+     * </ol>
+     *
+     * @param userId the authenticated partner's user ID
+     * @throws IllegalStateException if no partner profile exists for the user
+     * @throws UserNotFoundException if the user account cannot be found
+     */
+    @Transactional
+    public void leaveProgram(Integer userId) {
+        PartnerProfile profile = partnerProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("Partner profile not found for user " + userId));
+
+        List<PromotedAd> ads = promotedAdRepository.findAllByPartnerProfile_Id(profile.getId());
+        ads.forEach(ad -> {
+            if (ad.getImageFilename() != null) fileStorageService.delete(ad.getImageFilename(), adImagesDir);
+        });
+        promotedAdRepository.deleteAll(ads);
+
+        partnerEventRepository.deleteAllByPartnerProfileId(profile.getId());
+
+        List<PartnerPin> pins = partnerPinRepository.findAllByPartnerProfile_Id(profile.getId());
+        pins.forEach(pin -> {
+            if (pin.getLogoFilename() != null) fileStorageService.delete(pin.getLogoFilename(), partnerLogosDir);
+        });
+        partnerPinRepository.deleteAll(pins);
+
+        partnerProfileRepository.delete(profile);
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        user.setRole(Role.USER);
+        userRepo.save(user);
     }
 
     private PartnerProfileResponse toResponse(PartnerProfile profile) {
