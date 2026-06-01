@@ -308,27 +308,29 @@
 
       const isOwnProfile = Auth.getUsername() === user.username;
 
-      // Real traits only — no fabricated data from username hash
-      // TODO (David): add personalityTraits: string[] + onboardingCompleted: boolean to UserResponse
-      // so other users' trait pills can also be shown
+      // Personality traits now come from the backend (UserResponse.personalityTraits),
+      // so they render for ANY user — not just your own profile.
       let traitPills = '';
       let quizCta = '';
-      if (isOwnProfile) {
+      let traits = Array.isArray(user.personalityTraits) ? user.personalityTraits : null;
+      // Own-profile fallback: quiz just completed, cached locally before the API reflects it.
+      if ((!traits || !traits.length) && isOwnProfile) {
         try {
           const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
-          if (Array.isArray(stored) && stored.length) {
-            traitPills = stored.slice(0, 3).map((t, i) => {
-              const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
-              return `<div class="profile-trait ${_traitClass(i)}">
-                <div class="profile-trait__icon">${meta.icon}</div>
-                <div class="profile-trait__name">${t}</div>
-                <div class="profile-trait__desc">${meta.desc}</div>
-              </div>`;
-            }).join('');
-          } else {
-            quizCta = `<a href="/onboarding" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none;letter-spacing:0.04em;border:1px solid var(--accent-border);border-radius:20px;padding:4px 14px;background:var(--accent-dim);">Take personality quiz →</a>`;
-          }
-        } catch(e) {}
+          if (Array.isArray(stored)) traits = stored;
+        } catch (e) {}
+      }
+      if (traits && traits.length) {
+        traitPills = traits.slice(0, 3).map((t, i) => {
+          const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
+          return `<div class="profile-trait ${_traitClass(i)}">
+            <div class="profile-trait__icon">${meta.icon}</div>
+            <div class="profile-trait__name">${escapeHtml(t)}</div>
+            <div class="profile-trait__desc">${meta.desc}</div>
+          </div>`;
+        }).join('');
+      } else if (isOwnProfile && !user.onboardingCompleted) {
+        quizCta = `<a href="/onboarding" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none;letter-spacing:0.04em;border:1px solid var(--accent-border);border-radius:20px;padding:4px 14px;background:var(--accent-dim);">Take personality quiz →</a>`;
       }
 
       const ratingDisplay = user.rating > 0 ? Number(user.rating).toFixed(1) : '—';

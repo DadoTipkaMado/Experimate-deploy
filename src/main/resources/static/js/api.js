@@ -259,6 +259,7 @@ const PartnerAPI = {
   getProfile: () => apiFetch('/api/partner/profile'),
   getStats:   () => apiFetch('/api/partner/stats'),
   apply: (dto) => apiFetch('/api/partner/apply', { method: 'POST', body: JSON.stringify(dto) }),
+  leave: ()    => apiFetch('/api/partner', { method: 'DELETE' }),
 };
 
 /* ───────────────────────────────────────────────
