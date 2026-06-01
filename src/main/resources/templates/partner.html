@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     .page-content { background: #0a0c0c; }
-    body.theme-light .page-content { background: #f0eeea; }
+    body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
     body.theme-warm  .page-content { background: #ECEDF2; }
 
     .partner-header { padding: 22px 20px 16px; }
@@ -33,7 +33,7 @@
       width: 6px; height: 6px; border-radius: 50%;
       background: #2563eb; box-shadow: 0 0 6px rgba(37,99,235,0.7);
     }
-    body.theme-light .partner-badge,
+    body.theme-light .partner-badge, body.theme-warm .partner-badge,
     body.theme-warm  .partner-badge {
       background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.25);
       color: #1d4ed8;
@@ -54,7 +54,7 @@
         0 8px 20px rgba(0,0,0,0.55),
         0 2px 6px rgba(0,0,0,0.4);
     }
-    body.theme-light .partner-section {
+    body.theme-light .partner-section , body.theme-warm .partner-section {
       background: #fff;
       border-color: rgba(0,0,0,0.07);
       border-top-color: rgba(255,255,255,0.9);
@@ -86,7 +86,7 @@
       border-radius: 12px; padding: 12px 10px 10px;
       display: flex; flex-direction: column; gap: 4px;
     }
-    body.theme-light .stat-cell,
+    body.theme-light .stat-cell, body.theme-warm .stat-cell,
     body.theme-warm  .stat-cell {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.07);
@@ -106,7 +106,7 @@
       color: var(--text); text-decoration: none; cursor: pointer;
     }
     .partner-action:last-child { border-bottom: none; }
-    body.theme-light .partner-action,
+    body.theme-light .partner-action, body.theme-warm .partner-action,
     body.theme-warm  .partner-action { border-bottom-color: rgba(0,0,0,0.07); }
     .partner-action__left { display: flex; align-items: center; gap: 12px; }
     .partner-action__icon {
@@ -115,7 +115,7 @@
       background: rgba(37,99,235,0.10); border: 1px solid rgba(37,99,235,0.25);
       color: #60a5fa;
     }
-    body.theme-light .partner-action__icon,
+    body.theme-light .partner-action__icon, body.theme-warm .partner-action__icon,
     body.theme-warm  .partner-action__icon { color: #1d4ed8; }
     .partner-action__title { font-size: 13px; color: var(--text); }
     .partner-action__desc { font-size: 10px; color: var(--text-3); line-height: 1.4; margin-top: 2px; }
@@ -127,7 +127,7 @@
       padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .partner-event-card:last-child { border-bottom: none; }
-    body.theme-light .partner-event-card,
+    body.theme-light .partner-event-card, body.theme-warm .partner-event-card,
     body.theme-warm  .partner-event-card { border-bottom-color: rgba(0,0,0,0.07); }
     .partner-event-card__date {
       width: 40px; height: 42px; border-radius: 10px; flex-shrink: 0;
@@ -136,9 +136,9 @@
     }
     .partner-event-card__day { font-size: 15px; font-weight: 800; color: #60a5fa; line-height: 1; }
     .partner-event-card__mon { font-size: 8px; color: rgba(96,165,250,0.65); text-transform: uppercase; letter-spacing: 0.1em; }
-    body.theme-light .partner-event-card__day,
+    body.theme-light .partner-event-card__day, body.theme-warm .partner-event-card__day,
     body.theme-warm  .partner-event-card__day { color: #1d4ed8; }
-    body.theme-light .partner-event-card__mon,
+    body.theme-light .partner-event-card__mon, body.theme-warm .partner-event-card__mon,
     body.theme-warm  .partner-event-card__mon { color: rgba(29,78,216,0.6); }
     .partner-event-card__info { flex: 1; min-width: 0; }
     .partner-event-card__title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -161,7 +161,7 @@
       box-shadow: inset 0 1.5px 0 rgba(96,165,250,0.14), 0 8px 20px rgba(0,0,0,0.4);
       display: flex; flex-direction: column; align-items: center; gap: 12px;
     }
-    body.theme-light .partner-cta,
+    body.theme-light .partner-cta, body.theme-warm .partner-cta,
     body.theme-warm  .partner-cta {
       background: rgba(37,99,235,0.06);
       border-color: rgba(37,99,235,0.18);
@@ -173,7 +173,7 @@
       background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.30);
       display: flex; align-items: center; justify-content: center; color: #60a5fa;
     }
-    body.theme-light .partner-cta__icon,
+    body.theme-light .partner-cta__icon, body.theme-warm .partner-cta__icon,
     body.theme-warm  .partner-cta__icon { color: #1d4ed8; }
     .partner-cta__title {
       font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text);
@@ -239,7 +239,7 @@
       box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
       transition: border-color 0.14s, box-shadow 0.14s;
     }
-    body.theme-light .partner-form-field input, body.theme-light .partner-form-field textarea,
+    body.theme-light .partner-form-field input, body.theme-warm .partner-form-field input, body.theme-light .partner-form-field textarea, body.theme-warm .partner-form-field textarea,
     body.theme-warm  .partner-form-field input, body.theme-warm  .partner-form-field textarea {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.12);
@@ -259,7 +259,7 @@
       border-radius: 10px; padding: 10px 14px;
       font-size: 11px; color: rgba(255,110,110,0.9); display: none;
     }
-    body.theme-light .partner-form-error { color: #c0392b; }
+    body.theme-light .partner-form-error , body.theme-warm .partner-form-error { color: #c0392b; }
     .partner-form-actions { display: flex; gap: 8px; }
 
     /* Apply button — blue accent */
@@ -283,7 +283,7 @@
     .partner-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
 
     .skeleton { background: rgba(255,255,255,0.06); border-radius: 6px; animation: sk 1.4s ease-in-out infinite; }
-    body.theme-light .skeleton,
+    body.theme-light .skeleton, body.theme-warm .skeleton,
     body.theme-warm  .skeleton { background: rgba(0,0,0,0.07); }
     @keyframes sk { 0%,100%{opacity:1}50%{opacity:0.4} }
 
@@ -293,7 +293,7 @@
       padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .pin-card:last-child { border-bottom: none; }
-    body.theme-light .pin-card,
+    body.theme-light .pin-card, body.theme-warm .pin-card,
     body.theme-warm  .pin-card { border-bottom-color: rgba(0,0,0,0.07); }
     .pin-card__logo {
       width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;

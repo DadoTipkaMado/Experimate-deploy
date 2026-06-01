@@ -20,7 +20,7 @@
     }
 
     .page-content { background: #0a0c0c; }
-    body.theme-light .page-content { background: var(--bg); }
+    body.theme-light .page-content , body.theme-warm .page-content { background: var(--bg); }
     body.theme-warm  .page-content { background: var(--bg); }
 
     .edit-header {
@@ -47,7 +47,7 @@
         0 24px 60px rgba(0,0,0,0.65),
         0 8px 20px rgba(0,0,0,0.4);
     }
-    body.theme-light .edit-form {
+    body.theme-light .edit-form , body.theme-warm .edit-form {
       background: #fff;
       border-color: rgba(0,0,0,0.07);
       border-top-color: rgba(255,255,255,0.9);
@@ -79,7 +79,7 @@
       transition: border-color 0.14s ease, box-shadow 0.14s ease;
       color-scheme: dark;
     }
-    body.theme-light .form-field input, body.theme-light .form-field textarea,
+    body.theme-light .form-field input, body.theme-warm .form-field input, body.theme-light .form-field textarea, body.theme-warm .form-field textarea,
     body.theme-warm  .form-field input, body.theme-warm  .form-field textarea {
       background: rgba(0,0,0,0.04);
       border-color: rgba(0,0,0,0.12);

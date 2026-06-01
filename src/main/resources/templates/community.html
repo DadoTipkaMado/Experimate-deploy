@@ -187,6 +187,29 @@
     .cm-card__heart--active { color: #ff4d6d; background: rgba(255,77,109,0.18); border-color: rgba(255,77,109,0.32); }
     .cm-card__heart svg { pointer-events: none; }
 
+    /* ── Light themes: clean, flat, no dark gradients ── */
+    body.theme-light .cm-card, body.theme-warm .cm-card {
+      background: var(--surface);
+      border-color: var(--border-2);
+      box-shadow: var(--shadow-sm);
+    }
+    body.theme-light .cm-card:hover, body.theme-warm .cm-card:hover {
+      border-color: var(--accent-border);
+      box-shadow: var(--shadow-md);
+    }
+    body.theme-light .cm-card__bg, body.theme-warm .cm-card__bg {
+      background: hsl(var(--hue, 160), 46%, 95%);
+    }
+    body.theme-light .cm-card__footer, body.theme-warm .cm-card__footer {
+      background: linear-gradient(to top, var(--surface) 55%, transparent 100%);
+    }
+    body.theme-light .cm-card__name, body.theme-warm .cm-card__name { color: var(--text); }
+    body.theme-light .cm-card__handle, body.theme-warm .cm-card__handle { color: var(--text-3); }
+    body.theme-light .cm-card__bio, body.theme-warm .cm-card__bio { color: var(--text-2); }
+    body.theme-light .cm-card__heart, body.theme-warm .cm-card__heart {
+      background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.10); color: var(--text-3);
+    }
+
     /* ── Skeleton cards ── */
     .cm-skeleton {
       border-radius: 22px; min-height: 210px;
