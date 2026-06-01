@@ -317,8 +317,8 @@
 
     <form id="login-form" style="display: flex; flex-direction: column; gap: 14px;">
       <div class="auth-field">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" autocomplete="username" required>
+        <label for="username">Username or email</label>
+        <input type="text" id="username" name="username" autocomplete="username" placeholder="username or you@email.com" required>
       </div>
       <div class="auth-field">
         <label for="password">Password</label>
@@ -362,6 +362,14 @@
         const form = document.querySelector('form') || document.body;
         form.prepend(banner);
       });
+
+      // Auto-advance this tab when the user verifies in the (new) email-link tab.
+      const _advance = () => { if (_qs.get('verified') !== '1') window.location.replace('/login?verified=1'); };
+      try {
+        const _bc = new BroadcastChannel('experimate-auth');
+        _bc.onmessage = (e) => { if (e.data && e.data.type === 'email-verified') _advance(); };
+      } catch (_) {}
+      window.addEventListener('storage', (e) => { if (e.key === 'email_verified_at') _advance(); });
     }
 
     let _googleClientId = null;
