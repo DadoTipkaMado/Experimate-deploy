@@ -64,7 +64,9 @@ public class DetailsMapper {
             tourListing.getId(),
             tourListing.getMeetingDate(),
             tourListing.getCity(),
-            mapUserDetails(tourListing.getHost())
+            mapUserDetails(tourListing.getHost()),
+            tourListing.getColorIndex(),
+            tourListing.getSymbolIndex()
         );
     }
 }

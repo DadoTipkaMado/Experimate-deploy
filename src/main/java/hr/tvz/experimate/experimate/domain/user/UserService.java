@@ -31,6 +31,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import org.springframework.core.io.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -168,6 +169,29 @@ public class UserService {
     }
 
     /**
+     * Removes the given user's profile photo, deleting the stored file and clearing
+     * the reference on the user. No-op on the file system if the user has no photo.
+     *
+     * @param id       the user's ID
+     * @param callerId the ID of the authenticated caller, used to enforce that users
+     *                 can only modify their own profile
+     *
+     * @throws ForbiddenActionException if {@code callerId} does not match {@code id}
+     * @throws UserNotFoundException    if no user exists with the given ID
+     */
+    public void deleteProfilePhoto(Integer id, Integer callerId) {
+        if (!callerId.equals(id))
+            throw new ForbiddenActionException("You can only remove the photo from your own profile.");
+        User user = findEntityById(id);
+        String filename = user.getProfilePhotoFilename();
+        if (filename == null) return;
+        user.setProfilePhotoFilename(null);
+        fileStorageService.delete(filename, profilePhotosDir);
+        userRepo.save(user);
+        log.info("Profile photo removed for user {}", id);
+    }
+
+    /**
      * Fetches a {@link User} entity by ID, shared internally to avoid duplicating
      * the not-found handling across service methods.
      *
@@ -267,8 +291,38 @@ public class UserService {
                 user.getBio(),
                 user.getRating(),
                 profilePhotoUrl,
-                user.getPersonalitySummary()
+                user.getPersonalitySummary(),
+                user.isOnboardingCompleted(),
+                resolveTraits(user)
         );
+    }
+
+    /**
+     * Derives personality trait labels from the user's Big Five scores,
+     * mirroring the {@code TRAITS_MAP} logic in {@code onboarding.html}.
+     *
+     * <p>A trait label is included for each dimension whose score is outside
+     * the neutral range: >= 0.25 yields the high label, <= -0.25 the low label.
+     * Returns an empty list if the user has not completed onboarding.
+     *
+     * @param user the user whose scores are read
+     * @return ordered list of trait label strings, one per non-neutral dimension
+     */
+    private List<String> resolveTraits(User user) {
+        if (!user.isOnboardingCompleted()) return List.of();
+        List<String> traits = new ArrayList<>();
+        addTrait(traits, user.getPersonalityOpenness(),          "Curious",      "Grounded");
+        addTrait(traits, user.getPersonalityConscientiousness(), "Organised",    "Spontaneous");
+        addTrait(traits, user.getPersonalityExtraversion(),      "Enthusiastic", "Calm");
+        addTrait(traits, user.getPersonalityAgreeableness(),     "Warm",         "Direct");
+        addTrait(traits, user.getPersonalityNeuroticism(),       "Sensitive",    "Stable");
+        return traits;
+    }
+
+    private void addTrait(List<String> traits, Double score, String hiLabel, String loLabel) {
+        if (score == null) return;
+        if (score >= 0.25)       traits.add(hiLabel);
+        else if (score <= -0.25) traits.add(loLabel);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)

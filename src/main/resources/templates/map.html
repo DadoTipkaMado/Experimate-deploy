@@ -226,7 +226,7 @@
       display: flex; align-items: center; justify-content: center;
     }
     .map-pin--partner-logo:hover { transform: scale(1.18); box-shadow: 0 0 0 4px rgba(37,99,235,0.35), 0 6px 18px rgba(0,0,0,0.5); }
-    .map-pin--partner-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .map-pin--partner-logo img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; display: block; flex-shrink: 0; }
     .map-pin--partner-logo__initials { font-size: 11px; font-weight: 800; color: #93c5fd; font-family: sans-serif; }
     .map-legend__dot--partner { background: #2563eb; opacity: 0.85; }
     .user-location-pin {
@@ -467,16 +467,14 @@
     .map-date-panel__apply { background: var(--accent); color: #000; }
     .map-date-panel__clear { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-2); }
 
-    /* ── Legend collapsible ── */
-    .map-legend { cursor: pointer; user-select: none; }
-    .map-legend__header {
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 6px;
+    /* ── POI venue tooltip ── */
+    .poi-tooltip {
+      font-size: 10px; font-family: var(--font-mono); letter-spacing: 0.04em;
+      background: rgba(8,10,10,0.92) !important; border: 1px solid rgba(255,255,255,0.12) !important;
+      color: var(--text-2) !important; border-radius: 6px !important; padding: 3px 8px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45); white-space: nowrap;
     }
-    .map-legend__chevron { transition: transform 0.2s; font-size: 10px; }
-    .map-legend--collapsed .map-legend__chevron { transform: rotate(180deg); }
-    .map-legend--collapsed .map-legend__rows { display: none; }
+    .poi-tooltip::before { display: none !important; }
 
     /* ── Pulsing user location ── */
     @keyframes loc-pulse {
@@ -504,6 +502,7 @@
       border-bottom-color: rgba(0,0,0,0.09);
     }
     body.theme-light .map-geo-search .search-bar , body.theme-warm .map-geo-search .search-bar {
+    body.light-mode .map-geo-search .search-bar {
       background: rgba(253,252,248,0.97);
       border-color: rgba(0,0,0,0.09);
       border-top-color: rgba(255,255,255,0.90);
@@ -566,8 +565,7 @@
 
       <div class="map-overlay map-overlay--interactive map-filters">
         <div class="map-filters__pills">
-          <div class="pill pill--active" onclick="togglePill(this)">Events</div>
-          <div class="pill" id="pill-available" onclick="togglePill(this); mapFilterAvailable()">Available</div>
+
           <div class="pill" id="pill-date" onclick="toggleDatePanel(this)">📅 Date</div>
           <div class="pill" id="pill-venues" onclick="toggleVenueDropdown(this)">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;flex-shrink:0;"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>Filters
@@ -603,17 +601,27 @@
           <button class="map-venue-item" style="--vcat-color:#10b981" onclick="togglePoiFilter(this,'market')">
             <span>🛒</span><span>Markets</span>
           </button>
+          <!-- Legend — moved here from bottom-right overlay so it doesn't block the map -->
+          <div style="border-top:1px solid rgba(255,255,255,0.07);margin:6px 0 2px;"></div>
+          <div class="map-legend__section">Map legend</div>
+          <div class="map-legend__rows" style="padding:0 12px 6px;">
+            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
+            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Going</div>
+            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
+            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--partner"></div>Partner venue</div>
+            <div id="legend-venues"></div>
+          </div>
         </div>
         <div class="map-date-panel" id="map-date-panel">
           <div class="map-date-panel__rows">
             <div class="map-date-panel__row">
               <span class="map-date-panel__label">From</span>
-              <input type="date" id="date-from">
+              <input type="date" id="date-from" onchange="document.getElementById('date-to').min=this.value||''">
             </div>
             <span class="map-date-panel__sep">→</span>
             <div class="map-date-panel__row">
               <span class="map-date-panel__label">To</span>
-              <input type="date" id="date-to">
+              <input type="date" id="date-to" onchange="document.getElementById('date-from').max=this.value||''">
             </div>
           </div>
           <div class="map-date-panel__actions">
@@ -634,18 +642,6 @@
       </div>
 
       <div class="map-controls map-overlay--interactive">
-        <div class="map-legend" id="map-legend" onclick="toggleLegend()">
-          <div class="map-legend__header">
-            Legend <span class="map-legend__chevron">▴</span>
-          </div>
-          <div class="map-legend__rows">
-            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--event"></div>Open listing</div>
-            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--my-meet"></div>Going</div>
-            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--due-soon"></div>Due soon</div>
-            <div class="map-legend__row"><div class="map-legend__dot map-legend__dot--partner"></div>Partner venue</div>
-            <div id="legend-venues"></div>
-          </div>
-        </div>
         <div class="map-controls-row">
           <button class="map-locate" onclick="centerOnUser()" title="My location">
             <svg width="22" height="22" viewBox="0 0 24 24" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -151,9 +151,15 @@
       });
 
       show('state-success');
+      // Notify the original register/login tab so it can advance itself.
+      try { new BroadcastChannel('experimate-auth').postMessage({ type: 'email-verified' }); } catch (_) {}
+      try { localStorage.setItem('email_verified_at', String(Date.now())); } catch (_) {}
+      const sub = document.querySelector('#state-success .verify-sub');
+      if (sub) sub.textContent = 'Verified! You can close this tab — we’ve picked it up on your original tab.';
+      // Fallback for when this is the only tab (link opened directly).
       setTimeout(() => {
         window.location.href = '/login?verified=1';
-      }, 2200);
+      }, 3000);
     } catch {
       show('state-error');
     }

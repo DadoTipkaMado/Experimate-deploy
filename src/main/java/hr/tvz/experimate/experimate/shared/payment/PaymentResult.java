@@ -1,4 +1,4 @@
-package hr.tvz.experimate.experimate.domain.premium;
+package hr.tvz.experimate.experimate.shared.payment;
 
 /**
  * Result returned by a {@link PaymentGateway} charge attempt.

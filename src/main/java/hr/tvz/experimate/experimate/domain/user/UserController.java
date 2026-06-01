@@ -95,6 +95,13 @@ public class UserController {
         return ResponseEntity.ok(userService.uploadProfilePhoto(id, file, userDetails.getId()));
     }
 
+    @DeleteMapping(value = "/{id}/profile-photo")
+    public ResponseEntity<Void> deleteProfilePhoto(@PathVariable @Positive Integer id,
+                                                   @AuthenticationPrincipal AppUserDetails userDetails) {
+        userService.deleteProfilePhoto(id, userDetails.getId());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @GetMapping(value = "/profile-photo/{filename}")
     public ResponseEntity<Resource> getProfilePhoto(@PathVariable String filename) {
         Resource resource = userService.getProfilePhotoResourceByFilename(filename);

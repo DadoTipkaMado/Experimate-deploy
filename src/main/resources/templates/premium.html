@@ -364,22 +364,11 @@
 
         <div class="feature-row">
           <div class="feature-row__icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
           <div class="feature-row__info">
-            <div class="feature-row__title">Unlimited daily matches</div>
-            <div class="feature-row__desc">Free users get 5 matches per day — Premium removes the cap.</div>
-          </div>
-          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-
-        <div class="feature-row">
-          <div class="feature-row__icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </div>
-          <div class="feature-row__info">
-            <div class="feature-row__title">See who saved you</div>
-            <div class="feature-row__desc">Know who's interested in meeting you before you match.</div>
+            <div class="feature-row__title">AI natural-language search</div>
+            <div class="feature-row__desc">Describe who you're looking for in plain language — the AI finds the best matches for you.</div>
           </div>
           <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
@@ -395,26 +384,26 @@
           <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
 
-        <div class="feature-row">
+        <div class="feature-row" style="opacity:0.45;">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">See who saved you</div>
+            <div class="feature-row__desc">Coming soon.</div>
+          </div>
+          <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-3);white-space:nowrap;font-family:var(--font-mono);">SOON</span>
+        </div>
+
+        <div class="feature-row" style="opacity:0.45;">
           <div class="feature-row__icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           </div>
           <div class="feature-row__info">
             <div class="feature-row__title">Profile analytics</div>
-            <div class="feature-row__desc">See how many people viewed your profile and saved your events.</div>
+            <div class="feature-row__desc">Coming soon.</div>
           </div>
-          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-
-        <div class="feature-row">
-          <div class="feature-row__icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <div class="feature-row__info">
-            <div class="feature-row__title">Priority in search &amp; Explore</div>
-            <div class="feature-row__desc">Your profile and listings rank higher across the platform.</div>
-          </div>
-          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-3);white-space:nowrap;font-family:var(--font-mono);">SOON</span>
         </div>
 
       </div>
@@ -493,6 +482,14 @@
     if (!userId) return;
     try {
       const user = await UserAPI.getMe();
+      if (user?.role === 'ROLE_PARTNER' || user?.role === 'ROLE_ADMIN') {
+        document.getElementById('upgrade-section').innerHTML =
+          `<div style="text-align:center;padding:28px 20px;font-size:13px;color:var(--text-2);line-height:1.7;">
+            Premium plans are for regular user accounts only.<br>
+            Partner and admin accounts aren't eligible.
+          </div>`;
+        return;
+      }
       if (user?.role === 'ROLE_PREMIUM_USER') {
         // Try status endpoint for expiry date; fall back gracefully if not yet available
         let untilLabel = null;
