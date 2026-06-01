@@ -106,52 +106,52 @@
   --badge-ai-color:           rgba(0,201,167,0.80);
 }
 
-/* ── Light warm theme ── */
+/* ── Light theme ── */
 body.theme-light {
   color-scheme: light;
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
 
-  --bg:             #f6f4ef;
-  --surface:        #fdfcf8;
-  --surface-2:      #eeece6;
-  --surface-3:      #e4e2db;
-  --border:         #dddbd3;
-  --border-2:       #ccc9c0;
-  --border-3:       #b5b2a8;
+  --bg:             #f5f3ee;
+  --surface:        #fdfcf9;
+  --surface-2:      #edeae3;
+  --surface-3:      #e2dfd7;
+  --border:         #d8d5cc;
+  --border-2:       #c6c2b8;
+  --border-3:       #aeaa9f;
 
-  --text:           #0f0e0c;
-  --text-2:         #3d3b36;
-  --text-3:         #504e4a;
+  --text:           #181714;
+  --text-2:         #3c3a35;
+  --text-3:         #706d66;
 
-  /* Teal darkened — #00c9a7 is only ~2.5:1 on light bg, fails WCAG AA */
-  --accent:         #006e58;
-  --accent-dim:     rgba(0, 110, 88, 0.10);
-  --accent-border:  rgba(0, 110, 88, 0.35);
-  --accent-glow:    rgba(0, 110, 88, 1);
+  /* Richer teal — passes WCAG AA on warm bg, feels alive not corporate */
+  --accent:         #007d6a;
+  --accent-dim:     rgba(0, 125, 106, 0.10);
+  --accent-border:  rgba(0, 125, 106, 0.32);
+  --accent-glow:    rgba(0, 125, 106, 1);
 
-  --warm:           #b84200;
-  --warm-dim:       rgba(184, 66, 0, 0.10);
-  --warm-border:    rgba(184, 66, 0, 0.28);
+  --warm:           #c04c00;
+  --warm-dim:       rgba(192, 76, 0, 0.10);
+  --warm-border:    rgba(192, 76, 0, 0.26);
 
-  --shadow-sm:      0 1px 4px rgba(30, 20, 10, 0.08);
-  --shadow-md:      0 4px 16px rgba(30, 20, 10, 0.10);
-  --shadow-lg:      0 8px 32px rgba(30, 20, 10, 0.14);
-  --shadow-glow:    0 0 0 3px rgba(0, 110, 88, 0.14);
-  --shadow-glow-warm: 0 0 0 3px rgba(184, 66, 0, 0.12);
+  --shadow-sm:      0 1px 4px rgba(24, 18, 8, 0.07);
+  --shadow-md:      0 4px 16px rgba(24, 18, 8, 0.09);
+  --shadow-lg:      0 8px 32px rgba(24, 18, 8, 0.13);
+  --shadow-glow:    0 0 0 3px rgba(0, 125, 106, 0.16);
+  --shadow-glow-warm: 0 0 0 3px rgba(192, 76, 0, 0.13);
 
-  --surface-overlay:    rgba(253, 252, 248, 0.97);
-  --card-gradient-end:  rgba(246, 244, 239, 0.96);
-  --card-badge-bg:      rgba(255, 255, 255, 0.82);
+  --surface-overlay:    rgba(253, 252, 249, 0.97);
+  --card-gradient-end:  rgba(245, 243, 238, 0.96);
+  --card-badge-bg:      rgba(255, 255, 255, 0.84);
   --btn-ghost-bg:       rgba(0, 0, 0, 0.04);
   --btn-ghost-bg-hover: rgba(0, 0, 0, 0.07);
   --divider-subtle:     rgba(0, 0, 0, 0.05);
-  --backdrop:           rgba(0, 0, 0, 0.38);
-  --side-action-bg:     rgba(255, 255, 255, 0.72);
-  --side-action-bg-hover: rgba(255, 255, 255, 0.90);
-  --focus-ring:         rgba(0, 110, 88, 0.50);
-  --accent-shadow:      rgba(0, 110, 88, 0.22);
-  --search-focus-glow:  rgba(0, 110, 88, 0.08);
+  --backdrop:           rgba(0, 0, 0, 0.36);
+  --side-action-bg:     rgba(255, 255, 255, 0.74);
+  --side-action-bg-hover: rgba(255, 255, 255, 0.92);
+  --focus-ring:         rgba(0, 125, 106, 0.48);
+  --accent-shadow:      rgba(0, 125, 106, 0.22);
+  --search-focus-glow:  rgba(0, 125, 106, 0.08);
 
   /* ─ Component tokens ─ */
   --accent-muted:             var(--accent);
@@ -160,15 +160,15 @@ body.theme-light {
   --pill-active-color:        #fff;
   --pill-warm-active-bg:      var(--warm);
   --pill-warm-active-color:   #fff;
-  --pill-personalized-bg:     linear-gradient(90deg, rgba(0,110,88,0.14), rgba(0,110,88,0.06));
-  --pill-personalized-border: rgba(0,110,88,0.38);
-  --badge-ai-bg:              rgba(0,110,88,0.10);
-  --badge-ai-border:          rgba(0,110,88,0.22);
-  --badge-ai-color:           rgba(0,110,88,0.80);
+  --pill-personalized-bg:     linear-gradient(90deg, rgba(0,125,106,0.13), rgba(0,125,106,0.05));
+  --pill-personalized-border: rgba(0,125,106,0.35);
+  --badge-ai-bg:              rgba(0,125,106,0.09);
+  --badge-ai-border:          rgba(0,125,106,0.20);
+  --badge-ai-color:           rgba(0,125,106,0.82);
 }
 
 /* ═══════════════════════════════════════════════
-   WARM THEME — cool lavender base, coral accent
+   WARM THEME — amber-cream base, coral accent
    localStorage key 'theme' = 'warm'
 ═══════════════════════════════════════════════ */
 body.theme-warm {
@@ -176,58 +176,58 @@ body.theme-warm {
   -webkit-font-smoothing: auto;
   -moz-osx-font-smoothing: auto;
 
-  --bg:             #ECEDF2;
-  --surface:        #F6F6FB;
-  --surface-2:      #DEE5E5;
-  --surface-3:      #CDD5D5;
-  --border:         #CDD3D5;
-  --border-2:       #BAC3C5;
-  --border-3:       #A5B0B2;
+  --bg:             #f5ede0;
+  --surface:        #fdf6ec;
+  --surface-2:      #ece0ce;
+  --surface-3:      #e0d0b8;
+  --border:         #d4c4a8;
+  --border-2:       #c0ae90;
+  --border-3:       #a89476;
 
-  --text:           #16161D;
-  --text-2:         #3A3A47;
-  --text-3:         #5A5A68;
+  --text:           #1a1208;
+  --text-2:         #3d2e1a;
+  --text-3:         #7a6045;
 
-  --accent:         #EB6547;
-  --accent-dim:     rgba(235, 101, 71, 0.12);
-  --accent-border:  rgba(235, 101, 71, 0.38);
-  --accent-glow:    rgba(235, 101, 71, 1);
+  --accent:         #d94f2b;
+  --accent-dim:     rgba(217, 79, 43, 0.12);
+  --accent-border:  rgba(217, 79, 43, 0.36);
+  --accent-glow:    rgba(217, 79, 43, 1);
 
-  --warm:           #C4870A;
-  --warm-dim:       rgba(196, 135, 10, 0.12);
-  --warm-border:    rgba(196, 135, 10, 0.30);
+  --warm:           #b8720a;
+  --warm-dim:       rgba(184, 114, 10, 0.12);
+  --warm-border:    rgba(184, 114, 10, 0.30);
 
-  --shadow-sm:      0 1px 4px rgba(18, 18, 30, 0.07);
-  --shadow-md:      0 4px 16px rgba(18, 18, 30, 0.09);
-  --shadow-lg:      0 8px 32px rgba(18, 18, 30, 0.13);
-  --shadow-glow:    0 0 0 3px rgba(235, 101, 71, 0.18);
-  --shadow-glow-warm: 0 0 0 3px rgba(196, 135, 10, 0.15);
+  --shadow-sm:      0 1px 4px rgba(40, 22, 6, 0.08);
+  --shadow-md:      0 4px 16px rgba(40, 22, 6, 0.11);
+  --shadow-lg:      0 8px 32px rgba(40, 22, 6, 0.16);
+  --shadow-glow:    0 0 0 3px rgba(217, 79, 43, 0.18);
+  --shadow-glow-warm: 0 0 0 3px rgba(184, 114, 10, 0.16);
 
-  --surface-overlay:    rgba(246, 246, 251, 0.97);
-  --card-gradient-end:  rgba(236, 237, 242, 0.96);
-  --card-badge-bg:      rgba(255, 255, 255, 0.88);
-  --btn-ghost-bg:       rgba(0, 0, 0, 0.04);
-  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.07);
-  --divider-subtle:     rgba(0, 0, 0, 0.05);
-  --backdrop:           rgba(10, 10, 20, 0.40);
-  --side-action-bg:     rgba(246, 246, 251, 0.80);
-  --side-action-bg-hover: rgba(246, 246, 251, 0.96);
-  --focus-ring:         rgba(235, 101, 71, 0.52);
-  --accent-shadow:      rgba(235, 101, 71, 0.20);
-  --search-focus-glow:  rgba(235, 101, 71, 0.08);
+  --surface-overlay:    rgba(253, 246, 236, 0.97);
+  --card-gradient-end:  rgba(245, 237, 224, 0.96);
+  --card-badge-bg:      rgba(255, 250, 242, 0.90);
+  --btn-ghost-bg:       rgba(60, 30, 0, 0.05);
+  --btn-ghost-bg-hover: rgba(60, 30, 0, 0.09);
+  --divider-subtle:     rgba(60, 30, 0, 0.06);
+  --backdrop:           rgba(30, 14, 2, 0.40);
+  --side-action-bg:     rgba(253, 246, 236, 0.82);
+  --side-action-bg-hover: rgba(253, 246, 236, 0.96);
+  --focus-ring:         rgba(217, 79, 43, 0.50);
+  --accent-shadow:      rgba(217, 79, 43, 0.22);
+  --search-focus-glow:  rgba(217, 79, 43, 0.08);
 
   /* ─ Component tokens ─ */
-  --accent-muted:             rgba(235, 101, 71, 0.82);
+  --accent-muted:             rgba(217, 79, 43, 0.85);
   --card-badge-border:        var(--accent-border);
   --pill-active-bg:           var(--accent);
   --pill-active-color:        #fff;
   --pill-warm-active-bg:      var(--warm);
   --pill-warm-active-color:   #fff;
-  --pill-personalized-bg:     linear-gradient(90deg, rgba(235,101,71,0.11), rgba(235,101,71,0.04));
-  --pill-personalized-border: rgba(235,101,71,0.30);
-  --badge-ai-bg:              rgba(235,101,71,0.09);
-  --badge-ai-border:          rgba(235,101,71,0.20);
-  --badge-ai-color:           #c44030;
+  --pill-personalized-bg:     linear-gradient(90deg, rgba(217,79,43,0.12), rgba(217,79,43,0.05));
+  --pill-personalized-border: rgba(217,79,43,0.32);
+  --badge-ai-bg:              rgba(217,79,43,0.09);
+  --badge-ai-border:          rgba(217,79,43,0.22);
+  --badge-ai-color:           #b83e20;
 }
 
 /* ═══════════════════════════════════════════════
