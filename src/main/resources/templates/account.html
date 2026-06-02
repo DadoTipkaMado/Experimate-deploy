@@ -533,27 +533,28 @@
         'Serious':        { icon: '🧠', desc: 'Depth over surface' },
       };
       const traitColors = ['acc-trait--teal', 'acc-trait--warm', 'acc-trait--muted'];
-      let traits = [];
-      try {
-        const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
-        if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 4);
-      } catch(e) {}
-      if (!traits.length) {
-        const pool = ['Curious','Adventurous','Calm','Thoughtful','Warm','Creative','Bold','Organised'];
-        const h = (user.username ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-        traits = [pool[h % pool.length], pool[(h*3+1) % pool.length], pool[(h*7+5) % pool.length]]
-          .filter((v,i,a) => a.indexOf(v) === i).slice(0, 4);
+      // Backend (UserResponse.personalityTraits) is the source of truth — no quiz, no traits.
+      let traits = Array.isArray(user.personalityTraits) ? user.personalityTraits : null;
+      // Fallback: quiz just completed, cached locally before the API reflects it.
+      if (!traits || !traits.length) {
+        try {
+          const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
+          if (Array.isArray(stored)) traits = stored;
+        } catch(e) {}
       }
       const traitWrap = document.getElementById('acc-traits');
-      if (traitWrap && traits.length) {
-        traitWrap.innerHTML = traits.map((t, i) => {
+      if (traitWrap && traits && traits.length) {
+        traitWrap.innerHTML = traits.slice(0, 4).map((t, i) => {
           const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
           return `<div class="acc-trait ${traitColors[i % 3]}">
             <div class="acc-trait__icon">${meta.icon}</div>
-            <div class="acc-trait__name">${t}</div>
+            <div class="acc-trait__name">${escapeHtml(t)}</div>
             <div class="acc-trait__desc">${meta.desc}</div>
           </div>`;
         }).join('');
+        document.getElementById('acc-traits-section').style.display = '';
+      } else if (traitWrap && !user.onboardingCompleted) {
+        traitWrap.innerHTML = `<a href="/onboarding" style="grid-column:1/-1;justify-self:start;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none;letter-spacing:0.04em;border:1px solid var(--accent-border);border-radius:20px;padding:4px 14px;background:var(--accent-dim);">Take personality quiz →</a>`;
         document.getElementById('acc-traits-section').style.display = '';
       }
 
