@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Premium — ExperiMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .page-content { background: #0a0c0c; }
+    body.theme-light .page-content , body.theme-warm .page-content { background: var(--bg); }
+    body.theme-warm  .page-content { background: var(--bg); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .premium-hero   { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+    .plan-toggle    { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.06s both; }
+    .plan-cards     { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.10s both; }
+    .premium-features { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.14s both; }
+    .premium-cta-wrap { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.18s both; }
+
+    /* ── Hero ── */
+    .premium-hero {
+      position: relative; overflow: hidden;
+      padding: 36px 20px 28px; text-align: center;
+    }
+    .premium-hero__glow {
+      position: absolute; inset: -40px; z-index: 0;
+      background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(234,179,8,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    body.theme-light .premium-hero__glow , body.theme-warm .premium-hero__glow { background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(234,179,8,0.13) 0%, transparent 70%); }
+    .premium-hero__crown {
+      position: relative; z-index: 1;
+      width: 58px; height: 58px; border-radius: 18px;
+      background: linear-gradient(145deg, #fbbf24 0%, #d97706 100%);
+      border: 1px solid rgba(251,191,36,0.4);
+      box-shadow: 0 0 0 6px rgba(234,179,8,0.10), 0 8px 24px rgba(217,119,6,0.45);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .premium-hero__badge {
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 22px; padding: 0 10px; border-radius: 6px;
+      background: rgba(234,179,8,0.14); border: 1px solid rgba(234,179,8,0.32);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.13em;
+      text-transform: uppercase; color: #fbbf24; margin-bottom: 10px;
+    }
+    body.theme-light .premium-hero__badge, body.theme-warm .premium-hero__badge,
+    body.theme-warm  .premium-hero__badge { color: #92400e; background: rgba(234,179,8,0.10); border-color: rgba(234,179,8,0.28); }
+    .premium-hero__badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #fbbf24; box-shadow: 0 0 5px rgba(251,191,36,0.8); }
+    body.theme-light .premium-hero__badge-dot, body.theme-warm .premium-hero__badge-dot,
+    body.theme-warm  .premium-hero__badge-dot { background: #d97706; box-shadow: none; }
+    .premium-hero__title {
+      position: relative; z-index: 1;
+      font-family: var(--font-display); font-weight: 900; font-size: 26px;
+      color: var(--text); letter-spacing: -0.02em; line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .premium-hero__title span { color: #fbbf24; }
+    body.theme-light .premium-hero__title span, body.theme-warm .premium-hero__title span,
+    body.theme-warm  .premium-hero__title span { color: #d97706; }
+    .premium-hero__sub {
+      position: relative; z-index: 1;
+      font-size: 13px; color: var(--text-3); line-height: 1.65; max-width: 260px; margin: 0 auto;
+    }
+
+    /* ── Plan toggle ── */
+    .plan-toggle {
+      display: flex; align-items: center; gap: 0;
+      background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+      border-radius: var(--radius-pill); padding: 3px;
+      width: fit-content; margin: 0 auto 20px;
+    }
+    body.theme-light .plan-toggle, body.theme-warm .plan-toggle,
+    body.theme-warm  .plan-toggle { background: rgba(0,0,0,0.05); }
+    .plan-toggle__btn {
+      height: 32px; padding: 0 18px; border: none; border-radius: var(--radius-pill);
+      font-family: var(--font-display); font-weight: 700; font-size: 12px;
+      cursor: pointer; transition: background 0.16s, color 0.16s;
+      background: none; color: var(--text-3); position: relative;
+    }
+    .plan-toggle__btn--active {
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      color: #1a0e00;
+      box-shadow: 0 2px 8px rgba(217,119,6,0.40);
+    }
+    .plan-toggle__save {
+      position: absolute; top: -7px; right: -4px;
+      background: #16a34a; color: #fff;
+      font-size: 7px; font-weight: 800; letter-spacing: 0.07em;
+      padding: 2px 5px; border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(22,163,74,0.4);
+    }
+
+    /* ── Plan cards ── */
+    .plan-cards { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+    .plan-card {
+      border-radius: 18px; padding: 18px 16px;
+      border: 1.5px solid var(--border-2);
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.10),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 6px 18px rgba(0,0,0,0.50);
+      cursor: pointer; transition: border-color 0.16s, box-shadow 0.16s;
+      position: relative; overflow: hidden;
+    }
+    body.theme-light .plan-card , body.theme-warm .plan-card {
+      background: #fff; border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+      border-top-color: rgba(255,255,255,0.9); border-bottom-color: rgba(0,0,0,0.09);
+    }
+    body.theme-warm .plan-card {
+      background: var(--surface); border-color: rgba(0,0,0,0.07);
+      box-shadow: 0 2px 10px rgba(18,18,30,0.08);
+      border-top-color: rgba(255,255,255,0.82); border-bottom-color: rgba(0,0,0,0.08);
+    }
+    .plan-card--selected {
+      border-color: #d97706;
+      box-shadow:
+        inset 0 1.5px 0 rgba(251,191,36,0.18),
+        0 0 0 3px rgba(234,179,8,0.14),
+        0 6px 22px rgba(217,119,6,0.28);
+    }
+    body.theme-light .plan-card--selected, body.theme-warm .plan-card--selected,
+    body.theme-warm  .plan-card--selected {
+      border-color: #d97706;
+      box-shadow: 0 0 0 3px rgba(234,179,8,0.14), 0 2px 10px rgba(217,119,6,0.18);
+    }
+    .plan-card__shine {
+      position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(251,191,36,0.06) 0%, transparent 100%);
+      pointer-events: none; opacity: 0; transition: opacity 0.16s;
+    }
+    .plan-card--selected .plan-card__shine { opacity: 1; }
+
+    .plan-card__header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .plan-card__name { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+    .plan-card__price { display: flex; align-items: baseline; gap: 3px; }
+    .plan-card__amount {
+      font-family: var(--font-display); font-weight: 900; font-size: 28px;
+      color: var(--text); letter-spacing: -0.03em; line-height: 1;
+    }
+    .plan-card__currency { font-size: 14px; font-weight: 700; color: var(--text-2); align-self: flex-start; padding-top: 4px; }
+    .plan-card__period { font-size: 11px; color: var(--text-3); }
+    .plan-card__per-month { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+    .plan-card__radio {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid var(--border-2); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.16s;
+    }
+    .plan-card--selected .plan-card__radio {
+      border-color: #d97706;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      box-shadow: 0 0 8px rgba(217,119,6,0.45);
+    }
+    .plan-card__radio-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #1a0e00;
+      opacity: 0; transition: opacity 0.14s;
+    }
+    .plan-card--selected .plan-card__radio-dot { opacity: 1; }
+
+    .plan-card__divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 12px; }
+    body.theme-light .plan-card__divider, body.theme-warm .plan-card__divider,
+    body.theme-warm  .plan-card__divider { border-top-color: rgba(0,0,0,0.07); }
+
+    .plan-card__savings {
+      display: inline-flex; align-items: center;
+      background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.25);
+      color: #4ade80; font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 5px; margin-bottom: 12px;
+    }
+    body.theme-light .plan-card__savings, body.theme-warm .plan-card__savings,
+    body.theme-warm  .plan-card__savings { color: #15803d; background: rgba(22,163,74,0.08); }
+
+    /* ── Features list ── */
+    .premium-features { padding: 0 16px; margin-bottom: 16px; }
+    .premium-features__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase; margin-bottom: 12px;
+    }
+    .feature-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .feature-row:last-child { border-bottom: none; }
+    body.theme-light .feature-row, body.theme-warm .feature-row,
+    body.theme-warm  .feature-row { border-bottom-color: rgba(0,0,0,0.07); }
+    .feature-row__icon {
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(234,179,8,0.10); border: 1px solid rgba(234,179,8,0.20);
+      color: #fbbf24;
+    }
+    body.theme-light .feature-row__icon, body.theme-warm .feature-row__icon,
+    body.theme-warm  .feature-row__icon { color: #d97706; }
+    .feature-row__info { flex: 1; min-width: 0; }
+    .feature-row__title { font-size: 13px; color: var(--text); font-weight: 500; }
+    .feature-row__desc { font-size: 10px; color: var(--text-3); margin-top: 2px; line-height: 1.4; }
+    .feature-row__check { color: #fbbf24; flex-shrink: 0; }
+    body.theme-light .feature-row__check, body.theme-warm .feature-row__check,
+    body.theme-warm  .feature-row__check { color: #d97706; }
+
+    /* ── CTA ── */
+    .premium-cta-wrap { padding: 0 16px 8px; }
+    .btn--premium {
+      width: 100%; height: 50px; border: none; border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      color: #1a0e00; font-family: var(--font-display); font-weight: 900;
+      font-size: 14px; letter-spacing: 0.04em; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(217,119,6,0.45), 0 1px 0 rgba(251,191,36,0.5) inset;
+      transition: opacity 0.14s, transform 0.14s;
+    }
+    .btn--premium:active { transform: scale(0.98); opacity: 0.9; }
+    .btn--premium:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .premium-cta__note {
+      text-align: center; font-size: 10px; color: var(--text-3); margin-top: 10px; line-height: 1.6;
+    }
+
+    /* ── Active state (already premium) ── */
+    .premium-active {
+      margin: 0 16px 12px;
+      padding: 20px 16px;
+      background: linear-gradient(145deg, rgba(234,179,8,0.14) 0%, rgba(234,179,8,0.04) 60%, transparent 100%);
+      border: 1.5px solid rgba(234,179,8,0.30);
+      border-top-color: rgba(251,191,36,0.45);
+      border-radius: 18px;
+      box-shadow: inset 0 1.5px 0 rgba(251,191,36,0.14), 0 6px 18px rgba(0,0,0,0.35);
+      display: none; flex-direction: column; gap: 14px;
+    }
+    body.theme-light .premium-active, body.theme-warm .premium-active,
+    body.theme-warm  .premium-active {
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+      background: rgba(234,179,8,0.07);
+    }
+    .premium-active.visible { display: flex; }
+    .premium-active__header { display: flex; align-items: center; gap: 12px; }
+    .premium-active__icon {
+      width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(217,119,6,0.40);
+    }
+    .premium-active__label { font-size: 9px; color: #fbbf24; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 3px; }
+    body.theme-light .premium-active__label, body.theme-warm .premium-active__label,
+    body.theme-warm  .premium-active__label { color: #d97706; }
+    .premium-active__plan { font-size: 14px; font-weight: 700; color: var(--text); }
+    .premium-active__renews { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .premium-active__cancel {
+      font-size: 11px; color: var(--text-3); text-align: center; cursor: pointer;
+      background: none; border: none; padding: 4px 0; text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .premium-active__cancel:hover { color: rgba(255,80,80,0.8); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <!-- Hero -->
+    <div class="premium-hero">
+      <div class="premium-hero__glow"></div>
+      <div class="premium-hero__crown">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1a0e00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/>
+        </svg>
+      </div>
+      <div class="premium-hero__badge"><div class="premium-hero__badge-dot"></div>ExperiMate Premium</div>
+      <div class="premium-hero__title">Unlock the full<br><span>experience</span></div>
+      <div class="premium-hero__sub">More connections, deeper insights, and features built for the truly curious.</div>
+    </div>
+
+    <!-- Already premium — shown when user has active plan -->
+    <div class="premium-active" id="premium-active-card">
+      <div class="premium-active__header">
+        <div class="premium-active__icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a0e00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M5 20L3 8l5 4 4-6 4 6 5-4-2 12"/></svg>
+        </div>
+        <div>
+          <div class="premium-active__label">Active</div>
+          <div class="premium-active__plan">ExperiMate Premium</div>
+          <div class="premium-active__renews" id="active-expires">Active</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan cards — always shown; CTA changes to "Extend" when already premium -->
+    <div id="upgrade-section">
+
+      <div style="text-align:center;font-size:9px;color:var(--text-3);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px;" id="plan-section-label">Choose your plan</div>
+
+      <!-- Plan cards -->
+      <div class="plan-cards">
+
+        <div class="plan-card" id="card-WEEK" onclick="selectCard('WEEK')">
+          <div class="plan-card__shine"></div>
+          <div class="plan-card__header">
+            <div>
+              <div class="plan-card__name">1 Week</div>
+              <div class="plan-card__price">
+                <span class="plan-card__currency">€</span>
+                <span class="plan-card__amount">2.99</span>
+              </div>
+              <div class="plan-card__per-month">One-time · 7 days access</div>
+            </div>
+            <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
+          </div>
+        </div>
+
+        <div class="plan-card plan-card--selected" id="card-MONTH" onclick="selectCard('MONTH')">
+          <div class="plan-card__shine"></div>
+          <div class="plan-card__header">
+            <div>
+              <div class="plan-card__name">1 Month</div>
+              <div class="plan-card__price">
+                <span class="plan-card__currency">€</span>
+                <span class="plan-card__amount">7.99</span>
+              </div>
+              <div class="plan-card__per-month">One-time · 30 days access</div>
+            </div>
+            <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
+          </div>
+          <hr class="plan-card__divider">
+          <div class="plan-card__savings">Most popular</div>
+        </div>
+
+        <div class="plan-card" id="card-YEAR" onclick="selectCard('YEAR')">
+          <div class="plan-card__shine"></div>
+          <div class="plan-card__header">
+            <div>
+              <div class="plan-card__name">1 Year</div>
+              <div class="plan-card__price">
+                <span class="plan-card__currency">€</span>
+                <span class="plan-card__amount">59.99</span>
+              </div>
+              <div class="plan-card__per-month">One-time · 365 days access</div>
+            </div>
+            <div class="plan-card__radio"><div class="plan-card__radio-dot"></div></div>
+          </div>
+          <hr class="plan-card__divider">
+          <div class="plan-card__savings">Save €35.89 vs monthly</div>
+        </div>
+
+      </div>
+
+      <!-- Features -->
+      <div class="premium-features">
+        <div class="premium-features__label">What you get</div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">AI natural-language search</div>
+            <div class="feature-row__desc">Describe who you're looking for in plain language — the AI finds the best matches for you.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">AI match explanations</div>
+            <div class="feature-row__desc">Understand exactly why someone is a great match for you.</div>
+          </div>
+          <svg class="feature-row__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <div class="feature-row" style="opacity:0.45;">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">See who saved you</div>
+            <div class="feature-row__desc">Coming soon.</div>
+          </div>
+          <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-3);white-space:nowrap;font-family:var(--font-mono);">SOON</span>
+        </div>
+
+        <div class="feature-row" style="opacity:0.45;">
+          <div class="feature-row__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="feature-row__info">
+            <div class="feature-row__title">Profile analytics</div>
+            <div class="feature-row__desc">Coming soon.</div>
+          </div>
+          <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-3);white-space:nowrap;font-family:var(--font-mono);">SOON</span>
+        </div>
+
+      </div>
+
+      <!-- CTA -->
+      <div class="premium-cta-wrap">
+        <button class="btn--premium" id="upgrade-btn" onclick="doPurchase()">
+          Get Premium →
+        </button>
+        <div class="premium-cta__note">
+          One-time purchase — no subscription, no auto-renewal.
+        </div>
+      </div>
+
+    </div><!-- /upgrade-section -->
+
+    <div style="height:40px;"></div>
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+</div>
+
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script th:inline="none">
+  let _selectedPkg = 'MONTH';
+
+  function selectCard(pkg) {
+    _selectedPkg = pkg;
+    ['WEEK', 'MONTH', 'YEAR'].forEach(p => {
+      document.getElementById('card-' + p).classList.toggle('plan-card--selected', p === pkg);
+    });
+  }
+
+  async function doPurchase() {
+    if (!Auth.getUserId()) { window.location.href = '/login'; return; }
+    const btn = document.getElementById('upgrade-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing…';
+    try {
+      const res = await PremiumAPI.purchase(_selectedPkg);
+      const until = res.premiumUntil
+        ? new Date(res.premiumUntil).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' })
+        : null;
+      showToast(until ? `Premium active until ${until}!` : 'Premium activated!', 'success');
+      _showActivePremium(until);
+      // Refresh JWT so new role takes effect on next API call
+      fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d?.token) Auth.saveToken(d.token); })
+        .catch(() => {});
+    } catch (e) {
+      showToast(e.message || 'Purchase failed — please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = _isPremium ? 'Extend Premium →' : 'Get Premium →';
+    }
+  }
+
+  let _isPremium = false;
+
+  function _showActivePremium(untilLabel) {
+    _isPremium = true;
+    const card = document.getElementById('premium-active-card');
+    const expiresEl = document.getElementById('active-expires');
+    expiresEl.textContent = untilLabel ? `Active until ${untilLabel}` : 'Active';
+    card.classList.add('visible');
+    document.getElementById('plan-section-label').textContent = 'Extend your premium';
+    document.getElementById('upgrade-btn').disabled = false;
+    document.getElementById('upgrade-btn').textContent = 'Extend Premium →';
+  }
+
+  async function initPremiumPage() {
+    const userId = Auth.getUserId();
+    if (!userId) return;
+    try {
+      const user = await UserAPI.getMe();
+      if (user?.role === 'ROLE_PARTNER' || user?.role === 'ROLE_ADMIN') {
+        document.getElementById('upgrade-section').innerHTML =
+          `<div style="text-align:center;padding:28px 20px;font-size:13px;color:var(--text-2);line-height:1.7;">
+            Premium plans are for regular user accounts only.<br>
+            Partner and admin accounts aren't eligible.
+          </div>`;
+        return;
+      }
+      if (user?.role === 'ROLE_PREMIUM_USER') {
+        // Try status endpoint for expiry date; fall back gracefully if not yet available
+        let untilLabel = null;
+        try {
+          const status = await PremiumAPI.getStatus();
+          const raw = status?.premiumUntil ?? status?.renewsAt ?? status?.expiresAt ?? null;
+          if (raw) untilLabel = new Date(raw).toLocaleDateString('en', { day: 'numeric', month: 'long', year: 'numeric' });
+        } catch { /* status endpoint not yet shipped — show active without date */ }
+        _showActivePremium(untilLabel);
+      }
+    } catch { /* not logged in or network error — show upgrade UI */ }
+  }
+
+  initPremiumPage();
+</script>
+</body>
+</html>

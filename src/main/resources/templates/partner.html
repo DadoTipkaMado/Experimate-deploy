@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Partner Portal — ExperiMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    .page-content { background: #0a0c0c; }
+    body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
+    body.theme-warm  .page-content { background: #ECEDF2; }
+
+    .partner-header { padding: 22px 20px 16px; }
+
+    /* Partner badge */
+    .partner-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 24px; padding: 0 10px; border-radius: 6px;
+      background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.35);
+      font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #60a5fa; margin-bottom: 10px;
+    }
+    .partner-badge__dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #2563eb; box-shadow: 0 0 6px rgba(37,99,235,0.7);
+    }
+    body.theme-light .partner-badge, body.theme-warm .partner-badge,
+    body.theme-warm  .partner-badge {
+      background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.25);
+      color: #1d4ed8;
+    }
+
+    /* Section card — same 3D pattern */
+    .partner-section {
+      margin: 0 16px 12px;
+      padding: 18px 16px;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 8px 20px rgba(0,0,0,0.55),
+        0 2px 6px rgba(0,0,0,0.4);
+    }
+    body.theme-light .partner-section , body.theme-warm .partner-section {
+      background: #fff;
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
+      border-bottom-color: rgba(0,0,0,0.10);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07), 0 1px 3px rgba(20,20,30,0.04);
+    }
+    body.theme-warm  .partner-section {
+      background: var(--surface);
+      border-color: rgba(0,0,0,0.06);
+      border-top-color: rgba(255,255,255,0.82);
+      border-bottom-color: rgba(0,0,0,0.08);
+      box-shadow: 0 2px 10px rgba(18,18,30,0.08), 0 1px 3px rgba(18,18,30,0.05);
+    }
+
+    .partner-section__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.14em;
+      text-transform: uppercase; margin-bottom: 14px;
+    }
+
+    /* Stats grid */
+    .partner-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+      margin-bottom: 4px;
+    }
+    .stat-cell {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-top-color: rgba(255,255,255,0.10);
+      border-radius: 12px; padding: 12px 10px 10px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    body.theme-light .stat-cell, body.theme-warm .stat-cell,
+    body.theme-warm  .stat-cell {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.7);
+    }
+    .stat-cell__num {
+      font-family: var(--font-display); font-weight: 800; font-size: 22px;
+      color: var(--text); line-height: 1; letter-spacing: -0.02em;
+    }
+    .stat-cell__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* Quick-action row */
+    .partner-actions { display: flex; flex-direction: column; gap: 0; }
+    .partner-action {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: var(--text); text-decoration: none; cursor: pointer;
+    }
+    .partner-action:last-child { border-bottom: none; }
+    body.theme-light .partner-action, body.theme-warm .partner-action,
+    body.theme-warm  .partner-action { border-bottom-color: rgba(0,0,0,0.07); }
+    .partner-action__left { display: flex; align-items: center; gap: 12px; }
+    .partner-action__icon {
+      width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(37,99,235,0.10); border: 1px solid rgba(37,99,235,0.25);
+      color: #60a5fa;
+    }
+    body.theme-light .partner-action__icon, body.theme-warm .partner-action__icon,
+    body.theme-warm  .partner-action__icon { color: #1d4ed8; }
+    .partner-action__title { font-size: 13px; color: var(--text); }
+    .partner-action__desc { font-size: 10px; color: var(--text-3); line-height: 1.4; margin-top: 2px; }
+    .partner-action__arrow { color: var(--text-3); }
+
+    /* Events list */
+    .partner-event-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .partner-event-card:last-child { border-bottom: none; }
+    body.theme-light .partner-event-card, body.theme-warm .partner-event-card,
+    body.theme-warm  .partner-event-card { border-bottom-color: rgba(0,0,0,0.07); }
+    .partner-event-card__date {
+      width: 40px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.22);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+    }
+    .partner-event-card__day { font-size: 15px; font-weight: 800; color: #60a5fa; line-height: 1; }
+    .partner-event-card__mon { font-size: 8px; color: rgba(96,165,250,0.65); text-transform: uppercase; letter-spacing: 0.1em; }
+    body.theme-light .partner-event-card__day, body.theme-warm .partner-event-card__day,
+    body.theme-warm  .partner-event-card__day { color: #1d4ed8; }
+    body.theme-light .partner-event-card__mon, body.theme-warm .partner-event-card__mon,
+    body.theme-warm  .partner-event-card__mon { color: rgba(29,78,216,0.6); }
+    .partner-event-card__info { flex: 1; min-width: 0; }
+    .partner-event-card__title { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .partner-event-card__sub { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+    .partner-event-card__badge {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 3px 7px; border-radius: 5px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent);
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* Apply CTA — for non-partners */
+    .partner-cta {
+      margin: 0 16px 12px;
+      padding: 28px 20px 24px;
+      background: linear-gradient(145deg, rgba(37,99,235,0.18) 0%, rgba(37,99,235,0.06) 60%, rgba(0,0,0,0) 100%);
+      border: 1px solid rgba(37,99,235,0.22);
+      border-top-color: rgba(37,99,235,0.35);
+      border-radius: 18px;
+      box-shadow: inset 0 1.5px 0 rgba(96,165,250,0.14), 0 8px 20px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    body.theme-light .partner-cta, body.theme-warm .partner-cta,
+    body.theme-warm  .partner-cta {
+      background: rgba(37,99,235,0.06);
+      border-color: rgba(37,99,235,0.18);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+    }
+    /* Info state (perks) */
+    .partner-cta__icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: rgba(37,99,235,0.14); border: 1px solid rgba(37,99,235,0.30);
+      display: flex; align-items: center; justify-content: center; color: #60a5fa;
+    }
+    body.theme-light .partner-cta__icon, body.theme-warm .partner-cta__icon,
+    body.theme-warm  .partner-cta__icon { color: #1d4ed8; }
+    .partner-cta__title {
+      font-family: var(--font-display); font-weight: 800; font-size: 18px; color: var(--text);
+    }
+    .partner-cta__sub { font-size: 12px; color: var(--text-3); line-height: 1.65; max-width: 260px; }
+    .partner-cta__perks { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+    .partner-cta__perk {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--text-2);
+    }
+    .partner-cta__perk-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #2563eb; flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(37,99,235,0.6);
+    }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .partner-header { animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .partner-section:nth-child(1) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.06s both; }
+    .partner-section:nth-child(2) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.10s both; }
+    .partner-section:nth-child(3) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.14s both; }
+    .partner-section:nth-child(4) { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.18s both; }
+    .partner-cta    { animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s both; }
+
+    /* Slide animations */
+    @keyframes ctaExitLeft  { from { opacity:1; transform:translateX(0) scale(1); }     to { opacity:0; transform:translateX(-26px) scale(0.95); } }
+    @keyframes ctaExitRight { from { opacity:1; transform:translateX(0) scale(1); }     to { opacity:0; transform:translateX(26px) scale(0.95); } }
+    @keyframes ctaEnterRight { from { opacity:0; transform:translateX(30px) scale(0.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+    @keyframes ctaEnterLeft  { from { opacity:0; transform:translateX(-30px) scale(0.96); } to { opacity:1; transform:translateX(0) scale(1); } }
+
+    .partner-cta-info { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; text-align: center; }
+    .partner-cta-info.cta-exit  { animation: ctaExitLeft  0.2s ease-in forwards; pointer-events: none; }
+    .partner-cta-info.cta-enter { animation: ctaEnterLeft 0.42s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+    /* Form state */
+    .partner-cta-form { display: none; flex-direction: column; gap: 14px; width: 100%; }
+    .partner-cta-form.cta-enter { animation: ctaEnterRight 0.44s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .partner-form-back {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-3); cursor: pointer;
+      background: none; border: none; padding: 0; align-self: flex-start;
+      transition: color 0.14s;
+    }
+    .partner-form-back:hover { color: var(--text-2); }
+    .partner-form-title {
+      font-family: var(--font-display); font-weight: 800; font-size: 16px;
+      color: var(--text); text-align: left;
+    }
+    /* Reuse recessed input pattern */
+    .partner-form-field { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+    .partner-form-field label { font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase; }
+    .partner-form-field input,
+    .partner-form-field textarea {
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      width: 100%; box-sizing: border-box;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+      transition: border-color 0.14s, box-shadow 0.14s;
+    }
+    body.theme-light .partner-form-field input, body.theme-warm .partner-form-field input, body.theme-light .partner-form-field textarea, body.theme-warm .partner-form-field textarea,
+    body.theme-warm  .partner-form-field input, body.theme-warm  .partner-form-field textarea {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.12);
+      border-top-color: rgba(0,0,0,0.18);
+      border-bottom-color: rgba(255,255,255,0.6);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .partner-form-field input:focus, .partner-form-field textarea:focus {
+      outline: none;
+      border-color: rgba(37,99,235,0.55);
+      border-top-color: rgba(37,99,235,0.30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px rgba(37,99,235,0.13);
+    }
+    .partner-form-field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+    .partner-form-error {
+      background: rgba(255,80,80,0.08); border: 1px solid rgba(255,80,80,0.22);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 11px; color: rgba(255,110,110,0.9); display: none;
+    }
+    body.theme-light .partner-form-error , body.theme-warm .partner-form-error { color: #c0392b; }
+    .partner-form-actions { display: flex; gap: 8px; }
+
+    /* Apply button — blue accent */
+    .btn--partner {
+      background: #2563eb; color: #fff; border: none;
+      height: 46px; border-radius: var(--radius-pill);
+      font-family: var(--font-display); font-weight: 800; font-size: 13px;
+      letter-spacing: 0.05em; cursor: pointer; width: 100%;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.40);
+      transition: opacity var(--t-fast), transform var(--t-fast);
+    }
+    .btn--partner:active { transform: scale(0.98); opacity: 0.9; }
+    .btn--partner:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .partner-empty {
+      padding: 24px 0 8px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .partner-empty__icon { font-size: 28px; opacity: 0.25; }
+    .partner-empty__title { font-size: 13px; color: var(--text-2); font-weight: 600; }
+    .partner-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; max-width: 220px; }
+
+    .skeleton { background: rgba(255,255,255,0.06); border-radius: 6px; animation: sk 1.4s ease-in-out infinite; }
+    body.theme-light .skeleton, body.theme-warm .skeleton,
+    body.theme-warm  .skeleton { background: rgba(0,0,0,0.07); }
+    @keyframes sk { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+    /* Venue pin cards */
+    .pin-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .pin-card:last-child { border-bottom: none; }
+    body.theme-light .pin-card, body.theme-warm .pin-card,
+    body.theme-warm  .pin-card { border-bottom-color: rgba(0,0,0,0.07); }
+    .pin-card__logo {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.25);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .pin-card__logo img { width: 100%; height: 100%; object-fit: cover; display: block; transform: translateX(43.5%); }
+    .pin-card__logo__initial { font-size: 16px; font-weight: 800; color: #60a5fa; }
+    .pin-card__info { flex: 1; min-width: 0; }
+    .pin-card__name { font-size: 13px; color: var(--text); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pin-card__desc { font-size: 10px; color: var(--text-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pin-card__actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .pin-card__btn {
+      width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04); color: var(--text-3); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, color 0.12s;
+    }
+    .pin-card__btn:hover { background: rgba(255,255,255,0.08); color: var(--text-2); }
+    .pin-card__btn--del:hover { background: rgba(255,60,60,0.12); color: #f87171; border-color: rgba(255,60,60,0.25); }
+    body.theme-light .pin-card__btn, body.theme-warm .pin-card__btn { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+
+    .pin-inactive-badge {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); color: var(--text-3);
+    }
+
+    .section-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .section-header-row .partner-section__label { margin-bottom: 0; }
+    .btn--add-pin {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.28);
+      border-radius: 8px; color: #60a5fa; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 5px 10px; cursor: pointer; transition: background 0.12s;
+    }
+    .btn--add-pin:hover { background: rgba(37,99,235,0.20); }
+    body.theme-light .btn--add-pin, body.theme-warm .btn--add-pin { color: #1d4ed8; }
+
+    /* Logo upload preview */
+    .logo-upload-area {
+      border: 1.5px dashed rgba(37,99,235,0.35); border-radius: 12px;
+      padding: 16px; cursor: pointer; text-align: center;
+      transition: border-color 0.14s, background 0.14s;
+    }
+    .logo-upload-area:hover { border-color: rgba(37,99,235,0.6); background: rgba(37,99,235,0.04); }
+    .logo-upload-preview { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; margin: 0 auto 8px; display: block; }
+    .logo-upload-label { font-size: 11px; color: var(--text-3); }
+
+    /* ── Leave partner program (danger zone) ── */
+    .partner-leave {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px; border-radius: 14px;
+      background: rgba(220,53,69,0.06);
+      border: 1px solid rgba(220,53,69,0.22);
+    }
+    .partner-leave__text { flex: 1; min-width: 0; }
+    .partner-leave__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 3px; }
+    .partner-leave__desc { font-size: 11px; color: var(--text-3); line-height: 1.5; }
+    .btn--leave {
+      flex-shrink: 0; height: 38px; padding: 0 16px;
+      border-radius: var(--radius-pill); cursor: pointer;
+      background: rgba(220,53,69,0.12); color: #ff6b6b;
+      border: 1px solid rgba(220,53,69,0.40);
+      font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em;
+      transition: background var(--t-fast), color var(--t-fast);
+    }
+    .btn--leave:hover { background: #dc3545; color: #fff; border-color: #dc3545; }
+    .btn--leave:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .leave-dialog {
+      position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,0.72);
+      display: none; align-items: center; justify-content: center; padding: 24px;
+    }
+    .leave-dialog__card {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius); padding: 24px;
+      width: 100%; max-width: 380px;
+      box-shadow: var(--shadow-lg);
+    }
+    .leave-dialog__title { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: var(--text); margin-bottom: 12px; }
+    .leave-dialog__body { font-size: 13px; line-height: 1.65; color: var(--text-2); margin-bottom: 20px; }
+    .leave-dialog__actions { display: flex; gap: 10px; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="partner-header">
+      <div id="partner-badge-row"></div>
+      <div class="page-title" style="margin:0;">Partner Portal</div>
+      <div class="page-subtitle" style="margin:0;">B2B advertising &amp; event management</div>
+    </div>
+
+    <!-- Non-partner view — shown until we confirm user is a partner -->
+    <div id="partner-apply-view">
+
+      <div class="partner-cta">
+
+        <!-- Info / perks state -->
+        <div class="partner-cta-info" id="cta-info">
+          <div class="partner-cta__icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="3" y="3" width="18" height="18" rx="4"/>
+              <path d="M9 12h6M12 9v6"/>
+            </svg>
+          </div>
+          <div class="partner-cta__title">Become a Partner</div>
+          <div class="partner-cta__sub">List your venue, advertise events, and reach thousands of experience-seekers in your city.</div>
+          <div class="partner-cta__perks">
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Your venue pin highlighted in blue on the map</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Logo shown directly on the map marker</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Promoted events visible to all nearby users</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Analytics dashboard — views, clicks, bookings</div>
+            <div class="partner-cta__perk"><div class="partner-cta__perk-dot"></div>Priority placement in Explore &amp; search</div>
+          </div>
+          <button class="btn--partner" onclick="showApplyForm()">Apply for partnership →</button>
+        </div>
+
+        <!-- Form state -->
+        <div class="partner-cta-form" id="cta-form">
+          <button class="partner-form-back" onclick="hideApplyForm()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <div class="partner-form-title">Partnership Application</div>
+
+          <div class="partner-form-field">
+            <label for="apply-name">Business / venue name *</label>
+            <input type="text" id="apply-name" placeholder="e.g. The Jazz Cellar" autocomplete="organization">
+          </div>
+          <div class="partner-form-field">
+            <label for="apply-city">City *</label>
+            <input type="text" id="apply-city" placeholder="e.g. Zagreb" autocomplete="address-level2">
+          </div>
+          <div class="partner-form-field">
+            <label for="apply-email">Contact email *</label>
+            <input type="email" id="apply-email" placeholder="you@venue.com" autocomplete="email">
+          </div>
+          <div class="partner-form-field">
+            <label for="apply-desc">Tell us about your venue</label>
+            <textarea id="apply-desc" placeholder="What kind of events do you host? What makes your space unique?"></textarea>
+          </div>
+
+          <div class="partner-form-error" id="apply-error"></div>
+
+          <div class="partner-form-actions">
+            <button class="btn btn--ghost" style="height:46px;flex:0 0 80px;font-size:12px;" onclick="hideApplyForm()">Cancel</button>
+            <button class="btn--partner" id="apply-submit-btn" onclick="submitApplication()">Submit application →</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Partner dashboard — shown when user is confirmed partner -->
+    <div id="partner-dashboard-view" style="display:none;">
+
+      <!-- Stats -->
+      <div class="partner-section">
+        <div class="partner-section__label">This month</div>
+        <div class="partner-stats">
+          <div class="stat-cell">
+            <div class="stat-cell__num" id="stat-views"><span class="skeleton" style="width:32px;height:22px;display:block;"></span></div>
+            <div class="stat-cell__label">Profile views</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell__num" id="stat-bookings"><span class="skeleton" style="width:24px;height:22px;display:block;"></span></div>
+            <div class="stat-cell__label">Bookings</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-cell__num" id="stat-events"><span class="skeleton" style="width:20px;height:22px;display:block;"></span></div>
+            <div class="stat-cell__label">Active events</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="partner-section">
+        <div class="partner-section__label">Manage</div>
+        <div class="partner-actions">
+          <a href="/listings/new" class="partner-action">
+            <div class="partner-action__left">
+              <div class="partner-action__icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <div>
+                <div class="partner-action__title">Create new event</div>
+                <div class="partner-action__desc">Add a new listing visible to nearby users</div>
+              </div>
+            </div>
+            <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </a>
+          <div class="partner-action" onclick="document.getElementById('partner-ads-section').scrollIntoView({behavior:'smooth'})">
+            <div class="partner-action__left">
+              <div class="partner-action__icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M8 8h8M8 16h5"/></svg>
+              </div>
+              <div>
+                <div class="partner-action__title">Promoted ads</div>
+                <div class="partner-action__desc">Create and manage feed advertisements</div>
+              </div>
+            </div>
+            <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+          <a href="/account/edit" class="partner-action">
+            <div class="partner-action__left">
+              <div class="partner-action__icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+              <div>
+                <div class="partner-action__title">Edit profile</div>
+                <div class="partner-action__desc">Update venue name, description, and photo</div>
+              </div>
+            </div>
+            <span class="partner-action__arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Venue pins -->
+      <div class="partner-section">
+        <div class="section-header-row">
+          <div class="partner-section__label">My venue pins</div>
+          <button class="btn--add-pin" onclick="openPinModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            ADD PIN
+          </button>
+        </div>
+        <div id="partner-pins-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📍</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Promoted ads -->
+      <div class="partner-section" id="partner-ads-section">
+        <div class="section-header-row">
+          <div class="partner-section__label">Promoted ads</div>
+          <button class="btn--add-pin" onclick="openAdModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            NEW AD
+          </button>
+        </div>
+        <div id="partner-ads-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📢</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Your events list -->
+      <div class="partner-section">
+        <div class="section-header-row">
+          <div class="partner-section__label">Your events</div>
+          <button class="btn--add-pin" onclick="openEventModal(null)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            ADD EVENT
+          </button>
+        </div>
+        <div id="partner-events-list">
+          <div class="partner-empty">
+            <div class="partner-empty__icon">📅</div>
+            <div class="partner-empty__title skeleton" style="width:100px;height:13px;"></div>
+            <div class="partner-empty__sub skeleton" style="width:160px;height:11px;margin-top:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="partner-section">
+        <div class="partner-section__label">Partner program</div>
+        <div class="partner-leave">
+          <div class="partner-leave__text">
+            <div class="partner-leave__title">Leave partner program</div>
+            <div class="partner-leave__desc">Permanently deletes your venue pins, events and promoted ads. Your account stays and keeps working as a normal user.</div>
+          </div>
+          <button class="btn--leave" onclick="openLeaveDialog()">Leave program</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="height:40px;"></div>
+  </main>
+
+  <!-- Leave-program confirmation dialog -->
+  <div id="leave-dialog" class="leave-dialog" style="display:none;">
+    <div class="leave-dialog__card">
+      <div class="leave-dialog__title">Leave partner program?</div>
+      <div class="leave-dialog__body">
+        This permanently deletes <strong>all your venue pins, events, and promoted ads</strong>. It can’t be undone.
+        <br><br>
+        Your account stays active and works as a normal user — your meets and reservations are not affected.
+      </div>
+      <div class="leave-dialog__actions">
+        <button class="btn btn--ghost" style="flex:1;height:46px;" onclick="closeLeaveDialog()">Cancel</button>
+        <button class="btn--leave" id="leave-confirm-btn" style="flex:1;height:46px;" onclick="confirmLeave()">Yes, leave</button>
+      </div>
+    </div>
+  </div>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+</div>
+
+<!-- Promoted ad create / edit modal -->
+<div id="ad-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:903;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="ad-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="ad-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">New promoted ad</div>
+      <button onclick="closeAdModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="ad-title">Ad title *</label>
+      <input type="text" id="ad-title" placeholder="e.g. Summer Festival 2026" maxlength="100">
+    </div>
+    <div class="partner-form-field">
+      <label for="ad-desc">Description</label>
+      <textarea id="ad-desc" placeholder="Brief promo copy for the feed card" style="min-height:60px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label for="ad-link">Link URL (optional)</label>
+      <input type="url" id="ad-link" placeholder="https://your-site.com">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="partner-form-field">
+        <label for="ad-from">Active from</label>
+        <input type="datetime-local" id="ad-from">
+      </div>
+      <div class="partner-form-field">
+        <label for="ad-until">Active until</label>
+        <input type="datetime-local" id="ad-until">
+      </div>
+    </div>
+    <div class="partner-form-field">
+      <label>Ad image (optional)</label>
+      <div class="logo-upload-area" id="ad-img-area" onclick="document.getElementById('ad-img-input').click()">
+        <div id="ad-img-preview-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="logo-upload-label">Tap to upload image<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>
+        </div>
+      </div>
+      <input type="file" id="ad-img-input" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="previewAdImage(this)">
+    </div>
+
+    <div class="partner-form-error" id="ad-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeAdModal()">Cancel</button>
+      <button class="btn--partner" id="ad-modal-save" onclick="saveAdModal()">Save ad →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Venue pin create / edit modal -->
+<div id="pin-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:901;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="pin-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="pin-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Add venue pin</div>
+      <button onclick="closePinModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="pin-name">Venue name *</label>
+      <input type="text" id="pin-name" placeholder="e.g. The Jazz Cellar" maxlength="80">
+    </div>
+    <div class="partner-form-field">
+      <label for="pin-desc">Description</label>
+      <textarea id="pin-desc" placeholder="What happens here? What makes this venue special?" style="min-height:72px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label>Venue location *</label>
+      <div id="pin-map-picker" style="height:210px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);"></div>
+      <div id="pin-map-hint" style="font-size:10px;color:var(--text-3);margin-top:6px;text-align:center;letter-spacing:0.04em;">Tap the map to place your venue pin</div>
+    </div>
+    <input type="hidden" id="pin-lat">
+    <input type="hidden" id="pin-lng">
+
+    <div class="partner-form-field">
+      <label>Logo (optional)</label>
+      <div class="logo-upload-area" id="pin-logo-area" onclick="document.getElementById('pin-logo-input').click()">
+        <div id="pin-logo-preview-wrap">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div class="logo-upload-label">Tap to upload logo<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>
+        </div>
+      </div>
+      <input type="file" id="pin-logo-input" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="previewPinLogo(this)">
+    </div>
+
+    <div class="partner-form-error" id="pin-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closePinModal()">Cancel</button>
+      <button class="btn--partner" id="pin-modal-save" onclick="savePinModal()">Save pin →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event create / edit modal -->
+<div id="event-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:902;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="event-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:rgba(255,255,255,0.12);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div id="event-modal-title" style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Add event</div>
+      <button onclick="closeEventModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="ev-pin">Venue pin *</label>
+      <select id="ev-pin" style="background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.07);border-top-color:rgba(0,0,0,0.45);border-bottom-color:rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;color:var(--text);font-family:var(--font-mono);font-size:13px;width:100%;box-shadow:inset 0 1px 4px rgba(0,0,0,0.38);">
+        <option value="">Select a venue pin…</option>
+      </select>
+    </div>
+    <div class="partner-form-field">
+      <label for="ev-title">Event title *</label>
+      <input type="text" id="ev-title" placeholder="e.g. Jazz Night vol. 42" maxlength="100">
+    </div>
+    <div class="partner-form-field">
+      <label for="ev-desc">Description</label>
+      <textarea id="ev-desc" placeholder="What's happening?" style="min-height:72px;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="partner-form-field">
+        <label for="ev-start">Start *</label>
+        <input type="datetime-local" id="ev-start">
+      </div>
+      <div class="partner-form-field">
+        <label for="ev-end">End *</label>
+        <input type="datetime-local" id="ev-end">
+      </div>
+    </div>
+    <div class="partner-form-field">
+      <label for="ev-tickets">Ticket URL (optional)</label>
+      <input type="url" id="ev-tickets" placeholder="https://entrio.hr/…">
+    </div>
+
+    <div class="partner-form-error" id="event-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeEventModal()">Cancel</button>
+      <button class="btn--partner" id="event-modal-save" onclick="saveEventModal()">Save event →</button>
+    </div>
+  </div>
+</div>
+
+<div id="jah-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);display:flex;align-items:flex-end;justify-content:center;z-index:904;opacity:0;pointer-events:none;transition:opacity 0.18s;padding-bottom:env(safe-area-inset-bottom);">
+  <div id="jah-modal-card" style="background:linear-gradient(160deg,var(--surface-2) 0%,var(--surface) 60%,#0f0f0f 100%);border:1px solid var(--border-2);border-top-color:var(--accent-a18);border-radius:20px 20px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,0.65),0 -4px 24px var(--accent-a06);padding:22px 20px 28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;transform:translateY(30px);transition:transform 0.26s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);">Join as host</div>
+        <div id="jah-modal-event" style="font-size:12px;color:var(--accent);margin-top:3px;font-family:var(--font-mono);"></div>
+      </div>
+      <button onclick="closeJahModal()" style="background:none;border:none;color:var(--text-3);cursor:pointer;padding:4px;flex-shrink:0;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="partner-form-field">
+      <label for="jah-city">City *</label>
+      <input type="text" id="jah-city" placeholder="e.g. Zagreb" maxlength="80">
+    </div>
+    <div class="partner-form-field">
+      <label for="jah-desc">Description for your meet *</label>
+      <textarea id="jah-desc" placeholder="What will you do with guests?" style="min-height:72px;"></textarea>
+    </div>
+    <div class="partner-form-field">
+      <label for="jah-guests">Max guests *</label>
+      <input type="number" id="jah-guests" value="8" min="1" max="100">
+    </div>
+
+    <label style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-2);cursor:pointer;user-select:none;">
+      <input type="checkbox" id="jah-use-time" onchange="document.getElementById('jah-override-wrap').style.display=this.checked?'':'none'" style="accent-color:var(--accent);width:15px;height:15px;">
+      Override meeting date/time
+    </label>
+    <div id="jah-override-wrap" style="display:none;">
+      <div class="partner-form-field" style="margin:0;">
+        <label for="jah-override">Meeting date &amp; time</label>
+        <input type="datetime-local" id="jah-override">
+      </div>
+    </div>
+
+    <div class="partner-form-error" id="jah-modal-error"></div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn--ghost" style="height:46px;flex:0 0 90px;font-size:12px;" onclick="closeJahModal()">Cancel</button>
+      <button class="btn--partner" id="jah-modal-save" onclick="saveJahModal()" style="background:var(--accent);color:#000;">Create Meet →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script th:inline="none">
+  async function initPartnerPage() {
+    if (!Auth.getUserId()) return;
+    try {
+      const status = await PartnerAPI.getStatus();
+      if (status.isPartner) showDashboard(status.profile);
+    } catch {
+      // fallback if status endpoint unavailable
+      try {
+        const profile = await PartnerAPI.getProfile();
+        showDashboard(profile);
+      } catch { /* not a partner — apply view stays shown */ }
+    }
+  }
+
+  function showDashboard(profile) {
+    document.getElementById('partner-apply-view').style.display = 'none';
+    document.getElementById('partner-dashboard-view').style.display = '';
+    document.getElementById('partner-badge-row').innerHTML =
+      `<div class="partner-badge"><div class="partner-badge__dot"></div>Partner account</div>`;
+    loadStats();
+    loadVenuePins();
+    loadAds();
+    loadPartnerEvents();
+  }
+
+  /* ── Leave partner program ── */
+  function openLeaveDialog()  { document.getElementById('leave-dialog').style.display = 'flex'; }
+  function closeLeaveDialog() { document.getElementById('leave-dialog').style.display = 'none'; }
+
+  async function confirmLeave() {
+    const btn = document.getElementById('leave-confirm-btn');
+    btn.disabled = true; btn.textContent = 'Leaving…';
+    try {
+      await PartnerAPI.leave();
+      // Refresh the access token so the downgraded role (ROLE_USER) takes effect immediately.
+      try {
+        const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+        if (r.ok) { const d = await r.json(); if (d.token) Auth.saveToken(d.token); }
+      } catch (_) {}
+      showToast('You\'ve left the partner program.', 'success');
+      setTimeout(() => { window.location.href = '/map'; }, 800);
+    } catch (e) {
+      btn.disabled = false; btn.textContent = 'Yes, leave';
+      showToast(e.message || 'Could not leave the program — try again.', 'error');
+    }
+  }
+
+  async function loadStats() {
+    try {
+      const stats = await PartnerAPI.getStats();
+      document.getElementById('stat-views').textContent    = stats.profileViews ?? 0;
+      document.getElementById('stat-bookings').textContent = stats.bookings      ?? 0;
+      document.getElementById('stat-events').textContent   = stats.activeEvents  ?? 0;
+    } catch {
+      document.getElementById('stat-views').textContent    = '—';
+      document.getElementById('stat-bookings').textContent = '—';
+      document.getElementById('stat-events').textContent   = '—';
+    }
+  }
+
+  /* ── Venue pins ─────────────────────────────── */
+
+  async function loadVenuePins() {
+    const container = document.getElementById('partner-pins-list');
+    try {
+      const pins = await PartnerPinAPI.getMine();
+      if (!pins || pins.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📍</div>
+            <div class="partner-empty__title">No venue pins yet</div>
+            <div class="partner-empty__sub">Add your venue to the map so users can discover you.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = pins.map(pin => {
+        const logoHtml = pin.logoUrl
+          ? `<img src="${escH(pin.logoUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span class=\\"pin-card__logo__initial\\">${escH((pin.name?.[0] ?? 'P').toUpperCase())}</span>'">`
+          : `<span class="pin-card__logo__initial">${escH((pin.name?.[0] ?? 'P').toUpperCase())}</span>`;
+        const inactiveBadge = pin.active === false ? `<span class="pin-inactive-badge">INACTIVE</span>` : '';
+        return `
+          <div class="pin-card">
+            <div class="pin-card__logo">${logoHtml}</div>
+            <div class="pin-card__info">
+              <div class="pin-card__name">${escH(pin.name)}</div>
+              ${pin.description ? `<div class="pin-card__desc">${escH(pin.description)}</div>` : ''}
+            </div>
+            ${inactiveBadge}
+            <div class="pin-card__actions">
+              <button class="pin-card__btn" title="Edit" onclick="openPinModal(${pin.id})">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deletePinConfirm(${pin.id}, '${escH(pin.name)}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load pins.</div></div>`;
+    }
+  }
+
+  function escH(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let _pinEditId = null;
+  let _pinMap    = null;
+  let _pinMarker = null;
+
+  function _pinMarkerIcon() {
+    return L.divIcon({
+      className: '',
+      html: '<div style="width:14px;height:14px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:0 2px 8px rgba(37,99,235,0.7);"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7],
+    });
+  }
+
+  function _initPinMap() {
+    if (!_pinMap) {
+      const dark = !document.body.classList.contains('theme-light') && !document.body.classList.contains('theme-warm');
+      _pinMap = L.map('pin-map-picker', { center: [45.815, 15.977], zoom: 13, zoomControl: true, attributionControl: false });
+      L.tileLayer(
+        dark ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+             : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        { maxZoom: 19 }
+      ).addTo(_pinMap);
+      _pinMap.on('click', e => {
+        const { lat, lng } = e.latlng;
+        document.getElementById('pin-lat').value = lat.toFixed(6);
+        document.getElementById('pin-lng').value = lng.toFixed(6);
+        document.getElementById('pin-map-hint').textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        if (_pinMarker) { _pinMarker.setLatLng([lat, lng]); }
+        else { _pinMarker = L.marker([lat, lng], { icon: _pinMarkerIcon() }).addTo(_pinMap); }
+      });
+    }
+    setTimeout(() => _pinMap.invalidateSize(), 300);
+  }
+
+  function _setPinMapLocation(lat, lng) {
+    _initPinMap();
+    _pinMap.setView([lat, lng], 15);
+    if (_pinMarker) { _pinMarker.setLatLng([lat, lng]); }
+    else { _pinMarker = L.marker([lat, lng], { icon: _pinMarkerIcon() }).addTo(_pinMap); }
+    document.getElementById('pin-map-hint').textContent = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`;
+  }
+
+  function openPinModal(pinId) {
+    _pinEditId = pinId;
+    const modal = document.getElementById('pin-modal');
+    const card  = document.getElementById('pin-modal-card');
+    document.getElementById('pin-modal-title').textContent = pinId ? 'Edit venue pin' : 'Add venue pin';
+    document.getElementById('pin-modal-error').style.display = 'none';
+    document.getElementById('pin-modal-save').disabled = false;
+    document.getElementById('pin-modal-save').textContent = 'Save pin →';
+    document.getElementById('pin-logo-input').value = '';
+    document.getElementById('pin-lat').value = '';
+    document.getElementById('pin-lng').value = '';
+    document.getElementById('pin-map-hint').textContent = 'Tap the map to place your venue pin';
+    resetLogoPreview();
+
+    if (pinId) {
+      PartnerPinAPI.getById(pinId).then(pin => {
+        document.getElementById('pin-name').value = pin.name ?? '';
+        document.getElementById('pin-desc').value = pin.description ?? '';
+        if (pin.latitude != null && pin.longitude != null) {
+          document.getElementById('pin-lat').value = pin.latitude;
+          document.getElementById('pin-lng').value = pin.longitude;
+          _setPinMapLocation(pin.latitude, pin.longitude);
+        }
+        if (pin.logoUrl) {
+          document.getElementById('pin-logo-preview-wrap').innerHTML =
+            `<img src="${escH(pin.logoUrl)}" class="logo-upload-preview" alt="Logo"><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+        }
+      }).catch(() => {});
+    } else {
+      document.getElementById('pin-name').value = '';
+      document.getElementById('pin-desc').value = '';
+      if (_pinMarker) { _pinMap?.removeLayer(_pinMarker); _pinMarker = null; }
+    }
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => {
+      card.style.transform = 'translateY(0)';
+      _initPinMap();
+    });
+  }
+
+  function closePinModal() {
+    const modal = document.getElementById('pin-modal');
+    const card  = document.getElementById('pin-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  function resetLogoPreview() {
+    document.getElementById('pin-logo-preview-wrap').innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div class="logo-upload-label">Tap to upload logo<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>`;
+  }
+
+  function previewPinLogo(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+      showToast('Only PNG, JPEG, or WebP images are allowed.', 'error'); return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image must be under 2 MB.', 'error'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('pin-logo-preview-wrap').innerHTML =
+        `<img src="${e.target.result}" class="logo-upload-preview" alt="Logo preview"><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function savePinModal() {
+    const errEl = document.getElementById('pin-modal-error');
+    const btn   = document.getElementById('pin-modal-save');
+    const name  = document.getElementById('pin-name').value.trim();
+    const desc  = document.getElementById('pin-desc').value.trim();
+    const lat   = parseFloat(document.getElementById('pin-lat').value);
+    const lng   = parseFloat(document.getElementById('pin-lng').value);
+    const file  = document.getElementById('pin-logo-input').files?.[0];
+
+    errEl.style.display = 'none';
+
+    if (!name) { errEl.textContent = 'Venue name is required.'; errEl.style.display = 'block'; return; }
+    if (isNaN(lat) || isNaN(lng)) { errEl.textContent = 'Tap the map to set your venue location.'; errEl.style.display = 'block'; return; }
+    if (lat < -90  || lat > 90)   { errEl.textContent = 'Invalid latitude — tap a valid location on the map.';  errEl.style.display = 'block'; return; }
+    if (lng < -180 || lng > 180)  { errEl.textContent = 'Invalid longitude — tap a valid location on the map.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    try {
+      let pin;
+      const dto = { name, description: desc || null, latitude: lat, longitude: lng };
+      if (_pinEditId) {
+        pin = await PartnerPinAPI.update(_pinEditId, dto);
+      } else {
+        pin = await PartnerPinAPI.create(dto);
+      }
+      if (file && pin?.id) {
+        await PartnerPinAPI.uploadLogo(pin.id, file);
+      }
+      closePinModal();
+      showToast(_pinEditId ? 'Pin updated.' : 'Pin added to the map.', 'success');
+      loadVenuePins();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save pin.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save pin →';
+    }
+  }
+
+  async function deletePinConfirm(pinId, pinName) {
+    if (!confirm(`Delete "${pinName}"? This will also remove all events attached to this pin.`)) return;
+    try {
+      await PartnerPinAPI.delete(pinId);
+      showToast('Pin deleted.', 'default');
+      loadVenuePins();
+    } catch (e) {
+      showToast(e.message || 'Could not delete pin.', 'error');
+    }
+  }
+
+  /* ── Partner events ─────────────────────────── */
+
+  async function loadPartnerEvents() {
+    const container = document.getElementById('partner-events-list');
+    try {
+      const [events, myAds] = await Promise.all([
+        PartnerEventAPI.getMine('upcoming'),
+        PromotedAdAPI.getMine().catch(() => []),
+      ]);
+      const now = new Date();
+      const promotedEventIds = new Set(
+        (myAds || []).filter(a => a.eventId != null && new Date(a.activeUntil) > now).map(a => a.eventId)
+      );
+
+      if (!events || events.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon">📅</div>
+            <div class="partner-empty__title">No events yet</div>
+            <div class="partner-empty__sub">Create your first event on one of your venue pins.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = events.map(ev => {
+        const start = new Date(ev.startDatetime);
+        const day = start.getDate();
+        const mon = start.toLocaleString('en', { month: 'short' }).toUpperCase();
+        const pinLabel = ev.pinName ? escH(ev.pinName) : '';
+        const ticketBadge = ev.ticketVendorUrl
+          ? `<span class="partner-event-card__badge" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.28);color:#60a5fa;cursor:pointer;" onclick="window.open('${escH(ev.ticketVendorUrl)}','_blank','noopener')">TICKETS</span>`
+          : '';
+        const isPromoted = promotedEventIds.has(ev.id);
+        const promoteBtn = isPromoted
+          ? `<button class="pin-card__btn" title="Remove from Explore feed" style="color:#60a5fa;border-color:rgba(37,99,235,0.35);" onclick="togglePromote(${ev.id}, true)">★</button>`
+          : `<button class="pin-card__btn" title="Promote in Explore feed" onclick="togglePromote(${ev.id}, false)">☆</button>`;
+        return `
+          <div class="partner-event-card">
+            <div class="partner-event-card__date">
+              <div class="partner-event-card__day">${day}</div>
+              <div class="partner-event-card__mon">${mon}</div>
+            </div>
+            <div class="partner-event-card__info">
+              <div class="partner-event-card__title">${escH(ev.title)}</div>
+              <div class="partner-event-card__sub">${pinLabel}</div>
+            </div>
+            ${ticketBadge}
+            <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              ${promoteBtn}
+              <button class="pin-card__btn" title="Join as host" style="color:var(--accent);border-color:var(--accent-a28);" onclick="openJahModal(${ev.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              </button>
+              <button class="pin-card__btn" title="Edit" onclick="openEventModal(${ev.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deleteEventConfirm(${ev.id}, '${escH(ev.title)}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load events.</div></div>`;
+    }
+  }
+
+  async function togglePromote(eventId, isPromoted) {
+    try {
+      if (isPromoted) await PartnerEventAPI.unpromote(eventId);
+      else await PartnerEventAPI.promote(eventId);
+      showToast(isPromoted ? 'Removed from Explore feed.' : 'Event promoted in Explore feed!', 'success');
+    } catch (e) {
+      const msg = e.message ?? '';
+      showToast(
+        msg.includes('Already exists') ? 'This event is already promoted.'
+          : msg.includes('permission')  ? 'You can only promote your own events.'
+          : msg || 'Could not update promotion.',
+        'error'
+      );
+    }
+    loadPartnerEvents();
+  }
+
+  let _eventEditId = null;
+  let _cachedPins  = [];
+
+  async function openEventModal(eventId) {
+    _eventEditId = eventId;
+    const modal = document.getElementById('event-modal');
+    const card  = document.getElementById('event-modal-card');
+    document.getElementById('event-modal-title').textContent = eventId ? 'Edit event' : 'Add event';
+    document.getElementById('event-modal-error').style.display = 'none';
+    document.getElementById('event-modal-save').disabled = false;
+    document.getElementById('event-modal-save').textContent = 'Save event →';
+
+    // Populate pin dropdown
+    try {
+      _cachedPins = await PartnerPinAPI.getMine();
+      const sel = document.getElementById('ev-pin');
+      sel.innerHTML = '<option value="">Select a venue pin…</option>' +
+        _cachedPins.filter(p => p.active !== false).map(p => `<option value="${p.id}">${escH(p.name)}</option>`).join('');
+    } catch { /* can't load pins — disable dropdown gracefully */ }
+
+    if (eventId) {
+      try {
+        const ev = await PartnerEventAPI.getById(eventId);
+        document.getElementById('ev-pin').value   = ev.partnerPinId ?? '';
+        document.getElementById('ev-title').value = ev.title ?? '';
+        document.getElementById('ev-desc').value  = ev.description ?? '';
+        document.getElementById('ev-start').value = ev.startDatetime?.slice(0, 16) ?? '';
+        document.getElementById('ev-end').value   = ev.endDatetime?.slice(0, 16)   ?? '';
+        document.getElementById('ev-tickets').value = ev.ticketVendorUrl ?? '';
+      } catch { /* ignore, modal still opens */ }
+    } else {
+      document.getElementById('ev-pin').value     = _cachedPins[0]?.id ?? '';
+      document.getElementById('ev-title').value   = '';
+      document.getElementById('ev-desc').value    = '';
+      document.getElementById('ev-start').value   = '';
+      document.getElementById('ev-end').value     = '';
+      document.getElementById('ev-tickets').value = '';
+    }
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+  }
+
+  function closeEventModal() {
+    const modal = document.getElementById('event-modal');
+    const card  = document.getElementById('event-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  async function saveEventModal() {
+    const errEl  = document.getElementById('event-modal-error');
+    const btn    = document.getElementById('event-modal-save');
+    const pinId  = document.getElementById('ev-pin').value;
+    const title  = document.getElementById('ev-title').value.trim();
+    const desc   = document.getElementById('ev-desc').value.trim();
+    const start  = document.getElementById('ev-start').value;
+    const end    = document.getElementById('ev-end').value;
+    const tickets = document.getElementById('ev-tickets').value.trim();
+
+    errEl.style.display = 'none';
+
+    if (!pinId)  { errEl.textContent = 'Select a venue pin.';         errEl.style.display = 'block'; return; }
+    if (!title)  { errEl.textContent = 'Event title is required.';     errEl.style.display = 'block'; return; }
+    if (!start)  { errEl.textContent = 'Start date/time is required.'; errEl.style.display = 'block'; return; }
+    if (!end)    { errEl.textContent = 'End date/time is required.';   errEl.style.display = 'block'; return; }
+    if (new Date(end) <= new Date(start)) { errEl.textContent = 'End must be after start.'; errEl.style.display = 'block'; return; }
+    if (new Date(start) < new Date())    { errEl.textContent = 'Start date must be in the future.'; errEl.style.display = 'block'; return; }
+    if (tickets && !/^https?:\/\/.+/.test(tickets)) { errEl.textContent = 'Ticket URL must start with http:// or https://'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const dto = {
+      title,
+      description: desc || null,
+      ticketVendorUrl: tickets || null,
+      startDatetime: start + ':00',
+      endDatetime:   end   + ':00',
+    };
+
+    try {
+      if (_eventEditId) {
+        await PartnerEventAPI.update(_eventEditId, dto);
+      } else {
+        await PartnerEventAPI.createForPin(pinId, dto);
+      }
+      closeEventModal();
+      showToast(_eventEditId ? 'Event updated.' : 'Event created.', 'success');
+      loadPartnerEvents();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save event.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save event →';
+    }
+  }
+
+  async function deleteEventConfirm(eventId, title) {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await PartnerEventAPI.delete(eventId);
+      showToast('Event deleted.', 'default');
+      loadPartnerEvents();
+    } catch (e) {
+      showToast(e.message || 'Could not delete event.', 'error');
+    }
+  }
+
+  /* ── Join as host (from partner dashboard) ──── */
+
+  let _jahEventId = null;
+
+  async function openJahModal(eventId) {
+    _jahEventId = eventId;
+    const modal = document.getElementById('jah-modal');
+    const card  = document.getElementById('jah-modal-card');
+    document.getElementById('jah-modal-event').textContent = '';
+    document.getElementById('jah-modal-error').style.display = 'none';
+    document.getElementById('jah-modal-save').disabled = false;
+    document.getElementById('jah-modal-save').textContent = 'Create Meet →';
+    document.getElementById('jah-city').value    = '';
+    document.getElementById('jah-desc').value    = '';
+    document.getElementById('jah-guests').value  = '8';
+    document.getElementById('jah-use-time').checked = false;
+    document.getElementById('jah-override-wrap').style.display = 'none';
+    document.getElementById('jah-override').value = '';
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+
+    try {
+      const ev = await PartnerEventAPI.getById(eventId);
+      document.getElementById('jah-modal-event').textContent = ev.title ?? '';
+      if (ev.description) document.getElementById('jah-desc').value = ev.description;
+      if (ev.startDatetime) document.getElementById('jah-override').value = ev.startDatetime.slice(0, 16);
+      if (ev.partnerPinId) {
+        try {
+          const pin = await PartnerPinAPI.getById(ev.partnerPinId);
+          if (pin.city) document.getElementById('jah-city').value = pin.city;
+        } catch { /* city stays blank */ }
+      }
+    } catch { /* modal open anyway, user fills manually */ }
+  }
+
+  function closeJahModal() {
+    const modal = document.getElementById('jah-modal');
+    const card  = document.getElementById('jah-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  async function saveJahModal() {
+    const errEl  = document.getElementById('jah-modal-error');
+    const btn    = document.getElementById('jah-modal-save');
+    const city   = document.getElementById('jah-city').value.trim();
+    const desc   = document.getElementById('jah-desc').value.trim();
+    const guests = parseInt(document.getElementById('jah-guests').value, 10);
+    const useTime = document.getElementById('jah-use-time').checked;
+    const dateVal = document.getElementById('jah-override').value;
+
+    errEl.style.display = 'none';
+    if (!city)  { errEl.textContent = 'City is required.';         errEl.style.display = 'block'; return; }
+    if (!desc)  { errEl.textContent = 'Description is required.';  errEl.style.display = 'block'; return; }
+    if (!guests || guests < 1 || guests > 100) { errEl.textContent = 'Max guests must be 1–100.'; errEl.style.display = 'block'; return; }
+    if (useTime && !dateVal) { errEl.textContent = 'Enter a date/time or uncheck the override.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    const dto = {
+      partnerEventId: _jahEventId,
+      city,
+      tourDescription: desc,
+      maxGuests: guests,
+      overrideMeetingDate: useTime && dateVal ? dateVal + ':00' : null,
+      overrideLatitude: null,
+      overrideLongitude: null,
+    };
+
+    try {
+      await TourListingAPI.createFromEvent(dto);
+      closeJahModal();
+      showToast('Meet created! Check My Meets.', 'success');
+      setTimeout(() => { window.location.href = '/tours'; }, 1200);
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not create meet.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create Meet →';
+    }
+  }
+
+  /* ── Apply form ─────────────────────────────── */
+
+  function showApplyForm() {
+    if (!Auth.getUserId()) { window.location.href = '/login'; return; }
+    const info = document.getElementById('cta-info');
+    const form = document.getElementById('cta-form');
+    info.classList.add('cta-exit');
+    info.addEventListener('animationend', () => {
+      info.style.display = 'none';
+      info.classList.remove('cta-exit');
+      form.style.display = 'flex';
+      form.classList.add('cta-enter');
+      form.addEventListener('animationend', () => form.classList.remove('cta-enter'), { once: true });
+    }, { once: true });
+  }
+
+  function hideApplyForm() {
+    const info = document.getElementById('cta-info');
+    const form = document.getElementById('cta-form');
+    form.style.animation = 'ctaExitRight 0.18s ease-in forwards';
+    form.addEventListener('animationend', () => {
+      form.style.display = 'none';
+      form.style.animation = '';
+      info.style.display = '';
+      info.classList.add('cta-enter');
+      info.addEventListener('animationend', () => info.classList.remove('cta-enter'), { once: true });
+    }, { once: true });
+    document.getElementById('apply-error').style.display = 'none';
+    document.getElementById('apply-error').textContent = '';
+  }
+
+  async function submitApplication() {
+    const name  = document.getElementById('apply-name').value.trim();
+    const city  = document.getElementById('apply-city').value.trim();
+    const email = document.getElementById('apply-email').value.trim();
+    const desc  = document.getElementById('apply-desc').value.trim();
+    const errEl = document.getElementById('apply-error');
+    const btn   = document.getElementById('apply-submit-btn');
+
+    errEl.style.display = 'none';
+    if (!name || !city || !email) {
+      errEl.textContent = 'Please fill in all required fields.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errEl.textContent = 'Enter a valid email address.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      await PartnerAPI.apply({ companyName: name, contactEmail: email, website: '' });
+      showToast('Welcome to the Partner program! Loading your dashboard…', 'success');
+      setTimeout(() => { window.location.reload(); }, 1200);
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not submit application. Please try again.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit application →';
+    }
+  }
+
+  /* ── Promoted ads ───────────────────────────── */
+
+  function _adStatusBadge(ad) {
+    const now = Date.now();
+    if (!ad.active) return `<span class="partner-event-card__badge" style="background:rgba(100,100,100,0.12);border-color:rgba(150,150,150,0.22);color:var(--text-3);">PAUSED</span>`;
+    const from  = ad.activeFrom  ? new Date(ad.activeFrom).getTime()  : null;
+    const until = ad.activeUntil ? new Date(ad.activeUntil).getTime() : null;
+    if (from  && now < from)  return `<span class="partner-event-card__badge" style="background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.28);color:#60a5fa;">SCHEDULED</span>`;
+    if (until && now > until) return `<span class="partner-event-card__badge" style="background:rgba(100,100,100,0.1);border-color:rgba(100,100,100,0.2);color:var(--text-3);">EXPIRED</span>`;
+    return `<span class="partner-event-card__badge">RUNNING</span>`;
+  }
+
+  async function loadAds() {
+    const container = document.getElementById('partner-ads-list');
+    try {
+      const ads = await PromotedAdAPI.getMine();
+      if (!ads || ads.length === 0) {
+        container.innerHTML = `
+          <div class="partner-empty">
+            <div class="partner-empty__icon" style="font-size:22px;">📢</div>
+            <div class="partner-empty__title">No ads yet</div>
+            <div class="partner-empty__sub">Create a promoted ad to appear in the Explore feed.</div>
+          </div>`;
+        return;
+      }
+      container.innerHTML = ads.map(ad => {
+        const thumb = ad.imageUrl
+          ? `<img src="${escH(ad.imageUrl)}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;" alt="">`
+          : `<div style="width:40px;height:40px;border-radius:8px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+        const pauseLabel = ad.active ? 'Pause' : 'Resume';
+        return `
+          <div class="partner-event-card">
+            ${thumb}
+            <div class="partner-event-card__info">
+              <div class="partner-event-card__title">${escH(ad.title)}</div>
+              <div class="partner-event-card__sub">${ad.description ? escH(ad.description.slice(0,60)) : '—'}</div>
+            </div>
+            ${_adStatusBadge(ad)}
+            <div style="display:flex;gap:5px;flex-shrink:0;margin-left:4px;">
+              <button class="pin-card__btn" title="${pauseLabel}" onclick="toggleAdPause(${ad.id}, ${ad.active})">
+                ${ad.active
+                  ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+                  : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`}
+              </button>
+              <button class="pin-card__btn" title="Edit" onclick="openAdModal(${ad.id})">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="pin-card__btn pin-card__btn--del" title="Delete" onclick="deleteAdConfirm(${ad.id}, '${escH(ad.title)}')">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    } catch {
+      container.innerHTML = `<div class="partner-empty"><div class="partner-empty__sub" style="color:var(--text-3);font-size:11px;">Could not load ads.</div></div>`;
+    }
+  }
+
+  async function toggleAdPause(adId, currentlyActive) {
+    try {
+      await PromotedAdAPI.update(adId, { active: !currentlyActive });
+      showToast(currentlyActive ? 'Ad paused.' : 'Ad resumed.', 'default');
+      loadAds();
+    } catch (e) {
+      showToast(e.message || 'Could not update ad.', 'error');
+    }
+  }
+
+  let _adEditId = null;
+
+  async function openAdModal(adId) {
+    _adEditId = adId;
+    const modal = document.getElementById('ad-modal');
+    const card  = document.getElementById('ad-modal-card');
+    document.getElementById('ad-modal-title').textContent = adId ? 'Edit ad' : 'New promoted ad';
+    document.getElementById('ad-modal-error').style.display = 'none';
+    document.getElementById('ad-modal-save').disabled = false;
+    document.getElementById('ad-modal-save').textContent = 'Save ad →';
+    document.getElementById('ad-img-input').value = '';
+    document.getElementById('ad-img-preview-wrap').innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" style="display:block;margin:0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div class="logo-upload-label">Tap to upload image<br><span style="font-size:9px;opacity:0.6;">PNG, JPEG, WebP — max 2 MB</span></div>`;
+
+    if (adId) {
+      try {
+        const ad = await PromotedAdAPI.getMine().then(list => list.find(a => a.id === adId));
+        if (ad) {
+          document.getElementById('ad-title').value = ad.title ?? '';
+          document.getElementById('ad-desc').value  = ad.description ?? '';
+          document.getElementById('ad-link').value  = ad.linkUrl ?? '';
+          document.getElementById('ad-from').value  = ad.activeFrom?.slice(0, 16)  ?? '';
+          document.getElementById('ad-until').value = ad.activeUntil?.slice(0, 16) ?? '';
+          if (ad.imageUrl) {
+            document.getElementById('ad-img-preview-wrap').innerHTML =
+              `<img src="${escH(ad.imageUrl)}" class="logo-upload-preview" alt=""><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+          }
+        }
+      } catch { /* open modal anyway */ }
+    } else {
+      document.getElementById('ad-title').value = '';
+      document.getElementById('ad-desc').value  = '';
+      document.getElementById('ad-link').value  = '';
+      document.getElementById('ad-from').value  = '';
+      document.getElementById('ad-until').value = '';
+    }
+
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+    requestAnimationFrame(() => { card.style.transform = 'translateY(0)'; });
+  }
+
+  function closeAdModal() {
+    const modal = document.getElementById('ad-modal');
+    const card  = document.getElementById('ad-modal-card');
+    card.style.transform = 'translateY(30px)';
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.style.pointerEvents = 'none'; }, 200);
+  }
+
+  function previewAdImage(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!['image/png','image/jpeg','image/webp'].includes(file.type)) {
+      showToast('Only PNG, JPEG, or WebP images are allowed.', 'error'); return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('Image must be under 2 MB.', 'error'); return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('ad-img-preview-wrap').innerHTML =
+        `<img src="${e.target.result}" class="logo-upload-preview" alt=""><div class="logo-upload-label" style="font-size:9px;">Tap to replace</div>`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function saveAdModal() {
+    const errEl = document.getElementById('ad-modal-error');
+    const btn   = document.getElementById('ad-modal-save');
+    const title = document.getElementById('ad-title').value.trim();
+    const desc  = document.getElementById('ad-desc').value.trim();
+    const link  = document.getElementById('ad-link').value.trim();
+    const from  = document.getElementById('ad-from').value;
+    const until = document.getElementById('ad-until').value;
+    const file  = document.getElementById('ad-img-input').files?.[0];
+
+    errEl.style.display = 'none';
+    if (!title) { errEl.textContent = 'Ad title is required.'; errEl.style.display = 'block'; return; }
+    if (link && !/^https?:\/\/.+/.test(link)) { errEl.textContent = 'Link URL must start with http:// or https://'; errEl.style.display = 'block'; return; }
+    if (from && until && new Date(until) <= new Date(from)) { errEl.textContent = 'Active until must be after active from.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+
+    const dto = {
+      title,
+      description: desc || null,
+      linkUrl: link || null,
+      activeFrom:  from  ? from  + ':00' : null,
+      activeUntil: until ? until + ':00' : null,
+    };
+
+    try {
+      let ad;
+      if (_adEditId) {
+        ad = await PromotedAdAPI.update(_adEditId, dto);
+        ad = ad ?? { id: _adEditId };
+      } else {
+        ad = await PromotedAdAPI.create(dto);
+      }
+      if (file && ad?.id) {
+        await PromotedAdAPI.uploadImage(ad.id, file);
+      }
+      closeAdModal();
+      showToast(_adEditId ? 'Ad updated.' : 'Ad created.', 'success');
+      loadAds();
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not save ad.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save ad →';
+    }
+  }
+
+  async function deleteAdConfirm(adId, title) {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      await PromotedAdAPI.delete(adId);
+      showToast('Ad deleted.', 'default');
+      loadAds();
+    } catch (e) {
+      showToast(e.message || 'Could not delete ad.', 'error');
+    }
+  }
+
+  document.getElementById('ad-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdModal();
+  });
+  document.getElementById('pin-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePinModal();
+  });
+  document.getElementById('event-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeEventModal();
+  });
+  document.getElementById('jah-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeJahModal();
+  });
+
+  initPartnerPage();
+</script>
+</body>
+</html>

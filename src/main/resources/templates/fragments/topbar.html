@@ -9,7 +9,8 @@
   Avatar is rendered client-side from localStorage / API fallback.
 -->
 <header th:fragment="topbar" class="topbar">
-  <script>(function(){if(localStorage.getItem('theme')==='light')document.body.classList.add('light-mode');})();</script>
+  <script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
+  <script th:src="@{/js/push-setup.js}" defer></script>
 
   <!-- Back button (shown when nav history exists) -->
   <button class="topbar__back" id="back-btn" aria-label="Go back">
@@ -64,6 +65,7 @@
   }
 
   function renderTopbarAvatar() {
+    if (!document.getElementById('topbar-avatar')) return;
     const userId   = localStorage.getItem('userId');
     const initials = localStorage.getItem('user_initials');
     const hue      = localStorage.getItem('user_hue') || '0';
@@ -125,7 +127,7 @@
     const btn = document.getElementById('back-btn');
     const mainNavPages = ['/map', '/explore', '/community', '/tours', '/account'];
     const isSubPage = !mainNavPages.includes(window.location.pathname);
-    if (!btn || stack.length < 2 || !isSubPage) return;
+    if (!btn || !isSubPage) return;
     btn.style.display = 'flex';
     btn.addEventListener('click', () => {
       const s = JSON.parse(sessionStorage.getItem(KEY) || '[]');
@@ -142,11 +144,13 @@
   (function() {
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
-    const updateIcon = () => btn.innerHTML = document.body.classList.contains('light-mode') ? MOON_SVG : SUN_SVG;
+    const updateIcon = () => btn.innerHTML = document.body.classList.contains('theme-light') || document.body.classList.contains('theme-warm') ? MOON_SVG : SUN_SVG;
     updateIcon();
     btn.addEventListener('click', () => {
-      const isLight = document.body.classList.toggle('light-mode');
-      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      const wasLight = document.body.classList.contains('theme-light') || document.body.classList.contains('theme-warm');
+      document.body.classList.remove('theme-light', 'theme-warm', 'theme-warm-dark');
+      if (!wasLight) document.body.classList.add('theme-light');
+      localStorage.setItem('theme', wasLight ? 'dark' : 'light');
       updateIcon();
     });
   })();

@@ -4,12 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="Join ExperiMate and start meeting locals or hosting experiences in your city.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sign Up — ExperiMate">
+  <meta property="og:description" content="Join ExperiMate and start meeting locals or hosting experiences in your city.">
+  <meta property="og:image" content="/images/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <title>Register — Experimate</title>
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #020505 !important; --surface: #141414 !important;
+        --surface-2: #1c1c1c !important; --border: #2a2a2a !important;
+        --border-2: #333333 !important; --text: #f2f2f2 !important;
+        --text-2: #c0c0c0 !important; --text-3: #909090 !important;
+        --accent: #00c9a7 !important; --warm: #ff6b35 !important;
+        --accent-dim: rgba(0,201,167,0.12) !important;
+        --accent-border: rgba(0,201,167,0.3) !important;
+      }
+    }
+
     *, *::before, *::after { box-sizing: border-box; }
 
     html, body {
@@ -27,9 +46,10 @@
       padding: 32px 0;
     }
 
-    .orb { position: fixed; border-radius: 50%; filter: blur(90px); opacity: 0.14; pointer-events: none; animation: drift linear infinite; }
-    .orb-1 { width: 500px; height: 500px; background: var(--accent, #00c9a7); top: -180px; right: -100px; animation-duration: 22s; }
-    .orb-2 { width: 300px; height: 300px; background: var(--warm, #ff6b35); bottom: -60px; left: -60px; animation-duration: 28s; animation-delay: -10s; }
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.24; pointer-events: none; animation: drift linear infinite; }
+    .orb-1 { width: 500px; height: 500px; background: var(--accent, var(--accent)); top: -180px; right: -100px; animation-duration: 22s; }
+    .orb-2 { width: 300px; height: 300px; background: var(--warm, var(--warm)); bottom: -60px; left: -60px; animation-duration: 28s; animation-delay: -10s; }
+    .orb-3 { width: 180px; height: 180px; background: var(--warm, var(--warm)); top: 40%; right: -40px; opacity: 0.10; animation-duration: 34s; animation-delay: -18s; }
     @keyframes drift {
       0%   { transform: translate(0, 0) scale(1); }
       33%  { transform: translate(20px, -15px) scale(1.04); }
@@ -40,14 +60,21 @@
     .auth-card {
       position: relative;
       width: min(400px, 92vw);
-      background: rgba(20, 20, 20, 0.75);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border, #222);
-      border-radius: 20px;
+      background: linear-gradient(160deg, rgba(26,26,26,0.93) 0%, rgba(12,12,12,0.88) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top-color: var(--accent-a25);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 22px;
       padding: 36px 32px;
       display: flex; flex-direction: column; gap: 20px;
-      box-shadow: 0 0 0 1px rgba(0,201,167,0.06), 0 32px 64px rgba(0,0,0,0.5);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 0 0 1px var(--accent-a07),
+        0 40px 80px rgba(0,0,0,0.65),
+        0 12px 28px rgba(0,0,0,0.45);
       animation: card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
     @keyframes card-in {
@@ -56,7 +83,7 @@
     }
 
     .auth-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; color: var(--text, #efefef); letter-spacing: -0.03em; }
-    .auth-logo span { color: var(--accent, #00c9a7); }
+    .auth-logo span { color: var(--accent, var(--accent)); }
     .auth-tagline { font-size: 13px; color: var(--text-3, #666); margin-top: 5px; }
     .auth-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 19px; color: var(--text, #efefef); }
     .auth-subtitle { font-size: 13px; color: var(--text-3, #777); margin-top: 4px; }
@@ -64,19 +91,25 @@
     .auth-field { display: flex; flex-direction: column; gap: 6px; }
     .auth-field label { font-size: 11px; color: var(--text-3, #999); letter-spacing: 0.08em; text-transform: uppercase; }
     .auth-field input, .auth-field textarea {
-      background: var(--surface, #1c1c1c);
-      border: 1px solid var(--border-2, #2e2e2e);
+      background: rgba(0,0,0,0.32);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
       border-radius: 10px;
       padding: 13px 16px;
       color: var(--text, #efefef);
       font-family: 'DM Mono', monospace;
       font-size: 13px;
       width: 100%;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.4);
       transition: border-color 0.14s ease, box-shadow 0.14s ease;
+      color-scheme: dark;
     }
     .auth-field input:focus, .auth-field textarea:focus {
-      outline: none; border-color: var(--accent, #00c9a7);
-      box-shadow: 0 0 0 3px rgba(0,201,167,0.12);
+      outline: none;
+      border-color: var(--accent-a50);
+      border-top-color: var(--accent-a30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px var(--accent-a12);
     }
     .auth-field textarea { resize: vertical; min-height: 80px; line-height: 1.6; padding-right: 14px; }
     .auth-field__hint { font-size: 10px; color: var(--text-3, #666); letter-spacing: 0.03em; }
@@ -88,7 +121,7 @@
     .pw-strength__bar--weak   { background: #ff4444; }
     .pw-strength__bar--fair   { background: #ff9944; }
     .pw-strength__bar--good   { background: #44bb44; }
-    .pw-strength__bar--strong { background: var(--accent, #00c9a7); }
+    .pw-strength__bar--strong { background: var(--accent, var(--accent)); }
     .pw-strength__label { font-size: 10px; color: var(--text-3, #777); margin-top: 2px; letter-spacing: 0.04em; }
 
     /* Bio counter */
@@ -102,13 +135,22 @@
     }
 
     .auth-footer { font-size: 13px; color: var(--text-3, #777); text-align: center; }
-    .auth-footer a { color: var(--accent, #00c9a7); text-decoration: none; }
+    .auth-footer a { color: var(--accent, var(--accent)); text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
 
     .btn-register {
-      height: 46px; margin-top: 4px;
-      background: var(--accent, #00c9a7) !important; color: #000 !important;
+      position: relative;
+      height: 46px; margin-top: 4px; overflow: hidden;
+      background: var(--accent, var(--accent)) !important; color: #000 !important;
     }
+    .btn-register::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0% { left: -100%; } 50% { left: 150%; } 100% { left: 150%; } }
     .btn-register:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .auth-field input.input--error { border-color: rgba(255,80,80,0.5) !important; box-shadow: 0 0 0 3px rgba(255,80,80,0.08) !important; }
@@ -119,6 +161,7 @@
 <body>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
 
   <div class="auth-card">
     <div>
@@ -149,9 +192,17 @@
 
       <div class="auth-field">
         <label for="dateOfBirth">Date of birth</label>
-        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required inputmode="numeric">
-        <span class="auth-field__hint">Format: DD/MM/YYYY · Must be 18 or older</span>
+        <input type="text" id="dateOfBirth" name="dateOfBirth" placeholder="DD/MM/YYYY" autocomplete="off" required
+          onclick="(function(el){const t=new Date();t.setFullYear(t.getFullYear()-18);t.setHours(0,0,0,0);DatePicker.open(el,{max:t});})(this)">
+        <span class="auth-field__hint">Type or click to pick · Must be 18 or older</span>
         <span class="field-error" id="err-dob"></span>
+      </div>
+
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" placeholder="your@email.com" required>
+        <span class="auth-field__hint">Used for account verification and recovery</span>
+        <span class="field-error" id="err-email"></span>
       </div>
 
       <div class="auth-field">
@@ -232,7 +283,7 @@
       const labels = ['Weak','Fair','Good','Strong'];
       for (let i = 0; i < score; i++) bars[i].classList.add('pw-strength__bar--' + levels[score - 1]);
       label.textContent = score > 0 ? labels[score - 1] : '';
-      label.style.color = ['#ff4444','#ff9944','#44bb44','#00c9a7'][score - 1] || '#555';
+      label.style.color = ['#ff4444','#ff9944','#44bb44','var(--accent)'][score - 1] || '#555';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -252,38 +303,17 @@
       });
       (function() {
         const dob = document.getElementById('dateOfBirth');
-        dob.addEventListener('keydown', function(e) {
-          if (['Backspace','Delete','Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
-          if (!/^\d$/.test(e.key)) { e.preventDefault(); return; }
-        });
-        dob.addEventListener('input', function() {
-          let digits = this.value.replace(/\D/g, '');
-          if (digits.length > 8) digits = digits.slice(0, 8);
-          if (digits.length > 4) {
-            this.value = digits.slice(0,2) + '/' + digits.slice(2,4) + '/' + digits.slice(4);
-          } else if (digits.length > 2) {
-            this.value = digits.slice(0,2) + '/' + digits.slice(2);
-          } else {
-            this.value = digits;
-          }
-          fieldErr('err-dob', this, null);
-        });
-        dob.addEventListener('blur', function() {
-          // Add leading zeros to single-digit day/month
-          const parts = this.value.split('/');
-          if (parts[0]?.length === 1) parts[0] = parts[0].padStart(2, '0');
-          if (parts[1]?.length === 1) parts[1] = parts[1].padStart(2, '0');
-          this.value = parts.join('/');
-
+        dob.addEventListener('change', function() {
           const val = this.value.trim();
           if (!val) { fieldErr('err-dob', this, 'Required.'); return; }
+          const parts = val.split('/');
           if (parts.length !== 3 || parts[2].length !== 4) { fieldErr('err-dob', this, 'Use DD/MM/YYYY.'); return; }
           const d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
           if (isNaN(d.getTime())) { fieldErr('err-dob', this, 'Invalid date.'); return; }
           const today = new Date();
           let age = today.getFullYear() - d.getFullYear();
-          const m = today.getMonth() - d.getMonth();
-          if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+          const mn = today.getMonth() - d.getMonth();
+          if (mn < 0 || (mn === 0 && today.getDate() < d.getDate())) age--;
           fieldErr('err-dob', this, age < 18 ? 'You must be 18 or older.' : null);
         });
       })();
@@ -344,8 +374,19 @@
             idNumber: crypto.randomUUID(), // TODO: remove when backend makes idNumber optional or generates it server-side
             username,
             password,
+            email: document.getElementById('email').value.trim(),
           });
-          const loginRes = await AuthAPI.login(username, password);
+          // Account created — now auto-login. A 403 here means email not yet verified.
+          let loginRes;
+          try {
+            loginRes = await AuthAPI.login(username, password);
+          } catch (loginErr) {
+            if ((loginErr.message || '').toLowerCase().includes('verif')) {
+              window.location.href = '/login?pending_verification=1';
+              return;
+            }
+            throw loginErr;
+          }
           Auth.saveToken(loginRes.token);
           const users = await UserAPI.getAll();
           const me = users.find(u => u.username === Auth.getUsername());
@@ -367,6 +408,17 @@
           btn.textContent = 'Create account';
         }
       });
+
+      // Pre-fill from Google profile if coming from Google sign-in flow
+      const googleProfile = sessionStorage.getItem('google_profile');
+      if (googleProfile) {
+        try {
+          const p = JSON.parse(googleProfile);
+          if (p.firstName) document.getElementById('firstName').value = p.firstName;
+          if (p.lastName)  document.getElementById('lastName').value  = p.lastName;
+          if (p.email)     document.getElementById('email').value     = p.email;
+        } catch (_) {}
+      }
     });
   </script>
 </body>

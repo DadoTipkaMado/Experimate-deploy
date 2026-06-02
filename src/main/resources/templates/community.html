@@ -4,187 +4,413 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="Join the ExperiMate community. Connect with travellers and locals, share experiences, and discover what's happening near you.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Community — ExperiMate">
+  <meta property="og:description" content="Connect with travellers and locals, share experiences, and discover what's happening near you.">
+  <meta property="og:image" content="/images/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <title>Community — Experimate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    .community-header { padding: 22px 18px 18px; border-bottom: 1px solid var(--border); }
+    /* ── Sticky header ── */
+    .cm-header {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 14px 14px 12px;
+    }
+    .cm-header__title {
+      font-family: var(--font-display); font-weight: 800; font-size: 24px;
+      color: var(--text); letter-spacing: -0.02em; margin-bottom: 10px;
+    }
+    .cm-search {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius-pill); padding: 0 16px; height: 44px;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    }
+    .cm-search:focus-within {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px var(--accent-a08);
+    }
+    .cm-search input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-size: 14px;
+    }
+    .cm-search input::placeholder { color: var(--text-3); }
 
-    /* ── Coming soon hero ── */
-    .cs-hero {
+    /* ── Section divider label ── */
+    .cm-section {
+      padding: 16px 16px 8px;
+      font-family: var(--font-mono); font-size: 9px;
+      color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .cm-section::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Liked chips (stories-style row) ── */
+    .cm-liked-row {
+      display: flex; gap: 14px; padding: 4px 14px 12px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .cm-liked-row::-webkit-scrollbar { display: none; }
+
+    .cm-liked-chip {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      flex-shrink: 0; cursor: pointer; text-decoration: none;
+    }
+    .cm-liked-chip__ring {
+      width: 60px; height: 60px; border-radius: 50%; padding: 2.5px;
+      background: linear-gradient(135deg, var(--accent), var(--warm));
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .cm-liked-chip__inner {
+      width: 100%; height: 100%; border-radius: 50%;
+      overflow: hidden; border: 2px solid var(--bg);
+    }
+    .cm-liked-chip__inner img { width: 100%; height: 100%; object-fit: cover; }
+    .cm-liked-chip__name {
+      font-size: 10px; color: var(--text-2); text-align: center;
+      white-space: nowrap; max-width: 64px; overflow: hidden; text-overflow: ellipsis;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Card grid ── */
+    .cm-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 12px 14px 24px;
+      background: var(--bg);
+    }
+
+    @keyframes cmCardEnter {
+      from { opacity: 0; transform: scale(0.92) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* ── Person card (gradient fill) ── */
+    .cm-card {
       position: relative;
-      padding: 48px 24px 32px;
-      text-align: center;
+      border-radius: 22px;
       overflow: hidden;
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      background: hsl(var(--hue, 160), 30%, 10%);
+      border: 1px solid hsl(var(--hue, 160), 28%, 18%);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+      animation: cmCardEnter 0.4s cubic-bezier(0.32,0.72,0,1) backwards;
+      -webkit-tap-highlight-color: transparent;
     }
-    .cs-hero__orb {
+    .cm-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      border-color: hsl(var(--hue, 160), 45%, 30%);
+      box-shadow:
+        0 22px 50px rgba(0,0,0,0.6),
+        0 6px 16px rgba(0,0,0,0.4),
+        0 0 0 1px hsl(var(--hue, 160), 40%, 25%);
+    }
+    .cm-card:active { transform: scale(0.97); }
+
+    .cm-card__bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(
+        ellipse at 50% 25%,
+        hsl(var(--hue, 160), 48%, 22%) 0%,
+        hsl(var(--hue, 160), 32%, 13%) 50%,
+        hsl(calc(var(--hue, 160) + 35), 26%, 7%) 100%
+      );
+    }
+
+    .cm-card__avatar-wrap {
       position: absolute;
-      border-radius: 50%;
-      filter: blur(70px);
-      pointer-events: none;
-      animation: orb-drift linear infinite;
+      top: 22px; left: 50%;
+      transform: translateX(-50%);
+      width: 70px; height: 70px;
+      border-radius: 50%; overflow: hidden;
+      border: 2.5px solid hsl(var(--hue, 160), 55%, 38%);
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.35), 0 6px 18px rgba(0,0,0,0.45);
     }
-    .cs-hero__orb-1 { width: 300px; height: 300px; background: var(--accent); opacity: 0.07; top: -80px; left: -60px; animation-duration: 20s; }
-    .cs-hero__orb-2 { width: 220px; height: 220px; background: var(--warm); opacity: 0.07; bottom: -40px; right: -40px; animation-duration: 26s; animation-delay: -8s; }
-    @keyframes orb-drift {
-      0%   { transform: translate(0,0) scale(1); }
-      50%  { transform: translate(15px,-10px) scale(1.05); }
-      100% { transform: translate(0,0) scale(1); }
+    .cm-card__avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+    .cm-card__footer {
+      position: relative;
+      padding: 12px 12px 11px;
+      background: linear-gradient(to top,
+        rgba(0,0,0,0.88) 0%,
+        rgba(0,0,0,0.60) 60%,
+        transparent 100%);
     }
 
-    .cs-badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: var(--accent-dim); border: 1px solid var(--accent-border);
-      border-radius: var(--radius-pill); padding: 5px 14px;
-      font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 18px; position: relative; z-index: 1;
+    .cm-card__name {
+      font-family: var(--font-display); font-weight: 800; font-size: 14px;
+      color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: -0.01em; margin-bottom: 1px;
     }
-    .cs-badge__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.8s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-    .cs-title {
-      font-family: var(--font-display); font-weight: 800; font-size: 28px;
-      color: var(--text); letter-spacing: -0.02em; line-height: 1.1;
-      margin-bottom: 12px; position: relative; z-index: 1;
+    .cm-card__handle {
+      font-size: 10px; color: rgba(255,255,255,0.48); margin-bottom: 5px;
     }
-    .cs-title span { color: var(--accent); }
-    .cs-sub {
-      font-size: 13px; color: var(--text-2); line-height: 1.7;
-      max-width: 300px; margin: 0 auto; position: relative; z-index: 1;
+    .cm-card__bio {
+      font-size: 11px; color: rgba(255,255,255,0.68); line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; margin-bottom: 8px;
     }
-
-    /* ── Feature preview cards ── */
-    .cs-features { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-    .cs-feature {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex; align-items: flex-start; gap: 14px;
-      position: relative; overflow: hidden;
-      transition: border-color var(--t-base);
+    .cm-card__meta {
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .cs-feature:hover { border-color: var(--border-2); }
-    .cs-feature--locked::after {
-      content: 'Coming soon';
-      position: absolute; top: 12px; right: 12px;
-      font-size: 9px; color: var(--text-3); letter-spacing: 0.08em; text-transform: uppercase;
-      background: var(--surface-2); border: 1px solid var(--border-2);
-      border-radius: var(--radius-pill); padding: 3px 9px;
+    .cm-card__rating {
+      font-size: 11px; color: var(--accent); font-family: var(--font-mono);
+      letter-spacing: 0.04em;
     }
-
-    .cs-feature__icon {
-      width: 40px; height: 40px; border-radius: var(--radius-sm);
+    .cm-card__heart {
+      width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
+      background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.14);
+      cursor: pointer; color: rgba(255,255,255,0.55);
+      transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+      flex-shrink: 0;
     }
-    .cs-feature__icon--teal { background: var(--accent-dim); border: 1px solid var(--accent-border); }
-    .cs-feature__icon--warm { background: var(--warm-dim); border: 1px solid var(--warm-border); }
-    .cs-feature__icon--muted { background: var(--surface-2); border: 1px solid var(--border-2); }
+    .cm-card__heart:hover { background: rgba(255,77,109,0.22); border-color: rgba(255,77,109,0.35); color: #ff4d6d; }
+    .cm-card__heart--active { color: #ff4d6d; background: rgba(255,77,109,0.18); border-color: rgba(255,77,109,0.32); }
+    .cm-card__heart svg { pointer-events: none; }
 
-    .cs-feature__title {
-      font-family: var(--font-display); font-weight: 700; font-size: 14px;
-      color: var(--text); margin-bottom: 3px;
+    /* ── Light themes: clean, flat, no dark gradients ── */
+    body.theme-light .cm-card, body.theme-warm .cm-card {
+      background: var(--surface);
+      border-color: var(--border-2);
+      box-shadow: var(--shadow-sm);
     }
-    .cs-feature__desc { font-size: 11px; color: var(--text-2); line-height: 1.6; }
+    body.theme-light .cm-card:hover, body.theme-warm .cm-card:hover {
+      border-color: var(--accent-border);
+      box-shadow: var(--shadow-md);
+    }
+    body.theme-light .cm-card__bg, body.theme-warm .cm-card__bg {
+      background: hsl(var(--hue, 160), 46%, 95%);
+    }
+    body.theme-light .cm-card__footer, body.theme-warm .cm-card__footer {
+      background: linear-gradient(to top, var(--surface) 55%, transparent 100%);
+    }
+    body.theme-light .cm-card__name, body.theme-warm .cm-card__name { color: var(--text); }
+    body.theme-light .cm-card__handle, body.theme-warm .cm-card__handle { color: var(--text-3); }
+    body.theme-light .cm-card__bio, body.theme-warm .cm-card__bio { color: var(--text-2); }
+    body.theme-light .cm-card__heart, body.theme-warm .cm-card__heart {
+      background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.10); color: var(--text-3);
+    }
 
-    /* ── Divider ── */
-    .cs-divider {
-      display: flex; align-items: center; gap: 12px;
-      padding: 4px 16px 0; color: var(--text-3);
-      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    /* ── Skeleton cards ── */
+    .cm-skeleton {
+      border-radius: 22px; min-height: 210px;
+      background: var(--surface); border: 1px solid var(--border-2);
+      animation: skelPulse 1.4s ease infinite;
     }
-    .cs-divider::before, .cs-divider::after {
-      content: ''; flex: 1; height: 1px; background: var(--border);
+    @keyframes skelPulse { 0%,100% { opacity:0.4; } 50% { opacity:0.75; } }
+
+    /* ── Empty state ── */
+    .cm-empty {
+      grid-column: 1 / -1;
+      text-align: center; padding: 48px 24px;
+      color: var(--text-3); font-size: 13px; line-height: 1.65;
     }
+    .cm-empty__icon { font-size: 32px; margin-bottom: 10px; opacity: 0.35; }
   </style>
 </head>
 <body>
 <div class="app-shell">
-
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
   <main class="page-content">
-    <div class="community-header">
-      <div class="page-title">Community</div>
-      <div class="page-subtitle">Connect with people who share your vibe</div>
+
+    <div class="cm-header">
+      <div class="cm-header__title">Community</div>
+      <div class="cm-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-3);flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="cm-search-input" placeholder="Search people…" autocomplete="off" autocorrect="off">
+      </div>
     </div>
 
-    <div class="cs-hero">
-      <div class="cs-hero__orb cs-hero__orb-1"></div>
-      <div class="cs-hero__orb cs-hero__orb-2"></div>
-
-      <div class="cs-badge">
-        <div class="cs-badge__dot"></div>
-        In development
-      </div>
-      <div class="cs-title">Your <span>people</span><br>are out there</div>
-      <div class="cs-sub">Communities are launching soon — local groups, shared interests, real meetups.</div>
+    <!-- Liked users -->
+    <div id="cm-liked-section" style="display:none;">
+      <div class="cm-section">Liked</div>
+      <div class="cm-liked-row" id="cm-liked-row"></div>
     </div>
 
-    <div class="cs-divider">What's coming</div>
-
-    <div class="cs-features">
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--teal">🏃</div>
-        <div>
-          <div class="cs-feature__title">Local activity groups</div>
-          <div class="cs-feature__desc">Running clubs, dog walking, cycling — find people doing what you love nearby.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--warm">✈️</div>
-        <div>
-          <div class="cs-feature__title">Travel section</div>
-          <div class="cs-feature__desc">Connect with travellers passing through your city. Be their local guide or join them.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--muted">🎯</div>
-        <div>
-          <div class="cs-feature__title">Interest matching</div>
-          <div class="cs-feature__desc">Get matched with locals who share your interests — not just your location.</div>
-        </div>
-      </div>
-
-      <div class="cs-feature cs-feature--locked">
-        <div class="cs-feature__icon cs-feature__icon--teal">🏆</div>
-        <div>
-          <div class="cs-feature__title">Achievements & ratings</div>
-          <div class="cs-feature__desc">Earn points for hosting, exploring, and connecting. Build your local reputation.</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Bridge CTA — while community launches, point users somewhere useful -->
-    <div style="padding:20px 16px 32px;">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 18px;text-align:center;">
-        <div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:16px;">In the meantime, the best way to meet people is already here.</div>
-        <div style="display:flex;gap:8px;">
-          <a href="/map" class="btn btn--ghost" style="flex:1;min-width:0;height:42px;font-size:11px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:5px;flex-shrink:0;"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-            Explore map
-          </a>
-          <a href="/explore" class="btn btn--primary" style="flex:1;min-width:0;height:42px;font-size:11px;">Browse locals →</a>
-        </div>
+    <!-- Results -->
+    <div id="cm-results-section">
+      <div class="cm-section" id="cm-results-label">People</div>
+      <div class="cm-list" id="cm-list">
+        <div class="cm-skeleton"></div>
+        <div class="cm-skeleton"></div>
+        <div class="cm-skeleton"></div>
+        <div class="cm-skeleton"></div>
       </div>
     </div>
 
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
-
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
+<script>
+(function() {
+  let _liked      = new Set(JSON.parse(localStorage.getItem('liked_users') || '[]'));
+  let _myUsername = typeof Auth !== 'undefined' ? Auth.getUsername() : null;
+  let _searchTimer = null;
+
+  const searchInput  = document.getElementById('cm-search-input');
+  const listEl       = document.getElementById('cm-list');
+  const labelEl      = document.getElementById('cm-results-label');
+  const likedSection = document.getElementById('cm-liked-section');
+  const likedRow     = document.getElementById('cm-liked-row');
+
+  function saveLiked() {
+    localStorage.setItem('liked_users', JSON.stringify([..._liked]));
+  }
+
+  function toggleLike(username, btn) {
+    if (_liked.has(username)) {
+      _liked.delete(username);
+      btn.classList.remove('cm-card__heart--active');
+      btn.querySelector('svg').setAttribute('fill', 'none');
+    } else {
+      _liked.add(username);
+      btn.classList.add('cm-card__heart--active');
+      btn.querySelector('svg').setAttribute('fill', 'currentColor');
+    }
+    saveLiked();
+    renderLiked();
+  }
+
+  function heartSvg(filled) {
+    return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  }
+
+  function avatarEl(user, size) {
+    const photoUrl = user.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
+    const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || user.username?.[0]?.toUpperCase() || '?';
+    const hue = (user.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    if (photoUrl) return `<img src="${photoUrl}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`;
+    return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:${Math.round(size*0.34)}px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+  }
+
+  function renderCard(user, idx) {
+    const isLiked = _liked.has(user.username);
+    const rating  = user.rating > 0 ? `★ ${user.rating.toFixed(1)}` : '';
+    const hue     = (user.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const photoUrl = user.profilePhotoUrl ? UserAPI.photoUrl(user.profilePhotoUrl) : null;
+    const initials = ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || user.username?.[0]?.toUpperCase() || '?';
+    const avatarInner = photoUrl
+      ? `<img src="${photoUrl}" alt="" loading="lazy">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},38%,18%);font-family:var(--font-display);font-weight:800;font-size:24px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+    const delay = Math.min((idx ?? 0) * 50, 400);
+    const div = document.createElement('a');
+    div.className = 'cm-card';
+    div.href = `/profile/${encodeURIComponent(user.username)}`;
+    div.style.cssText = `--hue:${hue};animation-delay:${delay}ms`;
+    div.innerHTML = `
+      <div class="cm-card__bg"></div>
+      <div class="cm-card__avatar-wrap">${avatarInner}</div>
+      <div class="cm-card__footer">
+        <div class="cm-card__name">${escapeHtml((user.firstName + ' ' + user.lastName).trim() || user.username)}</div>
+        <div class="cm-card__handle">@${escapeHtml(user.username)}</div>
+        ${user.bio ? `<div class="cm-card__bio">${escapeHtml(user.bio)}</div>` : ''}
+        <div class="cm-card__meta">
+          <span class="cm-card__rating">${rating}</span>
+          <button class="cm-card__heart${isLiked ? ' cm-card__heart--active' : ''}" data-username="${escapeHtml(user.username)}" title="${isLiked ? 'Unlike' : 'Like'}">${heartSvg(isLiked)}</button>
+        </div>
+      </div>
+    `;
+    div.querySelector('.cm-card__heart').addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      toggleLike(user.username, this);
+    });
+    return div;
+  }
+
+  function renderLikedChip(u) {
+    const photoUrl = u.profilePhotoUrl ? UserAPI.photoUrl(u.profilePhotoUrl) : null;
+    const initials = ((u.firstName?.[0] ?? '') + (u.lastName?.[0] ?? '')).toUpperCase() || '?';
+    const hue = (u.username || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
+    const inner = photoUrl
+      ? `<img src="${photoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:hsl(${hue},35%,20%);font-family:var(--font-display);font-weight:800;font-size:18px;color:hsl(${hue},60%,72%);">${initials}</div>`;
+    return `
+      <a class="cm-liked-chip" href="/profile/${encodeURIComponent(u.username)}">
+        <div class="cm-liked-chip__ring">
+          <div class="cm-liked-chip__inner">${inner}</div>
+        </div>
+        <div class="cm-liked-chip__name">${escapeHtml(u.firstName || u.username)}</div>
+      </a>`;
+  }
+
+  function renderLiked() {
+    if (!_liked.size) { likedSection.style.display = 'none'; return; }
+    likedSection.style.display = '';
+    // Fetch each liked user by username (no longer holding all users in memory)
+    Promise.all([..._liked].map(un => UserAPI.getByUsername(un).catch(() => null)))
+      .then(users => {
+        const valid = users.filter(Boolean).filter(u => u.username !== _myUsername);
+        if (!valid.length) { likedSection.style.display = 'none'; return; }
+        likedRow.innerHTML = valid.map(renderLikedChip).join('');
+      });
+  }
+
+  function renderList(users) {
+    listEl.innerHTML = '';
+    if (!users.length) {
+      listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">🔍</div>No people found.</div>`;
+      return;
+    }
+    users.forEach((u, i) => listEl.appendChild(renderCard(u, i)));
+  }
+
+  function doSearch(query) {
+    const q = query.trim();
+    if (!q) {
+      labelEl.textContent = 'People';
+      listEl.innerHTML = `<div class="cm-empty" style="opacity:0.55;"><div class="cm-empty__icon">🔍</div>Search for people…</div>`;
+      return;
+    }
+    labelEl.textContent = `Results for "${q}"`;
+    listEl.innerHTML = `
+      <div class="cm-card skeleton" style="height:120px;border-radius:18px;"></div>
+      <div class="cm-card skeleton" style="height:120px;border-radius:18px;"></div>`;
+    UserAPI.search(q)
+      .then(users => {
+        const filtered = (users || []).filter(u => u.username !== _myUsername);
+        renderList(filtered);
+      })
+      .catch(() => {
+        listEl.innerHTML = `<div class="cm-empty"><div class="cm-empty__icon">⚠️</div>Could not search — check your connection.</div>`;
+      });
+  }
+
+  searchInput.addEventListener('input', function() {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => doSearch(this.value), 320);
+  });
+
+  // Show empty prompt on load; liked row is populated independently
+  listEl.innerHTML = `<div class="cm-empty" style="opacity:0.55;"><div class="cm-empty__icon">🔍</div>Search for people…</div>`;
+  renderLiked();
+})();
+</script>
 </body>
 </html>

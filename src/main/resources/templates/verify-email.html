@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Verify Email — ExperiMate</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <style>
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #020505 !important; --surface: #141414 !important;
+        --surface-2: #1c1c1c !important; --border: #2a2a2a !important;
+        --border-2: #333333 !important; --text: #f2f2f2 !important;
+        --text-2: #c0c0c0 !important; --text-3: #909090 !important;
+        --accent: #00c9a7 !important; --warm: #ff6b35 !important;
+        --accent-dim: rgba(0,201,167,0.12) !important;
+        --accent-border: rgba(0,201,167,0.3) !important;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: unset !important; overflow: unset !important; background: var(--bg) !important; }
+    body { display: flex !important; align-items: center !important; justify-content: center !important; min-height: 100vh !important; color: var(--text) !important; color-scheme: dark; padding: 32px 0; }
+
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); opacity: 0.22; pointer-events: none; animation: drift linear infinite; }
+    .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -100px; left: -80px; animation-duration: 20s; }
+    .orb-2 { width: 260px; height: 260px; background: var(--warm); bottom: -60px; right: -40px; animation-duration: 26s; animation-delay: -9s; }
+    @keyframes drift { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-15px) scale(1.04)} 66%{transform:translate(-15px,20px) scale(0.97)} 100%{transform:translate(0,0) scale(1)} }
+
+    .auth-card {
+      position: relative; width: min(380px, 92vw);
+      background: linear-gradient(160deg, rgba(26,26,26,0.93) 0%, rgba(12,12,12,0.88) 100%);
+      backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top-color: var(--accent-a25);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 22px; padding: 36px 32px;
+      display: flex; flex-direction: column; gap: 20px; text-align: center;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 0 0 1px var(--accent-a07),
+        0 40px 80px rgba(0,0,0,0.65),
+        0 12px 28px rgba(0,0,0,0.45);
+      animation: card-in 0.5s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes card-in { from { opacity:0; transform:translateY(16px) scale(0.98); } to { opacity:1; transform:none; } }
+
+    .verify-icon {
+      width: 64px; height: 64px; border-radius: 18px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--accent-a12); border: 1px solid var(--accent-a25);
+    }
+    .verify-icon--error {
+      background: rgba(255,80,80,0.10); border-color: rgba(255,80,80,0.25);
+    }
+    .verify-title {
+      font-family: var(--font-display); font-weight: 800; font-size: 22px;
+      color: var(--text); letter-spacing: -0.02em;
+    }
+    .verify-sub { font-size: 13px; color: var(--text-3); line-height: 1.65; }
+    .verify-error {
+      font-size: 12px; color: rgba(255,110,110,0.9); line-height: 1.6;
+    }
+
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--accent-a20);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-resend {
+      height: 46px; border-radius: var(--radius-pill);
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      color: var(--accent); font-family: var(--font-display); font-weight: 700;
+      font-size: 13px; cursor: pointer; width: 100%;
+      transition: background var(--t-fast);
+    }
+    .btn-resend:hover { background: var(--accent); color: #0a0a0a; }
+    .btn-resend:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .back-link {
+      font-size: 12px; color: var(--text-3); text-decoration: none;
+    }
+    .back-link:hover { color: var(--text-2); }
+  </style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="auth-card" id="card">
+
+  <!-- Verifying state (default) -->
+  <div id="state-loading">
+    <div class="spinner"></div>
+    <div class="verify-title">Verifying…</div>
+    <div class="verify-sub">Hang tight while we confirm your email address.</div>
+  </div>
+
+  <!-- Success state -->
+  <div id="state-success" style="display:none; flex-direction:column; gap:16px;">
+    <div class="verify-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="verify-title">Email verified!</div>
+    <div class="verify-sub">Your account is confirmed. Redirecting you to sign in…</div>
+  </div>
+
+  <!-- Error state -->
+  <div id="state-error" style="display:none; flex-direction:column; gap:16px;">
+    <div class="verify-icon verify-icon--error">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,110,110,0.9)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <div class="verify-title">Link invalid or expired</div>
+    <div class="verify-error">This verification link has already been used or has expired. Request a new one below.</div>
+    <button class="btn-resend" id="resend-btn" onclick="resendVerification()">Resend verification email</button>
+    <div id="resend-msg" style="display:none; font-size:12px; color:var(--accent);">Verification email sent — check your inbox.</div>
+  </div>
+
+  <a href="/login" class="back-link">← Back to sign in</a>
+</div>
+
+<script th:src="@{/js/api.js}"></script>
+<script>
+  const token = new URLSearchParams(window.location.search).get('token');
+
+  function show(stateId) {
+    ['state-loading','state-success','state-error'].forEach(id => {
+      const el = document.getElementById(id);
+      el.style.display = el.id === stateId ? 'flex' : 'none';
+    });
+  }
+
+  async function verifyEmail() {
+    if (!token) { show('state-error'); return; }
+
+    try {
+      await fetch('/api/auth/verify-email', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token }),
+      }).then(res => {
+        if (!res.ok) throw new Error(res.status);
+      });
+
+      show('state-success');
+      // Notify the original register/login tab so it can advance itself.
+      try { new BroadcastChannel('experimate-auth').postMessage({ type: 'email-verified' }); } catch (_) {}
+      try { localStorage.setItem('email_verified_at', String(Date.now())); } catch (_) {}
+      const sub = document.querySelector('#state-success .verify-sub');
+      if (sub) sub.textContent = 'Verified! You can close this tab — we’ve picked it up on your original tab.';
+      // Fallback for when this is the only tab (link opened directly).
+      setTimeout(() => {
+        window.location.href = '/login?verified=1';
+      }, 3000);
+    } catch {
+      show('state-error');
+    }
+  }
+
+  async function resendVerification() {
+    const btn = document.getElementById('resend-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      await fetch('/api/auth/resend-verification', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch { /* best effort */ }
+    document.getElementById('resend-msg').style.display = '';
+    btn.style.display = 'none';
+  }
+
+  verifyEmail();
+</script>
+</body>
+</html>

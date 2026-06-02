@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <title>Report a Bug — ExperiMate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
+  <style>
+    .page-content { background: #0a0c0c; }
+    body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+    .report-header { padding: 22px 20px 14px; animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+
+    .report-body {
+      margin: 0 16px 24px;
+      padding: 20px 18px 22px;
+      display: flex; flex-direction: column; gap: 20px;
+      background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.90) 55%, rgba(10,10,10,0.88) 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: var(--accent-a20);
+      animation: fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.08s both;
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        inset 0 -1px 0 rgba(0,0,0,0.45),
+        0 8px 20px rgba(0,0,0,0.55),
+        0 2px 6px rgba(0,0,0,0.4);
+    }
+    body.theme-light .report-body , body.theme-warm .report-body {
+      background: #fff;
+      border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
+      border-bottom-color: rgba(0,0,0,0.10);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07), 0 1px 3px rgba(20,20,30,0.04);
+    }
+
+    .report-field { display: flex; flex-direction: column; gap: 6px; }
+    .report-field__label {
+      font-size: 10px; color: var(--text-2); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+
+    /* Custom dropdown */
+    .custom-select { position: relative; }
+    .custom-select__trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 46px; padding: 0 16px;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
+      border-radius: 10px; color: var(--text-2); font-size: 13px;
+      cursor: pointer; user-select: none;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+    body.theme-light .custom-select__trigger , body.theme-warm .custom-select__trigger {
+      background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12);
+      border-top-color: rgba(0,0,0,0.18); border-bottom-color: rgba(255,255,255,0.6);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .custom-select__trigger--selected { color: var(--text); }
+    .custom-select__trigger--open {
+      border-color: var(--accent-a50);
+      border-top-color: var(--accent-a30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px var(--accent-a12);
+    }
+    .custom-select__chevron { color: var(--text-3); flex-shrink: 0; transition: transform 0.2s; }
+    .custom-select__trigger--open .custom-select__chevron { transform: rotate(180deg); }
+
+    .custom-select__menu {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 50;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top-color: rgba(255,255,255,0.12);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.55), 0 4px 12px rgba(0,0,0,0.4);
+      display: none;
+    }
+    body.theme-light .custom-select__menu , body.theme-warm .custom-select__menu {
+      background: #fff; border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 8px 24px rgba(20,20,30,0.12);
+    }
+    .custom-select__menu--open { display: block; }
+    .custom-select__option {
+      padding: 11px 14px; font-size: 13px; color: var(--text-2); cursor: pointer;
+      transition: background var(--t-fast), color var(--t-fast);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    body.theme-light .custom-select__option , body.theme-warm .custom-select__option { border-bottom-color: rgba(0,0,0,0.06); }
+    .custom-select__option:last-child { border-bottom: none; }
+    .custom-select__option:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    body.theme-light .custom-select__option:hover , body.theme-warm .custom-select__option:hover { background: rgba(0,0,0,0.03); }
+    .custom-select__option--selected { color: var(--accent); background: var(--accent-dim); }
+
+    .report-textarea {
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top-color: rgba(0,0,0,0.45);
+      border-bottom-color: rgba(255,255,255,0.06);
+      border-radius: 10px; color: var(--text);
+      font-family: var(--font-mono); font-size: 13px;
+      padding: 13px 14px; resize: none; line-height: 1.6; min-height: 140px;
+      width: 100%; box-sizing: border-box;
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.38);
+      transition: border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+    body.theme-light .report-textarea , body.theme-warm .report-textarea {
+      background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.12);
+      border-top-color: rgba(0,0,0,0.18); border-bottom-color: rgba(255,255,255,0.6);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .report-textarea:focus {
+      outline: none;
+      border-color: var(--accent-a50);
+      border-top-color: var(--accent-a30);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,0.25), 0 0 0 3px var(--accent-a12);
+    }
+
+    .report-hint { font-size: 10px; color: var(--text-3); line-height: 1.5; }
+
+    .report-submit {
+      position: relative; width: 100%; height: 48px; border-radius: var(--radius-pill);
+      background: var(--accent); border: none; color: #000;
+      font-family: var(--font-display); font-weight: 800; font-size: 14px;
+      cursor: pointer; overflow: hidden;
+      transition: opacity var(--t-fast), transform var(--t-fast);
+    }
+    .report-submit::after {
+      content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0% { left: -100%; } 50% { left: 150%; } 100% { left: 150%; } }
+    .report-submit:active { transform: scale(0.98); }
+    .report-submit:disabled { opacity: 0.4; cursor: default; }
+
+    .report-success {
+      display: none; flex-direction: column; align-items: center;
+      margin: 0 16px; padding: 40px 24px; gap: 14px; text-align: center;
+      background: linear-gradient(170deg, var(--surface-2) 0%, var(--surface) 55%, #0f0f0f 100%);
+      border: 1px solid var(--border-2);
+      border-top-color: rgba(255,255,255,0.10);
+      border-bottom-color: rgba(0,0,0,0.55);
+      border-radius: 18px;
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.13),
+        0 8px 20px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.4);
+    }
+    body.theme-light .report-success , body.theme-warm .report-success {
+      background: #fff; border-color: rgba(0,0,0,0.07);
+      border-top-color: rgba(255,255,255,0.9);
+      box-shadow: 0 2px 8px rgba(20,20,30,0.07);
+    }
+    .report-success__icon {
+      width: 64px; height: 64px; border-radius: 20px;
+      background: var(--accent-dim); border: 1px solid var(--accent-border);
+      display: flex; align-items: center; justify-content: center; color: var(--accent);
+    }
+    .report-success--visible { display: flex; }
+    .report-body--hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+  <main class="page-content">
+
+    <div class="report-header">
+      <div class="page-title" style="margin:0;">Report a Bug</div>
+      <div class="page-subtitle" style="margin:0;">Help us fix what's broken</div>
+    </div>
+
+    <div class="report-body" id="report-body">
+
+      <div class="report-field">
+        <div class="report-field__label">Category</div>
+        <div class="custom-select" id="category-select">
+          <div class="custom-select__trigger" id="category-trigger" onclick="toggleDropdown()">
+            <span id="category-label" style="color:var(--text-3);">Select a category…</span>
+            <svg class="custom-select__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="custom-select__menu" id="category-menu">
+            <div class="custom-select__option" onclick="selectCategory('map','Map &amp; pins')">Map &amp; pins</div>
+            <div class="custom-select__option" onclick="selectCategory('listings','Listings &amp; meets')">Listings &amp; meets</div>
+            <div class="custom-select__option" onclick="selectCategory('auth','Login &amp; account')">Login &amp; account</div>
+            <div class="custom-select__option" onclick="selectCategory('explore','Explore &amp; search')">Explore &amp; search</div>
+            <div class="custom-select__option" onclick="selectCategory('requests','Requests &amp; bookings')">Requests &amp; bookings</div>
+            <div class="custom-select__option" onclick="selectCategory('profile','Profile &amp; settings')">Profile &amp; settings</div>
+            <div class="custom-select__option" onclick="selectCategory('notifications','Notifications')">Notifications</div>
+            <div class="custom-select__option" onclick="selectCategory('performance','Performance &amp; crashes')">Performance &amp; crashes</div>
+            <div class="custom-select__option" onclick="selectCategory('other','Other')">Other</div>
+          </div>
+        </div>
+        <input type="hidden" id="bug-category">
+      </div>
+
+      <div class="report-field">
+        <div class="report-field__label">What happened?</div>
+        <textarea class="report-textarea" id="bug-description" placeholder="Describe what you did, what you expected, and what actually happened…" maxlength="1000"></textarea>
+        <div class="report-hint" id="char-count" style="text-align:right;">0 / 1000</div>
+      </div>
+
+      <div class="report-field">
+        <div class="report-field__label">Steps to reproduce <span style="font-size:10px;letter-spacing:0;text-transform:none;">(optional)</span></div>
+        <textarea class="report-textarea" id="bug-steps" placeholder="1. Go to …&#10;2. Tap …&#10;3. See error" style="min-height:90px;" maxlength="500"></textarea>
+      </div>
+
+      <button class="report-submit" id="report-submit-btn" onclick="submitReport()">Send report</button>
+
+    </div>
+
+    <div class="report-success" id="report-success">
+      <div class="report-success__icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div style="font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--text);">Thanks for the report!</div>
+      <div style="font-size:13px;color:var(--text-3);line-height:1.65;max-width:260px;">We got it. If it's reproducible we'll squash it in the next build.</div>
+      <a href="/settings" class="btn btn--ghost" style="margin-top:8px;height:42px;padding:0 24px;font-size:13px;">Back to settings</a>
+    </div>
+
+  </main>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/api.js}"></script>
+<script>
+  let _category = '';
+
+  function toggleDropdown() {
+    const trigger = document.getElementById('category-trigger');
+    const menu    = document.getElementById('category-menu');
+    const isOpen  = menu.classList.toggle('custom-select__menu--open');
+    trigger.classList.toggle('custom-select__trigger--open', isOpen);
+  }
+
+  function selectCategory(value, label) {
+    _category = value;
+    document.getElementById('bug-category').value = value;
+    const labelEl = document.getElementById('category-label');
+    labelEl.textContent = label;
+    labelEl.style.color = '';
+    document.querySelectorAll('.custom-select__option').forEach(o => o.classList.remove('custom-select__option--selected'));
+    event.currentTarget.classList.add('custom-select__option--selected');
+    document.getElementById('category-menu').classList.remove('custom-select__menu--open');
+    document.getElementById('category-trigger').classList.remove('custom-select__trigger--open');
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('category-select').contains(e.target)) {
+      document.getElementById('category-menu').classList.remove('custom-select__menu--open');
+      document.getElementById('category-trigger').classList.remove('custom-select__trigger--open');
+    }
+  });
+
+  document.getElementById('bug-description').addEventListener('input', function() {
+    document.getElementById('char-count').textContent = this.value.length + ' / 1000';
+  });
+
+  async function submitReport() {
+    const category    = document.getElementById('bug-category').value;
+    const description = document.getElementById('bug-description').value.trim();
+
+    if (!category)    { showToast('Please select a category.', 'error'); return; }
+    if (!description) { showToast('Please describe the bug.', 'error'); return; }
+
+    const btn = document.getElementById('report-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    const userId   = Auth.getUserId();
+    const username = Auth.getUsername() || 'anonymous';
+    const steps    = document.getElementById('bug-steps').value.trim();
+
+    const body = [
+      `**User:** ${username} (id: ${userId ?? 'n/a'})`,
+      `**Category:** ${category}`,
+      '',
+      `**Description:**`,
+      description,
+      steps ? `\n**Steps to reproduce:**\n${steps}` : '',
+      '',
+      `_Submitted: ${new Date().toISOString()}_`,
+    ].join('\n');
+
+    const mailto = `mailto:vito.strmecki@gmail.com`
+      + `?subject=${encodeURIComponent('[ExperiMate Bug] ' + category)}`
+      + `&body=${encodeURIComponent(body)}`;
+
+    try { window.location.href = mailto; } catch(e) { /* ignore */ }
+
+    setTimeout(() => {
+      document.getElementById('report-body').classList.add('report-body--hidden');
+      document.getElementById('report-success').classList.add('report-success--visible');
+    }, 600);
+  }
+</script>
+</body>
+</html>

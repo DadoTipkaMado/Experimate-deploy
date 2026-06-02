@@ -16,6 +16,7 @@ ExperiMate is a full-stack social web platform that connects people who want to 
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [API Reference](#api-reference)
+- [Testing](#testing)
 - [Roadmap](#roadmap)
 - [Team](#team)
 
@@ -60,14 +61,16 @@ The application follows a **mobile-first, progressive web app** philosophy — i
 
 | Layer | Technology                                                    |
 |---|---------------------------------------------------------------|
-| Backend | Java 21, Spring Boot 4, Spring Security, Spring Data JPA      |
-| Database | PostgreSQL (local)                                            |
+| Backend | Java 25, Spring Boot 4, Spring Security, Spring Data JPA      |
+| Database | PostgreSQL 16 + Flyway migrations                             |
 | Auth | JWT (jjwt 0.12) + HTTP-only refresh token cookie              |
+| AI | Spring AI (Anthropic Claude)                                  |
 | Frontend | Thymeleaf templates, Vanilla JS (no framework, no build step) |
 | Map | Leaflet.js + Leaflet.markercluster                            |
 | Geocoding | Nominatim (OpenStreetMap)                                     |
 | API Docs | SpringDoc OpenAPI / Swagger UI                                |
 | Build | Maven (Maven Wrapper included)                                |
+| Testing | JUnit 5, Testcontainers, Maven Failsafe                       |
 
 ---
 
@@ -79,34 +82,41 @@ ExperiMate/
 │   ├── main/
 │   │   ├── java/hr/tvz/experimate/experimate/
 │   │   │   ├── ExperiMateApplication.java          # Entry point
-│   │   │   ├── config/
-│   │   │   │   └── SecurityConfig.java             # Spring Security + JWT filter chain
-│   │   │   ├── controller/                         # REST API controllers
+│   │   │   ├── config/                             # Spring configuration beans
+│   │   │   │   ├── SecurityConfig.java             # Spring Security + JWT filter chain
+│   │   │   │   ├── AiConfig.java                   # Spring AI / Anthropic setup
+│   │   │   │   └── OpenApiConfig.java              # Swagger / SpringDoc config
+│   │   │   ├── security/                           # JWT service, auth filter, UserDetails
 │   │   │   │   ├── AuthController.java             # POST /api/auth/login, /refresh
-│   │   │   │   ├── UserController.java             # CRUD /api/user
-│   │   │   │   ├── TourListingController.java      # CRUD /api/tour-listing
-│   │   │   │   ├── ReservationController.java      # /api/reservation + check-in/end/cancel
-│   │   │   │   ├── BookingRequestController.java   # /api/booking-request + accept/decline
-│   │   │   │   └── RatingController.java           # CRUD /api/rating
-│   │   │   ├── model/                              # Domain model (entity + service + repo + DTOs)
-│   │   │   │   ├── user/
+│   │   │   │   ├── AuthService.java
+│   │   │   │   ├── JwtService.java
+│   │   │   │   ├── JwtAuthFilter.java
+│   │   │   │   └── AppUserDetailsService.java
+│   │   │   ├── domain/                             # All business domains
+│   │   │   │   ├── user/                           # Entity, service, repo, controller, dto, response, exception
 │   │   │   │   ├── tour_listing/
 │   │   │   │   ├── reservation/
 │   │   │   │   ├── booking_request/
 │   │   │   │   ├── rating/
 │   │   │   │   ├── refresh_token/
-│   │   │   │   └── shared/                         # DTOs, events, exceptions, utilities
-│   │   │   ├── security/                           # JWT service, auth filter, UserDetails
+│   │   │   │   ├── onboarding/                     # Big Five personality quiz
+│   │   │   │   ├── match/                          # AI-powered user matching
+│   │   │   │   └── ai/                             # AI prompt service
 │   │   │   └── view/                               # Thymeleaf view controllers (no business logic)
 │   │   │       ├── AuthViewController.java
 │   │   │       ├── MapController.java
 │   │   │       ├── ExploreController.java
 │   │   │       ├── TourListingViewController.java
 │   │   │       ├── AccountViewController.java
-│   │   │       └── CommunityViewController.java
+│   │   │       ├── MeetViewController.java
+│   │   │       ├── CommunityViewController.java
+│   │   │       └── LandingViewController.java
 │   │   └── resources/
-│   │       ├── application.properties              # DB, JWT, refresh token config
+│   │       ├── application.properties              # Base config (JWT, JPA, Flyway)
+│   │       ├── application-local.properties        # Local dev overrides (datasource, API keys)
+│   │       ├── application-prod.properties         # Production overrides
 │   │       ├── logback-spring.xml                  # Structured logging (console + rotating files)
+│   │       ├── db/migration/                       # Flyway SQL migrations (V1__init.sql, ...)
 │   │       ├── static/
 │   │       │   ├── css/
 │   │       │   │   └── main.css                    # Design tokens, components, responsive layout
@@ -135,6 +145,13 @@ ExperiMate/
 │   │           ├── requests.html
 │   │           ├── ratings.html
 │   │           └── community.html
+│   └── test/
+│       ├── java/hr/tvz/experimate/experimate/
+│       │   ├── AbstractIntegrationTest.java        # Base class for all IT tests
+│       │   └── domain/
+│       │       └── user/UserIT.java
+│       └── resources/
+│           └── application-test.properties         # Test profile (dummy keys, no datasource URL)
 ├── http/
 │   └── requests.http                               # HTTP request scratch file for manual API testing
 ├── pom.xml
@@ -154,11 +171,12 @@ ExperiMate/
 
 | Requirement | Minimum version                                    |
 |---|----------------------------------------------------|
-| Java (JDK) | 21                                                 |
+| Java (JDK) | 25                                                 |
 | Maven | 3.9+ (or use the included `mvnw` wrapper)          |
+| Docker Desktop | Latest                                             |
 | Browser | Any modern browser (Chrome, Firefox, Safari, Edge) |
 
-Requires Docker — PostgreSQL runs as a Docker container. Start it with the provided docker run command before launching the application.
+Docker Desktop is required for two things: running the local PostgreSQL container for development, and running integration tests (Testcontainers automatically spins up a separate PostgreSQL container during `mvn verify`).
 
 ---
 
@@ -220,7 +238,6 @@ Navigate to [http://localhost:8080](http://localhost:8080) — you will be redir
 | Requests | `/requests` | Accept or decline incoming booking requests (host) |
 | Account | `/account` | View stats, bio, ratings; edit profile |
 | API Docs | `/swagger-ui/index.html` | Interactive Swagger UI for all REST endpoints |
-| H2 Console | `/h2-console` | Inspect the database directly |
 
 ---
 
@@ -228,14 +245,23 @@ Navigate to [http://localhost:8080](http://localhost:8080) — you will be redir
 
 All configurable values live in `src/main/resources/application.properties`.
 
+Local development configuration lives in `src/main/resources/application-local.properties` (not committed — create it from the template below).
+
+| Property | Description |
+|---|---|
+| `spring.datasource.url` | PostgreSQL JDBC URL — e.g. `jdbc:postgresql://localhost:5432/experimateDb` |
+| `spring.datasource.username` | PostgreSQL username |
+| `spring.datasource.password` | PostgreSQL password |
+| `jwt.secret` | Base64-encoded HMAC-SHA256 signing key (≥ 256 bits / 32 bytes decoded) |
+| `spring.ai.anthropic.api-key` | Anthropic API key — required for AI matching features |
+
+Base config properties (in `application.properties`, safe to leave as-is for development):
+
 | Property | Default | Description |
 |---|---|---|
-| `jwt.secret` | *(required)* | Base64-encoded HMAC-SHA256 signing key (≥ 256 bits) |
-| `jwt.expiration` | `300000` | Access token lifetime in milliseconds (default: 5 min) |
-| `refresh-token.expiration` | `604800000` | Refresh token lifetime in milliseconds (default: 7 days) |
-| `spring.datasource.url` | *(required)* | H2 JDBC URL — use `~/experimateDb` for a home-directory file |
-| `spring.jpa.hibernate.ddl-auto` | `update` | Schema strategy — `update` is safe for development |
-| `spring.h2.console.enabled` | `true` | Enables the H2 web console at `/h2-console` |
+| `jwt.expiration` | `300000` | Access token lifetime in milliseconds (5 min) |
+| `refresh-token.expiration` | `604800000` | Refresh token lifetime in milliseconds (7 days) |
+| `spring.jpa.hibernate.ddl-auto` | `validate` | Hibernate validates schema — Flyway manages all DDL |
 
 ---
 
@@ -255,6 +281,24 @@ The full API is documented via Swagger UI at `/swagger-ui/index.html` when the a
 | Ratings | `GET/POST /api/rating`, `GET/PATCH/DELETE /api/rating/{id}` |
 
 All `/api/**` endpoints except `POST /api/auth/login` and `POST /api/user` require a valid `Authorization: Bearer <token>` header.
+
+---
+
+## Testing
+
+Integration tests use a real PostgreSQL instance via Testcontainers — no mocks, no in-memory database. Docker Desktop must be running.
+
+```bash
+mvn verify
+```
+
+Unit tests (`*Test.java`) run during the `test` phase. Integration tests (`*IT.java`) run during the `integration-test` phase via Maven Failsafe.
+
+All integration tests extend `AbstractIntegrationTest`, which provides:
+- A shared PostgreSQL container (started once per test class)
+- A `TestRestTemplate` wired to the random server port
+- A mocked `ChatClient` so Spring AI never calls the Anthropic API
+- A `@BeforeEach` hook that truncates all tables so each test starts with a clean database
 
 ---
 

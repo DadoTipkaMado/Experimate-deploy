@@ -1,10 +1,11 @@
 package hr.tvz.experimate.experimate.security;
 
-import hr.tvz.experimate.experimate.model.refresh_token.RefreshTokenService;
-import hr.tvz.experimate.experimate.model.shared.response.TokenResponse;
-import hr.tvz.experimate.experimate.model.user.User;
-import hr.tvz.experimate.experimate.model.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.model.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.refresh_token.RefreshTokenService;
+import hr.tvz.experimate.experimate.shared.exception.EmailNotVerifiedException;
+import hr.tvz.experimate.experimate.shared.response.TokenResponse;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,6 +38,10 @@ public class AuthService {
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 
+        // credentials are valid — now block unverified accounts before issuing tokens
+        if (!user.isEmailVerified())
+            throw new EmailNotVerifiedException("Email not verified. Check your inbox or request a new verification link.");
+
         log.info("User {} logged in successfully.", user.getUsername());
         log.debug("Log in successful, generating new JWT");
         return new TokenResponse(
@@ -46,8 +51,18 @@ public class AuthService {
     }
 
     public TokenResponse refreshAccessToken(String refreshToken){
-
         return refreshTokenService.rotateAccessToken(refreshToken);
+    }
+
+    /**
+     * Invalidates the given refresh token, effectively logging the user out.
+     * If the token does not exist in the database, the operation completes silently.
+     *
+     * @param refreshToken the raw refresh token string extracted from the client cookie
+     */
+    public void logout(String refreshToken) {
+        refreshTokenService.invalidateToken(refreshToken);
+        log.info("User logged out.");
     }
 
 }

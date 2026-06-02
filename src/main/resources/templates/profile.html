@@ -8,101 +8,211 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <title>Profile — Experimate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/main.css}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
-    /* ── Nav ── */
-    .profile-nav {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 18px; position: relative; z-index: 2;
+    @keyframes profileFadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .profile-nav__back { color: var(--text-3); text-decoration: none; font-size: 22px; line-height: 1; padding: 2px 4px; }
-    .profile-nav__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--text); }
-    .profile-nav__edit { margin-left: auto; font-size: 10px; color: var(--accent); text-decoration: none; letter-spacing: 0.06em; padding: 5px 12px; border: 1px solid var(--accent-border); border-radius: var(--radius-pill); background: var(--accent-dim); }
+    @keyframes orbDrift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%       { transform: translate(8px, -6px) scale(1.06); }
+    }
 
-    /* ── Cover ── */
+    /* ── Cover banner ── */
     .profile-cover {
-      height: 110px; position: relative; overflow: hidden; flex-shrink: 0;
-      margin-top: -56px; /* pull up behind nav */
+      height: 160px; position: relative; overflow: hidden; flex-shrink: 0;
     }
-    .profile-cover__gradient { position: absolute; inset: 0; }
-    .profile-cover__overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, var(--bg) 100%); }
+    .profile-cover__bg { position: absolute; inset: 0; }
+    .profile-cover__orb {
+      position: absolute; border-radius: 50%; filter: blur(52px); opacity: 0.38;
+      animation: orbDrift 7s ease-in-out infinite;
+    }
+    .profile-cover__orb:nth-child(3) { animation-delay: -3s; }
+    .profile-cover__orb:nth-child(4) { animation-delay: -5s; animation-duration: 9s; }
+    .profile-cover__fade {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 20%, var(--bg) 100%);
+    }
+    .profile-cover__shine {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
 
     /* ── Hero ── */
     .profile-hero {
-      padding: 0 20px 20px;
+      padding: 0 20px 24px;
       display: flex; flex-direction: column; align-items: center;
-      text-align: center; gap: 6px;
-      border-bottom: 1px solid var(--border);
-      position: relative; z-index: 1;
+      text-align: center; position: relative; z-index: 1;
+      animation: profileFadeUp 0.5s ease both;
     }
     .profile-avatar-wrap {
-      margin-top: -44px; position: relative;
+      margin-top: -50px; position: relative; margin-bottom: 16px;
+    }
+    .profile-avatar-glow {
+      position: absolute; inset: -16px; border-radius: 50%;
+      opacity: 0.5; filter: blur(20px);
+      pointer-events: none;
     }
     .profile-avatar {
-      width: 88px; height: 88px; border-radius: 50%;
-      background: var(--surface-2);
-      border: 3px solid var(--bg);
+      width: 100px; height: 100px; border-radius: 50%;
+      background: var(--surface-2); border: 3px solid var(--bg);
       display: flex; align-items: center; justify-content: center;
-      font-size: 30px; overflow: hidden; position: relative; z-index: 1;
+      overflow: hidden; position: relative; z-index: 1;
     }
     .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .profile-avatar__ring {
-      position: absolute; inset: -4px; border-radius: 50%;
-      border: 2.5px solid transparent;
+      position: absolute; inset: -6px; border-radius: 50%;
+      border: 3px solid transparent;
       background: linear-gradient(var(--bg), var(--bg)) padding-box,
                   linear-gradient(135deg, var(--accent), var(--warm)) border-box;
     }
-    .profile-name { font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: -0.01em; color: var(--text); margin-top: 8px; }
-    .profile-handle { font-size: 11px; color: var(--text-3); letter-spacing: 0.08em; }
 
-    /* ── Trait pills ── */
-    .profile-traits { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+    .profile-name {
+      font-family: var(--font-display); font-weight: 800; font-size: 24px;
+      letter-spacing: -0.02em; color: var(--text); margin-bottom: 3px;
+    }
+    .profile-handle {
+      font-size: 11px; color: var(--text-3); letter-spacing: 0.08em;
+      margin-bottom: 16px; font-family: var(--font-mono);
+    }
+
+    /* ── Trait cards ── */
+    .profile-traits {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      width: 100%; margin-bottom: 16px;
+    }
     .profile-trait {
-      font-size: 10px; letter-spacing: 0.06em; padding: 4px 12px;
-      border-radius: 20px; font-family: var(--font-mono);
+      display: flex; flex-direction: column; gap: 7px;
+      padding: 16px; border-radius: 18px;
+      position: relative; overflow: hidden;
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+      animation: profileFadeUp 0.5s ease both;
     }
-    .profile-trait--teal { background: rgba(0,201,167,0.12); border: 1px solid rgba(0,201,167,0.3); color: #00c9a7; }
-    .profile-trait--warm { background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.3); color: var(--warm); }
-    .profile-trait--muted { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text-2); }
+    .profile-trait:nth-child(1) { animation-delay: 0.06s; }
+    .profile-trait:nth-child(2) { animation-delay: 0.12s; }
+    .profile-trait:nth-child(3) { animation-delay: 0.18s; }
+    .profile-trait:active { transform: scale(0.97); }
+    .profile-trait__icon { font-size: 26px; line-height: 1; }
+    .profile-trait__name {
+      font-family: var(--font-display); font-weight: 800; font-size: 13px;
+      color: var(--text); letter-spacing: -0.01em;
+    }
+    .profile-trait:last-child:nth-child(odd) { grid-column: span 2; }
+    .profile-trait__desc { font-size: 11px; color: var(--text-3); line-height: 1.4; }
+    .profile-trait--teal {
+      background: var(--accent-a08); border: 1px solid var(--accent-a22);
+      box-shadow: inset 0 1px 0 var(--accent-a10);
+    }
+    .profile-trait--teal .profile-trait__name { color: var(--accent); }
+    .profile-trait--warm {
+      background: var(--warm-a08); border: 1px solid var(--warm-a22);
+      box-shadow: inset 0 1px 0 var(--warm-a10);
+    }
+    .profile-trait--warm .profile-trait__name { color: var(--warm); }
+    .profile-trait--muted {
+      background: var(--surface-2); border: 1px solid var(--border-2);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
 
-    /* ── Stats row ── */
+    /* ── Stats card ── */
     .profile-stats {
-      display: flex; width: 100%; margin-top: 12px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); overflow: hidden;
+      display: flex; width: 100%;
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 18px;
+      overflow: hidden; margin-bottom: 14px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+      animation: profileFadeUp 0.5s 0.22s ease both;
     }
-    .profile-stat { flex: 1; text-align: center; padding: 12px 8px; border-right: 1px solid var(--border); }
+    .profile-stat {
+      flex: 1; text-align: center; padding: 18px 8px 16px;
+      border-right: 1px solid var(--border); position: relative;
+    }
     .profile-stat:last-child { border-right: none; }
-    .profile-stat__num { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--text); line-height: 1; }
-    .profile-stat__num--accent { color: var(--accent); }
-    .profile-stat__label { font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 3px; }
+    .profile-stat__icon { font-size: 16px; margin-bottom: 8px; opacity: 0.75; }
+    .profile-stat__num {
+      font-family: var(--font-display); font-weight: 800; font-size: 26px;
+      color: var(--text); line-height: 1; margin-bottom: 5px;
+    }
+    .profile-stat__num--accent {
+      color: var(--accent);
+      text-shadow: 0 0 20px var(--accent-a35);
+    }
+    .profile-stat__label {
+      font-size: 9px; color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+    }
 
-    /* ── Action row ── */
-    .profile-actions { display: flex; gap: 8px; width: 100%; margin-top: 14px; }
+    /* ── Actions ── */
+    .profile-actions {
+      display: flex; gap: 8px; width: 100%;
+      animation: profileFadeUp 0.5s 0.28s ease both;
+    }
 
-    /* ── Bio ── */
-    .profile-bio { padding: 18px 20px; border-bottom: 1px solid var(--border); }
-    .profile-bio__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
-    .profile-bio__text { font-size: 12px; line-height: 1.8; color: var(--text-2); }
-    .profile-bio__empty { font-size: 12px; color: var(--text-3); font-style: italic; }
+    /* ── Content sections ── */
+    .profile-section { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .profile-section__label {
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
+    }
+    .profile-section__text { font-size: 13px; line-height: 1.8; color: var(--text-2); }
+    .profile-section__empty { font-size: 13px; color: var(--text-3); font-style: italic; }
 
-    /* ── Listings ── */
+    /* ── Memories map ── */
+    .profile-memories { border-bottom: 1px solid var(--border); }
+    .profile-memories__header { padding: 18px 20px 12px; display: flex; align-items: center; justify-content: space-between; }
+    .profile-memories__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+    .profile-memories__count { font-family: var(--font-mono); font-size: 9px; color: var(--accent); letter-spacing: 0.08em; }
+    #memories-map { height: 200px; width: 100%; background: #0d0d0d; }
+    .memories-empty { padding: 28px 20px; font-size: 13px; color: var(--text-3); font-style: italic; text-align: center; }
+    .leaflet-container { background: var(--bg) !important; }
+    .leaflet-control-attribution { display: none !important; }
+    .mem-popup .leaflet-popup-content-wrapper { background: var(--surface); border: 1px solid var(--border-2); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); color: var(--text); }
+    .mem-popup .leaflet-popup-tip { background: var(--surface); }
+    .mem-popup .leaflet-popup-content { margin: 10px 14px; font-size: 12px; line-height: 1.6; }
+    .mem-popup .leaflet-popup-close-button { color: var(--text-3); }
+
+    /* ── Listing cards ── */
     .profile-section-label { padding: 18px 20px 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
-    .profile-listings { display: flex; flex-direction: column; gap: 12px; padding: 0 18px 40px; }
-    .profile-listing-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .profile-listings { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 40px; }
+    .profile-listing-card {
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 18px;
+      padding: 16px; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+    }
+    .profile-listing-card:active { transform: scale(0.98); }
     .profile-listing-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-    .profile-listing-card__city { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text); }
-    .profile-listing-card__date { font-size: 10px; color: var(--text-3); letter-spacing: 0.05em; flex-shrink: 0; }
-    .profile-listing-card__desc { font-size: 11px; color: var(--text-2); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .profile-listing-card__city { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+    .profile-listing-card__date { font-size: 10px; color: var(--text-3); letter-spacing: 0.05em; flex-shrink: 0; font-family: var(--font-mono); }
+    .profile-listing-card__desc { font-size: 12px; color: var(--text-2); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .profile-listing-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .profile-listing-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--accent); flex-shrink: 0; }
-    .profile-listing-card__status-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+    .profile-listing-card__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); flex-shrink: 0; }
+    .profile-listing-card__status { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
     .profile-listing-card__actions { display: flex; gap: 6px; }
 
+    /* ── Review cards ── */
+    .profile-reviews { padding: 0 16px 8px; display: flex; flex-direction: column; gap: 10px; }
+    .review-card {
+      background: var(--surface); border: 1px solid var(--border-2); border-radius: 18px;
+      padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .review-card__stars { display: flex; gap: 3px; }
+    .review-card__star { font-size: 13px; color: var(--accent); opacity: 0.2; }
+    .review-card__star--lit { opacity: 1; }
+    .review-card__from { font-size: 10px; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
+    .review-card__from-name { color: var(--text-2); font-weight: 600; }
+    .review-card__text { font-size: 12px; color: var(--text-2); line-height: 1.7; }
+    .review-card__empty-text { font-size: 10px; color: var(--text-3); font-style: italic; }
+
     /* ── Empty / not found ── */
-    .profile-empty { display: flex; flex-direction: column; align-items: center; padding: 36px 24px; gap: 10px; text-align: center; }
+    .profile-empty { display: flex; flex-direction: column; align-items: center; padding: 40px 24px; gap: 10px; text-align: center; }
     .profile-empty__icon { font-size: 28px; opacity: 0.18; }
-    .profile-empty__sub { font-size: 11px; color: var(--text-3); line-height: 1.6; }
+    .profile-empty__sub { font-size: 12px; color: var(--text-3); line-height: 1.6; }
     .not-found { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 24px; gap: 12px; text-align: center; }
     .not-found__icon { font-size: 40px; opacity: 0.15; }
     .not-found__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-2); }
@@ -115,24 +225,21 @@
   <div th:replace="~{fragments/topbar :: topbar}"></div>
 
   <main class="page-content" id="profile-main" style="overflow-y:auto;">
-    <!-- Skeleton -->
-    <div class="profile-nav">
-      <div class="profile-nav__title">Profile</div>
-    </div>
-    <div style="height:110px;background:var(--surface-2);"></div>
-    <div style="padding:0 20px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;border-bottom:1px solid var(--border);">
-      <div class="skeleton" style="width:88px;height:88px;border-radius:50%;margin-top:-44px;"></div>
+    <!-- Initial skeleton -->
+    <div style="height:160px;background:var(--surface-2);"></div>
+    <div style="padding:0 20px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+      <div class="skeleton" style="width:100px;height:100px;border-radius:50%;margin-top:-50px;"></div>
       <div class="skeleton skeleton-line skeleton-line--lg" style="width:140px;"></div>
       <div class="skeleton skeleton-line skeleton-line--sm" style="width:90px;"></div>
     </div>
   </main>
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
-
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script th:src="@{/js/main.js}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script th:src="@{/js/api.js}"></script>
 <script th:inline="none">
   const _profileUsername = window.location.pathname.split('/').filter(Boolean).pop();
@@ -142,12 +249,28 @@
     window.location.href = '/map';
   }
 
-  function _seedTraits(username) {
-    const pool = ['Curious','Adventurous','Calm','Thoughtful','Warm','Creative','Bold','Organised','Spontaneous','Empathetic'];
-    const h = username.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return [pool[h % pool.length], pool[(h * 3 + 1) % pool.length], pool[(h * 7 + 5) % pool.length]]
-      .filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
-  }
+  const TRAIT_META = {
+    'Curious':        { icon: '🔍', desc: 'Always asking why' },
+    'Adventurous':    { icon: '🧭', desc: 'Ready for anything' },
+    'Calm':           { icon: '🌊', desc: 'Cool under pressure' },
+    'Thoughtful':     { icon: '💭', desc: 'Reads between the lines' },
+    'Warm':           { icon: '☀️', desc: 'Brings good energy' },
+    'Creative':       { icon: '✨', desc: 'Sees things differently' },
+    'Bold':           { icon: '⚡', desc: 'Never holds back' },
+    'Organised':      { icon: '📋', desc: 'Always one step ahead' },
+    'Grounded':       { icon: '🌱', desc: 'Steady and real' },
+    'Enthusiastic':   { icon: '🔥', desc: 'Energy for everything' },
+    'Direct':         { icon: '🎯', desc: 'Says it like it is' },
+    'Empathetic':     { icon: '🤝', desc: 'Feels what others feel' },
+    'Analytical':     { icon: '🔬', desc: 'Breaks it all down' },
+    'Spontaneous':    { icon: '🎲', desc: 'Decides in the moment' },
+    'Reliable':       { icon: '🔒', desc: 'Always shows up' },
+    'Open-minded':    { icon: '🌍', desc: 'Every view has merit' },
+    'Introverted':    { icon: '🎧', desc: 'Recharges in quiet' },
+    'Extroverted':    { icon: '🎉', desc: 'Fuelled by people' },
+    'Funny':          { icon: '😄', desc: 'Finds the laugh in it' },
+    'Serious':        { icon: '🧠', desc: 'Depth over surface' },
+  };
 
   function _traitClass(i) {
     return ['profile-trait--teal', 'profile-trait--warm', 'profile-trait--muted'][i % 3];
@@ -177,97 +300,164 @@
       const hue = (user.username ?? '').split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
       const photoUrl = UserAPI.photoUrl(user.profilePhotoUrl) || localStorage.getItem('photo_' + user.id);
 
+      const initialsHtml = `<span style="font-family:var(--font-display);font-weight:800;font-size:30px;color:hsl(${hue},60%,72%);">${initials}</span>`;
       const avatarInner = photoUrl
-        ? `<img src="${photoUrl}" alt="">`
-        : `<span style="font-family:var(--font-display);font-weight:800;font-size:30px;color:hsl(${hue},60%,72%);">${initials}</span>`;
-      const avatarBg = photoUrl ? '' : `background:hsl(${hue},35%,22%);border-color:hsl(${hue},40%,35%);`;
+        ? `<img src="${photoUrl}" alt="" onerror="this.parentElement.style.background='hsl(${hue},35%,22%)';this.replaceWith(Object.assign(document.createElement('span'),{innerHTML:'${initials}',style:'font-family:var(--font-display);font-weight:800;font-size:30px;color:hsl(${hue},60%,72%)'}))">`
+        : initialsHtml;
+      const avatarBg = photoUrl ? '' : `background:hsl(${hue},35%,22%);`;
 
       const isOwnProfile = Auth.getUsername() === user.username;
 
-      // Traits: use quiz data for own profile if available, seeded for others
-      let traits = _seedTraits(user.username);
-      if (isOwnProfile) {
+      // Personality traits now come from the backend (UserResponse.personalityTraits),
+      // so they render for ANY user — not just your own profile.
+      let traitPills = '';
+      let quizCta = '';
+      let traits = Array.isArray(user.personalityTraits) ? user.personalityTraits : null;
+      // Own-profile fallback: quiz just completed, cached locally before the API reflects it.
+      if ((!traits || !traits.length) && isOwnProfile) {
         try {
           const stored = JSON.parse(localStorage.getItem('personality_traits') || 'null');
-          if (Array.isArray(stored) && stored.length) traits = stored.slice(0, 3);
-        } catch(e) {}
+          if (Array.isArray(stored)) traits = stored;
+        } catch (e) {}
       }
-      const traitPills = traits.map((t, i) =>
-        `<span class="profile-trait ${_traitClass(i)}">${t}</span>`
-      ).join('');
+      if (traits && traits.length) {
+        traitPills = traits.slice(0, 3).map((t, i) => {
+          const meta = TRAIT_META[t] || { icon: '🎯', desc: 'One of a kind' };
+          return `<div class="profile-trait ${_traitClass(i)}">
+            <div class="profile-trait__icon">${meta.icon}</div>
+            <div class="profile-trait__name">${escapeHtml(t)}</div>
+            <div class="profile-trait__desc">${meta.desc}</div>
+          </div>`;
+        }).join('');
+      } else if (isOwnProfile && !user.onboardingCompleted) {
+        quizCta = `<a href="/onboarding" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none;letter-spacing:0.04em;border:1px solid var(--accent-border);border-radius:20px;padding:4px 14px;background:var(--accent-dim);">Take personality quiz →</a>`;
+      }
 
       const ratingDisplay = user.rating > 0 ? Number(user.rating).toFixed(1) : '—';
+      const editLink = isOwnProfile ? `<a href="/account/edit" class="btn btn--ghost" style="height:36px;font-size:11px;flex:1;">Edit Profile</a>` : '';
 
-      const editLink = isOwnProfile ? `<a href="/account/edit" class="profile-nav__edit">Edit profile</a>` : '';
+      const actionRow = (!isOwnProfile && userListings.length > 0)
+        ? `<a href="/tours?host=${user.username}" class="btn btn--primary" style="flex:1;height:38px;font-size:12px;">View ${userListings.length} Meet${userListings.length !== 1 ? 's' : ''}</a>`
+        : '';
 
       const bioSection = `
-        <div class="profile-bio">
-          <div class="profile-bio__label">About</div>
+        <div class="profile-section">
+          <div class="profile-section__label">About</div>
           ${user.bio
-            ? `<div class="profile-bio__text">${user.bio}</div>`
+            ? `<div class="profile-section__text" style="border-left:3px solid var(--accent);padding-left:14px;">${user.bio}</div>`
             : isOwnProfile
-              ? `<div class="profile-bio__empty">No bio yet. <a href="/account/edit" style="color:var(--accent);text-decoration:none;">Add one →</a></div>`
-              : `<div class="profile-bio__empty">This user hasn't written a bio yet.</div>`
+              ? `<div class="profile-section__empty">No bio yet. <a href="/account/edit" style="color:var(--accent);text-decoration:none;">Add one →</a></div>`
+              : `<div class="profile-section__empty">This user hasn't written a bio yet.</div>`
           }
         </div>`;
 
-      const actionRow = (!isOwnProfile && userListings.length > 0) ? `
-        <div class="profile-actions">
-          <a href="/tours?host=${user.username}" class="btn btn--primary" style="flex:1;height:42px;font-size:12px;">
-            View ${userListings.length} Meet${userListings.length !== 1 ? 's' : ''}
-          </a>
-        </div>` : '';
+      const personalitySection = user.personalitySummary
+        ? `<div class="profile-section">
+             <div class="profile-section__label">Personality</div>
+             <div class="profile-section__text">${user.personalitySummary}</div>
+           </div>`
+        : isOwnProfile
+          ? `<div class="profile-section">
+               <div class="profile-section__label">Personality</div>
+               <div class="profile-section__empty">No personality summary yet. <a href="/onboarding" style="color:var(--accent);text-decoration:none;">Take the quiz →</a></div>
+             </div>`
+          : '';
 
       main.innerHTML = `
-        <div class="profile-page">
-          <div class="profile-nav">
-            <div class="profile-nav__title">@${user.username}</div>
-            ${editLink}
-          </div>
-
-          <div class="profile-cover">
-            <div class="profile-cover__gradient" style="background:linear-gradient(135deg,hsl(${hue},45%,14%) 0%,hsl(${hue},30%,18%) 50%,hsl(${(hue+40)%360},35%,12%) 100%);"></div>
-            <div style="position:absolute;top:20px;left:30%;width:160px;height:160px;border-radius:50%;background:hsl(${hue},60%,30%);opacity:0.12;filter:blur(40px);"></div>
-            <div class="profile-cover__overlay"></div>
-          </div>
-
-          <div class="profile-hero">
-            <div class="profile-avatar-wrap">
-              <div class="profile-avatar" style="${avatarBg}">
-                ${avatarInner}
-              </div>
-              <div class="profile-avatar__ring"></div>
-            </div>
-            <div class="profile-name">${user.firstName} ${user.lastName}</div>
-            <div class="profile-handle">@${user.username}</div>
-
-            <div class="profile-traits">${traitPills}</div>
-
-            <div class="profile-stats">
-              <div class="profile-stat">
-                <div class="profile-stat__num">${userListings.length}</div>
-                <div class="profile-stat__label">Days</div>
-              </div>
-              <div class="profile-stat">
-                <div class="profile-stat__num profile-stat__num--accent">★ ${ratingDisplay}</div>
-                <div class="profile-stat__label">Rating</div>
-              </div>
-              <div class="profile-stat">
-                <div class="profile-stat__num" style="font-size:13px;padding-top:3px;">${user.username.length > 8 ? user.username.slice(0,8) + '…' : user.username}</div>
-                <div class="profile-stat__label">Handle</div>
-              </div>
-            </div>
-
-            ${actionRow}
-          </div>
-
-          ${bioSection}
-
-          <div class="profile-section-label">Upcoming Days</div>
-          <div class="profile-listings" id="profile-listings"></div>
+        <div class="profile-cover">
+          <div class="profile-cover__bg" style="background:radial-gradient(ellipse at 50% 80%, hsl(${hue},60%,20%) 0%, hsl(${hue},45%,11%) 45%, hsl(${(hue+40)%360},30%,7%) 100%);"></div>
+          <div class="profile-cover__orb" style="width:200px;height:200px;top:-30px;left:15%;background:hsl(${hue},70%,48%);"></div>
+          <div class="profile-cover__orb" style="width:130px;height:130px;top:10px;right:8%;background:hsl(${(hue+60)%360},65%,42%);"></div>
+          <div class="profile-cover__orb" style="width:80px;height:80px;bottom:-10px;left:55%;background:hsl(${(hue+180)%360},55%,50%);animation-delay:-1s;"></div>
+          <div class="profile-cover__shine"></div>
+          <div class="profile-cover__fade"></div>
         </div>
+
+        <div class="profile-hero">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar-glow" style="background:radial-gradient(circle, hsl(${hue},65%,45%) 0%, transparent 70%);"></div>
+            <div class="profile-avatar" style="${avatarBg}">${avatarInner}</div>
+            <div class="profile-avatar__ring" style="background:linear-gradient(var(--bg),var(--bg)) padding-box,linear-gradient(135deg,hsl(${hue},70%,60%),hsl(${(hue+60)%360},65%,58%)) border-box;"></div>
+          </div>
+          <div class="profile-name">${escapeHtml(user.firstName)} ${escapeHtml(user.lastName)}</div>
+          <div class="profile-handle">@${escapeHtml(user.username)}</div>
+          ${traitPills ? `<div class="profile-traits">${traitPills}</div>` : quizCta ? `<div style="margin-bottom:14px;">${quizCta}</div>` : ''}
+
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="profile-stat__icon">🤝</div>
+              <div class="profile-stat__num">${userListings.length}</div>
+              <div class="profile-stat__label">Meets</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat__icon">⭐</div>
+              <div class="profile-stat__num profile-stat__num--accent">${ratingDisplay}</div>
+              <div class="profile-stat__label">Rating</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat__icon">📍</div>
+              <div class="profile-stat__num" style="font-size:14px;letter-spacing:-0.01em;">${escapeHtml(user.city || '—')}</div>
+              <div class="profile-stat__label">City</div>
+            </div>
+          </div>
+
+          ${(actionRow || editLink) ? `<div class="profile-actions">${actionRow}${editLink}</div>` : ''}
+        </div>
+
+        ${bioSection}
+        ${personalitySection}
+
+        <div class="profile-memories">
+          <div class="profile-memories__header">
+            <div class="profile-memories__label">Memories</div>
+            <div class="profile-memories__count" id="memories-count"></div>
+          </div>
+          <div id="memories-map-wrap">
+            <div class="memories-empty">Loading memories…</div>
+          </div>
+        </div>
+
+        <div class="profile-section-label">Upcoming Meets</div>
+        <div class="profile-listings" id="profile-listings"></div>
+
+        <div class="profile-section-label" id="reviews-label" style="display:none;">Reviews</div>
+        <div class="profile-reviews" id="profile-reviews"></div>
       `;
 
+      // ── Memories map ─────────────────────────────────────────────
+      fetch(`/api/user/${user.id}/world-map`, {
+        headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+      })
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+        .then(locations => {
+          const wrap = document.getElementById('memories-map-wrap');
+          if (!wrap) return;
+          if (!locations.length) {
+            wrap.innerHTML = `<div class="memories-empty">${isOwnProfile ? 'No completed meets yet — your memories will appear here.' : 'No completed meets yet.'}</div>`;
+            return;
+          }
+          document.getElementById('memories-count').textContent = `${locations.length} meet${locations.length !== 1 ? 's' : ''}`;
+          wrap.innerHTML = '<div id="memories-map"></div>';
+          const memMap = L.map('memories-map', { zoomControl: false, attributionControl: false, scrollWheelZoom: false });
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(memMap);
+          const bounds = [];
+          locations.forEach(loc => {
+            if (!loc.lat || !loc.lng) return;
+            const icon = L.divIcon({
+              className: '',
+              html: `<div style="width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 6px var(--accent);"></div>`,
+              iconSize: [10, 10], iconAnchor: [5, 5],
+            });
+            const date = loc.date ? new Date(loc.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const popup = `<div><strong style="color:var(--text)">${loc.city || ''}${loc.country ? ', ' + loc.country : ''}</strong><br><span style="color:var(--text-3);font-size:11px;">${date}</span></div>`;
+            L.marker([loc.lat, loc.lng], { icon }).bindPopup(popup, { className: 'mem-popup', maxWidth: 180 }).addTo(memMap);
+            bounds.push([loc.lat, loc.lng]);
+          });
+          if (bounds.length) memMap.fitBounds(bounds, { padding: [24, 24], maxZoom: 10 });
+        });
+
+      // ── Listings ─────────────────────────────────────────────────
       const listingsEl = document.getElementById('profile-listings');
       if (!userListings.length) {
         listingsEl.innerHTML = `
@@ -275,33 +465,114 @@
             <div class="profile-empty__icon">🗺️</div>
             <div class="profile-empty__sub">${isOwnProfile ? 'You have no upcoming days. <a href="/listings/new" style="color:var(--accent);text-decoration:none;">Create one →</a>' : 'No upcoming days from this host.'}</div>
           </div>`;
-        return;
+      } else {
+        listingsEl.innerHTML = userListings.map(listing => {
+          const hasCoords = listing.lat != null && listing.lng != null;
+          const mapBtn = hasCoords
+            ? `<button class="btn btn--ghost" style="height:32px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
+            : '';
+          const reserveBtn = !isOwnProfile
+            ? `<a href="/tours?listing=${listing.id}" class="btn btn--primary" style="height:32px;font-size:10px;">Request</a>`
+            : '';
+          return `
+            <div class="profile-listing-card">
+              <div class="profile-listing-card__head">
+                <div class="profile-listing-card__city" style="color:hsl(${hue},55%,62%);">${escapeHtml(listing.city)}</div>
+                <div class="profile-listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
+              </div>
+              <div class="profile-listing-card__desc">${escapeHtml(listing.tourDescription)}</div>
+              <div class="profile-listing-card__foot">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div class="profile-listing-card__dot"></div>
+                  <div class="profile-listing-card__status">Available</div>
+                </div>
+                <div class="profile-listing-card__actions">${mapBtn}${reserveBtn}</div>
+              </div>
+            </div>`;
+        }).join('');
       }
 
-      listingsEl.innerHTML = userListings.map(listing => {
-        const hasCoords = listing.lat != null && listing.lng != null;
-        const mapBtn = hasCoords
-          ? `<button class="btn btn--ghost" style="height:34px;font-size:10px;" data-lat="${listing.lat}" data-lng="${listing.lng}" onclick="goToMap(this)">📍 Map</button>`
-          : '';
-        const reserveBtn = !isOwnProfile
-          ? `<a href="/tours?listing=${listing.id}" class="btn btn--primary" style="height:34px;font-size:10px;">Request</a>`
-          : '';
-        return `
-          <div class="profile-listing-card">
-            <div class="profile-listing-card__head">
-              <div class="profile-listing-card__city">${listing.city}</div>
-              <div class="profile-listing-card__date">${fmtDatetime(listing.meetingDate)}</div>
+      // ── Reviews ──────────────────────────────────────────────────
+      RatingAPI.getAll().then(all => {
+        const forThisUser = (all || []).filter(r => r.rated?.username === user.username);
+        const reviewsEl = document.getElementById('profile-reviews');
+        if (!reviewsEl || !forThisUser.length) return;
+        document.getElementById('reviews-label').style.display = '';
+        const myUsername = Auth.getUsername();
+
+        function mkStars(score) {
+          return Array.from({ length: 5 }, (_, i) =>
+            `<span class="review-card__star${i < score ? ' review-card__star--lit' : ''}">★</span>`
+          ).join('');
+        }
+
+        function renderCard(r) {
+          const isOwn = myUsername && r.rater?.username === myUsername;
+          const from = r.rater
+            ? `<div class="review-card__from">From <a href="/profile/${r.rater.username}" style="display:flex;align-items:center;gap:4px;color:inherit;text-decoration:none;margin-left:4px;"><span class="review-card__from-name">${escapeHtml(r.rater.firstName)} ${escapeHtml(r.rater.lastName)}</span></a></div>`
+            : '';
+          const text = r.review
+            ? `<div class="review-card__text">"${escapeHtml(r.review)}"</div>`
+            : `<div class="review-card__empty-text">No written review.</div>`;
+          const actions = isOwn ? `
+            <div class="review-card__actions" style="display:flex;gap:8px;margin-top:8px;">
+              <button onclick="_editRating(${r.id},${r.score},${JSON.stringify(r.review||'')})" style="background:none;border:1px solid var(--border-2);border-radius:20px;padding:3px 12px;font-size:10px;color:var(--text-2);cursor:pointer;font-family:var(--font-mono);letter-spacing:0.04em;transition:border-color 0.14s,color 0.14s;" onmouseover="this.style.borderColor='var(--accent-border)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border-2)';this.style.color='var(--text-2)'">Edit</button>
+              <button onclick="_deleteRating(${r.id})" style="background:none;border:1px solid rgba(255,80,80,0.22);border-radius:20px;padding:3px 12px;font-size:10px;color:rgba(255,100,100,0.6);cursor:pointer;font-family:var(--font-mono);letter-spacing:0.04em;transition:border-color 0.14s,color 0.14s;" onmouseover="this.style.borderColor='rgba(255,80,80,0.45)';this.style.color='rgba(255,100,100,0.9)'" onmouseout="this.style.borderColor='rgba(255,80,80,0.22)';this.style.color='rgba(255,100,100,0.6)'">Delete</button>
+            </div>` : '';
+          return `<div class="review-card" id="review-card-${r.id}"><div class="review-card__stars">${mkStars(r.score)}</div>${from}${text}${actions}</div>`;
+        }
+
+        reviewsEl.innerHTML = forThisUser.map(renderCard).join('');
+
+        window._editRating = function(id, currentScore, currentReview) {
+          const card = document.getElementById('review-card-' + id);
+          if (!card) return;
+          card._score = currentScore;
+          card.innerHTML = `
+            <div style="display:flex;gap:6px;margin-bottom:10px;">
+              ${Array.from({length:5},(_,i)=>`<span data-v="${i+1}" style="font-size:22px;cursor:pointer;color:${i<currentScore?'var(--accent)':'var(--border-3)'};transition:color 0.1s;">★</span>`).join('')}
             </div>
-            <div class="profile-listing-card__desc">${listing.tourDescription}</div>
-            <div class="profile-listing-card__foot">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <div class="profile-listing-card__dot"></div>
-                <div class="profile-listing-card__status-label">Available</div>
-              </div>
-              <div class="profile-listing-card__actions">${mapBtn}${reserveBtn}</div>
-            </div>
-          </div>`;
-      }).join('');
+            <textarea id="edit-review-${id}" placeholder="Write a review... (optional)" style="width:100%;background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;padding:8px 12px;color:var(--text);font-family:var(--font-mono);font-size:12px;resize:none;min-height:72px;line-height:1.5;box-sizing:border-box;" maxlength="500">${escapeHtml(currentReview)}</textarea>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button onclick="_saveRating(${id})" style="flex:1;height:34px;border-radius:20px;background:var(--accent);border:none;color:#000;font-family:var(--font-mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.04em;">Save</button>
+              <button onclick="_cancelEditRating(${id})" style="flex:1;height:34px;border-radius:20px;background:none;border:1px solid var(--border-2);color:var(--text-2);font-family:var(--font-mono);font-size:11px;cursor:pointer;">Cancel</button>
+            </div>`;
+          card.querySelectorAll('[data-v]').forEach(star => {
+            star.addEventListener('click', () => {
+              card._score = parseInt(star.dataset.v);
+              card.querySelectorAll('[data-v]').forEach((s, i) => s.style.color = i < card._score ? 'var(--accent)' : 'var(--border-3)');
+            });
+          });
+        };
+
+        window._saveRating = function(id) {
+          const card = document.getElementById('review-card-' + id);
+          const score = card._score || 1;
+          const review = document.getElementById('edit-review-' + id)?.value.trim() || null;
+          RatingAPI.update(id, { score, review })
+            .then(updated => {
+              const r = forThisUser.find(x => x.id === id);
+              if (r) { r.score = updated.score; r.review = updated.review; }
+              card.outerHTML = renderCard(r || updated);
+              showToast('Review updated!', 'success');
+            })
+            .catch(err => showToast(err.message || 'Could not save — try again.', 'error'));
+        };
+
+        window._deleteRating = function(id) {
+          const card = document.getElementById('review-card-' + id);
+          if (!card) return;
+          card.style.opacity = '0.5';
+          RatingAPI.delete(id)
+            .then(() => { card.remove(); showToast('Review deleted.'); })
+            .catch(err => { card.style.opacity = ''; showToast(err.message || 'Could not delete.', 'error'); });
+        };
+
+        window._cancelEditRating = function(id) {
+          const r = forThisUser.find(x => x.id === id);
+          if (r) document.getElementById('review-card-' + id).outerHTML = renderCard(r);
+        };
+      }).catch(() => {});
     })
     .catch(() => {
       document.getElementById('profile-main').innerHTML = `

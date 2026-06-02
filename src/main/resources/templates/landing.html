@@ -4,8 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="ExperiMate connects you with locals who share their city through authentic experiences. Meet a local, not a tourist.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ExperiMate — Meet a local, not a tourist">
+  <meta property="og:description" content="Connect with locals who share their city through authentic experiences. Skip the tourist trap, discover the real city.">
+  <meta property="og:image" content="/images/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ExperiMate — Meet a local, not a tourist">
+  <meta name="twitter:description" content="Connect with locals who share their city through authentic experiences. Skip the tourist trap, discover the real city.">
+  <meta name="twitter:image" content="/images/og-card.png">
   <title>ExperiMate — Meet a local, not a tourist</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap">
@@ -19,7 +31,7 @@
         .catch(() => {});
     }
   </script>
-  <script>(function(){ if(localStorage.getItem('theme')==='light') document.documentElement.classList.add('light-mode'); })();</script>
+  <script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -45,7 +57,7 @@
       --radius-pill: 999px;
       --t: 0.2s;
     }
-    html.light-mode {
+    html.theme-light {
       --bg: #f5f6fa; --surface: #ffffff; --surface-2: #eef0f5;
       --border: rgba(0,0,0,0.08); --border-2: rgba(0,0,0,0.13);
       --text: #111218; --text-2: rgba(17,18,24,0.60); --text-3: rgba(17,18,24,0.34);
@@ -72,9 +84,9 @@
 
     /* ── ORBS ── */
     .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; animation: orb-drift linear infinite; }
-    .orb-1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.05; top: -200px; left: -150px; animation-duration: 28s; }
-    .orb-2 { width: 500px; height: 500px; background: var(--warm); opacity: 0.04; bottom: -100px; right: -120px; animation-duration: 35s; animation-delay: -14s; }
-    .orb-3 { width: 350px; height: 350px; background: var(--accent); opacity: 0.028; top: 60vh; left: 40vw; animation-duration: 42s; animation-delay: -22s; }
+    .orb-1 { width: 700px; height: 700px; background: var(--accent); opacity: 0.10; top: -200px; left: -150px; animation-duration: 28s; }
+    .orb-2 { width: 500px; height: 500px; background: var(--warm); opacity: 0.08; bottom: -100px; right: -120px; animation-duration: 35s; animation-delay: -14s; }
+    .orb-3 { width: 350px; height: 350px; background: var(--accent); opacity: 0.05; top: 60vh; left: 40vw; animation-duration: 42s; animation-delay: -22s; }
     @keyframes orb-drift {
       0%   { transform: translate(0,0) scale(1); }
       33%  { transform: translate(20px,-25px) scale(1.05); }
@@ -90,19 +102,19 @@
       border-bottom: 1px solid var(--border);
       background: rgba(13,14,22,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     }
-    html.light-mode nav { background: rgba(245,246,250,0.92); border-bottom-color: rgba(0,0,0,0.08); }
-    html.light-mode .btn-nav-ghost:hover { border-color: rgba(0,0,0,0.22); color: var(--text); }
-    html.light-mode .btn-hero-ghost:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
-    html.light-mode .hamburger:hover { background: rgba(0,0,0,0.06); }
-    html.light-mode .mobile-menu { background: rgba(245,246,250,0.98); }
-    html.light-mode footer { background: #e8eaf0; }
-    html.light-mode .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
-    html.light-mode .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
-    html.light-mode .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
-    html.light-mode .radar-axis { stroke: rgba(0,0,0,0.12); }
-    html.light-mode .radar-ring  { stroke: rgba(0,0,0,0.10); }
-    html.light-mode .radar-dot   { fill:   rgba(0,0,0,0.28); }
-    html.light-mode .radar-label { fill:   rgba(17,18,24,0.45); }
+    html.theme-light nav { background: rgba(245,246,250,0.92); border-bottom-color: rgba(0,0,0,0.08); }
+    html.theme-light .btn-nav-ghost:hover { border-color: rgba(0,0,0,0.22); color: var(--text); }
+    html.theme-light .btn-hero-ghost:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
+    html.theme-light .hamburger:hover { background: rgba(0,0,0,0.06); }
+    html.theme-light .mobile-menu { background: rgba(245,246,250,0.98); }
+    html.theme-light footer { background: #e8eaf0; }
+    html.theme-light .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
+    html.theme-light .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+    html.theme-light .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
+    html.theme-light .radar-axis { stroke: rgba(0,0,0,0.12); }
+    html.theme-light .radar-ring  { stroke: rgba(0,0,0,0.10); }
+    html.theme-light .radar-dot   { fill:   rgba(0,0,0,0.28); }
+    html.theme-light .radar-label { fill:   rgba(17,18,24,0.45); }
     .nav-brand { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
     .nav-brand span { color: var(--accent); }
     .nav-right { display: flex; align-items: center; gap: clamp(12px,3vw,32px); }
@@ -284,7 +296,7 @@
     }
     .ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 80px); align-items: center; }
     .radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .radar-svg { width: 100%; max-width: 320px; height: auto; filter: drop-shadow(0 0 40px rgba(0,201,167,0.10)); }
+    .radar-svg { width: 100%; max-width: 320px; height: auto; filter: drop-shadow(0 0 40px var(--accent-a10)); }
     @keyframes radar-breathe-you {
       0%,100% { transform: scale(0.97); opacity: 0.9; }
       50%      { transform: scale(1.0); opacity: 1; }
@@ -316,11 +328,11 @@
     .why { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
     .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
     .why-card { border-radius: var(--radius); padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
-    .why-card--teal { background: linear-gradient(135deg, rgba(0,201,167,0.10) 0%, rgba(0,201,167,0.04) 100%); border: 1px solid rgba(0,201,167,0.18); }
+    .why-card--teal { background: linear-gradient(135deg, var(--accent-a10) 0%, var(--accent-a04) 100%); border: 1px solid var(--accent-a18); }
     .why-card--warm { background: var(--surface); border: 1px solid var(--border); }
     .why-card__label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; gap: 6px; width: fit-content; }
     .why-card__label--good { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--accent); }
-    .why-card__label--bad  { background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.2); color: var(--warm); }
+    .why-card__label--bad  { background: var(--warm-a08); border: 1px solid var(--warm-a20); color: var(--warm); }
     .why-card__items { display: flex; flex-direction: column; gap: 11px; }
     .why-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-2); line-height: 1.5; }
     .why-item__dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
@@ -347,19 +359,19 @@
     .cta-section { padding: clamp(60px, 8vw, 100px) clamp(24px, 5vw, 60px); }
     .cta-card {
       max-width: 720px; margin: 0 auto;
-      background: linear-gradient(135deg, rgba(0,201,167,0.08) 0%, rgba(0,201,167,0.03) 60%, rgba(255,107,53,0.04) 100%);
-      border: 1px solid rgba(0,201,167,0.2); border-radius: 22px;
+      background: linear-gradient(135deg, var(--accent-a08) 0%, var(--accent-a03) 60%, var(--warm-a04) 100%);
+      border: 1px solid var(--accent-a20); border-radius: 22px;
       padding: clamp(44px, 6vw, 64px); text-align: center; position: relative; overflow: hidden;
     }
-    .cta-card::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; background: radial-gradient(ellipse, rgba(0,201,167,0.10) 0%, transparent 70%); pointer-events: none; }
+    .cta-card::before { content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 320px; height: 320px; background: radial-gradient(ellipse, var(--accent-a10) 0%, transparent 70%); pointer-events: none; }
     .cta-eyebrow { font-family: var(--font-mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px; }
     .cta-title { font-family: var(--font-display); font-weight: 900; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.025em; color: var(--text); margin-bottom: 14px; line-height: 1.05; position: relative; z-index: 1; }
     .cta-sub { font-size: 14px; color: var(--text-2); line-height: 1.75; margin-bottom: 32px; max-width: 380px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
     .cta-actions { display: flex; align-items: center; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
     .btn-cta { padding: 0 36px; height: 52px; border-radius: var(--radius-pill); background: var(--accent); border: none; color: #000; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity var(--t), transform 0.15s; }
     .btn-cta:hover { opacity: 0.85; transform: translateY(-2px); }
-    .btn-cta-ghost { padding: 0 28px; height: 52px; border-radius: var(--radius-pill); border: 1px solid rgba(0,201,167,0.3); background: transparent; color: var(--accent); font-size: 13px; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: border-color var(--t), transform 0.15s; }
-    .btn-cta-ghost:hover { border-color: rgba(0,201,167,0.55); transform: translateY(-2px); }
+    .btn-cta-ghost { padding: 0 28px; height: 52px; border-radius: var(--radius-pill); border: 1px solid var(--accent-a30); background: transparent; color: var(--accent); font-size: 13px; letter-spacing: 0.04em; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: border-color var(--t), transform 0.15s; }
+    .btn-cta-ghost:hover { border-color: var(--accent-a55); transform: translateY(-2px); }
     .cta-note { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); letter-spacing: 0.08em; margin-top: 20px; position: relative; z-index: 1; }
 
     /* ── FOOTER ── */
@@ -480,7 +492,7 @@
       </h1>
       <p class="hero-sub">
         ExperiMate matches you with locals whose personality clicks with yours.
-        Spend a day in their world — their city, their pace, their way.
+        Step into their world — their city, their pace, their way.
       </p>
       <div class="hero-actions">
         <a href="/register" class="btn-hero-primary">
@@ -508,7 +520,7 @@
         </div>
         <!-- Mid -->
         <div class="hcard hcard--mid">
-          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Day with Ana</div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Meet with Ana</div>
           <div style="font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px;">Zagreb Old Town</div>
           <div style="font-size:10px;color:var(--text-3);">Saturday · 14:00 · Available</div>
           <div style="margin-top:12px;height:2px;background:linear-gradient(90deg,var(--accent),transparent);border-radius:1px;"></div>
@@ -516,7 +528,7 @@
         <!-- Front -->
         <div class="hcard hcard--front">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,rgba(0,201,167,0.15),rgba(0,201,167,0.05));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:14px;color:var(--accent);border:1.5px solid var(--accent-border);flex-shrink:0;">AK</div>
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent-a15),var(--accent-a05));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;font-size:14px;color:var(--accent);border:1.5px solid var(--accent-border);flex-shrink:0;">AK</div>
             <div style="flex:1;min-width:0;">
               <div style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--text);">Ana K.</div>
               <div style="font-size:10px;color:var(--text-3);">Zagreb, Croatia · ★ 4.9</div>
@@ -529,7 +541,7 @@
             <span style="font-size:9px;font-family:var(--font-mono);padding:3px 9px;border-radius:20px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);letter-spacing:0.06em;">Calm</span>
             <span style="font-size:9px;font-family:var(--font-mono);padding:3px 9px;border-radius:20px;background:var(--accent-dim);border:1px solid var(--accent-border);color:var(--accent);letter-spacing:0.06em;">Creative</span>
           </div>
-          <div style="width:100%;padding:10px 0;background:var(--accent);border-radius:8px;font-family:var(--font-display);font-weight:700;font-size:12px;color:#000;text-align:center;letter-spacing:0.02em;">Spend a day with Ana →</div>
+          <div style="width:100%;padding:10px 0;background:var(--accent);border-radius:8px;font-family:var(--font-display);font-weight:700;font-size:12px;color:#000;text-align:center;letter-spacing:0.02em;">Meet Ana →</div>
         </div>
       </div>
     </div>
@@ -618,8 +630,8 @@
             <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
           </svg>
         </div>
-        <div class="step__title">Spend a day</div>
-        <div class="step__desc">Both check in on the day. Explore the city together. Afterwards, a Memory Card is generated — a permanent record of your day.</div>
+        <div class="step__title">Have a meet</div>
+        <div class="step__desc">Both check in when it's time. Explore the city together. Afterwards, a Memory Card is generated — a permanent record of your meet.</div>
       </div>
     </div>
   </section>
@@ -643,18 +655,18 @@
           <!-- You polygon (teal) -->
           <polygon class="poly-you"
             points="100,40.5 146.6,84.9 120.6,128.3 73.3,136.8 70.1,90.3"
-            fill="rgba(0,201,167,0.22)" stroke="rgba(0,201,167,0.75)" stroke-width="1.5" stroke-linejoin="round"/>
+            fill="var(--accent-a22)" stroke="var(--accent-a75)" stroke-width="1.5" stroke-linejoin="round"/>
           <!-- Ana polygon (warm) -->
           <polygon class="poly-ana"
             points="100,47.5 154.6,82.3 124.7,133.9 77.4,131.1 53.4,84.9"
-            fill="rgba(255,107,53,0.15)" stroke="rgba(255,107,53,0.65)" stroke-width="1.5" stroke-linejoin="round"/>
+            fill="var(--warm-a15)" stroke="var(--warm-a65)" stroke-width="1.5" stroke-linejoin="round"/>
           <!-- Vertex dots -->
           <circle class="radar-dot" cx="100"   cy="30"    r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="166.6" cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="141.1" cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="58.9"  cy="156.6" r="2.5" fill="rgba(239,239,239,0.2)"/>
           <circle class="radar-dot" cx="33.4"  cy="78.4"  r="2.5" fill="rgba(239,239,239,0.2)"/>
-          <circle cx="100" cy="100" r="3" fill="rgba(0,201,167,0.5)"/>
+          <circle cx="100" cy="100" r="3" fill="var(--accent-a50)"/>
           <!-- Labels -->
           <text class="radar-label" x="100"  y="17"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">CURIOSITY</text>
           <text class="radar-label" x="176"  y="76"   text-anchor="start"  font-family="'DM Mono',monospace" font-size="7.5" fill="rgba(240,240,242,0.4)" letter-spacing="0.06em">WARMTH</text>
@@ -664,11 +676,11 @@
         </svg>
         <div class="radar-legend">
           <div class="radar-legend__item">
-            <div class="radar-legend__dot" style="background:rgba(0,201,167,0.8);"></div>
+            <div class="radar-legend__dot" style="background:var(--accent-a80);"></div>
             <span>You</span>
           </div>
           <div class="radar-legend__item">
-            <div class="radar-legend__dot" style="background:rgba(255,107,53,0.8);"></div>
+            <div class="radar-legend__dot" style="background:var(--warm-a80);"></div>
             <span>Ana</span>
           </div>
         </div>
@@ -708,7 +720,7 @@
   <!-- WHY -->
   <section class="why">
     <div class="section-eyebrow fade-up">Why ExperiMate</div>
-    <h2 class="section-title fade-up">Real days,<br>not tourist packages</h2>
+    <h2 class="section-title fade-up">Real meets,<br>not tourist packages</h2>
     <div class="why-grid fade-up">
       <div class="why-card why-card--teal">
         <div class="why-card__label why-card__label--good">
@@ -756,14 +768,14 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
         <div class="feat__title">Live Map</div>
-        <div class="feat__desc">Every active day pinned on a real interactive map. Tap a pin to see who's hosting, when, and why they'd suit you.</div>
+        <div class="feat__desc">Every active meet pinned on a real interactive map. Tap a pin to see who's hosting, when, and why they'd suit you.</div>
       </div>
       <div class="feat fade-up fade-up-d2">
         <div class="feat__icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <div class="feat__title">Request-based Days</div>
-        <div class="feat__desc">Mates request to join, hosts approve or decline. You stay in full control of every day you open up.</div>
+        <div class="feat__title">Request-based Meets</div>
+        <div class="feat__desc">Mates request to join, hosts approve or decline. You stay in full control of every meet you open.</div>
       </div>
       <div class="feat feat--memory fade-up">
         <div class="feat__icon">
@@ -771,21 +783,21 @@
         </div>
         <div class="feat__badge">New</div>
         <div class="feat__title">Memory Cards</div>
-        <div class="feat__desc">After each day, Claude generates a personal Memory Card — a title, summary, and highlight saved to your account.</div>
+        <div class="feat__desc">After each meet, Claude generates a personal Memory Card — a title, summary, and highlight saved to your account.</div>
       </div>
       <div class="feat fade-up fade-up-d1">
         <div class="feat__icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
         <div class="feat__title">Verified Ratings</div>
-        <div class="feat__desc">After each day both Mates review. Reputation is built from real experiences — public, honest, unedited.</div>
+        <div class="feat__desc">After each meet both Mates review. Reputation is built from real experiences — public, honest, unedited.</div>
       </div>
       <div class="feat fade-up fade-up-d2">
         <div class="feat__icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
         <div class="feat__title">Real Profiles</div>
-        <div class="feat__desc">Photos, bios, personality stats, ratings, and past days — everything you need to trust before you meet.</div>
+        <div class="feat__desc">Photos, bios, personality stats, ratings, and past meets — everything you need to trust before you meet.</div>
       </div>
     </div>
   </section>
@@ -824,7 +836,7 @@
           <a href="/map">Interactive map</a>
           <a href="/explore">Find Mates</a>
           <a href="/community">Community</a>
-          <a href="/listings/new">Open a day</a>
+          <a href="/listings/new">Open a meet</a>
         </div>
         <div class="footer-links__group">
           <div class="footer-links__label">Account</div>
@@ -883,10 +895,10 @@
     (function() {
       const btn = document.getElementById('landing-theme-btn');
       if (!btn) return;
-      const update = () => btn.innerHTML = document.documentElement.classList.contains('light-mode') ? MOON : SUN;
+      const update = () => btn.innerHTML = document.documentElement.classList.contains('theme-light') ? MOON : SUN;
       update();
       btn.addEventListener('click', () => {
-        const isLight = document.documentElement.classList.toggle('light-mode');
+        const isLight = document.documentElement.classList.toggle('theme-light');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         update();
       });
