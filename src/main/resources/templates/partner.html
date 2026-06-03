@@ -1071,7 +1071,8 @@
   }
 
   async function deletePinConfirm(pinId, pinName) {
-    if (!confirm(`Delete "${pinName}"? This will also remove all events attached to this pin.`)) return;
+    const yes = await showConfirm({ title: `Delete "${pinName}"?`, body: 'This will also permanently remove all events attached to this venue pin.', confirmLabel: 'Delete pin', danger: true });
+    if (!yes) return;
     try {
       await PartnerPinAPI.delete(pinId);
       showToast('Pin deleted.', 'default');
@@ -1264,7 +1265,8 @@
   }
 
   async function deleteEventConfirm(eventId, title) {
-    if (!confirm(`Delete "${title}"?`)) return;
+    const yes = await showConfirm({ title: `Delete "${title}"?`, body: 'The event will be permanently removed and won\'t be visible on the map anymore.', confirmLabel: 'Delete event', danger: true });
+    if (!yes) return;
     try {
       await PartnerEventAPI.delete(eventId);
       showToast('Event deleted.', 'default');
@@ -1611,7 +1613,8 @@
   }
 
   async function deleteAdConfirm(adId, title) {
-    if (!confirm(`Delete "${title}"?`)) return;
+    const yes = await showConfirm({ title: `Delete "${title}"?`, body: 'The promoted ad will be permanently removed from the Explore feed.', confirmLabel: 'Delete ad', danger: true });
+    if (!yes) return;
     try {
       await PromotedAdAPI.delete(adId);
       showToast('Ad deleted.', 'default');

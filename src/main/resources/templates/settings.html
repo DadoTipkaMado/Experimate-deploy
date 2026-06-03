@@ -570,9 +570,14 @@
   });
 
   // Sign out
-  document.getElementById('logout-btn').addEventListener('click', e => {
+  document.getElementById('logout-btn').addEventListener('click', async e => {
     e.preventDefault();
-    Auth.logout();
+    const yes = await showConfirm({
+      title: 'Log out?',
+      body: 'You\'ll need to sign in again to access your account.',
+      confirmLabel: 'Log out',
+    });
+    if (yes) Auth.logout();
   });
 </script>
 </body>
