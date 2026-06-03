@@ -18,6 +18,20 @@ const MapState = {
   activeCircle: null,   // the single radius circle currently shown (only on pin click)
 };
 
+/**
+ * Persists the user's resolved coordinates to localStorage so other pages
+ * (e.g. the meet-creation wizard) can bias their location search toward the
+ * user without re-prompting for geolocation permission. Only called after a
+ * successful getCurrentPosition, so a declined permission leaves nothing stored.
+ *
+ * @param {number} lat user latitude
+ * @param {number} lng user longitude
+ */
+function persistUserLocation(lat, lng) {
+  localStorage.setItem('userLat', String(lat));
+  localStorage.setItem('userLng', String(lng));
+}
+
 /* ───────────────────────────────────────────────
    INIT
 ─────────────────────────────────────────────── */
@@ -75,6 +89,7 @@ function initMap() {
         const { latitude, longitude } = pos.coords;
         MapState.userLat = latitude;
         MapState.userLng = longitude;
+        persistUserLocation(latitude, longitude);
         MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
         if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
         MapState.locationMarker = L.marker([latitude, longitude], {
@@ -479,6 +494,7 @@ function centerOnUser() {
       const { latitude, longitude } = pos.coords;
       MapState.userLat = latitude;
       MapState.userLng = longitude;
+      persistUserLocation(latitude, longitude);
       MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
       if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
       MapState.locationMarker = L.marker([latitude, longitude], {
