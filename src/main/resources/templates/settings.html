@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -460,7 +460,7 @@
   }
 
   (function() {
-    const current = localStorage.getItem('theme') || 'teal-dark';
+    const current = localStorage.getItem('theme') || 'warm-light';
     const swatches = document.querySelectorAll('.theme-swatch');
     swatches.forEach(sw => {
       sw.classList.toggle('theme-swatch--active', sw.dataset.theme === current);
