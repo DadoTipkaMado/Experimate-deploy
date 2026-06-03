@@ -17,17 +17,6 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #020505 !important; --surface: #141414 !important;
-        --surface-2: #1c1c1c !important; --border: #2a2a2a !important;
-        --border-2: #333333 !important; --text: #f2f2f2 !important;
-        --text-2: #c0c0c0 !important; --text-3: #909090 !important;
-        --accent: #00c9a7 !important; --warm: #ff6b35 !important;
-        --accent-dim: rgba(0,201,167,0.12) !important;
-        --accent-border: rgba(0,201,167,0.3) !important;
-      }
-    }
 
     *, *::before, *::after { box-sizing: border-box; }
 
@@ -159,6 +148,9 @@
   </style>
 </head>
 <body>
+<!-- Apply the saved theme before paint. Pre-auth pages have no shared
+     topbar/navbar fragment, so they carry their own copy of the theme-init snippet. -->
+<script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
   <div class="orb orb-3"></div>
