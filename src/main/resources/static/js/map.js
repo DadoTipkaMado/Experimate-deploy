@@ -259,15 +259,23 @@ function buildMarker(listing, pinType = 'default') {
 }
 
 function buildPartnerPinMarker(pin) {
-  let iconHtml;
+  const hl = pin.highlighted === true;
+  const pinClass = `map-pin--partner-logo${hl ? ' map-pin--partner-logo--highlighted' : ''}`;
+  const badgeHtml = hl ? `<div class="map-pin--highlighted-badge">FEATURED</div>` : '';
+  const wrapStyle = hl ? 'position:relative;display:inline-block;' : '';
+
+  let innerHtml;
   if (pin.logoUrl) {
-    iconHtml = `<div class="map-pin--partner-logo"><img src="${escapeHtml(pin.logoUrl)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>'"></div>`;
+    innerHtml = `<img src="${escapeHtml(pin.logoUrl)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>'">`;
   } else {
-    const initial = (pin.name?.[0] ?? 'P').toUpperCase();
-    iconHtml = `<div class="map-pin--partner-logo"><span class="map-pin--partner-logo__initials">${initial}</span></div>`;
+    innerHtml = `<span class="map-pin--partner-logo__initials">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>`;
   }
-  const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [36, 36], iconAnchor: [18, 36] });
-  const marker = L.marker([pin.latitude, pin.longitude], { icon });
+
+  const iconHtml = `<div style="${wrapStyle}"><div class="${pinClass}">${innerHtml}</div>${badgeHtml}</div>`;
+  const size = hl ? [54, 54] : [36, 36];
+  const anchor = hl ? [27, 54] : [18, 36];
+  const icon = L.divIcon({ className: '', html: iconHtml, iconSize: size, iconAnchor: anchor });
+  const marker = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: hl ? 200 : 0 });
   marker.on('click', () => openPartnerPinPopup(pin));
   return marker;
 }
@@ -286,7 +294,10 @@ function openPartnerPinPopup(pin) {
         ${pin.partnerCompanyName ? `<div style="font-size:10px;color:var(--text-3);margin-top:2px;">${escapeHtml(pin.partnerCompanyName)}</div>` : ''}
       </div>
     </div>
-    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;margin-bottom:10px;">PARTNER VENUE</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+      <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;">PARTNER VENUE</div>
+      ${pin.highlighted ? `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,99,235,0.22);border:1px solid rgba(96,165,250,0.55);border-radius:6px;padding:3px 8px;font-size:10px;color:#93c5fd;letter-spacing:0.08em;font-weight:700;"><span style="width:6px;height:6px;border-radius:50%;background:#60a5fa;box-shadow:0 0 6px rgba(96,165,250,0.9);display:inline-block;flex-shrink:0;"></span>FEATURED</div>` : ''}
+    </div>
     ${pin.description ? `<div class="popup-desc">${escapeHtml(pin.description)}</div>` : ''}
     <div id="pin-events-list" style="margin-top:10px;"><div style="font-size:10px;color:var(--text-3);">Loading events…</div></div>
   `;

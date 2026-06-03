@@ -145,6 +145,101 @@
     .auth-field input.input--error { border-color: rgba(255,80,80,0.5) !important; box-shadow: 0 0 0 3px rgba(255,80,80,0.08) !important; }
     .field-error { font-size: 10px; color: rgba(255,100,100,0.85); margin-top: 3px; display: none; }
     .field-error--visible { display: block; }
+
+    /* ── Divider ── */
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-3, #666);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border, #222);
+    }
+
+    /* ── Google button ── */
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      height: 46px; border-radius: var(--radius-pill, 999px);
+      border: 1px solid var(--border-2, #2e2e2e);
+      background: var(--surface, #1c1c1c); color: var(--text-2, #ccc);
+      font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: 0.04em;
+      cursor: pointer; transition: border-color 0.14s, opacity 0.14s; width: 100%;
+    }
+    .btn-google:hover { border-color: var(--accent, var(--accent)); }
+    .btn-google:disabled { cursor: not-allowed; opacity: 0.4; }
+    /* Google's real button, rendered transparent on top so the user's click
+       lands on it directly (first-click OAuth) while our styled button shows. */
+    .btn-google-wrap { position: relative; }
+    .btn-google-overlay {
+      position: absolute; inset: 0; overflow: hidden;
+      opacity: 0; border-radius: var(--radius-pill, 999px);
+    }
+    .btn-google-overlay > div { transform: scale(2); transform-origin: top left; }
+
+    /* ── Google sync modal ── */
+    .gsync-backdrop {
+      position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+      animation: gsync-in .22s ease;
+    }
+    @keyframes gsync-in { from { opacity: 0; } to { opacity: 1; } }
+    .gsync-card {
+      background: linear-gradient(160deg, rgba(22,22,22,0.97) 0%, rgba(10,10,10,0.95) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-top: 2px solid var(--accent-a35);
+      border-radius: 22px; padding: 28px 22px 22px;
+      width: min(340px, 100%);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.5);
+      animation: gsync-card-in .35s cubic-bezier(.16,1,.3,1);
+    }
+    @keyframes gsync-card-in { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+    .gsync-avatar {
+      width: 62px; height: 62px; border-radius: 50%; margin: 0 auto 16px;
+      border: 2px solid var(--accent-a30); overflow: hidden;
+      background: #1c1c1c; display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-family: 'Syne', sans-serif; font-weight: 800; color: var(--accent);
+    }
+    .gsync-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .gsync-title {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 17px;
+      color: #f2f2f2; text-align: center; letter-spacing: -0.02em; margin-bottom: 4px;
+    }
+    .gsync-sub {
+      font-size: 11px; color: rgba(239,239,239,0.4); text-align: center;
+      font-family: 'DM Mono', monospace; letter-spacing: 0.04em; margin-bottom: 20px; line-height: 1.6;
+    }
+    .gsync-items { display: flex; flex-direction: column; gap: 7px; margin-bottom: 20px; }
+    .gsync-item {
+      display: flex; align-items: center; gap: 12px; cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 11px; padding: 10px 12px;
+      transition: background .12s, border-color .12s;
+    }
+    .gsync-item:has(input:checked) { background: var(--accent-a06); border-color: var(--accent-a22); }
+    .gsync-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+    .gsync-item__label { font-size: 10px; color: rgba(239,239,239,0.4); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; min-width: 46px; }
+    .gsync-item__value { font-size: 13px; color: #f2f2f2; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gsync-btn {
+      width: 100%; height: 46px; background: var(--accent); color: #000; border: none;
+      border-radius: 40px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+      cursor: pointer; margin-bottom: 11px; transition: transform .1s, box-shadow .1s;
+    }
+    .gsync-btn:hover { transform: scale(1.02); box-shadow: 0 6px 20px var(--accent-a35); }
+    .gsync-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+    .gsync-skip {
+      width: 100%; background: none; border: none; cursor: pointer;
+      color: rgba(239,239,239,0.28); font-size: 11px; letter-spacing: 0.08em;
+      font-family: 'DM Mono', monospace; transition: color .14s;
+    }
+    .gsync-skip:hover { color: rgba(239,239,239,0.5); }
   </style>
 </head>
 <body>
@@ -235,6 +330,16 @@
       <button type="submit" id="register-btn" class="btn btn--primary btn-register">Create account</button>
     </form>
 
+    <div class="auth-divider">or</div>
+
+    <div class="btn-google-wrap">
+      <button class="btn-google" id="google-btn" type="button" tabindex="-1" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="btn-google-overlay" id="google-overlay"></div>
+    </div>
+
     <div class="auth-footer">
       Already have an account? <a href="/login">Sign in</a>
     </div>
@@ -242,6 +347,7 @@
 
   <script src="/js/main.js"></script>
   <script src="/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async></script>
   <script>
     function fieldErr(errId, inputEl, msg) {
       const err = document.getElementById(errId);
@@ -412,6 +518,158 @@
         } catch (_) {}
       }
     });
+  </script>
+
+  <!-- ── Google sign-up (mirrors /login) ───────────────────────────── -->
+  <script>
+    // Reusable button content so resets don't lose the Google icon.
+    const GOOGLE_BTN_HTML =
+      `<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google`;
+
+    // Google sign-in returns an ID token, which the only GIS API that opens the
+    // account chooser on the FIRST click is renderButton (One Tap / prompt() is
+    // routinely suppressed, which is what forced the old double-click). So we
+    // render Google's real button and overlay it, transparent, on top of our
+    // styled button — the user's click lands on Google's button directly.
+    // Init must run once both the async GSI script and the client id are ready;
+    // _maybeInitGoogle fires from whichever lands last and is idempotent.
+    let _googleClientId = null;
+    let _googleReady    = false;
+    function _maybeInitGoogle() {
+      if (_googleReady || !_googleClientId || !window.google?.accounts?.id) return;
+      _googleReady = true;
+      google.accounts.id.initialize({
+        client_id: _googleClientId,
+        callback: _handleGoogleCredential,
+        auto_select: false,
+      });
+      google.accounts.id.renderButton(document.getElementById('google-overlay'),
+        { type: 'standard', theme: 'outline', size: 'large', width: 360 });
+    }
+    window.onGoogleLibraryLoad = _maybeInitGoogle;
+    fetch('/api/auth/google-client-id').then(r => r.ok ? r.text() : null).then(id => {
+      _googleClientId = id ? id.trim().replace(/"/g, '') : null;
+      if (!_googleClientId) document.getElementById('google-btn').disabled = true;
+      else _maybeInitGoogle();
+    }).catch(() => { document.getElementById('google-btn').disabled = true; });
+
+    function _decodeGoogleToken(token) {
+      try { return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); }
+      catch { return {}; }
+    }
+
+    // Offer to copy name + photo from Google into the freshly logged-in account.
+    function _showGoogleSyncModal(idToken) {
+      const gp        = _decodeGoogleToken(idToken);
+      const firstName = gp.given_name  || '';
+      const lastName  = gp.family_name || '';
+      const picture   = gp.picture ? gp.picture.replace(/=s\d+-c/, '=s256-c') : null;
+
+      if (!firstName && !lastName && !picture) { window.location.href = '/map'; return; }
+
+      const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'G';
+      const avatarHtml = picture
+        ? `<img src="${picture}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${initials}'">`
+        : initials;
+
+      const items = [];
+      if (firstName || lastName) items.push(`
+        <label class="gsync-item">
+          <input type="checkbox" id="gsync-name" checked>
+          <span class="gsync-item__label">Name</span>
+          <span class="gsync-item__value">${[firstName, lastName].filter(Boolean).join(' ')}</span>
+        </label>`);
+      if (picture) items.push(`
+        <label class="gsync-item">
+          <input type="checkbox" id="gsync-photo" checked>
+          <span class="gsync-item__label">Photo</span>
+          <span class="gsync-item__value">Google profile photo</span>
+        </label>`);
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'gsync-backdrop';
+      backdrop.innerHTML = `
+        <div class="gsync-card">
+          <div class="gsync-avatar">${avatarHtml}</div>
+          <div class="gsync-title">Sync Google profile?</div>
+          <div class="gsync-sub">Update your ExperiMate profile<br>with your Google account data</div>
+          <div class="gsync-items">${items.join('')}</div>
+          <button class="gsync-btn" id="gsync-confirm">Sync selected</button>
+          <button class="gsync-skip" id="gsync-skip">Skip for now</button>
+        </div>`;
+      document.body.appendChild(backdrop);
+
+      backdrop.querySelector('#gsync-skip').addEventListener('click', () => {
+        backdrop.remove(); window.location.href = '/map';
+      });
+
+      backdrop.querySelector('#gsync-confirm').addEventListener('click', async () => {
+        const btn = backdrop.querySelector('#gsync-confirm');
+        btn.disabled = true; btn.textContent = 'Syncing…';
+        const syncName  = backdrop.querySelector('#gsync-name')?.checked;
+        const syncPhoto = backdrop.querySelector('#gsync-photo')?.checked;
+        try {
+          const user   = await UserAPI.getByUsername(Auth.getUsername());
+          const userId = user.id;
+          Auth.saveUserId(userId);
+          if (syncName && (firstName || lastName)) {
+            await UserAPI.update(userId, {
+              firstName: firstName || user.firstName,
+              lastName:  lastName  || user.lastName,
+              username:  user.username,
+              bio:       user.bio || null,
+            });
+          }
+          if (syncPhoto && picture) {
+            try {
+              const blob    = await fetch(picture).then(r => r.blob());
+              const updated = await UserAPI.uploadPhoto(userId, blob);
+              if (updated?.profilePhotoUrl) localStorage.setItem('photo_' + userId, UserAPI.photoUrl(updated.profilePhotoUrl));
+            } catch (_) {}
+          }
+        } catch (_) {}
+        window.location.href = '/map';
+      });
+    }
+
+    async function _handleGoogleCredential(response) {
+      const errorEl = document.getElementById('auth-error');
+      errorEl.style.display = 'none';
+      try {
+        const res = await fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: response.credential }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Google sign-in failed.');
+        if (data.status === 'LOGGED_IN') {
+          // Account already exists — log straight in, same as the login screen.
+          Auth.saveToken(data.accessToken);
+          if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+            Notification.requestPermission().then(p => { if (p === 'granted' && typeof subscribeToPush === 'function') subscribeToPush(); });
+          }
+          _showGoogleSyncModal(response.credential);
+        } else if (data.status === 'REGISTRATION_REQUIRED') {
+          // New user — pre-fill the form in place so they finish signing up here.
+          const p = data.googleProfile || {};
+          if (p.firstName) document.getElementById('firstName').value = p.firstName;
+          if (p.lastName)  document.getElementById('lastName').value  = p.lastName;
+          if (p.email)     document.getElementById('email').value     = p.email;
+          const btn = document.getElementById('google-btn');
+          btn.disabled = false;
+          btn.innerHTML = GOOGLE_BTN_HTML;
+          document.getElementById('dateOfBirth').focus();
+          if (typeof showToast === 'function') showToast('Google connected — just fill in the rest to finish.', 'success');
+        }
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = 'block';
+        const btn = document.getElementById('google-btn');
+        btn.disabled = false;
+        btn.innerHTML = GOOGLE_BTN_HTML;
+      }
+    }
   </script>
 </body>
 </html>

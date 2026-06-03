@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <meta name="description" content="Browse local experiences and meet guides in your city. Discover authentic tours by people who actually live there.">
   <meta property="og:type" content="website">
@@ -37,12 +37,15 @@
       background: var(--surface);
       border: 1px solid var(--border-2);
       border-radius: var(--radius-pill);
-      padding: 0 14px;
-      height: 42px;
+      padding: 0 16px;
+      height: 44px;
       margin-bottom: 8px;
-      transition: border-color var(--t-fast);
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
     }
-    .explore-search:focus-within { border-color: var(--accent); }
+    .explore-search:focus-within {
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 3px var(--accent-a08);
+    }
     .explore-search input {
       flex: 1;
       background: none;
@@ -50,7 +53,6 @@
       outline: none;
       color: var(--text);
       font-size: 14px;
-      font-family: var(--font-mono);
     }
     .explore-search input::placeholder { color: var(--text-3); }
 
@@ -74,7 +76,7 @@
       flex-direction: column;
       gap: 12px;
       padding: 14px 14px 24px;
-      background: #0a0c0c;
+      background: var(--bg);
     }
 
     @keyframes cardEnter {
@@ -371,13 +373,6 @@
     }
 
     /* ── Light mode overrides ── */
-    body.theme-light .explore-search , body.theme-warm .explore-search {
-      background: rgba(250,248,244,0.95);
-      border-color: rgba(0,0,0,0.10);
-    }
-    body.theme-light .explore-search input , body.theme-warm .explore-search input { color: #0f0e0c; }
-    body.theme-light .explore-search input::placeholder , body.theme-warm .explore-search input::placeholder { color: rgba(0,0,0,0.30); }
-    body.theme-light .explore-list , body.theme-warm .explore-list { background: #eceae4; }
     body.theme-light .explore-card , body.theme-warm .explore-card {
       background: linear-gradient(160deg, #fffefb 0%, #f9f7f2 60%, #f3f1eb 100%);
       border-color: rgba(0,0,0,0.09);

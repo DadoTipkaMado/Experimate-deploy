@@ -121,6 +121,7 @@ async function apiFetch(path, options = {}, _isRetry = false) {
     const friendly = {
       400: 'Check your input and try again.',
       401: 'Not signed in.',
+      402: 'Payment declined — please check your payment method.',
       403: 'You don\'t have permission to do this.',
       404: 'Not found.',
       409: 'Already exists.',
@@ -266,14 +267,17 @@ const PartnerAPI = {
    PARTNER PINS  /api/partner-pins  (issue #130)
 ─────────────────────────────────────────────── */
 const PartnerPinAPI = {
-  getAll:    ()         => apiFetch('/api/partner-pins'),
-  getMine:   ()         => apiFetch('/api/partner-pins/mine'),
-  getById:   (id)       => apiFetch(`/api/partner-pins/${id}`),
-  create:    (dto)      => apiFetch('/api/partner-pins',        { method: 'POST',   body: JSON.stringify(dto) }),
-  update:    (id, dto)  => apiFetch(`/api/partner-pins/${id}`,  { method: 'PUT',    body: JSON.stringify(dto) }),
-  delete:    (id)       => apiFetch(`/api/partner-pins/${id}`,  { method: 'DELETE' }),
-  uploadLogo:(id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/partner-pins/${id}/logo`, { method: 'POST', body: f }); },
-  logoUrl:   (filename) => filename ? `/api/partner-pins/logo/${filename}` : null,
+  getAll:          ()         => apiFetch('/api/partner-pins'),
+  getMine:         ()         => apiFetch('/api/partner-pins/mine'),
+  getById:         (id)       => apiFetch(`/api/partner-pins/${id}`),
+  create:          (dto)      => apiFetch('/api/partner-pins',        { method: 'POST',   body: JSON.stringify(dto) }),
+  update:          (id, dto)  => apiFetch(`/api/partner-pins/${id}`,  { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:          (id)       => apiFetch(`/api/partner-pins/${id}`,  { method: 'DELETE' }),
+  uploadLogo:      (id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/partner-pins/${id}/logo`, { method: 'POST', body: f }); },
+  logoUrl:         (filename) => filename ? `/api/partner-pins/logo/${filename}` : null,
+  subscribe:       (id)       => apiFetch(`/api/partner-pins/${id}/subscription`, { method: 'POST' }),
+  unsubscribe:     (id)       => apiFetch(`/api/partner-pins/${id}/subscription`, { method: 'DELETE' }),
+  getSubscription: (id)       => apiFetch(`/api/partner-pins/${id}/subscription`),
 };
 
 /* ───────────────────────────────────────────────
@@ -295,12 +299,20 @@ const PartnerEventAPI = {
    PROMOTED ADS  /api/promoted-ads  (issue #132)
 ─────────────────────────────────────────────── */
 const PromotedAdAPI = {
-  create:      (dto)      => apiFetch('/api/promoted-ads',           { method: 'POST',   body: JSON.stringify(dto) }),
-  getMine:     ()         => apiFetch('/api/promoted-ads/mine'),
-  update:      (id, dto)  => apiFetch(`/api/promoted-ads/${id}`,     { method: 'PUT',    body: JSON.stringify(dto) }),
-  delete:      (id)       => apiFetch(`/api/promoted-ads/${id}`,     { method: 'DELETE' }),
-  uploadImage: (id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/promoted-ads/${id}/image`, { method: 'POST', body: f }); },
-  imageUrl:    (filename) => filename ? `/api/promoted-ads/image/${filename}` : null,
+  create:      (dto)           => apiFetch('/api/promoted-ads',                    { method: 'POST',   body: JSON.stringify(dto) }),
+  getMine:     ()              => apiFetch('/api/promoted-ads/mine'),
+  update:      (id, dto)       => apiFetch(`/api/promoted-ads/${id}`,              { method: 'PUT',    body: JSON.stringify(dto) }),
+  extend:      (id, additionalDays) => apiFetch(`/api/promoted-ads/${id}/extend`,  { method: 'POST',   body: JSON.stringify({ additionalDays }) }),
+  delete:      (id)            => apiFetch(`/api/promoted-ads/${id}`,              { method: 'DELETE' }),
+  uploadImage: (id, file)      => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/promoted-ads/${id}/image`, { method: 'POST', body: f }); },
+  imageUrl:    (filename)      => filename ? `/api/promoted-ads/image/${filename}` : null,
+};
+
+/* ───────────────────────────────────────────────
+   PRICING  /api/pricing  (issue #238)
+─────────────────────────────────────────────── */
+const PricingAPI = {
+  get: () => apiFetch('/api/pricing'),
 };
 
 /* ───────────────────────────────────────────────
