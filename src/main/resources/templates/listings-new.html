@@ -19,12 +19,18 @@
     .page-content { background: #0a0c0c; }
     body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
     body.theme-warm  .page-content { background: #ECEDF2; }
+    /* Lay out header + form as a column so the form card can stretch to fill
+       the space down to (just above) the navbar instead of leaving a gap. */
+    .page-content { display: flex; flex-direction: column; }
 
     .new-listing-header { padding: 22px 20px 14px; }
 
     .new-listing-form {
       display: flex; flex-direction: column; gap: 18px;
-      margin: 0 16px 24px;
+      /* Grow to fill the page-content column; bottom margin keeps a small
+         gap from the navbar so the card never touches it. */
+      flex: 1 1 auto;
+      margin: 0 16px 14px;
       padding: 20px 18px 22px;
       background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.90) 55%, rgba(10,10,10,0.88) 100%);
       border: 1px solid var(--border-2);
@@ -97,7 +103,7 @@
       border-radius: 10px; padding: 10px 14px;
       font-size: 11px; color: rgba(255,100,100,0.9);
     }
-    .form-actions { display: flex; gap: 10px; }
+    .form-actions { display: flex; gap: 10px; margin-top: auto; }
     .form-actions .btn { flex: 1; height: 46px; }
 
     /* Time drum picker */
