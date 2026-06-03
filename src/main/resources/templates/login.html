@@ -490,7 +490,7 @@
           body: JSON.stringify({ idToken: response.credential }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Google sign-in failed.');
+        if (!res.ok) throw new Error('Google sign-in failed — please try again.');
         if (data.status === 'LOGGED_IN') {
           Auth.saveToken(data.accessToken);
           if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
