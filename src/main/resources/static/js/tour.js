@@ -234,6 +234,11 @@
 
   /* ── Welcome modal ────────────────────────────── */
   function showWelcome() {
+    // Mark tour as seen the moment the welcome card appears.
+    // This ensures that if the user navigates away without interacting
+    // (no Skip / Done click), the tour still won't re-show on the next login.
+    localStorage.setItem('app_tour_done', '1');
+
     const el = document.createElement('div');
     el.id = 'tour-welcome';
     el.innerHTML = `
