@@ -568,12 +568,13 @@
       document.getElementById('account-stats').style.display = '';
       document.getElementById('acc-actions').style.display  = '';
 
-      // Cover gradient — light themes get a clean pale hue wash, dark themes a deep one
+      // Cover background — light themes get a flat, gradient-free neutral fill;
+      // dark themes keep the deep hue-tinted gradient banner.
       const coverBg = document.getElementById('acc-cover-bg');
       if (coverBg) {
         const isLight = document.body.classList.contains('theme-light') || document.body.classList.contains('theme-warm');
         coverBg.style.cssText = isLight
-          ? `background:linear-gradient(135deg,hsl(${hue},42%,94%) 0%,hsl(${hue},34%,90%) 50%,hsl(${(hue+40)%360},36%,92%) 100%);position:absolute;inset:0;`
+          ? `background:var(--surface-2);position:absolute;inset:0;`
           : `background:linear-gradient(135deg,hsl(${hue},45%,12%) 0%,hsl(${hue},30%,16%) 50%,hsl(${(hue+40)%360},35%,10%) 100%);position:absolute;inset:0;`;
       }
       // Avatar ring colour matches hue
