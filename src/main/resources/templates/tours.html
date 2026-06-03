@@ -35,7 +35,7 @@
     .seg-tabs {
       display: flex; padding: 10px 16px;
       border-bottom: 1px solid var(--border);
-      gap: 6px; background: #0a0c0c; position: sticky; top: 0; z-index: 10;
+      gap: 6px; background: var(--bg); position: sticky; top: 0; z-index: 10;
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
     .seg-tab {
@@ -311,8 +311,8 @@
     /* ── Tab content panels ── */
     .tab-panel { display: none; flex-direction: column; gap: 10px; padding: 14px 16px 100px; }
     .tab-panel--active { display: flex; }
-    /* Fill entire scrollable area with the card-list background */
-    .page-content { background: #0a0c0c; }
+    /* Fill entire scrollable area with the themed page background */
+    .page-content { background: var(--bg); }
 
     /* ── Meet detail sheet ── */
     .detail-backdrop {
@@ -425,10 +425,8 @@
     .star-picker__star:hover { transform: scale(1.12); }
 
     /* ── Light / Warm mode ── */
-    body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
-    body.theme-warm  .page-content { background: #ECEDF2; }
-    body.theme-light .seg-tabs , body.theme-warm .seg-tabs { background: rgba(240,238,234,0.95); border-bottom-color: rgba(0,0,0,0.10); }
-    body.theme-warm  .seg-tabs { background: rgba(236,237,242,0.95); border-bottom-color: rgba(0,0,0,0.08); }
+    body.theme-light .seg-tabs , body.theme-warm .seg-tabs { border-bottom-color: rgba(0,0,0,0.10); }
+    body.theme-warm  .seg-tabs { border-bottom-color: rgba(0,0,0,0.08); }
     body.theme-light .meets-header::before , body.theme-warm .meets-header::before { background: radial-gradient(circle, rgba(0,110,88,0.08) 0%, transparent 68%); }
     body.theme-warm  .meets-header::before { background: radial-gradient(circle, rgba(235,101,71,0.07) 0%, transparent 68%); }
     body.theme-light .meet-card, body.theme-warm .meet-card,
