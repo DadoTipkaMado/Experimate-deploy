@@ -371,7 +371,7 @@
         <div class="form-field">
           <label for="meetingDateInput">Meeting date</label>
           <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
-                 data-date-format="date" autocomplete="off" required
+                 data-date-format="date" autocomplete="off" inputmode="none" required
                  onclick="(function(el){const t=new Date();t.setHours(0,0,0,0);DatePicker.open(el,{min:t});})(this)">
           <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
         </div>
