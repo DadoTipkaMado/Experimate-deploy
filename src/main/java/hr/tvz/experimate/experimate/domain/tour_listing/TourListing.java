@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Table(name="tour_listing")
 public class TourListing {
 
-    private static final int MINIMUM_DESCRIPTION_LENGTH = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN;
     private static final int MAXIMUM_DESCRIPTION_LENGTH = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX;
 
     @Id
@@ -173,9 +172,9 @@ public class TourListing {
     private String validateTourDescription(String tourDescription){
         if(tourDescription==null || tourDescription.isBlank())
             throw new IllegalArgumentException("Tour description cannot be blank");
-        if(tourDescription.length() < MINIMUM_DESCRIPTION_LENGTH || tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
-            throw new IllegalArgumentException("Tour description must be between "
-                + MINIMUM_DESCRIPTION_LENGTH + " and " + MAXIMUM_DESCRIPTION_LENGTH + " characters long.");
+        if(tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
+            throw new IllegalArgumentException("Tour description must be at most "
+                + MAXIMUM_DESCRIPTION_LENGTH + " characters long.");
         return tourDescription;
     }
 

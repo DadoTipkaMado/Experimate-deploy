@@ -22,9 +22,7 @@ import java.time.LocalDateTime;
 public record CreateListingFromEventRequest(
         @NotNull Integer partnerEventId,
         @NotBlank String city,
-        @NotBlank @Size(
-                min = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN,
-                max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
+        @NotBlank @Size(max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
         String tourDescription,
         @NotNull @Min(Constraints.TourListingConstraints.MIN_GUESTS)
         @Max(Constraints.TourListingConstraints.MAX_GUESTS)

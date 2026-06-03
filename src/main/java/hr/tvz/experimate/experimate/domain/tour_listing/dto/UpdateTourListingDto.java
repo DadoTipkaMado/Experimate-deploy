@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 
 public record UpdateTourListingDto(
         @Future LocalDateTime meetingDate,
-        @NotBlank @Size(
-                min = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN,
-                max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
+        @NotBlank @Size(max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
         String tourDescription
 ) {}
