@@ -444,7 +444,11 @@ svg { display: block; flex-shrink: 0; }
 .app-shell {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  /* svh = small viewport height (always-visible area). dvh resolves to the
+     LARGEST dynamic height, which on Android standalone PWA can momentarily
+     exceed the visible viewport after a navigation and clip the bottom navbar
+     (the whole chain is overflow:hidden, so there's no scroll to recover it). */
+  height: 100svh;
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
@@ -560,13 +564,16 @@ svg { display: block; flex-shrink: 0; }
 }
 
 .navbar {
-  height: var(--navbar-h);
+  /* Grow the bar by the bottom safe-area inset so icons sit above Android's
+     gesture bar (requires viewport-fit=cover in the page <meta viewport>).
+     When the inset is 0 this is identical to the original 56px / 6px values. */
+  height: calc(var(--navbar-h) + env(safe-area-inset-bottom));
   background: var(--bg);
   /*border-top: 1px solid var(--border);*/
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 4px 6px;
+  padding: 0 4px calc(6px + env(safe-area-inset-bottom));
   flex-shrink: 0;
   position: relative;
   z-index: 50;
@@ -1033,7 +1040,7 @@ svg { display: block; flex-shrink: 0; }
 /* — Toast — */
 .toast {
   position: fixed;
-  bottom: calc(var(--navbar-h) + 12px);
+  bottom: calc(var(--navbar-h) + env(safe-area-inset-bottom) + 12px);
   left: 50%;
   transform: translateX(-50%) translateY(12px);
   background: var(--surface-2);
@@ -2106,7 +2113,7 @@ svg { display: block; flex-shrink: 0; }
 /* ── PWA Install Banner ──────────────────────────────────────────────── */
 .pwa-banner {
   position: fixed;
-  bottom: calc(var(--navbar-h, 56px) + 14px);
+  bottom: calc(var(--navbar-h, 56px) + env(safe-area-inset-bottom) + 14px);
   left: 50%; transform: translateX(-50%);
   z-index: 8000;
   display: flex; align-items: center; gap: 12px;
