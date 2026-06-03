@@ -460,7 +460,7 @@
   }
 
   (function() {
-    const current = localStorage.getItem('theme') || 'teal-dark';
+    const current = localStorage.getItem('theme') || 'warm-light';
     const swatches = document.querySelectorAll('.theme-swatch');
     swatches.forEach(sw => {
       sw.classList.toggle('theme-swatch--active', sw.dataset.theme === current);

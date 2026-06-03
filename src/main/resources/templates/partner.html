@@ -1003,7 +1003,8 @@
   }
 
   async function cancelPinHighlight(pinId) {
-    if (!confirm('Cancel highlight? The pin stays featured until the end of the current period.')) return;
+    const yes = await showConfirm({ title: 'Cancel highlight?', body: 'The pin stays featured until the end of the current period, then stops renewing.', confirmLabel: 'Stop renewal' });
+    if (!yes) return;
     try {
       const sub = await PartnerPinAPI.unsubscribe(pinId);
       const end = sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
