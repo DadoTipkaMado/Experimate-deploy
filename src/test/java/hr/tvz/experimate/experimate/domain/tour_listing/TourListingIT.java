@@ -4,7 +4,10 @@ import hr.tvz.experimate.experimate.AbstractIntegrationTest;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateListingFromEventRequest;
 import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 

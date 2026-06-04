@@ -234,6 +234,11 @@
 
   /* ── Welcome modal ────────────────────────────── */
   function showWelcome() {
+    // Mark tour as seen the moment the welcome card appears.
+    // This ensures that if the user navigates away without interacting
+    // (no Skip / Done click), the tour still won't re-show on the next login.
+    localStorage.setItem('app_tour_done', '1');
+
     const el = document.createElement('div');
     el.id = 'tour-welcome';
     el.innerHTML = `
@@ -318,8 +323,12 @@
   }
 
   function positionTooltip(targetRect) {
-    const TT_W   = 280;
-    const TT_H   = 180;
+    // Measure the real rendered box — the tooltip's content (and so its height)
+    // varies per step. The card already has layout here (tt-hidden only sets
+    // opacity/transform), so offset* are accurate. A stale height estimate is
+    // what let the last step's card drop onto the spotlighted FAB.
+    const TT_W   = elTooltip.offsetWidth  || 280;
+    const TT_H   = elTooltip.offsetHeight || 180;
     const EDGE   = 14;
     const vw     = window.innerWidth;
     const vh     = window.innerHeight;

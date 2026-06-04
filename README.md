@@ -92,16 +92,26 @@ ExperiMate/
 │   │   │   │   ├── JwtService.java
 │   │   │   │   ├── JwtAuthFilter.java
 │   │   │   │   └── AppUserDetailsService.java
-│   │   │   ├── domain/                             # All business domains
+│   │   │   ├── domain/                             # All business domains (package-by-feature)
 │   │   │   │   ├── user/                           # Entity, service, repo, controller, dto, response, exception
-│   │   │   │   ├── tour_listing/
-│   │   │   │   ├── reservation/
-│   │   │   │   ├── booking_request/
-│   │   │   │   ├── rating/
-│   │   │   │   ├── refresh_token/
-│   │   │   │   ├── onboarding/                     # Big Five personality quiz
+│   │   │   │   ├── tour_listing/                   # Activity listings + host check-in / tour start
+│   │   │   │   ├── reservation/                    # Booking lifecycle: check-in, end / cancel tour
+│   │   │   │   ├── booking_request/                # Guest → host requests (accept / decline)
+│   │   │   │   ├── rating/                         # Post-meetup mutual ratings
+│   │   │   │   ├── refresh_token/                  # JWT refresh-token rotation
+│   │   │   │   ├── token/                          # Email-verification + password-reset tokens
+│   │   │   │   ├── onboarding/                     # Big Five (BFI-10) personality quiz
 │   │   │   │   ├── match/                          # AI-powered user matching
-│   │   │   │   └── ai/                             # AI prompt service
+│   │   │   │   ├── ai/                             # AI prompt / matching service
+│   │   │   │   ├── feed/                           # Explore feed pagination
+│   │   │   │   ├── email/                          # Transactional email content + delivery
+│   │   │   │   ├── partner/                        # B2B partner profiles
+│   │   │   │   ├── partner_event/                  # Partner-hosted events
+│   │   │   │   ├── partner_pin/                    # Partner map pins + subscriptions
+│   │   │   │   ├── premium/                        # Premium membership purchase
+│   │   │   │   └── promoted_ad/                    # Paid promoted ads
+│   │   │   ├── shared/                             # Cross-domain: events, exceptions, payment, mappers, rate limiting
+│   │   │   ├── push/                               # Web-push notifications (VAPID) + schedulers
 │   │   │   └── view/                               # Thymeleaf view controllers (no business logic)
 │   │   │       ├── AuthViewController.java
 │   │   │       ├── MapController.java
@@ -147,9 +157,9 @@ ExperiMate/
 │   │           └── community.html
 │   └── test/
 │       ├── java/hr/tvz/experimate/experimate/
-│       │   ├── AbstractIntegrationTest.java        # Base class for all IT tests
-│       │   └── domain/
-│       │       └── user/UserIT.java
+│       │   ├── AbstractIntegrationTest.java        # Base class for IT tests (shared PostgreSQL container)
+│       │   ├── ExperiMateApplicationIT.java        # Context-load smoke test
+│       │   └── domain/ · security/ · push/ · ...   # 40+ unit (*Test) + Testcontainers IT (*IT) across all domains
 │       └── resources/
 │           └── application-test.properties         # Test profile (dummy keys, no datasource URL)
 ├── http/
@@ -185,33 +195,27 @@ Docker Desktop is required for two things: running the local PostgreSQL containe
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-org/experimate.git
-cd experimate
+git clone https://github.com/DadoTipkaMado/Experimate-deploy.git
+cd Experimate-deploy
 ```
 
 ### 2. Start the database
 
 ```bash
-docker run --name PLACEHOLDER -e POSTGRES_DB=PLACEHOLDER -e POSTGRES_USER=PLACEHOLDER -e POSTGRES_PASSWORD=PLACEHOLDER -p 5432:5432 -d postgres
+docker run --name experimate-db \
+  -e POSTGRES_DB=<your-db-name> \
+  -e POSTGRES_USER=<your-user> \
+  -e POSTGRES_PASSWORD=<your-password> \
+  -p 5432:5432 -d postgres:16
 ```
 
-### 2. Add required configuration
+> Pick any values you like — you'll point the app at this database in step 3.
+
+### 3. Add required configuration
 
 The `application.properties` file requires a JWT secret and database path before the app can start. 
 
-### 3. Build and run
-
-**Using the Maven Wrapper (recommended — no local Maven required):**
-
-```bash
-# macOS / Linux
-./mvnw spring-boot:run
-
-# Windows
-mvnw.cmd spring-boot:run
-```
-
-**Using a locally installed Maven:**
+### 4. Build and run
 
 ```bash
 mvn spring-boot:run
@@ -219,7 +223,7 @@ mvn spring-boot:run
 
 The application starts on **http://localhost:8080**.
 
-### 4. Open the app
+### 5. Open the app
 
 Navigate to [http://localhost:8080](http://localhost:8080) — you will be redirected to the login page.
 
@@ -227,7 +231,7 @@ Navigate to [http://localhost:8080](http://localhost:8080) — you will be redir
 - **Log in** with your credentials
 - You will land on the **Map** page
 
-### 5. Explore the app
+### 6. Explore the app
 
 | Page | URL | What to do |
 |---|---|---|
@@ -271,16 +275,25 @@ The full API is documented via Swagger UI at `/swagger-ui/index.html` when the a
 
 ### Summary of endpoints
 
-| Resource | Endpoints |
+| Resource | Key endpoints |
 |---|---|
-| Auth | `POST /api/auth/login`, `POST /api/auth/refresh` |
-| Users | `GET/POST /api/user`, `GET/PATCH/DELETE /api/user/{id}` |
-| Tour Listings | `GET/POST /api/tour-listing`, `GET/PATCH/DELETE /api/tour-listing/{id}` |
-| Booking Requests | `GET/POST /api/booking-request`, `PATCH /api/booking-request/accept/{id}`, `PATCH /api/booking-request/decline/{id}`, `DELETE /api/booking-request/{id}` |
-| Reservations | `GET /api/reservation`, `PATCH /api/reservation/check-in/{id}`, `PATCH /api/reservation/end-tour/{id}`, `PATCH /api/reservation/cancel-tour/{id}`, `DELETE /api/reservation/{id}` |
+| Auth | `POST /api/auth/login`, `/refresh`, `/logout`, `/google`, `/google/complete-registration`, `/verify-email`, `/resend-verification`, `/password-reset/request`, `/password-reset/confirm`; `GET /api/auth/google-client-id` |
+| Users | `POST /api/user`, `GET /api/user`, `GET /api/user/me`, `GET /api/user/{id}`, `GET /api/user/by-username/{username}`, `GET /api/user/search`, `PATCH/DELETE /api/user/{id}`, profile-photo upload / delete / serve |
+| Tour Listings | `GET/POST /api/tour-listing`, `GET /api/tour-listing/mine`, `GET/PATCH/DELETE /api/tour-listing/{id}`, `POST /api/tour-listing/{id}/start-tour`, `POST /api/tour-listing/from-partner-event` |
+| Booking Requests | `POST /api/booking-request`, `GET /api/booking-request/mine`, `GET /api/booking-request/{id}`, `PATCH /api/booking-request/accept/{id}`, `/decline/{id}`, `DELETE /api/booking-request/{id}` |
+| Reservations | `GET /api/reservation/mine`, `GET /api/reservation/{id}`, `GET /api/reservation/{id}/presence`, `PATCH /api/reservation/check-in/{id}`, `/end-tour/{id}`, `/cancel-tour/{id}`, `DELETE /api/reservation/{id}` |
 | Ratings | `GET/POST /api/rating`, `GET/PATCH/DELETE /api/rating/{id}` |
+| Onboarding | `GET /api/onboarding/questions`, `/status`, `POST /api/onboarding/answers`, `/cancel`, `DELETE /api/onboarding/data` |
+| Match (AI) | `GET /api/match`, `GET /api/match/{candidateId}/explain` *(PREMIUM_USER)* |
+| Feed | `GET /api/feed` |
+| Premium / Pricing | `POST /api/premium/purchase`, `GET /api/pricing` |
+| Partner | `GET /api/partner/status`, `/profile`, `/stats`, `/events`, `POST /api/partner/apply`, `DELETE /api/partner` *(PARTNER)* |
+| Partner Pins | `GET/POST /api/partner-pins`, `GET /api/partner-pins/mine`, `GET/PUT/DELETE /api/partner-pins/{id}`, logo upload / serve, `POST/GET/DELETE /api/partner-pins/{id}/subscription` *(PARTNER)* |
+| Partner Events | `POST/GET /api/partner-pins/{pinId}/events`, `GET /api/partner-events/upcoming`, `GET/PUT/DELETE /api/partner-events/{id}`, `POST/DELETE /api/partner-events/{id}/promote` *(PARTNER)* |
+| Promoted Ads | `POST /api/promoted-ads`, `GET /api/promoted-ads/mine`, `PUT/DELETE /api/promoted-ads/{id}`, `POST /api/promoted-ads/{id}/extend`, image upload / serve *(PARTNER)* |
+| Push | `GET /api/push/vapid-public-key`, `POST /api/push/subscribe`, `/unsubscribe` |
 
-All `/api/**` endpoints except `POST /api/auth/login` and `POST /api/user` require a valid `Authorization: Bearer <token>` header.
+All `/api/**` endpoints require a valid `Authorization: Bearer <token>` header, **except** the public ones: `POST /api/auth/**`, `GET /api/auth/google-client-id`, `POST /api/user`, and the file-serving GETs (`/api/user/profile-photo/*`, `/api/partner-pins/logo/*`, `/api/promoted-ads/image/*`). Endpoints tagged *(PARTNER)* / *(PREMIUM_USER)* additionally require that role.
 
 ---
 
@@ -299,6 +312,16 @@ All integration tests extend `AbstractIntegrationTest`, which provides:
 - A `TestRestTemplate` wired to the random server port
 - A mocked `ChatClient` so Spring AI never calls the Anthropic API
 - A `@BeforeEach` hook that truncates all tables so each test starts with a clean database
+
+---
+
+## CI/CD & Deployment
+
+**Continuous Integration.** Every push and every pull request runs the full build and test suite through GitHub Actions (`.github/workflows/ci.yml` → `mvn verify`), spinning up a real PostgreSQL container via Testcontainers. The `main` and `develop` branches are protected: a pull request cannot be merged unless the CI check passes, so untested code never reaches `main`.
+
+**Continuous Deployment.** The application is deployed on **Railway**, connected directly to the GitHub repository. Every merge to `main` automatically triggers a fresh deployment — Railway builds the image from the multi-stage `Dockerfile` and rolls it out with no manual steps. Because a green CI run is a required merge gate, only test-passing code is ever built and deployed, even though the production image build itself skips the test phase for speed.
+
+**Production configuration.** The `prod` profile (`application-prod.properties`) reads every secret and connection detail from environment variables injected by Railway — datasource URL and credentials, `JWT_SECRET`, the Anthropic API key, SMTP settings, and the VAPID push keys. Nothing sensitive is committed to the repository.
 
 ---
 

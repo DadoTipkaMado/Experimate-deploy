@@ -345,8 +345,8 @@
     </div>
   </div>
 
-  <script src="/js/main.js"></script>
-  <script src="/js/api.js"></script>
+  <script th:src="@{/js/main.js}"></script>
+  <script th:src="@{/js/api.js}"></script>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <script>
     function fieldErr(errId, inputEl, msg) {
@@ -565,7 +565,7 @@
       const lastName  = gp.family_name || '';
       const picture   = gp.picture ? gp.picture.replace(/=s\d+-c/, '=s256-c') : null;
 
-      if (!firstName && !lastName && !picture) { window.location.href = '/map'; return; }
+      if (!firstName && !lastName && !picture) { enterApp(); return; }
 
       const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'G';
       const avatarHtml = picture
@@ -600,7 +600,7 @@
       document.body.appendChild(backdrop);
 
       backdrop.querySelector('#gsync-skip').addEventListener('click', () => {
-        backdrop.remove(); window.location.href = '/map';
+        backdrop.remove(); enterApp();
       });
 
       backdrop.querySelector('#gsync-confirm').addEventListener('click', async () => {
@@ -628,7 +628,7 @@
             } catch (_) {}
           }
         } catch (_) {}
-        window.location.href = '/map';
+        enterApp();
       });
     }
 

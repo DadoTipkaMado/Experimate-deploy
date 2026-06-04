@@ -1,8 +1,8 @@
 package hr.tvz.experimate.experimate.domain.refresh_token;
 
 import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.shared.response.TokenResponse;
 import hr.tvz.experimate.experimate.security.JwtService;
+import hr.tvz.experimate.experimate.shared.response.TokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
