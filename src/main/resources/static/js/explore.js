@@ -277,6 +277,10 @@ function renderFeed(items) {
     return `
       <div class="reel" style="--card-hue:${hue}" onclick="openListingDetailFromExplore(${l.id})">
         <div class="reel__bg"></div>
+        ${photoUrl
+          ? `<div class="reel__photo" style="background-image:url('${photoUrl}')"></div>`
+          : `<div class="reel__initials">${initials}</div>`}
+        <div class="reel__scrim"></div>
         <div class="reel__rail">
           <a class="reel__avatar" href="/profile/${encodeURIComponent(hostHandle)}" style="${avatarBg}"
              onclick="event.stopPropagation()">${avatarHtml}</a>

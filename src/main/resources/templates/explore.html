@@ -113,12 +113,58 @@
         radial-gradient(120% 55% at 100% 108%, hsl(var(--card-hue, 160) 42% 17% / 0.55), transparent 55%),
         linear-gradient(180deg, var(--surface-2) 0%, var(--bg) 70%);
     }
-    /* Bottom vignette so content stays legible */
+    /* Bottom vignette so content stays legible (fallback, photo-less cards) */
     .reel__bg::after {
       content: '';
       position: absolute;
       inset: 0;
       background: radial-gradient(95% 55% at 30% 100%, rgba(0,0,0,0.5), transparent 72%);
+    }
+
+    /* Host profile photo as the reel backdrop (sits above the hue fallback) */
+    .reel__photo {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    /* Legibility scrim: opaque page colour at the bottom (where the name,
+       status and action rail sit) fading to clear over the photo. var(--bg) is
+       dark in dark themes and light in light/warm, so text contrast holds in
+       every theme without per-theme overrides. */
+    .reel__scrim {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(to top,
+          var(--bg) 2%,
+          color-mix(in srgb, var(--bg) 85%, transparent) 22%,
+          color-mix(in srgb, var(--bg) 45%, transparent) 50%,
+          transparent 80%),
+        linear-gradient(to left,
+          color-mix(in srgb, var(--bg) 42%, transparent) 0%,
+          transparent 42%);
+    }
+
+    /* Fallback backdrop when the host has no profile photo: large host
+       initials as a watermark over the hue gradient. */
+    .reel__initials {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 150px;
+      line-height: 1;
+      color: hsl(var(--card-hue, 160) 55% 62% / 0.28);
+      user-select: none;
+      pointer-events: none;
     }
 
     /* ── Right action rail ── */
@@ -177,6 +223,8 @@
       background: var(--surface-2);
       border: 1px solid var(--border-2);
       color: var(--text);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       transition: transform var(--t-fast), background var(--t-fast);
     }
     .reel__action:not(:disabled):active .reel__action-icon { transform: scale(0.88); }
