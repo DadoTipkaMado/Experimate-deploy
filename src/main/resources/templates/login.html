@@ -391,6 +391,7 @@
         client_id: _googleClientId,
         callback: _handleGoogleCredential,
         auto_select: false,
+        use_fedcm_for_prompt: true,
       });
       google.accounts.id.renderButton(document.getElementById('google-overlay'),
         { type: 'standard', theme: 'outline', size: 'large', width: 360 });
