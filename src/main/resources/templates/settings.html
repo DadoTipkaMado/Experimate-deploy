@@ -562,7 +562,16 @@
     } catch(e) { /* best effort */ }
     closeDeleteAccountModal();
     sessionStorage.setItem('explicit_logout', '1');
-    localStorage.clear();
+    // Remove auth and session-sensitive keys individually — do NOT use localStorage.clear()
+    // as that would also erase UX prefs like app_tour_done, personality data, etc.
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('user_initials');
+    localStorage.removeItem('user_hue');
+    localStorage.removeItem('personality_scores');
+    localStorage.removeItem('personality_traits');
+    localStorage.removeItem('personality_done');
+    localStorage.removeItem('personality_skipped');
     window.location.href = '/login';
   }
   document.getElementById('delete-account-modal').addEventListener('click', function(e) {

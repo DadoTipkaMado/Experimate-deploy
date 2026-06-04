@@ -14,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
