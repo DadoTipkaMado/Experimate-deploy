@@ -992,6 +992,15 @@
   }
 
   async function handleRequest(action, id, btn) {
+    if (action === 'decline') {
+      const yes = await showConfirm({
+        title: 'Decline this request?',
+        body: 'The Mate will be notified their request was declined. This cannot be undone.',
+        confirmLabel: 'Decline',
+        danger: true,
+      });
+      if (!yes) return;
+    }
     btn.disabled = true;
     try {
       if (action === 'accept') {
