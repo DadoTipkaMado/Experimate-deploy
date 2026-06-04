@@ -3,32 +3,41 @@ package hr.tvz.experimate.experimate.domain.reservation;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
 import hr.tvz.experimate.experimate.domain.reservation.exception.IllegalReservationStateException;
 import hr.tvz.experimate.experimate.domain.reservation.exception.ReservationNotFoundException;
-import hr.tvz.experimate.experimate.shared.Constraints;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.ReservationResponse;
-import hr.tvz.experimate.experimate.shared.DetailsMapper;
-import hr.tvz.experimate.experimate.shared.event.*;
-import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
-import hr.tvz.experimate.experimate.domain.tour_listing.*;
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
+import hr.tvz.experimate.experimate.domain.tour_listing.MeetGraphicAssigner;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
 import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.shared.Constraints;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
+import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
+import hr.tvz.experimate.experimate.shared.event.RatingCreatedEvent;
+import hr.tvz.experimate.experimate.shared.event.ReservationCancelledEvent;
+import hr.tvz.experimate.experimate.shared.event.ReservationConfirmedEvent;
+import hr.tvz.experimate.experimate.shared.event.TourListingDeletedEvent;
+import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedEvent;
+import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedForHostEvent;
+import hr.tvz.experimate.experimate.shared.event.TourStartedEvent;
+import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.domain.Sort;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -66,6 +75,20 @@ public class ReservationService {
         this.meetGraphicAssigner = meetGraphicAssigner;
     }
 
+    /**
+     * Creates a CONFIRMED reservation for the given guest on the given listing and
+     * publishes a {@link ReservationConfirmedEvent}.
+     *
+     * <p>Also invoked internally when a {@link BookingRequestAcceptedEvent} is handled.
+     *
+     * @param guestId   ID of the user reserving the listing
+     * @param listingId ID of the listing being reserved
+     * @return the created {@link ReservationResponse}
+     * @throws UserNotFoundException        if no user exists with the given ID
+     * @throws TourListingNotFoundException if no listing exists with the given ID
+     * @throws IllegalArgumentException     if the listing's meeting date is already in the past
+     * @throws GuestAlreadyBookedException  if the guest already has a live reservation that day
+     */
     @Transactional
     public ReservationResponse createReservation(Integer guestId, Integer listingId) {
         User guest = userRepo.findById(guestId)
@@ -80,7 +103,6 @@ public class ReservationService {
                     return new TourListingNotFoundException(listingId);
                 });
 
-        //TODO tweakaj da se ne moze rezervirati na isti dan kada je i meetingDate ili da iskoci prompt da se hosta pita je li mu problem pricekati
         if(listing.getMeetingDate().isBefore(LocalDateTime.now()))
             throw new IllegalArgumentException("Cannot book a listing whose meeting date is in the past.");
 
@@ -108,6 +130,16 @@ public class ReservationService {
         return createReservationResponse(reservation);
     }
 
+    /**
+     * Returns a page of the user's reservations, filtered by role and timeframe.
+     *
+     * @param userId    ID of the user whose reservations are listed
+     * @param filter    {@code "hosted"} for tours the user hosts, otherwise tours joined as a guest
+     * @param direction sort direction on the listing's meeting date
+     * @param timeframe {@code "past"} for meetings already passed, otherwise upcoming
+     * @param pageable  pagination settings
+     * @return a page of {@link ReservationResponse}
+     */
     public Page<ReservationResponse> getMyReservations(Integer userId, String filter, Sort.Direction direction, String timeframe, Pageable pageable) {
         Sort sort = Sort.by(direction, "tourListing.meetingDate");
         Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -128,18 +160,25 @@ public class ReservationService {
         return results.map(this::createReservationResponse);
     }
 
-    public List<ReservationResponse> getAllReservations() {
-        return reservationRepo.findAll()
-                .stream()
-                .map(this::createReservationResponse)
-                .toList();
-    }
-
+    /**
+     * Finds a single reservation by ID.
+     *
+     * @param id the reservation ID
+     * @return the {@link ReservationResponse} if found, otherwise empty
+     */
     public Optional<ReservationResponse> getReservationById(Integer id) {
         return reservationRepo.findById(id)
                 .map(this::createReservationResponse);
     }
 
+    /**
+     * Deletes a reservation. Only a participant (guest or host) may delete it.
+     *
+     * @param id       the reservation ID
+     * @param callerId ID of the authenticated user requesting deletion
+     * @throws ReservationNotFoundException if no reservation exists with the given ID
+     * @throws ForbiddenActionException     if the caller is neither the guest nor the host
+     */
     public void deleteReservation(Integer id, Integer callerId) {
         Reservation reservation = reservationRepo.findById(id)
                 .orElseThrow(() -> {
@@ -241,6 +280,17 @@ public class ReservationService {
         );
     }
 
+    /**
+     * Ends an ACTIVE tour on behalf of one of its participants.
+     *
+     * @param userId        ID of the participant ending the tour
+     * @param reservationId ID of the target reservation
+     * @return {@link EndTourResponse} with the final status and who ended it
+     * @throws UserNotFoundException            if no user exists with the given ID
+     * @throws ReservationNotFoundException     if no reservation exists with the given ID
+     * @throws IllegalReservationStateException if the reservation is not ACTIVE
+     * @throws IllegalArgumentException         if the user is not a participant of the reservation
+     */
     public EndTourResponse endTour(Integer userId, Integer reservationId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> {
@@ -276,6 +326,18 @@ public class ReservationService {
         );
     }
 
+    /**
+     * Cancels a CONFIRMED or ACTIVE reservation on behalf of one of its participants
+     * and publishes a {@link ReservationCancelledEvent}.
+     *
+     * @param userId        ID of the participant cancelling the tour
+     * @param reservationId ID of the target reservation
+     * @return {@link CancelTourResponse} with the updated status and cancellation timestamp
+     * @throws ReservationNotFoundException     if no reservation exists with the given ID
+     * @throws UserNotFoundException            if no user exists with the given ID
+     * @throws IllegalReservationStateException if the reservation is not CONFIRMED or ACTIVE
+     * @throws IllegalArgumentException         if the user is not a participant of the reservation
+     */
     public CancelTourResponse cancelTour(Integer userId, Integer reservationId) {
         Reservation reservation = reservationRepo.findById(reservationId)
                 .orElseThrow(() -> {
@@ -319,9 +381,6 @@ public class ReservationService {
                 user.getUsername(),
                 reservation.getCancelTimeStamp()
         );
-    }
-
-    private record ValidatedReservationData(User guest, TourListing listing) {
     }
 
     private boolean guestAvailableAtDate(User guest, LocalDate meetingDate) {
@@ -411,6 +470,10 @@ public class ReservationService {
         log.info("Deleted {} reservations due to expired tour listings.", count);
     }
 
+    /**
+     * Scheduled cleanup that expires CONFIRMED reservations whose check-in window has
+     * fully passed. Runs every 5 minutes.
+     */
     @Scheduled(fixedRate = 300000)
     public void expireConfirmedReservations() {
         log.debug("Attempting to expire confirmed reservations past check-in window.");
@@ -425,6 +488,10 @@ public class ReservationService {
         log.info("Expired {} confirmed reservations.", expired.size());
     }
 
+    /**
+     * Scheduled cleanup that expires CLOSED reservations whose rating window has passed.
+     * Runs every 30 minutes.
+     */
     @Scheduled(fixedRate = 1800000)
     public void expireClosedReservations() {
         log.debug("Attempting to proccess expired reservations.");

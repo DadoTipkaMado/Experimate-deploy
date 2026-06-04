@@ -2,16 +2,19 @@ package hr.tvz.experimate.experimate.domain.match;
 
 import hr.tvz.experimate.experimate.domain.match.response.MatchExplanationResponse;
 import hr.tvz.experimate.experimate.domain.match.response.MatchResponse;
-import hr.tvz.experimate.experimate.domain.match.MatchService;
 import hr.tvz.experimate.experimate.domain.user.Role;
+import hr.tvz.experimate.experimate.security.AppUserDetails;
 import hr.tvz.experimate.experimate.shared.RateLimitOperation;
 import hr.tvz.experimate.experimate.shared.RateLimiterService;
 import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.security.AppUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 

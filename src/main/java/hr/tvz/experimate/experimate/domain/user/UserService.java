@@ -2,12 +2,6 @@ package hr.tvz.experimate.experimate.domain.user;
 
 import hr.tvz.experimate.experimate.domain.onboarding.QuizResult;
 import hr.tvz.experimate.experimate.domain.onboarding.QuizResultRepo;
-import hr.tvz.experimate.experimate.shared.FileStorageService;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.shared.event.GoogleUserCreationEvent;
-import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
-import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
-import hr.tvz.experimate.experimate.shared.event.UserRegisteredEvent;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.dto.UpdateUserDto;
 import hr.tvz.experimate.experimate.domain.user.exception.EmailTakenException;
@@ -16,20 +10,25 @@ import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.exception.UsernameTakenException;
 import hr.tvz.experimate.experimate.domain.user.response.UserResponse;
 import hr.tvz.experimate.experimate.domain.user.response.UserSearchResponse;
+import hr.tvz.experimate.experimate.shared.FileStorageService;
+import hr.tvz.experimate.experimate.shared.event.GoogleUserCreationEvent;
+import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
+import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.shared.event.UserRegisteredEvent;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-
-import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +60,17 @@ public class UserService {
         this.fileStorageService = fileStorageService;
     }
 
+    /**
+     * Registers a new user, initialises their onboarding quiz record, and publishes a
+     * {@link UserRegisteredEvent}. The ID number, email, and username must be unique,
+     * and the password is BCrypt-hashed before storage.
+     *
+     * @param createUserDto validated registration details
+     * @return the created {@link UserResponse}
+     * @throws IdNumberTakenException  if the ID number is already registered
+     * @throws EmailTakenException     if the email is already registered
+     * @throws UsernameTakenException  if the username is already taken
+     */
     @Transactional
     public UserResponse createUser(CreateUserDto createUserDto) {
         User user = new User.UserBuilder(
@@ -83,16 +93,33 @@ public class UserService {
         return createUserResponse(user);
     }
 
+    /**
+     * Finds a single user by ID.
+     *
+     * @param id the user ID
+     * @return the {@link UserResponse} if found, otherwise empty
+     */
     public Optional<UserResponse> getUserById(Integer id) {
         return userRepo.findById(id)
                 .map(user -> createUserResponse(user));
     }
 
+    /**
+     * Finds a single user by username.
+     *
+     * @param username the username to look up
+     * @return the {@link UserResponse} if found, otherwise empty
+     */
     public Optional<UserResponse> getUserByUsername(String username) {
         return userRepo.findByUsername(username)
                 .map(this::createUserResponse);
     }
 
+    /**
+     * Returns all users in the system.
+     *
+     * @return list of all {@link UserResponse}
+     */
     public List<UserResponse> getAllUsers() {
         return userRepo.findAll()
                 .stream()
@@ -100,6 +127,17 @@ public class UserService {
                 .toList();
     }
 
+    /**
+     * Updates the username, password, and/or bio of a user. Users may only edit their own profile.
+     *
+     * @param id            the ID of the user being updated
+     * @param updateUserDto fields to update (null fields are left unchanged)
+     * @param callerId      ID of the authenticated user requesting the update
+     * @return the updated {@link UserResponse}
+     * @throws ForbiddenActionException if the caller is not the user being updated
+     * @throws UserNotFoundException    if no user exists with the given ID
+     * @throws IllegalArgumentException if the new username is already taken by another user
+     */
     public UserResponse updateUser(Integer id, UpdateUserDto updateUserDto, Integer callerId) {
         if (!callerId.equals(id))
             throw new ForbiddenActionException("You can only edit your own profile.");
@@ -131,6 +169,13 @@ public class UserService {
         return createUserResponse(user);
     }
 
+    /**
+     * Searches users by a free-text query, matching against username and name.
+     *
+     * @param query     the search term
+     * @param direction sort direction applied to username, first name, and last name
+     * @return a {@link UserSearchResponse} with the matching users and the result count
+     */
     public UserSearchResponse search(String query, Sort.Direction direction) {
         Sort sort = Sort.by(direction, "username", "firstName", "lastName");
 
@@ -241,6 +286,15 @@ public class UserService {
         log.info("Google user created with id {}", user.getId());
     }
 
+    /**
+     * Deletes a user account and publishes a {@link UserDeletedEvent} so dependent data
+     * (ratings, reservations, etc.) is cleaned up. Users may only delete their own account.
+     *
+     * @param id       the ID of the user being deleted
+     * @param callerId ID of the authenticated user requesting deletion
+     * @throws ForbiddenActionException if the caller is not the user being deleted
+     * @throws UserNotFoundException    if no user exists with the given ID
+     */
     @Transactional
     public void deleteUser(Integer id, Integer callerId) {
         if (!callerId.equals(id))

@@ -2,7 +2,14 @@ package hr.tvz.experimate.experimate.domain.tour_listing;
 
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.shared.Constraints;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
@@ -20,7 +27,6 @@ public class TourListing {
     @JoinColumn(name = "host_id")
     private User host;
 
-    //TODO napravi provjeru grada u bazi
     private String city;
     private Double longitude;
     private Double latitude;
@@ -154,7 +160,6 @@ public class TourListing {
         return host;
     }
 
-    //TODO napravi u bazi tablicu s gradovima i na temelju toga ce se provjeravati je li grad validan
     private String validateCity(String city){
         if(city==null)
             throw new IllegalArgumentException("City cannot be null");

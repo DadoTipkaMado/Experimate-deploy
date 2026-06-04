@@ -5,14 +5,13 @@ import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.response.UserResponse;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.MessagingException;
-
-import java.io.IOException;
+import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
 
