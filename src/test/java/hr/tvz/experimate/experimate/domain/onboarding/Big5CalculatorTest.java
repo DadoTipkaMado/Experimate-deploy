@@ -2,7 +2,7 @@ package hr.tvz.experimate.experimate.domain.onboarding;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class Big5CalculatorTest {
     Big5Calculator calculator = new Big5Calculator();

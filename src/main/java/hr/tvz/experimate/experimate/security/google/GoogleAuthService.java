@@ -14,9 +14,9 @@ import hr.tvz.experimate.experimate.security.google.exception.InvalidGoogleToken
 import hr.tvz.experimate.experimate.security.google.exception.UnverifiedGoogleEmailException;
 import hr.tvz.experimate.experimate.shared.event.GoogleUserCreationEvent;
 import hr.tvz.experimate.experimate.shared.response.TokenResponse;
-import org.springframework.context.ApplicationEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

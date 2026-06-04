@@ -9,9 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
-import java.util.Optional;
-
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRequestRepo extends JpaRepository<BookingRequest, Integer> {
     @Query(value = "SELECT r.id FROM BookingRequest r WHERE r.listing.id = :listingId")

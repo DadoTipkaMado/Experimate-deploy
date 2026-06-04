@@ -1,12 +1,11 @@
 package hr.tvz.experimate.experimate.domain.user;
-import hr.tvz.experimate.experimate.shared.exception.InternalServerException;
-import hr.tvz.experimate.experimate.security.AppUserDetails;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
 import hr.tvz.experimate.experimate.domain.user.dto.CreateUserDto;
 import hr.tvz.experimate.experimate.domain.user.dto.UpdateUserDto;
 import hr.tvz.experimate.experimate.domain.user.response.UserResponse;
-import hr.tvz.experimate.experimate.domain.user.UserService;
 import hr.tvz.experimate.experimate.domain.user.response.UserSearchResponse;
+import hr.tvz.experimate.experimate.security.AppUserDetails;
+import hr.tvz.experimate.experimate.shared.exception.InternalServerException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.core.io.Resource;
@@ -15,8 +14,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

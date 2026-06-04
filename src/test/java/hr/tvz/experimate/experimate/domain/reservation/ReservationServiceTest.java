@@ -5,9 +5,6 @@ import hr.tvz.experimate.experimate.domain.reservation.exception.ReservationNotF
 import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
-import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
 import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
 import hr.tvz.experimate.experimate.domain.user.User;
@@ -15,6 +12,7 @@ import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.TourStartedEvent;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,8 +24,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;

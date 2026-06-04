@@ -1,6 +1,5 @@
 package hr.tvz.experimate.experimate.domain.reservation;
 
-import hr.tvz.experimate.experimate.domain.reservation.*;
 import hr.tvz.experimate.experimate.domain.reservation.response.CancelTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.CheckInResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
@@ -15,7 +14,13 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -38,11 +43,6 @@ public class ReservationController {
             @RequestParam(required = false, defaultValue = "upcoming") String timeframe,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(reservationService.getMyReservations(userDetails.getId(), filter, direction, timeframe, pageable));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
-        return ResponseEntity.ok(reservationService.getAllReservations());
     }
 
     @GetMapping(value = "/{id}")

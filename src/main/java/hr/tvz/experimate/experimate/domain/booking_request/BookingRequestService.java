@@ -1,28 +1,28 @@
 package hr.tvz.experimate.experimate.domain.booking_request;
 
-import hr.tvz.experimate.experimate.domain.booking_request.dto.*;
-import hr.tvz.experimate.experimate.domain.booking_request.response.*;
-
+import hr.tvz.experimate.experimate.domain.booking_request.dto.CreateBookingRequestDto;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingAlreadyRequestedException;
 import hr.tvz.experimate.experimate.domain.booking_request.exception.BookingRequestNotFoundException;
+import hr.tvz.experimate.experimate.domain.booking_request.response.BookingRequestResponse;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
 import hr.tvz.experimate.experimate.domain.reservation.exception.GuestAlreadyBookedException;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListing;
+import hr.tvz.experimate.experimate.domain.tour_listing.TourListingRepo;
+import hr.tvz.experimate.experimate.domain.tour_listing.exception.HostAlreadyTakenException;
+import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingAlreadyReservedException;
+import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingExpiredException;
+import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestAcceptedEvent;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestCreatedEvent;
 import hr.tvz.experimate.experimate.shared.event.BookingRequestDeclinedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingDeletedEvent;
 import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedEvent;
-import hr.tvz.experimate.experimate.domain.tour_listing.*;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.HostAlreadyTakenException;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingAlreadyReservedException;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingExpiredException;
-import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,6 +65,25 @@ public class BookingRequestService {
         this.detailsMapper = detailsMapper;
     }
 
+    /**
+     * Creates a PENDING booking request from a guest for the given listing and notifies the host.
+     *
+     * <p>Rejects the request if the guest or host is already committed elsewhere in the
+     * meeting window, the listing has expired or is full, the guest is the host, or the
+     * guest already has a pending request for the same listing.
+     *
+     * @param dto     request body carrying the target listing ID
+     * @param guestId ID of the guest sending the request
+     * @return the created {@link BookingRequestResponse}
+     * @throws TourListingNotFoundException        if no listing exists with the given ID
+     * @throws UserNotFoundException               if no guest exists with the given ID
+     * @throws GuestAlreadyBookedException         if the guest is already booked in the meeting window
+     * @throws HostAlreadyTakenException           if the host is committed to a different listing in the window
+     * @throws TourListingExpiredException         if the listing's meeting date has already passed
+     * @throws IllegalArgumentException            if the guest is the listing's host
+     * @throws TourListingAlreadyReservedException if the listing is already full
+     * @throws BookingAlreadyRequestedException    if the guest already has a pending request for the listing
+     */
     public BookingRequestResponse createBookingRequest(CreateBookingRequestDto dto, Integer guestId) {
         Integer listingId = dto.listingId();
 
@@ -136,6 +155,17 @@ public class BookingRequestService {
         return createBookingRequestResponse(request);
     }
 
+    /**
+     * Returns a page of the user's booking requests in the given direction and status.
+     *
+     * @param userId               ID of the user whose requests are listed
+     * @param flowDirection        {@code "outgoing"} for requests the user sent as guest, otherwise incoming requests on the user's listings
+     * @param status               only requests in this status are returned
+     * @param requestDateDirection sort direction on the request date
+     * @param meetingDateDirection sort direction on the listing's meeting date
+     * @param pageable             pagination settings
+     * @return a page of {@link BookingRequestResponse}
+     */
     public Page<BookingRequestResponse> getMyRequests(
             Integer userId,
             String flowDirection,
@@ -158,13 +188,12 @@ public class BookingRequestService {
         return results.map(this::createBookingRequestResponse);
     }
 
-    public List<BookingRequestResponse> getAllBookingRequests() {
-        return bookingRequestRepo.findAll()
-                .stream()
-                .map(this::createBookingRequestResponse)
-                .toList();
-    }
-
+    /**
+     * Finds a single booking request by ID.
+     *
+     * @param id the booking request ID
+     * @return the {@link BookingRequestResponse} if found, otherwise empty
+     */
     public Optional<BookingRequestResponse> getBookingRequestById(Integer id) {
         Optional<BookingRequest> request = bookingRequestRepo.findById(id);
 
@@ -184,6 +213,14 @@ public class BookingRequestService {
         return bookingRequestRepo.save(request);
     }
 
+    /**
+     * Deletes a booking request. Only the guest who created it may delete it.
+     *
+     * @param id       the booking request ID
+     * @param callerId ID of the authenticated user requesting deletion
+     * @throws BookingRequestNotFoundException if no request exists with the given ID
+     * @throws ForbiddenActionException        if the caller is not the guest who created the request
+     */
     public void deleteBookingRequest(Integer id, Integer callerId) {
         BookingRequest request = bookingRequestRepo.findById(id)
                 .orElseThrow(() -> {
@@ -199,6 +236,17 @@ public class BookingRequestService {
         log.info("Booking request deleted with id {}", id);
     }
 
+    /**
+     * Accepts a booking request on behalf of the listing's host, which creates the reservation
+     * (via {@link BookingRequestAcceptedEvent}). If accepting fills the listing, all remaining
+     * pending requests for that listing are auto-declined and their guests notified.
+     *
+     * @param acceptedId ID of the booking request being accepted
+     * @param callerId   ID of the authenticated user (must be the listing's host)
+     * @return the accepted {@link BookingRequestResponse}
+     * @throws BookingRequestNotFoundException if no request exists with the given ID
+     * @throws ForbiddenActionException        if the caller is not the listing's host
+     */
     @Transactional
     public BookingRequestResponse acceptBookingRequest(Integer acceptedId, Integer callerId) {
         BookingRequest acceptedRequest = bookingRequestRepo.findById(acceptedId)
@@ -234,6 +282,15 @@ public class BookingRequestService {
         return createBookingRequestResponse(acceptedRequest);
     }
 
+    /**
+     * Declines a booking request on behalf of the listing's host and notifies the guest.
+     *
+     * @param id       ID of the booking request being declined
+     * @param callerId ID of the authenticated user (must be the listing's host)
+     * @return the declined {@link BookingRequestResponse}
+     * @throws BookingRequestNotFoundException if no request exists with the given ID
+     * @throws ForbiddenActionException        if the caller is not the listing's host
+     */
     public BookingRequestResponse declineBookingRequest(Integer id, Integer callerId) {
         BookingRequest request = bookingRequestRepo.findById(id)
                 .orElseThrow(() -> new BookingRequestNotFoundException(id));
