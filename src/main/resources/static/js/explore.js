@@ -64,9 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }).catch(() => renderFeed([]));
 
-  const pageContent = document.querySelector('.page-content');
-  if (pageContent) pageContent.addEventListener('scroll', _onFeedScroll, { passive: true });
-  else window.addEventListener('scroll', _onFeedScroll, { passive: true });
+  const feedEl = document.getElementById('listing-feed');
+  if (feedEl) feedEl.addEventListener('scroll', _onFeedScroll, { passive: true });
 });
 
 /* ───────────────────────────────────────────────
@@ -74,11 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
 ─────────────────────────────────────────────── */
 function _onFeedScroll() {
   if (_isLoadingPage || _isLastPage) return;
-  const pc = document.querySelector('.page-content');
-  const scrollTop    = pc ? pc.scrollTop    : window.scrollY;
-  const scrollHeight = pc ? pc.scrollHeight : document.body.scrollHeight;
-  const clientHeight = pc ? pc.clientHeight : window.innerHeight;
-  if ((clientHeight + scrollTop) < (scrollHeight - 400)) return;
+  const pc = document.getElementById('listing-feed');
+  if (!pc) return;
+  // Prefetch the next page once the user is within ~1.5 reels of the bottom.
+  const remaining = pc.scrollHeight - pc.clientHeight - pc.scrollTop;
+  if (remaining > pc.clientHeight * 1.5) return;
   _isLoadingPage = true;
   _showFeedLoader();
   FeedAPI.getPage(_currentPage + 1)
@@ -89,7 +88,12 @@ function _onFeedScroll() {
       const fresh = (page.content || []).filter(i => i.type !== 'LISTING' || new Date(i.meetingDate) > now);
       _allFeedItems = [..._allFeedItems, ...fresh];
       _allListings  = [..._allListings, ...fresh.filter(i => i.type === 'LISTING')];
+      // renderFeed() replaces innerHTML of the snap scroller, which resets
+      // scrollTop to 0. Preserve position so appending a page doesn't jump
+      // the user back to the first reel (earlier reels keep the same height).
+      const prevScroll = pc.scrollTop;
       applyAndRender();
+      pc.scrollTop = prevScroll;
     })
     .catch(() => {})
     .finally(() => {
@@ -150,7 +154,32 @@ function applyAndRender() {
 }
 
 /* ───────────────────────────────────────────────
-   RENDER — vertical card list (listings + ads)
+   ICONS — inline SVGs for the reel action rail
+─────────────────────────────────────────────── */
+const _svg = (inner) =>
+  `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+
+const REEL_ICON = {
+  plus:  _svg('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  check: _svg('<polyline points="20 6 9 17 4 12"/>'),
+  clock: _svg('<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>'),
+  ban:   _svg('<circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/>'),
+  eye:   _svg('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>'),
+  login: _svg('<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>'),
+  share: _svg('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/>'),
+  link:  _svg('<path d="M7 17 17 7"/><polyline points="8 7 17 7 17 16"/>'),
+};
+
+/** Builds one action-rail button: a circular icon with a small label beneath. */
+function reelActionButton(modifier, icon, label, attrs) {
+  return `<button class="reel__action reel__action--${modifier}" ${attrs}>
+            <span class="reel__action-icon">${icon}</span><span>${label}</span>
+          </button>`;
+}
+
+/* ───────────────────────────────────────────────
+   RENDER — full-screen snap reels (listings + ads)
 ─────────────────────────────────────────────── */
 function renderFeed(items) {
   const feed = document.getElementById('listing-feed');
@@ -172,8 +201,8 @@ function renderFeed(items) {
   const currentUsername = Auth.getUsername();
   const currentUserId   = Auth.getUserId();
 
-  feed.innerHTML = items.map((item, idx) => {
-    if (item.type === 'AD') return renderAdCard(item, idx);
+  feed.innerHTML = items.map((item) => {
+    if (item.type === 'AD') return renderAdReel(item);
 
     const l = item;
     const myReq     = _myRequests[l.id];
@@ -200,99 +229,102 @@ function renderFeed(items) {
 
     let badgeClass, badgeLabel;
     if (isOwn) {
-      badgeClass = 'explore-card__badge--own';      badgeLabel = 'Hosting';
+      badgeClass = 'own';      badgeLabel = 'Hosting';
     } else if (reqStatus === 'ACCEPTED') {
-      badgeClass = 'explore-card__badge--accepted'; badgeLabel = 'Going';
+      badgeClass = 'accepted'; badgeLabel = 'Going';
     } else if (reqStatus === 'PENDING') {
-      badgeClass = 'explore-card__badge--pending';  badgeLabel = 'Pending';
+      badgeClass = 'pending';  badgeLabel = 'Pending';
     } else if (isFull) {
-      badgeClass = 'explore-card__badge--full';     badgeLabel = 'Full';
+      badgeClass = 'full';     badgeLabel = 'Full';
     } else {
-      badgeClass = 'explore-card__badge--available';
+      badgeClass = 'available';
       badgeLabel = maxGuests > 1 ? `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''}` : 'Open';
     }
 
-    let joinClass, joinLabel, joinClick;
+    // Primary rail action — mirrors the join state machine.
+    let actionBtn;
     if (isOwn) {
-      joinClass = 'explore-card__join--own'; joinLabel = 'View';
-      joinClick = `onclick="event.stopPropagation();openListingDetailFromExplore(${l.id})"`;
+      actionBtn = reelActionButton('own', REEL_ICON.eye, 'View',
+        `onclick="event.stopPropagation();openListingDetailFromExplore(${l.id})"`);
     } else if (isFull) {
-      joinClass = 'explore-card__join--full'; joinLabel = 'Full'; joinClick = '';
+      actionBtn = reelActionButton('full', REEL_ICON.ban, 'Full', 'disabled');
     } else if (reqStatus === 'PENDING') {
-      joinClass = 'explore-card__join--pending'; joinLabel = 'Pending'; joinClick = '';
+      actionBtn = reelActionButton('pending', REEL_ICON.clock, 'Pending', 'disabled');
     } else if (reqStatus === 'ACCEPTED') {
-      joinClass = 'explore-card__join--accepted'; joinLabel = 'Going'; joinClick = '';
+      actionBtn = reelActionButton('accepted', REEL_ICON.check, 'Going', 'disabled');
     } else if (currentUserId && new Date(l.meetingDate).toDateString() === new Date().toDateString()) {
-      joinClass = 'explore-card__join--full'; joinLabel = 'Today'; joinClick = '';
+      actionBtn = reelActionButton('full', REEL_ICON.clock, 'Today', 'disabled');
     } else if (currentUserId) {
-      joinClass = 'explore-card__join--join'; joinLabel = 'Join';
-      joinClick = `onclick="event.stopPropagation();cardJoin(event,${l.id})"`;
+      actionBtn = reelActionButton('join', REEL_ICON.plus, 'Join',
+        `data-listing-id="${l.id}" onclick="cardJoin(event,${l.id})"`);
     } else {
-      joinClass = 'explore-card__join--login'; joinLabel = 'Sign in';
-      joinClick = `onclick="event.stopPropagation();window.location.href='/login'"`;
+      actionBtn = reelActionButton('login', REEL_ICON.login, 'Sign in',
+        `onclick="event.stopPropagation();window.location.href='/login'"`);
     }
+
+    const shareBtn = reelActionButton('share', REEL_ICON.share, 'Share',
+      `onclick="event.stopPropagation();reelShare(${l.id})"`);
 
     const showDots = maxGuests > 1 && maxGuests <= 8;
     const spotsDots = showDots
-      ? `<span class="explore-card__spots">${
+      ? `<span class="reel__spots">${
           Array.from({length: maxGuests}, (_, i) =>
-            `<span class="explore-card__spot-dot${i < guestCnt ? ' explore-card__spot-dot--taken' : ''}"></span>`
+            `<span class="reel__spot-dot${i < guestCnt ? ' reel__spot-dot--taken' : ''}"></span>`
           ).join('')
         }</span>`
       : '';
 
-    const animDelay = Math.min(idx * 55, 380);
-
     return `
-      <div class="explore-card" onclick="openListingDetailFromExplore(${l.id})"
-           style="--card-hue:${hue};animation-delay:${animDelay}ms">
-        <div class="explore-card__top">
-          <div class="explore-card__avatar" style="${avatarBg}">${avatarHtml}</div>
-          <div class="explore-card__meta">
-            <div class="explore-card__host">
-              <span class="explore-card__badge ${badgeClass}">${badgeLabel}</span>
-              ${escapeHtml(hostName)}
-            </div>
-            <div class="explore-card__handle">@${escapeHtml(hostHandle)}</div>
-            <div class="explore-card__city">📍 ${cityLabel}</div>
-          </div>
+      <div class="reel" style="--card-hue:${hue}" onclick="openListingDetailFromExplore(${l.id})">
+        <div class="reel__bg"></div>
+        ${photoUrl
+          ? `<div class="reel__photo" style="background-image:url('${photoUrl}')"></div>`
+          : `<div class="reel__initials">${initials}</div>`}
+        <div class="reel__scrim"></div>
+        <div class="reel__rail">
+          <a class="reel__avatar" href="/profile/${encodeURIComponent(hostHandle)}" style="${avatarBg}"
+             onclick="event.stopPropagation()">${avatarHtml}</a>
+          ${actionBtn}
+          ${shareBtn}
         </div>
-        <div class="explore-card__desc">${escapeHtml(l.tourDescription ?? '')}</div>
-        <div class="explore-card__footer">
-          <div class="explore-card__date">${relTime(l.meetingDate)} · ${fmtTime(l.meetingDate)}${spotsDots}</div>
-          <button class="explore-card__join ${joinClass}" data-listing-id="${l.id}" ${joinClick}>${joinLabel}</button>
+        <div class="reel__content">
+          <span class="reel__badge reel__badge--${badgeClass}">${badgeLabel}</span>
+          <div class="reel__host">${escapeHtml(hostName)}</div>
+          <div class="reel__handle">@${escapeHtml(hostHandle)} <span class="reel__city">📍 ${cityLabel}</span></div>
+          <div class="reel__desc">${escapeHtml(l.tourDescription ?? '')}</div>
+          <div class="reel__date">${relTime(l.meetingDate)} · ${fmtTime(l.meetingDate)}${spotsDots}</div>
         </div>
       </div>`;
   }).join('');
 }
 
 /* ───────────────────────────────────────────────
-   AD CARD
+   AD REEL
 ─────────────────────────────────────────────── */
-function renderAdCard(ad, idx) {
-  const animDelay = Math.min(idx * 55, 380);
+function renderAdReel(ad) {
   const isEvent = ad.eventId != null;
   const label   = isEvent ? 'Sponsored event' : 'Sponsored';
-  const ctaText = isEvent ? 'Get tickets →'   : 'Visit →';
+  const ctaText = isEvent ? 'Tickets' : 'Visit';
   const imgHtml = ad.imageUrl
-    ? `<div class="explore-ad__img"><img src="${escapeHtml(ad.imageUrl)}" alt="${escapeHtml(ad.title)}" loading="lazy"></div>`
-    : '';
-  const ctaClick = ad.linkUrl
-    ? `onclick="event.stopPropagation();window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')"`
+    ? `<div class="reel__ad-img"><img src="${escapeHtml(ad.imageUrl)}" alt="${escapeHtml(ad.title)}" loading="lazy"></div>`
     : '';
   const cardClick = ad.linkUrl
-    ? `onclick="window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')"`
+    ? `onclick="window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')" style="cursor:pointer;"`
+    : 'style="cursor:default;"';
+  const ctaBtn = ad.linkUrl
+    ? reelActionButton('join', REEL_ICON.link, ctaText,
+        `onclick="event.stopPropagation();window.open('${escapeHtml(ad.linkUrl)}','_blank','noopener')"`)
     : '';
   return `
-    <div class="explore-card explore-ad${isEvent ? ' explore-ad--event' : ''}" ${cardClick}
-         style="animation-delay:${animDelay}ms;cursor:${ad.linkUrl ? 'pointer' : 'default'};">
-      <div class="explore-ad__label">${label}</div>
+    <div class="reel reel--ad" ${cardClick}>
+      <div class="reel__bg"></div>
+      <div class="reel__ad-label">${label}</div>
       ${imgHtml}
-      <div class="explore-ad__body">
-        <div class="explore-ad__title">${escapeHtml(ad.title)}</div>
-        ${ad.description ? `<div class="explore-ad__desc">${escapeHtml(ad.description)}</div>` : ''}
+      <div class="reel__rail">${ctaBtn}</div>
+      <div class="reel__content">
+        <div class="reel__ad-title">${escapeHtml(ad.title)}</div>
+        ${ad.description ? `<div class="reel__desc">${escapeHtml(ad.description)}</div>` : ''}
       </div>
-      ${ad.linkUrl ? `<div class="explore-ad__footer"><button class="explore-card__join explore-card__join--join" ${ctaClick} style="pointer-events:none;">${ctaText}</button></div>` : ''}
     </div>`;
 }
 
@@ -304,20 +336,22 @@ function cardJoin(e, listingId) {
   if (!Auth.getToken()) { window.location.href = '/login'; return; }
   if (_myRequests[listingId]) return;
 
-  const btn = e.currentTarget;
+  const btn   = e.currentTarget;
+  const label = btn.querySelector('span:last-child');
   btn.disabled = true;
-  btn.textContent = '…';
+  if (label) label.textContent = '…';
 
   BookingRequestAPI.create({ listingId })
     .then(res => {
       _myRequests[listingId] = { status: 'PENDING', id: res?.id };
-      btn.className = 'explore-card__join explore-card__join--pending';
-      btn.textContent = 'Pending';
+      btn.className = 'reel__action reel__action--pending';
+      btn.innerHTML = `<span class="reel__action-icon">${REEL_ICON.clock}</span><span>Pending</span>`;
       showToast('Request sent!', 'success');
     })
     .catch(err => {
       btn.disabled = false;
-      btn.textContent = 'Join';
+      btn.className = 'reel__action reel__action--join';
+      btn.innerHTML = `<span class="reel__action-icon">${REEL_ICON.plus}</span><span>Join</span>`;
       showToast(friendlyBookingError(err), 'error');
     });
 }
