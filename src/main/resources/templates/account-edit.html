@@ -325,7 +325,7 @@
       showToast('Profile saved!');
       setTimeout(() => window.location.href = '/account', 800);
     } catch (err) {
-      errorEl.textContent = err.message;
+      errorEl.textContent = err.message || 'Couldn\'t save your changes — give it another go.';
       errorEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Save';
     }
