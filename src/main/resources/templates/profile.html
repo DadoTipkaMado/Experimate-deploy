@@ -559,9 +559,16 @@
             .catch(err => showToast(err.message || 'Could not save — try again.', 'error'));
         };
 
-        window._deleteRating = function(id) {
+        window._deleteRating = async function(id) {
           const card = document.getElementById('review-card-' + id);
           if (!card) return;
+          const yes = await showConfirm({
+            title: 'Delete this review?',
+            body: 'This permanently removes your review. This cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+          });
+          if (!yes) return;
           card.style.opacity = '0.5';
           RatingAPI.delete(id)
             .then(() => { card.remove(); showToast('Review deleted.'); })

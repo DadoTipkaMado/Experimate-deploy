@@ -137,6 +137,15 @@
 
   async function handleRequest(action, id, btn) {
     const card = document.getElementById('req-' + id);
+    if (action === 'decline') {
+      const yes = await showConfirm({
+        title: 'Decline this request?',
+        body: 'The Mate will be notified their request was declined. This cannot be undone.',
+        confirmLabel: 'Decline',
+        danger: true,
+      });
+      if (!yes) return;
+    }
     card.querySelectorAll('.req-btn').forEach(b => b.disabled = true);
     try {
       if (action === 'accept') {
