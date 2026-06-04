@@ -1,14 +1,16 @@
 package hr.tvz.experimate.experimate.domain.onboarding;
 
 import hr.tvz.experimate.experimate.domain.ai.AiMatchingService;
-import hr.tvz.experimate.experimate.domain.onboarding.dto.*;
-import hr.tvz.experimate.experimate.domain.onboarding.response.*;
 import hr.tvz.experimate.experimate.domain.onboarding.exception.QuizResultNotFoundException;
 import hr.tvz.experimate.experimate.domain.onboarding.exception.QuizRetakeLimitExceededException;
-import hr.tvz.experimate.experimate.shared.event.QuizCompletedEvent;
+import hr.tvz.experimate.experimate.domain.onboarding.response.Big5VectorDto;
+import hr.tvz.experimate.experimate.domain.onboarding.response.OnboardingCompletionResponse;
+import hr.tvz.experimate.experimate.domain.onboarding.response.QuestionDto;
+import hr.tvz.experimate.experimate.domain.onboarding.response.QuizStatusResponse;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.shared.event.QuizCompletedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;

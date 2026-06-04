@@ -1,6 +1,5 @@
 package hr.tvz.experimate.experimate.domain.booking_request.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public record CreateBookingRequestDto(

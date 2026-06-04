@@ -8,6 +8,7 @@ import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.exception.IllegalReservationStateException;
 import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateListingFromEventRequest;
 import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
+import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import hr.tvz.experimate.experimate.shared.DetailsMapper;
@@ -20,9 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
-
-import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,8 +29,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TourListingServiceTest {
