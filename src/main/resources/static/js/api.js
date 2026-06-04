@@ -272,6 +272,25 @@ const OnboardingAPI = {
   deleteData:   ()       => apiFetch('/api/onboarding/data',    { method: 'DELETE' }),
 };
 
+/**
+ * Routes a just-authenticated user into the app.
+ *
+ * A first-time user (quiz still AWAITING) is sent through the onboarding quiz
+ * before reaching the map; everyone else — finished the quiz (COMPLETED) or
+ * declined it (CANCELLED) — goes straight to the map. Centralising this here
+ * keeps every auth entry point (password login, Google login, auto-redirect)
+ * consistent. On any status-lookup error we fail open to the map rather than
+ * trap the user. This does not touch the onboarding flow itself.
+ */
+async function enterApp() {
+  let destination = '/map';
+  try {
+    const { status } = await OnboardingAPI.getStatus();
+    if (status === 'AWAITING') destination = '/onboarding';
+  } catch (_) { /* no quiz row or transient error — fall through to /map */ }
+  window.location.href = destination;
+}
+
 /* ───────────────────────────────────────────────
    MATCH  /api/match
 ─────────────────────────────────────────────── */

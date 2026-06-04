@@ -415,6 +415,12 @@ body:is(.theme-light, .theme-warm) .auth-field input {
   border: 1px solid var(--border);
   border-top-color: var(--border-2);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* The login page inlines `color-scheme: dark` on its inputs, which makes the
+     UA paint typed text + caret white. On the light surfaces that reads as
+     invisible white-on-cream, so force the control back to the light scheme
+     and pin the text to the dark theme token. */
+  color: var(--text);
+  color-scheme: light;
 }
 body:is(.theme-light, .theme-warm) .auth-divider::before,
 body:is(.theme-light, .theme-warm) .auth-divider::after {

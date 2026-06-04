@@ -413,7 +413,7 @@
       const lastName  = gp.family_name || '';
       const picture   = gp.picture ? gp.picture.replace(/=s\d+-c/, '=s256-c') : null;
 
-      if (!firstName && !lastName && !picture) { window.location.href = '/map'; return; }
+      if (!firstName && !lastName && !picture) { enterApp(); return; }
 
       const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'G';
       const avatarHtml = picture
@@ -448,7 +448,7 @@
       document.body.appendChild(backdrop);
 
       backdrop.querySelector('#gsync-skip').addEventListener('click', () => {
-        backdrop.remove(); window.location.href = '/map';
+        backdrop.remove(); enterApp();
       });
 
       backdrop.querySelector('#gsync-confirm').addEventListener('click', async () => {
@@ -476,7 +476,7 @@
             } catch (_) {}
           }
         } catch (_) {}
-        window.location.href = '/map';
+        enterApp();
       });
     }
 
@@ -533,7 +533,7 @@
           const result = await UserAPI.getById(userId);
           if (result) {
             _cacheUser(result, userId);
-            window.location.href = '/map';
+            enterApp();
             return;
           }
         } catch { /* fall through to refresh */ }
@@ -551,7 +551,7 @@
           const me = await UserAPI.getById(uid).catch(() => null);
           if (me) _cacheUser(me, uid);
         }
-        window.location.href = '/map';
+        enterApp();
       } catch { /* stay on login */ }
     })();
 
@@ -583,7 +583,7 @@
         if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
           Notification.requestPermission().then(p => { if (p === 'granted' && typeof subscribeToPush === 'function') subscribeToPush(); });
         }
-        window.location.href = '/map';
+        enterApp();
       } catch (err) {
         errorEl.textContent = err.message;
         errorEl.style.display = 'block';
