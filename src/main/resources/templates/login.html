@@ -384,23 +384,56 @@
     // _maybeInitGoogle fires from whichever lands last and is idempotent.
     let _googleClientId = null;
     let _googleReady    = false;
+    // Surface a clear, persistent reason instead of a silently-dead button.
+    function _googleUnavailable(msg) {
+      const btn = document.getElementById('google-btn');
+      if (btn) { btn.disabled = true; btn.style.opacity = '0.55'; btn.style.cursor = 'not-allowed'; btn.title = msg; }
+      const errorEl = document.getElementById('auth-error');
+      if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+    }
+    // GSI injects a child node into the overlay when the button renders. If it stays
+    // empty, render failed — almost always an unregistered JS origin in the Google
+    // Cloud console, a blocked gsi/client script (in-app webview / adblock), or a
+    // bad client id. Tell the user instead of leaving a button that does nothing.
+    function _verifyGoogleButtonRendered() {
+      setTimeout(() => {
+        const overlay = document.getElementById('google-overlay');
+        if (!overlay || overlay.childElementCount === 0) {
+          _googleUnavailable('Google sign-in is unavailable here — use email & password, or open the site in your default browser.');
+        }
+      }, 2500);
+    }
     function _maybeInitGoogle() {
       if (_googleReady || !_googleClientId || !window.google?.accounts?.id) return;
       _googleReady = true;
-      google.accounts.id.initialize({
-        client_id: _googleClientId,
-        callback: _handleGoogleCredential,
-        auto_select: false,
-      });
-      google.accounts.id.renderButton(document.getElementById('google-overlay'),
-        { type: 'standard', theme: 'outline', size: 'large', width: 360 });
+      try {
+        google.accounts.id.initialize({
+          client_id: _googleClientId,
+          callback: _handleGoogleCredential,
+          auto_select: false,
+        });
+        google.accounts.id.renderButton(document.getElementById('google-overlay'),
+          { type: 'standard', theme: 'outline', size: 'large', width: 360 });
+        _verifyGoogleButtonRendered();
+      } catch (e) {
+        _googleUnavailable('Google sign-in could not start — please use email & password, or reload the page.');
+      }
     }
+    // Fallback: when the overlay has no Google button, a click lands on the empty
+    // overlay and bubbles to the wrapper (a working Google button swallows the
+    // click inside its cross-origin iframe, so this only fires on failure).
+    document.querySelector('.btn-google-wrap')?.addEventListener('click', () => {
+      const overlay = document.getElementById('google-overlay');
+      if (!_googleReady || !overlay || overlay.childElementCount === 0) {
+        _googleUnavailable('Google sign-in is unavailable right now — please use email & password.');
+      }
+    });
     window.onGoogleLibraryLoad = _maybeInitGoogle;
     fetch('/api/auth/google-client-id').then(r => r.ok ? r.text() : null).then(id => {
       _googleClientId = id ? id.trim().replace(/"/g, '') : null;
-      if (!_googleClientId) document.getElementById('google-btn').disabled = true;
+      if (!_googleClientId) _googleUnavailable('Google sign-in is not configured on the server — please use email & password.');
       else _maybeInitGoogle();
-    }).catch(() => { document.getElementById('google-btn').disabled = true; });
+    }).catch(() => _googleUnavailable('Could not reach the server for Google sign-in — please use email & password.'));
 
     function _decodeGoogleToken(token) {
       try { return JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); }
@@ -489,8 +522,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idToken: response.credential }),
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error('Google sign-in failed — please try again.');
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || 'Google sign-in failed — reload the page and try again (the Google session may have expired).');
         if (data.status === 'LOGGED_IN') {
           Auth.saveToken(data.accessToken);
           if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
