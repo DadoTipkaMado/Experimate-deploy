@@ -668,6 +668,14 @@
     async function _handleGoogleCredential(response) {
       const errorEl = document.getElementById('auth-error');
       errorEl.style.display = 'none';
+      // Some privacy browsers (notably Brave) and strict tracking-protection settings
+      // block Google's cross-site auth, so the callback fires with no credential.
+      // Posting an empty token would just get a 400 — give a clear reason instead.
+      if (!response || !response.credential) {
+        errorEl.textContent = 'Your browser blocked Google sign-up (common in Brave / strict privacy mode). Fill in the form below, lower your browser shield for this site, or try Chrome.';
+        errorEl.style.display = 'block';
+        return;
+      }
       try {
         const res = await fetch('/api/auth/google', {
           method: 'POST',
