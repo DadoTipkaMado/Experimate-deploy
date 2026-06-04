@@ -8,10 +8,12 @@ import hr.tvz.experimate.experimate.domain.reservation.response.EndTourResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.PresenceResponse;
 import hr.tvz.experimate.experimate.domain.reservation.response.ReservationResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.temporal.ChronoUnit;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

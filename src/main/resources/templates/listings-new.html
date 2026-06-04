@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="robots" content="noindex, nofollow">
   <title>New Meet — Experimate</title>
@@ -19,12 +19,18 @@
     .page-content { background: #0a0c0c; }
     body.theme-light .page-content , body.theme-warm .page-content { background: #f0eeea; }
     body.theme-warm  .page-content { background: #ECEDF2; }
+    /* Lay out header + form as a column so the form card can stretch to fill
+       the space down to (just above) the navbar instead of leaving a gap. */
+    .page-content { display: flex; flex-direction: column; }
 
     .new-listing-header { padding: 22px 20px 14px; }
 
     .new-listing-form {
       display: flex; flex-direction: column; gap: 18px;
-      margin: 0 16px 24px;
+      /* Grow to fill the page-content column; bottom margin keeps a small
+         gap from the navbar so the card never touches it. */
+      flex: 1 1 auto;
+      margin: 0 16px 14px;
       padding: 20px 18px 22px;
       background: linear-gradient(160deg, rgba(26,26,26,0.95) 0%, rgba(18,18,18,0.90) 55%, rgba(10,10,10,0.88) 100%);
       border: 1px solid var(--border-2);
@@ -97,8 +103,12 @@
       border-radius: 10px; padding: 10px 14px;
       font-size: 11px; color: rgba(255,100,100,0.9);
     }
-    .form-actions { display: flex; gap: 10px; }
-    .form-actions .btn { flex: 1; height: 46px; }
+    .form-actions { display: flex; gap: 10px; margin-top: auto; }
+    /* min-width:0 overrides the flex default (min-width:auto = min-content),
+       which together with the buttons' white-space:nowrap label otherwise
+       stops them shrinking and lets the long "Create Meet →" button overflow
+       past the form's right edge on narrower widths. */
+    .form-actions .btn { flex: 1; height: 46px; min-width: 0; }
 
     /* Time drum picker */
     .time-picker {
@@ -140,8 +150,21 @@
       position: absolute; left: 0; right: 0; height: 36px;
       pointer-events: none; z-index: 2;
     }
-    .time-picker__fade--top    { top: 0;    background: linear-gradient(to bottom, rgba(4,8,8,0.92) 10%, transparent); }
-    .time-picker__fade--bottom { bottom: 0; background: linear-gradient(to top,    rgba(4,8,8,0.92) 10%, transparent); }
+    /* Picker chrome + fade colour track the theme. Dark stays as-is; light themes
+       use their own surface so the centre band and selected number stay readable. */
+    .time-picker { --tp-fade: rgba(4,8,8,0.92); }
+    body.theme-light .time-picker,
+    body.theme-warm  .time-picker {
+      background: var(--surface-2);
+      border-color: var(--border);
+      border-top-color: var(--border-2);
+      border-bottom-color: var(--border);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+    }
+    body.theme-light .time-picker { --tp-fade: rgba(237,234,227,0.92); } /* --surface-2 */
+    body.theme-warm  .time-picker { --tp-fade: rgba(236,224,206,0.92); } /* --surface-2 */
+    .time-picker__fade--top    { top: 0;    background: linear-gradient(to bottom, var(--tp-fade) 10%, transparent); }
+    .time-picker__fade--bottom { bottom: 0; background: linear-gradient(to top,    var(--tp-fade) 10%, transparent); }
 
     /* Location picker */
     .location-search-wrap { position: relative; }
@@ -175,6 +198,56 @@
     }
     .leaflet-container { background: var(--bg); }
     .leaflet-control-attribution { display: none; }
+    #location-map { cursor: pointer; }
+    .map-expand-hint {
+      position: absolute; top: 8px; right: 8px; z-index: 1000; pointer-events: none;
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 9px; border-radius: 8px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.03em; color: var(--text);
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(4px);
+    }
+    .map-expand-hint svg { width: 12px; height: 12px; }
+
+    /* Expandable map dialog */
+    .map-dialog { position: fixed; inset: 0; z-index: 2000; display: none; }
+    .map-dialog--open { display: block; }
+    .map-dialog__backdrop {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.62);
+      backdrop-filter: blur(3px); animation: fadeUp 0.2s ease both;
+    }
+    .map-dialog__panel {
+      position: absolute; inset: 4vh 4vw; display: flex; flex-direction: column;
+      border-radius: 16px; overflow: hidden; background: var(--surface);
+      border: 1px solid var(--accent-a25);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.45);
+      animation: fadeUp 0.25s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    #map-dialog-map { flex: 1; min-height: 0; }
+    .map-dialog__close {
+      position: absolute; top: 14px; right: 14px; z-index: 10;
+      width: 38px; height: 38px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text); background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(4px);
+      transition: background var(--t-fast);
+    }
+    .map-dialog__close:hover { background: rgba(0,0,0,0.8); }
+    .map-dialog__label {
+      position: absolute; left: 14px; bottom: 14px; z-index: 10; max-width: calc(100% - 28px);
+      padding: 8px 13px; border-radius: 10px;
+      font-size: 12px; font-weight: 600; color: var(--text);
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(4px);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* Static teardrop pin on the small preview map */
+    .map-pin-static { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5)); pointer-events: none; }
+    /* Draggable teardrop pin inside the dialog */
+    .map-pin-icon { cursor: grab; filter: drop-shadow(0 4px 5px rgba(0,0,0,0.5)); }
+    .map-pin-icon:active { cursor: grabbing; }
+    .map-pin-icon svg { transition: transform 0.15s ease; transform-origin: 50% 100%; }
+    .map-pin-icon.map-pin-lift svg { transform: translateY(-5px) scale(1.06); }
     .location-status {
       font-size: 9px; color: var(--text-3); letter-spacing: 0.04em;
       display: flex; align-items: center; gap: 6px; margin-top: 4px;
@@ -302,7 +375,7 @@
         <div class="form-field">
           <label for="meetingDateInput">Meeting date</label>
           <input type="text" id="meetingDateInput" placeholder="DD/MM/YYYY"
-                 data-date-format="date" autocomplete="off" required
+                 data-date-format="date" autocomplete="off" inputmode="none" required
                  onclick="(function(el){const t=new Date();t.setHours(0,0,0,0);DatePicker.open(el,{min:t});})(this)">
           <span class="form-field__error" id="date-error">Date must be today or in the future.</span>
         </div>
@@ -326,7 +399,7 @@
           <label>Meeting location <span style="color:rgba(255,80,80,0.7);">*</span></label>
           <div class="location-search-wrap">
             <input type="text" id="location-search" autocomplete="off"
-                   placeholder="Search address, landmark, or neighbourhood…">
+                   placeholder="Search by name or address — e.g. “Cotton” or “Ilica 9”">
             <div id="location-suggestions"></div>
           </div>
           <span class="form-field__error" id="location-error">Please select a meeting location.</span>
@@ -346,10 +419,10 @@
           <label for="tourDescription">Description</label>
           <textarea id="tourDescription" name="tourDescription"
                     placeholder="Describe the experience — what will guests see, do, and feel?"
-                    required minlength="200" maxlength="2000"
-                    oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':n>=200?'var(--accent)':'rgba(255,80,80,0.7)';})(this.value.length)"></textarea>
+                    required maxlength="2000"
+                    oninput="(function(n){var el=document.getElementById('desc-counter');el.textContent=n+'/2000';el.style.color=n===0?'var(--text-3)':'var(--accent)';})(this.value.length)"></textarea>
           <div style="display:flex;justify-content:space-between;">
-            <span class="form-field__hint">Min 200 characters — describe to Mates what they'll see, do, and experience</span>
+            <span class="form-field__hint">Describe to Mates what they'll see, do, and experience</span>
             <span class="form-field__hint" id="desc-counter" style="color:var(--text-3);">0/2000</span>
           </div>
         </div>
@@ -380,6 +453,19 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Expandable map preview dialog -->
+<div class="map-dialog" id="map-dialog" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Location map">
+  <div class="map-dialog__backdrop" onclick="closeMapDialog()"></div>
+  <div class="map-dialog__panel">
+    <button type="button" class="map-dialog__close" onclick="closeMapDialog()" aria-label="Close map">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div id="map-dialog-map"></div>
+    <div class="map-dialog__label" id="map-dialog-label"></div>
+  </div>
+</div>
+
 <script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/api.js}"></script>
 <script>
@@ -475,7 +561,7 @@
     mCol.addEventListener('scroll', () => { refreshActive(mCol, MINS);  sync(hCol, mCol); });
   })();
 
-  /* ── LOCATION SEARCH (Nominatim) ── */
+  /* ── LOCATION SEARCH (Photon — OSM type-ahead geocoder) ── */
   const locationSearch  = document.getElementById('location-search');
   const suggestionsEl   = document.getElementById('location-suggestions');
   const locationMapEl   = document.getElementById('location-map');
@@ -493,18 +579,30 @@
     statusText.textContent = label;
     locationError.classList.remove('form-field__error--visible');
 
-    // Show map preview
+    // Show map preview (static thumbnail — interactions live in the expand dialog)
     locationMapEl.style.display = 'block';
     if (!locationMap) {
-      locationMap = L.map('location-map', { zoomControl: false, attributionControl: false });
+      locationMap = L.map('location-map', {
+        zoomControl: false, attributionControl: false,
+        dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+        boxZoom: false, keyboard: false, touchZoom: false, tap: false,
+      });
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(locationMap);
+      locationMapEl.addEventListener('click', openMapDialog);
+      const hint = document.createElement('div');
+      hint.className = 'map-expand-hint';
+      hint.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>Tap to enlarge</span>`;
+      locationMapEl.appendChild(hint);
     }
     locationMap.setView([lat, lng], 15);
     if (locationMarker) {
       locationMarker.setLatLng([lat, lng]);
     } else {
-      locationMarker = L.circleMarker([lat, lng], {
-        radius: 8, color: 'var(--accent)', fillColor: 'var(--accent)', fillOpacity: 0.7, weight: 2,
+      // Same teardrop as the dialog, but static: interactive:false lets clicks
+      // pass through to the container so the whole thumbnail opens the dialog.
+      locationMarker = L.marker([lat, lng], {
+        icon: L.divIcon({ className: 'map-pin-static', html: _pinSvg, iconSize: [36, 36], iconAnchor: [18, 34] }),
+        interactive: false,
       }).addTo(locationMap);
     }
     if (label) {
@@ -522,31 +620,126 @@
 
   const _locPinSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
+  // Teardrop map pin, shared by the small preview marker and the dialog's draggable marker.
+  const _pinSvg = `<svg width="36" height="36" viewBox="0 0 24 24" fill="var(--accent)" stroke="rgba(0,0,0,0.4)" stroke-width="1"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="rgba(0,0,0,0.5)" stroke="none"/></svg>`;
+
+  // Croatia-wide box (west,south,east,north) + Zagreb centre, used when the
+  // user's own location is unknown so searches still resolve locally.
+  const _CROATIA_BBOX = '13.4,42.3,19.5,46.6';
+  const _ZAGREB = { lat: 45.815, lng: 15.978 };
+
+  /**
+   * Builds Photon query params that focus results on the user's region. The
+   * public Photon instance treats `lat`/`lon` only as a weak ordering hint, so
+   * prominent global places can still outrank local ones — we therefore add a
+   * `bbox` to actually constrain the search:
+   *   • If map.js stored the user's coordinates, we box a generous ~130 km area
+   *     around them and order by proximity ("near me", like a maps viewport).
+   *   • Otherwise we fall back to a Croatia-wide box, ordered from Zagreb, so a
+   *     query like "isce 9" returns Croatian streets instead of global matches.
+   * No geolocation prompt is ever triggered here.
+   *
+   * @returns {string} querystring fragment (leading `&`)
+   */
+  function locationFocusParams() {
+    const lat = parseFloat(localStorage.getItem('userLat'));
+    const lng = parseFloat(localStorage.getItem('userLng'));
+    if (!isNaN(lat) && !isNaN(lng)) {
+      const d = 1.2; // degrees ≈ a ~130 km box around the user
+      const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
+      return `&lat=${lat}&lon=${lng}&bbox=${bbox}`;
+    }
+    return `&lat=${_ZAGREB.lat}&lon=${_ZAGREB.lng}&bbox=${_CROATIA_BBOX}`;
+  }
+
+  /**
+   * Composes the display name + subtitle for a Photon feature from its
+   * structured address fields (street/housenumber/city/…), which is far cleaner
+   * than splitting a single display string. Duplicates and the chosen name are
+   * stripped from the subtitle.
+   *
+   * @param {object} p Photon feature `properties`
+   * @returns {{name: string, sub: string}} primary label and secondary line
+   */
+  function formatPhotonLabel(p) {
+    const street = [p.street, p.housenumber].filter(Boolean).join(' ');
+    const name   = p.name || street || p.city || p.country || 'Unknown place';
+    const sub    = [street, p.locality, p.district, p.city, p.county, p.state, p.country]
+      .filter(Boolean)
+      .filter(v => v !== name)
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .slice(0, 3)
+      .join(', ');
+    return { name, sub };
+  }
+
+  /**
+   * Fetches Photon results for a raw query string, keeping only features that
+   * carry usable coordinates.
+   *
+   * @param {string} q the search text
+   * @returns {Promise<Array>} array of GeoJSON features (possibly empty)
+   */
+  async function fetchPhotonFeatures(q) {
+    const res = await fetch(
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=en${locationFocusParams()}`
+    );
+    const data = await res.json();
+    return (data.features || []).filter(f => f.geometry?.coordinates?.length === 2);
+  }
+
+  /**
+   * Great-circle distance in kilometres between two points (Haversine).
+   * Used to re-order suggestions closest-first relative to the user.
+   */
+  function _haversineKm(aLat, aLng, bLat, bLng) {
+    const R = 6371, toRad = d => d * Math.PI / 180;
+    const dLat = toRad(bLat - aLat), dLng = toRad(bLng - aLng);
+    const h = Math.sin(dLat / 2) ** 2 +
+              Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
   async function searchLocation(query) {
-    if (query.length < 3) { suggestionsEl.style.display = 'none'; return; }
+    if (query.length < 2) { suggestionsEl.style.display = 'none'; return; }
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=8&addressdetails=1`,
-        { headers: { 'Accept-Language': 'en' } }
-      );
-      const results = await res.json();
-      if (!results.length) { suggestionsEl.style.display = 'none'; return; }
+      // House-number fallback: Photon returns nothing (or drops the street) when
+      // an exact house number isn't mapped. If the query ends in a number we also
+      // query the street alone, so the street still shows up as a suggestion.
+      const streetOnly   = query.replace(/[\s,]+\d+[a-z]?$/i, '').trim();
+      const needsFallback = streetOnly && streetOnly !== query;
+      const [primary, street] = await Promise.all([
+        fetchPhotonFeatures(query),
+        needsFallback ? fetchPhotonFeatures(streetOnly) : Promise.resolve([]),
+      ]);
 
-      // Deduplicate: skip results whose first two name words already appeared
+      // Merge house-number + street matches, de-duplicating by coordinate.
       const seen = new Set();
-      const deduped = results.filter(r => {
-        const rawName  = r.name || r.display_name.split(',')[0];
-        const nameKey  = rawName.toLowerCase().split(/\s+/).slice(0, 3).join(' ');
-        if (seen.has(nameKey)) return false;
-        seen.add(nameKey);
+      let features = [...primary, ...street].filter(f => {
+        const [lon, lat] = f.geometry.coordinates;
+        const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
         return true;
-      }).slice(0, 4);
+      });
 
-      suggestionsEl.innerHTML = deduped.map(r => {
-        const name  = r.name || r.display_name.split(',')[0];
-        const parts = r.display_name.split(',').map(p => p.trim()).filter(Boolean);
-        const sub   = parts.slice(1, 4).join(', ');
-        return `<div class="location-suggestion" data-lat="${r.lat}" data-lon="${r.lon}" data-label="${escapeHtml(parts.slice(0,2).join(', '))}" onclick="pickSuggestion(this)">
+      // Closest-first ordering when the user's location is known (Photon's own
+      // proximity hint is too weak to reliably surface the nearest match).
+      const uLat = parseFloat(localStorage.getItem('userLat'));
+      const uLng = parseFloat(localStorage.getItem('userLng'));
+      if (!isNaN(uLat) && !isNaN(uLng)) {
+        features.sort((a, b) =>
+          _haversineKm(uLat, uLng, a.geometry.coordinates[1], a.geometry.coordinates[0]) -
+          _haversineKm(uLat, uLng, b.geometry.coordinates[1], b.geometry.coordinates[0]));
+      }
+      features = features.slice(0, 8);
+      if (!features.length) { suggestionsEl.style.display = 'none'; return; }
+
+      suggestionsEl.innerHTML = features.map(f => {
+        const { name, sub } = formatPhotonLabel(f.properties);
+        const [lon, lat] = f.geometry.coordinates;
+        const label = sub ? `${name}, ${sub.split(',')[0].trim()}` : name;
+        return `<div class="location-suggestion" data-lat="${lat}" data-lon="${lon}" data-label="${escapeHtml(label)}" onclick="pickSuggestion(this)">
           <div class="location-suggestion__icon">${_locPinSvg}</div>
           <div class="location-suggestion__body">
             <div class="location-suggestion__name">${escapeHtml(name)}</div>
@@ -570,9 +763,103 @@
     searchTimer = setTimeout(() => searchLocation(q), 500);
   });
 
+  // Enter confirms the top suggestion (if the list is open) and opens the map.
+  locationSearch.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault(); // don't submit the wizard form
+    const first = suggestionsEl.querySelector('.location-suggestion');
+    if (suggestionsEl.style.display !== 'none' && first) pickSuggestion(first);
+    if (document.getElementById('listingLat').value) openMapDialog();
+  });
+
   // Close suggestions on outside click
   document.addEventListener('click', e => {
     if (!e.target.closest('.location-search-wrap')) suggestionsEl.style.display = 'none';
+  });
+
+  /* ── EXPANDABLE MAP DIALOG ── */
+  let dialogMap = null, dialogMarker = null;
+
+
+  /**
+   * Reverse-geocodes a coordinate to a human label via Photon, reusing the same
+   * formatter as the forward search. Returns null on failure so callers can fall
+   * back to raw coordinates.
+   *
+   * @param {number} lat latitude
+   * @param {number} lng longitude
+   * @returns {Promise<string|null>} address label, or null if it couldn't resolve
+   */
+  async function reverseGeocode(lat, lng) {
+    try {
+      const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}&lang=en`);
+      const f = (await res.json()).features?.[0];
+      if (!f) return null;
+      const { name, sub } = formatPhotonLabel(f.properties);
+      return sub ? `${name}, ${sub.split(',')[0].trim()}` : name;
+    } catch { return null; }
+  }
+
+  /**
+   * Opens the large map dialog over the wizard, centred on the selected location,
+   * with a draggable teardrop pin sitting on that location. The user can grab the
+   * pin and drag it to fine-tune the spot; on release the new position is reverse
+   * geocoded and adopted. The Leaflet instance and marker are created lazily on
+   * first open and reused afterwards. No-op if no location is selected yet.
+   */
+  function openMapDialog() {
+    const lat = parseFloat(document.getElementById('listingLat').value);
+    const lng = parseFloat(document.getElementById('listingLng').value);
+    if (!lat || !lng) return;
+
+    const dlg = document.getElementById('map-dialog');
+    dlg.classList.add('map-dialog--open');
+    dlg.setAttribute('aria-hidden', 'false');
+    document.getElementById('map-dialog-label').textContent = statusText.textContent;
+
+    if (!dialogMap) {
+      dialogMap = L.map('map-dialog-map', { zoomControl: false, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(dialogMap);
+    }
+    dialogMap.setView([lat, lng], 16, { animate: false });
+
+    if (dialogMarker) {
+      dialogMarker.setLatLng([lat, lng]);
+    } else {
+      dialogMarker = L.marker([lat, lng], {
+        icon: L.divIcon({ className: 'map-pin-icon', html: _pinSvg, iconSize: [36, 36], iconAnchor: [18, 34] }),
+        draggable: true, autoPan: true,
+      }).addTo(dialogMap);
+      // Hold-and-drag the pin to move it; lift it slightly while dragging.
+      dialogMarker.on('dragstart', () => dialogMarker.getElement()?.classList.add('map-pin-lift'));
+      dialogMarker.on('dragend', onPinDragged);
+    }
+    // Leaflet needs a size refresh once the container is visible.
+    setTimeout(() => dialogMap.invalidateSize(), 80);
+  }
+
+  /**
+   * Handles the pin being dropped at a new spot: resolves it to an address and
+   * adopts it as the selected location.
+   */
+  async function onPinDragged() {
+    dialogMarker.getElement()?.classList.remove('map-pin-lift');
+    const { lat, lng } = dialogMarker.getLatLng();
+    const label = await reverseGeocode(lat, lng) || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    setLocation(lat, lng, label);
+    document.getElementById('map-dialog-label').textContent = label;
+  }
+
+  function closeMapDialog() {
+    const dlg = document.getElementById('map-dialog');
+    dlg.classList.remove('map-dialog--open');
+    dlg.setAttribute('aria-hidden', 'true');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('map-dialog').classList.contains('map-dialog--open')) {
+      closeMapDialog();
+    }
   });
 
   /* ── SUBMIT → API ── */
@@ -622,7 +909,7 @@
       showToast('Meet created!');
       setTimeout(() => window.location.href = '/tours', 800);
     } catch (err) {
-      errorEl.textContent = err.message || 'Could not create — please try again.';
+      errorEl.textContent = err.message || 'Couldn\'t create your meet — give it another go.';
       errorEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Create Meet →';
     }

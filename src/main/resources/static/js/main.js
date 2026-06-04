@@ -79,6 +79,70 @@ function showToast(message, type = 'default') {
 }
 
 /* ───────────────────────────────────────────────
+   CONFIRM DIALOG
+   Usage: const yes = await showConfirm({ title, body, confirmLabel, danger })
+   confirmLabel defaults to 'Confirm'; danger=true makes the button red.
+─────────────────────────────────────────────── */
+let _confirmEl = null;
+
+function showConfirm({ title = 'Are you sure?', body = '', confirmLabel = 'Confirm', danger = false } = {}) {
+  return new Promise(resolve => {
+    if (!_confirmEl) {
+      _confirmEl = document.createElement('div');
+      _confirmEl.id = '_confirm-dialog';
+      _confirmEl.style.cssText = [
+        'position:fixed;inset:0;z-index:9000',
+        'background:rgba(0,0,0,0.72)',
+        'display:none;align-items:center;justify-content:center;padding:24px;box-sizing:border-box',
+      ].join(';');
+      _confirmEl.innerHTML = `
+        <div id="_confirm-card" style="background:var(--surface);border:1px solid var(--border-2);border-radius:var(--radius);padding:24px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box;box-shadow:0 24px 64px rgba(0,0,0,0.65);animation:_cdIn 0.22s cubic-bezier(0.34,1.56,0.64,1);">
+          <div id="_confirm-title" style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--text);"></div>
+          <div id="_confirm-body" style="font-size:13px;line-height:1.65;color:var(--text-2);"></div>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button id="_confirm-cancel" class="btn btn--ghost" style="flex:1;height:46px;">Cancel</button>
+            <button id="_confirm-ok" class="btn" style="flex:1;height:46px;"></button>
+          </div>
+        </div>`;
+      const style = document.createElement('style');
+      style.textContent = '@keyframes _cdIn{from{opacity:0;transform:scale(0.94) translateY(10px)}to{opacity:1;transform:none}}';
+      document.head.appendChild(style);
+      document.body.appendChild(_confirmEl);
+    }
+
+    const done = (result) => {
+      _confirmEl.style.display = 'none';
+      _confirmEl.removeEventListener('click', _onBg);
+      resolve(result);
+    };
+    const _onBg = (e) => { if (e.target === _confirmEl) done(false); };
+
+    document.getElementById('_confirm-title').textContent = title;
+    document.getElementById('_confirm-body').textContent  = body;
+    const okBtn = document.getElementById('_confirm-ok');
+    okBtn.textContent = confirmLabel;
+    okBtn.style.cssText = danger
+      ? 'flex:1;height:46px;background:rgba(220,53,69,0.12);color:#ff6b6b;border:1px solid rgba(220,53,69,0.40);border-radius:var(--radius-pill);font-family:var(--font-mono);font-size:12px;letter-spacing:0.04em;cursor:pointer;'
+      : 'flex:1;height:46px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-pill);font-family:var(--font-display);font-weight:700;font-size:13px;cursor:pointer;';
+
+    _confirmEl.style.display = 'flex';
+    _confirmEl.addEventListener('click', _onBg);
+    document.getElementById('_confirm-cancel').onclick = () => done(false);
+    okBtn.onclick = () => done(true);
+  });
+}
+
+async function confirmLogout() {
+  const yes = await showConfirm({
+    title: 'Log out?',
+    body: 'You\'ll need to sign in again to access your account.',
+    confirmLabel: 'Log out',
+    danger: false,
+  });
+  if (yes) Auth.logout();
+}
+
+/* ───────────────────────────────────────────────
    TOGGLE SWITCH
    Usage: <div class="toggle" onclick="toggleSwitch(this)">
 ─────────────────────────────────────────────── */

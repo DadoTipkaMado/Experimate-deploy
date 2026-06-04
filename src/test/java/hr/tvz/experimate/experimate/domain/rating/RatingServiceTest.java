@@ -3,15 +3,14 @@ package hr.tvz.experimate.experimate.domain.rating;
 import hr.tvz.experimate.experimate.domain.rating.dto.CreateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.dto.UpdateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.response.RatingResponse;
-import hr.tvz.experimate.experimate.domain.user.Role;
-import hr.tvz.experimate.experimate.shared.DetailsMapper;
-import hr.tvz.experimate.experimate.shared.UserDetails;
-
 import hr.tvz.experimate.experimate.domain.reservation.Reservation;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
+import hr.tvz.experimate.experimate.domain.user.Role;
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
+import hr.tvz.experimate.experimate.shared.UserDetails;
 import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +23,9 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

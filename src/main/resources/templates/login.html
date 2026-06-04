@@ -11,17 +11,6 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon.svg">
   <style>
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #020505 !important; --surface: #141414 !important;
-        --surface-2: #1c1c1c !important; --border: #2a2a2a !important;
-        --border-2: #333333 !important; --text: #f2f2f2 !important;
-        --text-2: #c0c0c0 !important; --text-3: #909090 !important;
-        --accent: #00c9a7 !important; --warm: #ff6b35 !important;
-        --accent-dim: rgba(0,201,167,0.12) !important;
-        --accent-border: rgba(0,201,167,0.3) !important;
-      }
-    }
 
     *, *::before, *::after { box-sizing: border-box; }
 
@@ -236,6 +225,14 @@
     }
     .btn-google:hover { border-color: var(--accent, var(--accent)); }
     .btn-google:disabled { cursor: not-allowed; opacity: 0.4; }
+    /* Google's real button, rendered transparent on top so the user's click
+       lands on it directly (first-click OAuth) while our styled button shows. */
+    .btn-google-wrap { position: relative; }
+    .btn-google-overlay {
+      position: absolute; inset: 0; overflow: hidden;
+      opacity: 0; border-radius: var(--radius-pill, 999px);
+    }
+    .btn-google-overlay > div { transform: scale(2); transform-origin: top left; }
 
     /* ── Google sync modal ── */
     .gsync-backdrop {
@@ -297,6 +294,9 @@
   </style>
 </head>
 <body>
+<!-- Apply the saved theme before paint. Pre-auth pages have no shared
+     topbar/navbar fragment, so they carry their own copy of the theme-init snippet. -->
+<script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')||'warm-light'];if(c)document.body.classList.add(c);})();</script>
   <!-- Background orbs -->
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
@@ -334,10 +334,13 @@
 
     <div class="auth-divider">or</div>
 
-    <button class="btn-google" id="google-btn" onclick="signInWithGoogle()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Sign in with Google
-    </button>
+    <div class="btn-google-wrap">
+      <button class="btn-google" id="google-btn" type="button" tabindex="-1" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Sign in with Google
+      </button>
+      <div class="btn-google-overlay" id="google-overlay"></div>
+    </div>
 
     <div class="auth-footer">
       <a href="/forgot-password">Forgot password?</a>
@@ -348,7 +351,7 @@
   </div>
 
   <script src="https://accounts.google.com/gsi/client" async></script>
-  <script src="/js/api.js"></script>
+  <script th:src="@{/js/api.js}"></script>
   <script>
     const _qs = new URLSearchParams(window.location.search);
     if (_qs.get('verified') === '1') {
@@ -372,10 +375,31 @@
       window.addEventListener('storage', (e) => { if (e.key === 'email_verified_at') _advance(); });
     }
 
+    // Google sign-in returns an ID token, which the only GIS API that opens the
+    // account chooser on the FIRST click is renderButton (One Tap / prompt() is
+    // routinely suppressed, which is what forced the old double-click). So we
+    // render Google's real button and overlay it, transparent, on top of our
+    // styled button — the user's click lands on Google's button directly.
+    // Init must run once both the async GSI script and the client id are ready;
+    // _maybeInitGoogle fires from whichever lands last and is idempotent.
     let _googleClientId = null;
+    let _googleReady    = false;
+    function _maybeInitGoogle() {
+      if (_googleReady || !_googleClientId || !window.google?.accounts?.id) return;
+      _googleReady = true;
+      google.accounts.id.initialize({
+        client_id: _googleClientId,
+        callback: _handleGoogleCredential,
+        auto_select: false,
+      });
+      google.accounts.id.renderButton(document.getElementById('google-overlay'),
+        { type: 'standard', theme: 'outline', size: 'large', width: 360 });
+    }
+    window.onGoogleLibraryLoad = _maybeInitGoogle;
     fetch('/api/auth/google-client-id').then(r => r.ok ? r.text() : null).then(id => {
       _googleClientId = id ? id.trim().replace(/"/g, '') : null;
       if (!_googleClientId) document.getElementById('google-btn').disabled = true;
+      else _maybeInitGoogle();
     }).catch(() => { document.getElementById('google-btn').disabled = true; });
 
     function _decodeGoogleToken(token) {
@@ -389,7 +413,7 @@
       const lastName  = gp.family_name || '';
       const picture   = gp.picture ? gp.picture.replace(/=s\d+-c/, '=s256-c') : null;
 
-      if (!firstName && !lastName && !picture) { window.location.href = '/map'; return; }
+      if (!firstName && !lastName && !picture) { enterApp(); return; }
 
       const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'G';
       const avatarHtml = picture
@@ -424,7 +448,7 @@
       document.body.appendChild(backdrop);
 
       backdrop.querySelector('#gsync-skip').addEventListener('click', () => {
-        backdrop.remove(); window.location.href = '/map';
+        backdrop.remove(); enterApp();
       });
 
       backdrop.querySelector('#gsync-confirm').addEventListener('click', async () => {
@@ -452,24 +476,7 @@
             } catch (_) {}
           }
         } catch (_) {}
-        window.location.href = '/map';
-      });
-    }
-
-    function signInWithGoogle() {
-      if (!_googleClientId) return;
-      const btn = document.getElementById('google-btn');
-      btn.disabled = true;
-      btn.textContent = 'Opening Google…';
-      google.accounts.id.initialize({
-        client_id: _googleClientId,
-        callback: _handleGoogleCredential,
-        auto_select: false,
-      });
-      google.accounts.id.prompt(notification => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          google.accounts.id.renderButton(btn, { type: 'standard', theme: 'filled_black', size: 'large', width: 320 });
-        }
+        enterApp();
       });
     }
 
@@ -483,7 +490,7 @@
           body: JSON.stringify({ idToken: response.credential }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'Google sign-in failed.');
+        if (!res.ok) throw new Error('Google sign-in failed — please try again.');
         if (data.status === 'LOGGED_IN') {
           Auth.saveToken(data.accessToken);
           if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -526,7 +533,7 @@
           const result = await UserAPI.getById(userId);
           if (result) {
             _cacheUser(result, userId);
-            window.location.href = '/map';
+            enterApp();
             return;
           }
         } catch { /* fall through to refresh */ }
@@ -544,7 +551,7 @@
           const me = await UserAPI.getById(uid).catch(() => null);
           if (me) _cacheUser(me, uid);
         }
-        window.location.href = '/map';
+        enterApp();
       } catch { /* stay on login */ }
     })();
 
@@ -576,7 +583,7 @@
         if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
           Notification.requestPermission().then(p => { if (p === 'granted' && typeof subscribeToPush === 'function') subscribeToPush(); });
         }
-        window.location.href = '/map';
+        enterApp();
       } catch (err) {
         errorEl.textContent = err.message;
         errorEl.style.display = 'block';

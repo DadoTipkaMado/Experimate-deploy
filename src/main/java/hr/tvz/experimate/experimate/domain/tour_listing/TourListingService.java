@@ -4,21 +4,27 @@ import hr.tvz.experimate.experimate.domain.partner_event.PartnerEvent;
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventNotFoundException;
 import hr.tvz.experimate.experimate.domain.partner_event.PartnerEventRepository;
 import hr.tvz.experimate.experimate.domain.partner_pin.PartnerPin;
-import hr.tvz.experimate.experimate.domain.tour_listing.dto.*;
-import hr.tvz.experimate.experimate.domain.tour_listing.response.*;
-
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
-import hr.tvz.experimate.experimate.shared.DetailsMapper;
-import hr.tvz.experimate.experimate.shared.event.*;
-import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import hr.tvz.experimate.experimate.domain.reservation.exception.IllegalReservationStateException;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateListingFromEventRequest;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.CreateTourListingDto;
+import hr.tvz.experimate.experimate.domain.tour_listing.dto.UpdateTourListingDto;
 import hr.tvz.experimate.experimate.domain.tour_listing.exception.HostAlreadyTakenException;
 import hr.tvz.experimate.experimate.domain.tour_listing.exception.TourListingNotFoundException;
+import hr.tvz.experimate.experimate.domain.tour_listing.response.TourListingResponse;
 import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
+import hr.tvz.experimate.experimate.shared.event.TourListingDeletedEvent;
+import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedEvent;
+import hr.tvz.experimate.experimate.shared.event.TourListingsDeletedForHostEvent;
+import hr.tvz.experimate.experimate.shared.event.TourStartedEvent;
+import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.shared.util.DateTimeUtil;
+import hr.tvz.experimate.experimate.shared.util.LocationObfuscator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,8 +36,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import hr.tvz.experimate.experimate.shared.util.LocationObfuscator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -67,7 +71,15 @@ public class TourListingService {
         this.detailsMapper = detailsMapper;
     }
 
-    //TODO refraktoriraj ovo sa provjerenim podcaim iz dto
+    /**
+     * Creates a new tour listing for the given host.
+     *
+     * @param dto    validated listing details (city, coordinates, meeting date, description, capacity)
+     * @param hostId ID of the user creating the listing
+     * @return the created {@link TourListingResponse}
+     * @throws UserNotFoundException     if no user exists with the given ID
+     * @throws HostAlreadyTakenException if the host already has a live reservation on that date
+     */
     @Transactional
     public TourListingResponse createListing(CreateTourListingDto dto, Integer hostId) {
         User host = userRepo
@@ -141,6 +153,15 @@ public class TourListingService {
         return createListing(dto, hostId);
     }
 
+    /**
+     * Finds a single listing by ID. The exact meeting location is revealed only if the
+     * viewer is allowed to see it (e.g. the host or a guest with a live reservation);
+     * otherwise an obfuscated location is returned.
+     *
+     * @param listingId the listing ID
+     * @param viewerId  ID of the user viewing the listing
+     * @return the {@link TourListingResponse} if found, otherwise empty
+     */
     public Optional<TourListingResponse> getListingById(Integer listingId, Integer viewerId) {
         return listingRepo.findById(listingId)
                 .map(listing -> {
@@ -156,6 +177,16 @@ public class TourListingService {
                 .toList();
     }*/
 
+    /**
+     * Returns a page of listings hosted by the given user, sorted by meeting date.
+     * The host always sees the exact location of their own listings.
+     *
+     * @param userId    ID of the host whose listings are listed
+     * @param filter    reserved for future filtering (currently unused)
+     * @param direction sort direction on the meeting date
+     * @param pageable  pagination settings
+     * @return a page of {@link TourListingResponse}
+     */
     public Page<TourListingResponse> getMyListings(Integer userId, String filter, Sort.Direction direction, Pageable pageable) {
         Sort sort = Sort.by(direction, "meetingDate");
         Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -163,6 +194,15 @@ public class TourListingService {
                 .map(listing -> createListingResponse(listing, 0, true));
     }
 
+    /**
+     * Returns a page of listings hosted by users other than the viewer, each enriched with
+     * its active booked-guest count and an exact location only for listings the viewer has a
+     * live reservation for.
+     *
+     * @param resourceOwnerId ID of the viewing user (their own listings are excluded)
+     * @param pageable        pagination settings
+     * @return a page of {@link TourListingResponse}
+     */
     public Page<TourListingResponse> getAllListings(Integer resourceOwnerId, Pageable pageable) {
         Page<TourListing> page = listingRepo.findAllByHost_IdNot(resourceOwnerId, pageable);
 
@@ -185,6 +225,16 @@ public class TourListingService {
         ));
     }
 
+    /**
+     * Updates a listing's meeting date and/or description. Only the host may update it.
+     *
+     * @param id       the listing ID
+     * @param dto      fields to update (null fields are left unchanged)
+     * @param callerId ID of the authenticated user requesting the update
+     * @return the updated {@link TourListingResponse}
+     * @throws TourListingNotFoundException if no listing exists with the given ID
+     * @throws ForbiddenActionException     if the caller is not the listing's host
+     */
     public TourListingResponse updateListing(Integer id, UpdateTourListingDto dto, Integer callerId) {
         TourListing listing = listingRepo.findById(id)
                 .orElseThrow(() -> {
@@ -220,6 +270,15 @@ public class TourListingService {
         if (dto.tourDescription() != null) listing.setTourDescription(dto.tourDescription());
     }
 
+    /**
+     * Deletes a listing and publishes a {@link TourListingDeletedEvent} so dependent
+     * reservations and booking requests are cleaned up. Only the host may delete it.
+     *
+     * @param id       the listing ID
+     * @param callerId ID of the authenticated user requesting deletion
+     * @throws TourListingNotFoundException if no listing exists with the given ID
+     * @throws ForbiddenActionException     if the caller is not the listing's host
+     */
     @Transactional
     public void deleteListing(Integer id, Integer callerId) {
         TourListing listing = listingRepo.findById(id)
@@ -364,8 +423,4 @@ public class TourListingService {
                 detailsMapper.mapUserDetails(listing.getHost())
         );
     }
-
-    //TODO dodaj metodu koja ce provjeravati jesu li dto atributi ispravni.
-
-    //TODO dodaj helper metode koje ce extractati entitete iz dto
 }

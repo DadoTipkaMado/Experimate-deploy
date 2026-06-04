@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="description" content="Find local experiences near you on the ExperiMate map. Explore venues, meets, and guides in any city.">
   <meta property="og:type" content="website">
@@ -75,45 +75,24 @@
       white-space: nowrap;
     }
     .map-geo-search .search-bar {
-      background: rgba(8,10,10,0.92);
+      background: var(--surface);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
-      border-color: rgba(255,255,255,0.08);
-      border-top-color: rgba(255,255,255,0.16);
-      border-bottom-color: rgba(0,0,0,0.55);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.10),
-        0 6px 28px rgba(0,0,0,0.5);
+      box-shadow: var(--shadow-md);
       height: 46px;
     }
     .map-geo-search .search-bar:focus-within {
-      border-color: var(--accent-a40);
-      border-top-color: var(--accent-a55);
-      box-shadow:
-        inset 0 1px 0 var(--accent-a08),
-        0 6px 28px rgba(0,0,0,0.5),
-        0 0 0 3px var(--accent-a06);
+      box-shadow: var(--shadow-md), 0 0 0 3px var(--search-focus-glow);
     }
     .map-filters .pill {
-      background: rgba(8,10,10,0.92);
+      background: var(--surface);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border-color: rgba(255,255,255,0.08);
-      border-top-color: rgba(255,255,255,0.15);
-      border-bottom-color: rgba(0,0,0,0.5);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.09),
-        0 3px 14px rgba(0,0,0,0.5);
-      color: rgba(255,255,255,0.85);
+      box-shadow: var(--shadow-md);
     }
     .map-filters .pill--active {
-      background: rgba(8,10,10,0.92);
-      border-color: var(--accent-a30);
-      border-top-color: var(--accent-a35);
+      border-color: var(--accent-border);
       color: var(--accent);
-    }
-    .map-filters .pill:hover:not(.pill--active) {
-      color: #ffffff;
     }
     /* Bottom-right control cluster: legend → [locate] [+FAB] */
     .map-controls {
@@ -230,6 +209,25 @@
     .map-pin--partner-logo img { width: 100% !important; height: 100%; object-fit: cover; border-radius: 50%; display: block; transform: translateX(40%); }
     .map-pin--partner-logo__initials { font-size: 11px; font-weight: 800; color: #93c5fd; font-family: sans-serif; }
     .map-legend__dot--partner { background: #2563eb; opacity: 0.85; }
+    /* Highlighted (subscribed) partner venue pins */
+    @keyframes highlight-pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(37,99,235,0.55), 0 0 14px rgba(37,99,235,0.6), 0 3px 10px rgba(0,0,0,0.45); }
+      50%       { box-shadow: 0 0 0 5px rgba(37,99,235,0.28), 0 0 24px rgba(37,99,235,0.9), 0 3px 10px rgba(0,0,0,0.45); }
+    }
+    .map-pin--partner-logo--highlighted {
+      width: 44px; height: 44px;
+      border: 3px solid #60a5fa;
+      animation: highlight-pulse 2.4s ease-in-out infinite;
+    }
+    .map-pin--partner-logo--highlighted img { width: 38px; height: 38px; }
+    .map-pin--partner-logo--highlighted .map-pin--partner-logo__initials { font-size: 14px; }
+    .map-pin--highlighted-badge {
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      background: #2563eb; color: #fff;
+      font-size: 7px; font-weight: 800; letter-spacing: 0.08em;
+      padding: 1px 5px; border-radius: 4px; white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.5);
+    }
     .user-location-pin {
       width: 35px; height: 35px;
       border-radius: 50% 50% 50% 0;
@@ -410,12 +408,12 @@
     .map-venue-dropdown {
       display: none;
       flex-direction: column;
-      background: rgba(10,10,10,0.94);
+      background: var(--surface);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border-2);
       border-radius: var(--radius-sm);
       overflow: hidden;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.55);
+      box-shadow: var(--shadow-md);
       min-width: 160px;
     }
     .map-venue-dropdown--open { display: flex; }
@@ -425,10 +423,10 @@
       background: none; border: none; cursor: pointer;
       color: var(--text-2); font-size: 13px; font-family: var(--font-mono);
       text-align: left; transition: background 0.14s, color 0.14s;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--border);
     }
     .map-venue-item:last-child { border-bottom: none; }
-    .map-venue-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    .map-venue-item:hover { background: var(--surface-2); color: var(--text); }
     .map-venue-item.pill--active {
       background: color-mix(in srgb, var(--vcat-color) 15%, transparent);
       color: var(--vcat-color);
@@ -436,11 +434,11 @@
 
     /* ── Date range filter — drops below chip strip ── */
     .map-date-panel {
-      background: rgba(10,10,10,0.92);
+      background: var(--surface);
       border: 1px solid var(--border-2); border-radius: var(--radius-sm);
       padding: 10px 12px;
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+      box-shadow: var(--shadow-md);
       display: none; flex-direction: column; gap: 8px;
     }
     .map-date-panel--open { display: flex; }
@@ -502,45 +500,26 @@
       border-top-color: rgba(255,255,255,0.85);
       border-bottom-color: rgba(0,0,0,0.09);
     }
-    body.theme-light .map-geo-search .search-bar , body.theme-warm .map-geo-search .search-bar {
-    body.light-mode .map-geo-search .search-bar {
-      background: rgba(253,252,248,0.97);
-      border-color: rgba(0,0,0,0.09);
-      border-top-color: rgba(255,255,255,0.90);
-      border-bottom-color: rgba(0,0,0,0.10);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 3px 16px rgba(20,15,5,0.10);
+
+    /* Bottom-sheet card: the base gradient ends in a hard near-black (#090b0b)
+       for depth on the dark map. On the light themes that bleeds in as a black
+       gradient under the card, so keep the fade within the theme's surfaces and
+       darken the grab-handle (the white one vanishes on a light card). */
+    body:is(.theme-light, .theme-warm) .map-bs__card {
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+      border-top-color: var(--border-2);
+      border-left-color: var(--border);
+      border-right-color: var(--border);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255,255,255,0.6),
+        0 -12px 48px rgba(60,50,40,0.16),
+        0 -3px 14px rgba(60,50,40,0.10);
     }
-    body.theme-warm  .map-geo-search .search-bar {
-      background: rgba(246,246,251,0.97);
-      border-color: rgba(0,0,0,0.08);
-      border-top-color: rgba(255,255,255,0.85);
-      border-bottom-color: rgba(0,0,0,0.09);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 3px 16px rgba(18,18,30,0.09);
-    }
-    body.theme-light .map-filters .pill , body.theme-warm .map-filters .pill {
-      background: rgba(253,252,248,0.97);
-      border-color: rgba(0,0,0,0.09);
-      border-top-color: rgba(255,255,255,0.90);
-      border-bottom-color: rgba(0,0,0,0.10);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 2px 10px rgba(20,15,5,0.08);
-      color: rgba(0,0,0,0.65);
-    }
-    body.theme-light .map-filters .pill--active, body.theme-warm .map-filters .pill--active,
-    body.theme-warm  .map-filters .pill--active {
-      background: rgba(253,252,248,0.97);
-      border-color: rgba(0,150,120,0.35);
-      color: var(--accent);
-    }
-    body.theme-warm  .map-filters .pill {
-      background: rgba(246,246,251,0.97);
-      border-color: rgba(0,0,0,0.08);
-      border-top-color: rgba(255,255,255,0.85);
-      border-bottom-color: rgba(0,0,0,0.09);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.75), 0 2px 10px rgba(18,18,30,0.08);
-      color: rgba(0,0,0,0.65);
+    body:is(.theme-light, .theme-warm) .map-bs__handle {
+      background: rgba(0,0,0,0.18);
     }
 
-  </style>
+</style>
 </head>
 <body>
 <div class="app-shell">

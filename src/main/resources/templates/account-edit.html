@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -325,7 +325,7 @@
       showToast('Profile saved!');
       setTimeout(() => window.location.href = '/account', 800);
     } catch (err) {
-      errorEl.textContent = err.message;
+      errorEl.textContent = err.message || 'Couldn\'t save your changes — give it another go.';
       errorEl.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Save';
     }

@@ -15,8 +15,122 @@ const MapState = {
   userLat: null,
   userLng: null,
   locationMarker: null,
+  geoWatchId: null,     // active watchPosition id, or null when not tracking
   activeCircle: null,   // the single radius circle currently shown (only on pin click)
 };
+
+/**
+ * Persists the user's resolved coordinates to localStorage so other pages
+ * (e.g. the meet-creation wizard) can bias their location search toward the
+ * user without re-prompting for geolocation permission. Only called after a
+ * successful position fix, so a declined permission leaves nothing stored.
+ *
+ * @param {number} lat user latitude
+ * @param {number} lng user longitude
+ */
+function persistUserLocation(lat, lng) {
+  localStorage.setItem('userLat', String(lat));
+  localStorage.setItem('userLng', String(lng));
+}
+
+/**
+ * Reads the user's last resolved coordinates from localStorage, if any.
+ * Lets the map recenter on the user across page loads (each tab is a full
+ * page reload) without re-triggering the browser's geolocation permission
+ * prompt. Counterpart to {@link persistUserLocation}.
+ *
+ * @returns {{lat: number, lng: number} | null} the stored coordinates, or
+ *   null if nothing valid has been stored yet
+ */
+function readStoredLocation() {
+  const lat = parseFloat(localStorage.getItem('userLat'));
+  const lng = parseFloat(localStorage.getItem('userLng'));
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+}
+
+/**
+ * Draws (or redraws) the "you are here" marker at the given coordinates,
+ * removing any previous one first.
+ *
+ * @param {number} lat user latitude
+ * @param {number} lng user longitude
+ */
+function placeUserMarker(lat, lng) {
+  if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
+  MapState.locationMarker = L.marker([lat, lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div class="user-location-pin"></div>`,
+      iconSize:   [35, 35],
+      iconAnchor: [17, 42],
+    }),
+    zIndexOffset: 1000,
+  }).addTo(MapState.map);
+}
+
+/**
+ * Starts streaming the user's live position and keeps both the "you are here"
+ * pin and the map view centered on every update, so the user stays in the
+ * middle of the map as they move — no extra taps, no repeated permission
+ * prompts. The watch is registered only once (guarded by
+ * {@link MapState.geoWatchId}); each fix is cached via
+ * {@link persistUserLocation} so later page loads can resume tracking silently.
+ *
+ * @param {boolean} zoomInOnFirstFix whether the first fix should fly in to a
+ *   close zoom (true for an explicit "locate me" tap or a cold load with no
+ *   cached spot; false when a cached position already framed the map at a good
+ *   zoom, so we just pan and preserve it)
+ */
+function startTrackingUser(zoomInOnFirstFix) {
+  if (!navigator.geolocation || MapState.geoWatchId !== null) return;
+  let firstFix = true;
+  MapState.geoWatchId = navigator.geolocation.watchPosition(
+    pos => {
+      const { latitude, longitude } = pos.coords;
+      MapState.userLat = latitude;
+      MapState.userLng = longitude;
+      persistUserLocation(latitude, longitude);
+      placeUserMarker(latitude, longitude);
+      // Keep the user centered at all times. The first fix optionally flies in
+      // to a close zoom; every fix after that just pans, preserving the zoom.
+      if (firstFix && zoomInOnFirstFix) {
+        MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
+      } else {
+        MapState.map.panTo([latitude, longitude], { animate: true, duration: 0.5 });
+      }
+      firstFix = false;
+    },
+    err => {
+      if (err.code === err.PERMISSION_DENIED) {
+        showToast('Location access denied — showing Zagreb by default.', 'default');
+      }
+    },
+    { enableHighAccuracy: true, maximumAge: 10000 }
+  );
+}
+
+/**
+ * Begins live tracking on page load, but only when access is already granted,
+ * so a plain tab switch never re-triggers the permission prompt. Uses the
+ * Permissions API to detect a silent "granted" state (and to pick tracking up
+ * if the user grants it later); where that API is unavailable (e.g. some iOS
+ * Safari), a previously cached location stands in as proof of an earlier grant.
+ *
+ * @param {boolean} zoomInOnFirstFix forwarded to {@link startTrackingUser}
+ */
+function autoTrackIfPermitted(zoomInOnFirstFix) {
+  if (!navigator.geolocation) return;
+  if (navigator.permissions?.query) {
+    navigator.permissions.query({ name: 'geolocation' })
+      .then(status => {
+        if (status.state === 'granted') startTrackingUser(zoomInOnFirstFix);
+        status.onchange = () => { if (status.state === 'granted') startTrackingUser(false); };
+      })
+      .catch(() => { if (readStoredLocation()) startTrackingUser(zoomInOnFirstFix); });
+    return;
+  }
+  if (readStoredLocation()) startTrackingUser(zoomInOnFirstFix);
+}
 
 /* ───────────────────────────────────────────────
    INIT
@@ -69,26 +183,19 @@ function initMap() {
         if (results[0]) MapState.map.setView([parseFloat(results[0].lat), parseFloat(results[0].lon)], 14);
       })
       .catch(() => {});
-  } else if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const { latitude, longitude } = pos.coords;
-        MapState.userLat = latitude;
-        MapState.userLng = longitude;
-        MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
-        if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
-        MapState.locationMarker = L.marker([latitude, longitude], {
-          icon: L.divIcon({
-            className: '',
-            html: `<div class="user-location-pin"></div>`,
-            iconSize:   [35, 35],
-            iconAnchor: [17, 42],
-          }),
-          zIndexOffset: 1000,
-        }).addTo(MapState.map);
-      },
-      () => showToast('Location access denied — showing Zagreb by default.', 'default')
-    );
+  } else {
+    // Paint the last known spot instantly (no geolocation call, no prompt) so
+    // a tab switch shows the pin right away…
+    const stored = readStoredLocation();
+    if (stored) {
+      MapState.userLat = stored.lat;
+      MapState.userLng = stored.lng;
+      MapState.map.setView([stored.lat, stored.lng], 17);
+      placeUserMarker(stored.lat, stored.lng);
+    }
+    // …then, if access is already granted, resume live tracking silently so the
+    // pin follows the user. First-time access is granted via the locate button.
+    autoTrackIfPermitted(!stored);
   }
 }
 
@@ -259,15 +366,23 @@ function buildMarker(listing, pinType = 'default') {
 }
 
 function buildPartnerPinMarker(pin) {
-  let iconHtml;
+  const hl = pin.highlighted === true;
+  const pinClass = `map-pin--partner-logo${hl ? ' map-pin--partner-logo--highlighted' : ''}`;
+  const badgeHtml = hl ? `<div class="map-pin--highlighted-badge">FEATURED</div>` : '';
+  const wrapStyle = hl ? 'position:relative;display:inline-block;' : '';
+
+  let innerHtml;
   if (pin.logoUrl) {
-    iconHtml = `<div class="map-pin--partner-logo"><img src="${escapeHtml(pin.logoUrl)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>'"></div>`;
+    innerHtml = `<img src="${escapeHtml(pin.logoUrl)}" alt="" onerror="this.parentElement.innerHTML='<span class=\\"map-pin--partner-logo__initials\\">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>'">`;
   } else {
-    const initial = (pin.name?.[0] ?? 'P').toUpperCase();
-    iconHtml = `<div class="map-pin--partner-logo"><span class="map-pin--partner-logo__initials">${initial}</span></div>`;
+    innerHtml = `<span class="map-pin--partner-logo__initials">${(pin.name?.[0] ?? 'P').toUpperCase()}</span>`;
   }
-  const icon = L.divIcon({ className: '', html: iconHtml, iconSize: [36, 36], iconAnchor: [18, 36] });
-  const marker = L.marker([pin.latitude, pin.longitude], { icon });
+
+  const iconHtml = `<div style="${wrapStyle}"><div class="${pinClass}">${innerHtml}</div>${badgeHtml}</div>`;
+  const size = hl ? [54, 54] : [36, 36];
+  const anchor = hl ? [27, 54] : [18, 36];
+  const icon = L.divIcon({ className: '', html: iconHtml, iconSize: size, iconAnchor: anchor });
+  const marker = L.marker([pin.latitude, pin.longitude], { icon, zIndexOffset: hl ? 200 : 0 });
   marker.on('click', () => openPartnerPinPopup(pin));
   return marker;
 }
@@ -286,7 +401,10 @@ function openPartnerPinPopup(pin) {
         ${pin.partnerCompanyName ? `<div style="font-size:10px;color:var(--text-3);margin-top:2px;">${escapeHtml(pin.partnerCompanyName)}</div>` : ''}
       </div>
     </div>
-    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;margin-bottom:10px;">PARTNER VENUE</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+      <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.28);border-radius:6px;padding:3px 8px;font-size:10px;color:#60a5fa;letter-spacing:0.08em;font-weight:700;">PARTNER VENUE</div>
+      ${pin.highlighted ? `<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(37,99,235,0.22);border:1px solid rgba(96,165,250,0.55);border-radius:6px;padding:3px 8px;font-size:10px;color:#93c5fd;letter-spacing:0.08em;font-weight:700;"><span style="width:6px;height:6px;border-radius:50%;background:#60a5fa;box-shadow:0 0 6px rgba(96,165,250,0.9);display:inline-block;flex-shrink:0;"></span>FEATURED</div>` : ''}
+    </div>
     ${pin.description ? `<div class="popup-desc">${escapeHtml(pin.description)}</div>` : ''}
     <div id="pin-events-list" style="margin-top:10px;"><div style="font-size:10px;color:var(--text-3);">Loading events…</div></div>
   `;
@@ -458,30 +576,13 @@ function openListingDetailFromMap() {
 }
 
 function centerOnUser() {
+  // Instant feedback: fly to the last known spot if we have one…
   if (MapState.userLat !== null) {
     MapState.map.flyTo([MapState.userLat, MapState.userLng], 17, { duration: 1 });
-    return;
   }
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const { latitude, longitude } = pos.coords;
-      MapState.userLat = latitude;
-      MapState.userLng = longitude;
-      MapState.map.flyTo([latitude, longitude], 17, { duration: 1 });
-      if (MapState.locationMarker) MapState.map.removeLayer(MapState.locationMarker);
-      MapState.locationMarker = L.marker([latitude, longitude], {
-        icon: L.divIcon({
-          className: '',
-          html: `<div class="user-location-pin"></div>`,
-          iconSize:   [35, 35],
-          iconAnchor: [17, 42],
-        }),
-        zIndexOffset: 1000,
-      }).addTo(MapState.map);
-    },
-    () => showToast('Location access denied.', 'error')
-  );
+  // …and start (or, if already running, keep) live tracking. This is the
+  // explicit user action where a first-time permission prompt is acceptable.
+  startTrackingUser(true);
 }
 
 function buildPopupContent(listing, pinType = 'default', unlocked = false) {

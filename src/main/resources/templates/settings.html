@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -460,7 +460,7 @@
   }
 
   (function() {
-    const current = localStorage.getItem('theme') || 'teal-dark';
+    const current = localStorage.getItem('theme') || 'warm-light';
     const swatches = document.querySelectorAll('.theme-swatch');
     swatches.forEach(sw => {
       sw.classList.toggle('theme-swatch--active', sw.dataset.theme === current);
@@ -562,7 +562,16 @@
     } catch(e) { /* best effort */ }
     closeDeleteAccountModal();
     sessionStorage.setItem('explicit_logout', '1');
-    localStorage.clear();
+    // Remove auth and session-sensitive keys individually — do NOT use localStorage.clear()
+    // as that would also erase UX prefs like app_tour_done, personality data, etc.
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('user_initials');
+    localStorage.removeItem('user_hue');
+    localStorage.removeItem('personality_scores');
+    localStorage.removeItem('personality_traits');
+    localStorage.removeItem('personality_done');
+    localStorage.removeItem('personality_skipped');
     window.location.href = '/login';
   }
   document.getElementById('delete-account-modal').addEventListener('click', function(e) {
@@ -570,9 +579,14 @@
   });
 
   // Sign out
-  document.getElementById('logout-btn').addEventListener('click', e => {
+  document.getElementById('logout-btn').addEventListener('click', async e => {
     e.preventDefault();
-    Auth.logout();
+    const yes = await showConfirm({
+      title: 'Log out?',
+      body: 'You\'ll need to sign in again to access your account.',
+      confirmLabel: 'Log out',
+    });
+    if (yes) Auth.logout();
   });
 </script>
 </body>

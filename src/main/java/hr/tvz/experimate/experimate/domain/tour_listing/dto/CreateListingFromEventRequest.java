@@ -1,7 +1,13 @@
 package hr.tvz.experimate.experimate.domain.tour_listing.dto;
 
 import hr.tvz.experimate.experimate.shared.Constraints;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 
@@ -22,9 +28,7 @@ import java.time.LocalDateTime;
 public record CreateListingFromEventRequest(
         @NotNull Integer partnerEventId,
         @NotBlank String city,
-        @NotBlank @Size(
-                min = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN,
-                max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
+        @NotBlank @Size(max = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX)
         String tourDescription,
         @NotNull @Min(Constraints.TourListingConstraints.MIN_GUESTS)
         @Max(Constraints.TourListingConstraints.MAX_GUESTS)

@@ -1,21 +1,21 @@
 package hr.tvz.experimate.experimate.domain.rating;
 
-import hr.tvz.experimate.experimate.domain.rating.dto.*;
-import hr.tvz.experimate.experimate.domain.rating.response.*;
-import hr.tvz.experimate.experimate.shared.DetailsMapper;
-import hr.tvz.experimate.experimate.shared.UserDetails;
-
+import hr.tvz.experimate.experimate.domain.rating.dto.CreateRatingDto;
+import hr.tvz.experimate.experimate.domain.rating.dto.UpdateRatingDto;
 import hr.tvz.experimate.experimate.domain.rating.exception.DuplicateRatingException;
 import hr.tvz.experimate.experimate.domain.rating.exception.RatingNotFoundException;
+import hr.tvz.experimate.experimate.domain.rating.response.RatingResponse;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationRepo;
 import hr.tvz.experimate.experimate.domain.reservation.ReservationStatus;
-import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
+import hr.tvz.experimate.experimate.shared.DetailsMapper;
+import hr.tvz.experimate.experimate.shared.UserDetails;
 import hr.tvz.experimate.experimate.shared.event.RatingCreatedEvent;
 import hr.tvz.experimate.experimate.shared.event.RatingRecalculatedEvent;
 import hr.tvz.experimate.experimate.shared.event.UserDeletedEvent;
-import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.shared.exception.ForbiddenActionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +46,18 @@ public class RatingService {
         this.detailsMapper = detailsMapper;
     }
 
+    /**
+     * Creates a rating from one user about another and recomputes the rated user's average score.
+     * Both users must have completed a shared tour, and a user may rate the same person only once.
+     *
+     * @param dto     rating details (rated user ID, score, optional review)
+     * @param raterId ID of the user submitting the rating
+     * @return the created {@link RatingResponse}
+     * @throws UserNotFoundException    if either the rater or the rated user does not exist
+     * @throws IllegalArgumentException if a user attempts to rate themselves
+     * @throws ForbiddenActionException if the two users have not completed a shared tour
+     * @throws DuplicateRatingException if the rater has already rated this user
+     */
     @Transactional
     public RatingResponse createRating(CreateRatingDto dto, Integer raterId) {
         User rater = userRepo.findById(raterId)
@@ -85,11 +97,22 @@ public class RatingService {
         return response;
     }
 
+    /**
+     * Finds a single rating by ID.
+     *
+     * @param id the rating ID
+     * @return the {@link RatingResponse} if found, otherwise empty
+     */
     public Optional<RatingResponse> getRatingById(Integer id) {
         Optional<Rating> rating = ratingRepo.findById(id);
         return rating.map(this::toResponse);
     }
 
+    /**
+     * Returns all ratings in the system.
+     *
+     * @return list of all {@link RatingResponse}
+     */
     public List<RatingResponse> getAllRatings() {
         return ratingRepo.findAll()
                 .stream()
@@ -97,6 +120,17 @@ public class RatingService {
                 .toList();
     }
 
+    /**
+     * Updates the score and/or review of a rating and recomputes the rated user's average.
+     * Only the rating's author may edit it.
+     *
+     * @param id       the rating ID
+     * @param dto      fields to update (null fields are left unchanged)
+     * @param callerId ID of the authenticated user requesting the update
+     * @return the updated {@link RatingResponse}
+     * @throws RatingNotFoundException  if no rating exists with the given ID
+     * @throws ForbiddenActionException if the caller is not the rating's author
+     */
     @Transactional
     public RatingResponse updateRating(Integer id, UpdateRatingDto dto, Integer callerId) {
         Rating rating = ratingRepo.findById(id)
@@ -122,6 +156,15 @@ public class RatingService {
         return toResponse(rating);
     }
 
+    /**
+     * Deletes a rating and recomputes the rated user's average score.
+     * Only the rating's author may delete it.
+     *
+     * @param id      the rating ID
+     * @param raterId ID of the authenticated user requesting deletion
+     * @throws RatingNotFoundException  if no rating exists with the given ID
+     * @throws IllegalArgumentException if the caller is not the rating's author
+     */
     @Transactional
     public void deleteRating(Integer id, Integer raterId) {
         Rating rating = ratingRepo.findById(id)
@@ -141,6 +184,11 @@ public class RatingService {
         log.info("Rating deleted with id {}", id);
     }
 
+    /**
+     * Event handler that deletes every rating authored by or about a deleted user.
+     *
+     * @param event the {@link UserDeletedEvent} carrying the deleted user's ID
+     */
     @Transactional
     @EventListener
     public void handleUserDeleted(UserDeletedEvent event) {

@@ -31,24 +31,28 @@
         .catch(() => {});
     }
   </script>
-  <script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Themes mirror the app's main.css palette so the landing follows the
+       theme chosen in-app (stored in localStorage, applied as a body class by
+       the theme-init snippet below). teal-dark is the base/no-class palette;
+       warm-dark is the default applied when nothing is stored. */
     :root {
-      --accent: #00C9A7;
-      --accent-dim: rgba(0,201,167,0.09);
-      --accent-border: rgba(0,201,167,0.22);
-      --warm: #ff6b35;
-      --warm-dim: rgba(255,107,53,0.09);
-      --warm-border: rgba(255,107,53,0.22);
-      --bg: #0d0e16;
-      --surface: #12141f;
-      --surface-2: #191b27;
-      --border: rgba(239,239,239,0.07);
-      --border-2: rgba(239,239,239,0.12);
-      --text: #f0f0f2;
-      --text-2: rgba(240,240,242,0.62);
-      --text-3: rgba(240,240,242,0.36);
+      --accent: #00c9a7;
+      --warm:   #ff6b35;
+      --bg:     #020505;
+      --surface: #141414;
+      --surface-2: #1c1c1c;
+      --border:  #222222;
+      --border-2: #2e2e2e;
+      --text:   #f2f2f2;
+      --text-2: #c0c0c0;
+      --text-3: #909090;
+      /* derived — follow whatever --accent/--warm the active theme sets */
+      --accent-dim:    color-mix(in srgb, var(--accent) 10%, transparent);
+      --accent-border: color-mix(in srgb, var(--accent) 30%, transparent);
+      --warm-dim:      color-mix(in srgb, var(--warm) 10%, transparent);
+      --warm-border:   color-mix(in srgb, var(--warm) 25%, transparent);
       --font-display: 'Syne', 'Georgia', serif;
       --font-mono: 'DM Mono', 'Courier New', monospace;
       --font-sans: 'Syne', -apple-system, sans-serif;
@@ -57,16 +61,23 @@
       --radius-pill: 999px;
       --t: 0.2s;
     }
-    html.theme-light {
-      --bg: #f5f6fa; --surface: #ffffff; --surface-2: #eef0f5;
-      --border: rgba(0,0,0,0.08); --border-2: rgba(0,0,0,0.13);
-      --text: #111218; --text-2: rgba(17,18,24,0.60); --text-3: rgba(17,18,24,0.34);
-      --accent: #007a65;
-      --accent-dim: rgba(0,122,101,0.10);
-      --accent-border: rgba(0,122,101,0.30);
-      --warm: #c94a00;
-      --warm-dim: rgba(201,74,0,0.09);
-      --warm-border: rgba(201,74,0,0.22);
+    body.theme-warm-dark {
+      --accent: #ff6e40; --warm: #ffa94d;
+      --bg: #0f0b08; --surface: #1a1310; --surface-2: #221913;
+      --border: #2a201a; --border-2: #38291f;
+      --text: #f6efe9; --text-2: #c9bcb0; --text-3: #9a8a7c;
+    }
+    body.theme-light {
+      --accent: #007d6a; --warm: #c04c00;
+      --bg: #f5f3ee; --surface: #fdfcf9; --surface-2: #edeae3;
+      --border: #d8d5cc; --border-2: #c6c2b8;
+      --text: #181714; --text-2: #3c3a35; --text-3: #706d66;
+    }
+    body.theme-warm {
+      --accent: #d94f2b; --warm: #b8720a;
+      --bg: #f5ede0; --surface: #fdf6ec; --surface-2: #ece0ce;
+      --border: #d4c4a8; --border-2: #c0ae90;
+      --text: #1a1208; --text-2: #3d2e1a; --text-3: #7a6045;
     }
     html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
     body {
@@ -102,19 +113,19 @@
       border-bottom: 1px solid var(--border);
       background: rgba(13,14,22,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     }
-    html.theme-light nav { background: rgba(245,246,250,0.92); border-bottom-color: rgba(0,0,0,0.08); }
-    html.theme-light .btn-nav-ghost:hover { border-color: rgba(0,0,0,0.22); color: var(--text); }
-    html.theme-light .btn-hero-ghost:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
-    html.theme-light .hamburger:hover { background: rgba(0,0,0,0.06); }
-    html.theme-light .mobile-menu { background: rgba(245,246,250,0.98); }
-    html.theme-light footer { background: #e8eaf0; }
-    html.theme-light .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
-    html.theme-light .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
-    html.theme-light .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
-    html.theme-light .radar-axis { stroke: rgba(0,0,0,0.12); }
-    html.theme-light .radar-ring  { stroke: rgba(0,0,0,0.10); }
-    html.theme-light .radar-dot   { fill:   rgba(0,0,0,0.28); }
-    html.theme-light .radar-label { fill:   rgba(17,18,24,0.45); }
+    body:is(.theme-light,.theme-warm) nav { background: rgba(245,246,250,0.92); border-bottom-color: rgba(0,0,0,0.08); }
+    body:is(.theme-light,.theme-warm) .btn-nav-ghost:hover { border-color: rgba(0,0,0,0.22); color: var(--text); }
+    body:is(.theme-light,.theme-warm) .btn-hero-ghost:hover { border-color: rgba(0,0,0,0.25); color: var(--text); }
+    body:is(.theme-light,.theme-warm) .hamburger:hover { background: rgba(0,0,0,0.06); }
+    body:is(.theme-light,.theme-warm) .mobile-menu { background: rgba(245,246,250,0.98); }
+    body:is(.theme-light,.theme-warm) footer { background: #e8eaf0; }
+    body:is(.theme-light,.theme-warm) .footer-inner { border-bottom-color: rgba(0,0,0,0.10); }
+    body:is(.theme-light,.theme-warm) .hcard { box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+    body:is(.theme-light,.theme-warm) .hcard--front { box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 0 0 1px var(--border-2); }
+    body:is(.theme-light,.theme-warm) .radar-axis { stroke: rgba(0,0,0,0.12); }
+    body:is(.theme-light,.theme-warm) .radar-ring  { stroke: rgba(0,0,0,0.10); }
+    body:is(.theme-light,.theme-warm) .radar-dot   { fill:   rgba(0,0,0,0.28); }
+    body:is(.theme-light,.theme-warm) .radar-label { fill:   rgba(17,18,24,0.45); }
     .nav-brand { font-family: var(--font-display); font-weight: 900; font-size: 18px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
     .nav-brand span { color: var(--accent); }
     .nav-right { display: flex; align-items: center; gap: clamp(12px,3vw,32px); }
@@ -434,6 +445,9 @@
   </style>
 </head>
 <body>
+<!-- Apply the saved theme before paint (defaults to warm-dark). Landing has no
+     shared fragment, so it carries its own copy of the theme-init snippet. -->
+<script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')||'warm-light'];if(c)document.body.classList.add(c);})();</script>
 
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
@@ -452,7 +466,6 @@
         <a href="/login" class="btn-nav-ghost">Sign in</a>
         <a href="/register" class="btn-nav-primary">Get started</a>
       </div>
-      <button id="landing-theme-btn" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text-2);display:flex;align-items:center;transition:color 0.2s;"></button>
       <button class="hamburger" id="hamburger-btn" aria-label="Open menu" aria-expanded="false">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -888,21 +901,6 @@
       if (!menu.contains(e.target)) closeMobileMenu();
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileMenu(); });
-
-    // Theme toggle
-    const MOON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-    const SUN  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-    (function() {
-      const btn = document.getElementById('landing-theme-btn');
-      if (!btn) return;
-      const update = () => btn.innerHTML = document.documentElement.classList.contains('theme-light') ? MOON : SUN;
-      update();
-      btn.addEventListener('click', () => {
-        const isLight = document.documentElement.classList.toggle('theme-light');
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        update();
-      });
-    })();
   </script>
 </body>
 </html>

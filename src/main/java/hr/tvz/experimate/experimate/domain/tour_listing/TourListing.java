@@ -2,7 +2,14 @@ package hr.tvz.experimate.experimate.domain.tour_listing;
 
 import hr.tvz.experimate.experimate.domain.user.User;
 import hr.tvz.experimate.experimate.shared.Constraints;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +17,6 @@ import java.time.LocalDateTime;
 @Table(name="tour_listing")
 public class TourListing {
 
-    private static final int MINIMUM_DESCRIPTION_LENGTH = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MIN;
     private static final int MAXIMUM_DESCRIPTION_LENGTH = Constraints.TourListingConstraints.TOUR_DESCRIPTION_MAX;
 
     @Id
@@ -21,7 +27,6 @@ public class TourListing {
     @JoinColumn(name = "host_id")
     private User host;
 
-    //TODO napravi provjeru grada u bazi
     private String city;
     private Double longitude;
     private Double latitude;
@@ -155,7 +160,6 @@ public class TourListing {
         return host;
     }
 
-    //TODO napravi u bazi tablicu s gradovima i na temelju toga ce se provjeravati je li grad validan
     private String validateCity(String city){
         if(city==null)
             throw new IllegalArgumentException("City cannot be null");
@@ -173,9 +177,9 @@ public class TourListing {
     private String validateTourDescription(String tourDescription){
         if(tourDescription==null || tourDescription.isBlank())
             throw new IllegalArgumentException("Tour description cannot be blank");
-        if(tourDescription.length() < MINIMUM_DESCRIPTION_LENGTH || tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
-            throw new IllegalArgumentException("Tour description must be between "
-                + MINIMUM_DESCRIPTION_LENGTH + " and " + MAXIMUM_DESCRIPTION_LENGTH + " characters long.");
+        if(tourDescription.length() > MAXIMUM_DESCRIPTION_LENGTH)
+            throw new IllegalArgumentException("Tour description must be at most "
+                + MAXIMUM_DESCRIPTION_LENGTH + " characters long.");
         return tourDescription;
     }
 

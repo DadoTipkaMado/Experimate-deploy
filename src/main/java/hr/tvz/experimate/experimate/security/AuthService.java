@@ -1,11 +1,11 @@
 package hr.tvz.experimate.experimate.security;
 
 import hr.tvz.experimate.experimate.domain.refresh_token.RefreshTokenService;
+import hr.tvz.experimate.experimate.domain.user.User;
+import hr.tvz.experimate.experimate.domain.user.UserRepo;
+import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
 import hr.tvz.experimate.experimate.shared.exception.EmailNotVerifiedException;
 import hr.tvz.experimate.experimate.shared.response.TokenResponse;
-import hr.tvz.experimate.experimate.domain.user.User;
-import hr.tvz.experimate.experimate.domain.user.exception.UserNotFoundException;
-import hr.tvz.experimate.experimate.domain.user.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,7 +35,9 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(username, password)
         );
 
-        User user = userRepo.findByUsername(username)
+        // re-fetch by the same identifier the user authenticated with — they may have
+        // logged in with either their username or email (see AppUserDetailsService)
+        User user = userRepo.findByUsernameOrEmail(username, username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 
         // credentials are valid — now block unverified accounts before issuing tokens

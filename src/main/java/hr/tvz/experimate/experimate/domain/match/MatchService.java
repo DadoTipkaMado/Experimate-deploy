@@ -1,11 +1,12 @@
 package hr.tvz.experimate.experimate.domain.match;
 
-import hr.tvz.experimate.experimate.domain.match.response.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hr.tvz.experimate.experimate.domain.ai.AiMatchingService;
 import hr.tvz.experimate.experimate.domain.ai.SearchCriteria;
+import hr.tvz.experimate.experimate.domain.match.response.ActiveListingInfo;
+import hr.tvz.experimate.experimate.domain.match.response.MatchExplanationResponse;
+import hr.tvz.experimate.experimate.domain.match.response.MatchResponse;
 import hr.tvz.experimate.experimate.domain.onboarding.Big5Calculator;
 import hr.tvz.experimate.experimate.domain.onboarding.Big5Vector;
 import hr.tvz.experimate.experimate.domain.onboarding.PersonalityDimension;

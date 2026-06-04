@@ -327,7 +327,7 @@
 
 <!-- Apply the saved theme before paint. This page has no shared topbar/navbar
      fragment, so it carries its own copy of the theme-init snippet. -->
-<script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')];if(c)document.body.classList.add(c);})();</script>
+<script>(function(){var m={'teal-light':'theme-light','warm-light':'theme-warm','warm-dark':'theme-warm-dark','light':'theme-light','warm':'theme-warm'};var c=m[localStorage.getItem('theme')||'warm-light'];if(c)document.body.classList.add(c);})();</script>
 
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
@@ -410,7 +410,7 @@
 
 </div>
 
-<script src="/js/api.js"></script>
+<script th:src="@{/js/api.js}"></script>
 <script th:inline="none">
   const SCALE = [
     { val: 1, label: 'Not me at all'   },
@@ -548,7 +548,13 @@
     } catch (err) {
       document.getElementById('analyzing').classList.remove('analyzing--visible');
       document.getElementById('progress-wrap').style.opacity = '';
-      alert(err.message || 'Could not save results — please try again.');
+      // Show a calm, non-technical error in place of the last question card.
+      document.getElementById('stage').innerHTML = `
+        <div class="q-card q-card--active" style="justify-content:center;text-align:center;gap:16px">
+          <div class="q-prefix" style="color:var(--warm)">Something went wrong</div>
+          <div style="font-size:12px;color:var(--text-2)">Couldn't save your results — check your connection and try again.</div>
+          <button onclick="showAnalyzing()" style="margin-top:16px;width:100%;height:50px;border-radius:25px;background:var(--accent);border:none;color:#000;font-family:var(--font-d);font-weight:800;font-size:13px;letter-spacing:0.06em;cursor:pointer;">Try again</button>
+        </div>`;
       return;
     }
 
@@ -645,7 +651,7 @@
       document.getElementById('stage').innerHTML = `
         <div class="q-card q-card--active" style="justify-content:center;text-align:center;gap:16px">
           <div class="q-prefix" style="color:var(--warm)">Could not load questions</div>
-          <div style="font-size:12px;color:var(--text-2)">${err.message || 'Check your connection and try again.'}</div>
+          <div style="font-size:12px;color:var(--text-2)">Check your connection and try again.</div>
           <button onclick="init()" style="margin-top:16px;width:100%;height:50px;border-radius:25px;background:var(--accent);border:none;color:#000;font-family:var(--font-d);font-weight:800;font-size:13px;letter-spacing:0.06em;cursor:pointer;">Retry</button>
         </div>`;
     }

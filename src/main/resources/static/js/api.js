@@ -44,6 +44,54 @@ function buildQuery(params = {}) {
 // Shared refresh promise — prevents parallel calls from each triggering /refresh separately
 let _refreshPromise = null;
 
+/* ───────────────────────────────────────────────
+   HUMANIZE ERROR
+   Converts raw backend messages into user-facing copy.
+   Short, clearly user-facing messages are kept as-is.
+   Technical/server-ish strings are replaced with the
+   generic friendly fallback for that HTTP status.
+─────────────────────────────────────────────── */
+function humanizeError(message, status) {
+  if (!message || typeof message !== 'string') return null;
+
+  const msg = message.trim();
+
+  // Too long to be user-facing (server stack traces, long validation dumps)
+  if (msg.length > 120) return null;
+
+  // Technical tokens that should never appear in user-facing copy
+  const technicalPatterns = [
+    /exception/i,
+    /java\./i,
+    /org\./i,
+    /com\./i,
+    /could not execute/i,
+    /constraint/i,
+    /\bsql\b/i,
+    /\bnull\b/i,
+    /request method/i,
+    /no enum constant/i,
+    /no value present/i,
+    /stack trace/i,
+    /at line/i,
+    /hibernate/i,
+    /jackson/i,
+    /failed to convert/i,
+    /parse error/i,
+    /jsonparse/i,
+    /bad request$/i,
+    /internal server error/i,
+    /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/,   // ISO timestamps in messages
+  ];
+
+  for (const pattern of technicalPatterns) {
+    if (pattern.test(msg)) return null;
+  }
+
+  // Message looks short and user-readable — keep it
+  return msg;
+}
+
 async function apiFetch(path, options = {}, _isRetry = false) {
   // Proactively refresh if JWT is expired before making the call.
   // Avoids a guaranteed 401 round-trip and catches the browser-reopen case
@@ -121,13 +169,14 @@ async function apiFetch(path, options = {}, _isRetry = false) {
     const friendly = {
       400: 'Check your input and try again.',
       401: 'Not signed in.',
+      402: 'Payment declined — please check your payment method.',
       403: 'You don\'t have permission to do this.',
-      404: 'Not found.',
-      409: 'Already exists.',
+      404: 'That couldn\'t be found.',
+      409: 'This conflicts with something that already exists.',
       429: 'Too many requests — slow down and try again shortly.',
       500: 'Server error — try again shortly.',
     };
-    const error = new Error(err.message || friendly[res.status] || 'Something went wrong — check your connection.');
+    const error = new Error(humanizeError(err.message, res.status) || friendly[res.status] || 'Something went wrong — check your connection.');
     error.status = res.status;
     throw error;
   }
@@ -223,6 +272,25 @@ const OnboardingAPI = {
   deleteData:   ()       => apiFetch('/api/onboarding/data',    { method: 'DELETE' }),
 };
 
+/**
+ * Routes a just-authenticated user into the app.
+ *
+ * A first-time user (quiz still AWAITING) is sent through the onboarding quiz
+ * before reaching the map; everyone else — finished the quiz (COMPLETED) or
+ * declined it (CANCELLED) — goes straight to the map. Centralising this here
+ * keeps every auth entry point (password login, Google login, auto-redirect)
+ * consistent. On any status-lookup error we fail open to the map rather than
+ * trap the user. This does not touch the onboarding flow itself.
+ */
+async function enterApp() {
+  let destination = '/map';
+  try {
+    const { status } = await OnboardingAPI.getStatus();
+    if (status === 'AWAITING') destination = '/onboarding';
+  } catch (_) { /* no quiz row or transient error — fall through to /map */ }
+  window.location.href = destination;
+}
+
 /* ───────────────────────────────────────────────
    MATCH  /api/match
 ─────────────────────────────────────────────── */
@@ -266,14 +334,17 @@ const PartnerAPI = {
    PARTNER PINS  /api/partner-pins  (issue #130)
 ─────────────────────────────────────────────── */
 const PartnerPinAPI = {
-  getAll:    ()         => apiFetch('/api/partner-pins'),
-  getMine:   ()         => apiFetch('/api/partner-pins/mine'),
-  getById:   (id)       => apiFetch(`/api/partner-pins/${id}`),
-  create:    (dto)      => apiFetch('/api/partner-pins',        { method: 'POST',   body: JSON.stringify(dto) }),
-  update:    (id, dto)  => apiFetch(`/api/partner-pins/${id}`,  { method: 'PUT',    body: JSON.stringify(dto) }),
-  delete:    (id)       => apiFetch(`/api/partner-pins/${id}`,  { method: 'DELETE' }),
-  uploadLogo:(id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/partner-pins/${id}/logo`, { method: 'POST', body: f }); },
-  logoUrl:   (filename) => filename ? `/api/partner-pins/logo/${filename}` : null,
+  getAll:          ()         => apiFetch('/api/partner-pins'),
+  getMine:         ()         => apiFetch('/api/partner-pins/mine'),
+  getById:         (id)       => apiFetch(`/api/partner-pins/${id}`),
+  create:          (dto)      => apiFetch('/api/partner-pins',        { method: 'POST',   body: JSON.stringify(dto) }),
+  update:          (id, dto)  => apiFetch(`/api/partner-pins/${id}`,  { method: 'PUT',    body: JSON.stringify(dto) }),
+  delete:          (id)       => apiFetch(`/api/partner-pins/${id}`,  { method: 'DELETE' }),
+  uploadLogo:      (id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/partner-pins/${id}/logo`, { method: 'POST', body: f }); },
+  logoUrl:         (filename) => filename ? `/api/partner-pins/logo/${filename}` : null,
+  subscribe:       (id)       => apiFetch(`/api/partner-pins/${id}/subscription`, { method: 'POST' }),
+  unsubscribe:     (id)       => apiFetch(`/api/partner-pins/${id}/subscription`, { method: 'DELETE' }),
+  getSubscription: (id)       => apiFetch(`/api/partner-pins/${id}/subscription`),
 };
 
 /* ───────────────────────────────────────────────
@@ -295,12 +366,20 @@ const PartnerEventAPI = {
    PROMOTED ADS  /api/promoted-ads  (issue #132)
 ─────────────────────────────────────────────── */
 const PromotedAdAPI = {
-  create:      (dto)      => apiFetch('/api/promoted-ads',           { method: 'POST',   body: JSON.stringify(dto) }),
-  getMine:     ()         => apiFetch('/api/promoted-ads/mine'),
-  update:      (id, dto)  => apiFetch(`/api/promoted-ads/${id}`,     { method: 'PUT',    body: JSON.stringify(dto) }),
-  delete:      (id)       => apiFetch(`/api/promoted-ads/${id}`,     { method: 'DELETE' }),
-  uploadImage: (id, file) => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/promoted-ads/${id}/image`, { method: 'POST', body: f }); },
-  imageUrl:    (filename) => filename ? `/api/promoted-ads/image/${filename}` : null,
+  create:      (dto)           => apiFetch('/api/promoted-ads',                    { method: 'POST',   body: JSON.stringify(dto) }),
+  getMine:     ()              => apiFetch('/api/promoted-ads/mine'),
+  update:      (id, dto)       => apiFetch(`/api/promoted-ads/${id}`,              { method: 'PUT',    body: JSON.stringify(dto) }),
+  extend:      (id, additionalDays) => apiFetch(`/api/promoted-ads/${id}/extend`,  { method: 'POST',   body: JSON.stringify({ additionalDays }) }),
+  delete:      (id)            => apiFetch(`/api/promoted-ads/${id}`,              { method: 'DELETE' }),
+  uploadImage: (id, file)      => { const f = new FormData(); f.append('file', file); return apiFetch(`/api/promoted-ads/${id}/image`, { method: 'POST', body: f }); },
+  imageUrl:    (filename)      => filename ? `/api/promoted-ads/image/${filename}` : null,
+};
+
+/* ───────────────────────────────────────────────
+   PRICING  /api/pricing  (issue #238)
+─────────────────────────────────────────────── */
+const PricingAPI = {
+  get: () => apiFetch('/api/pricing'),
 };
 
 /* ───────────────────────────────────────────────
