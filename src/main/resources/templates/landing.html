@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,8 +16,8 @@
   <meta name="twitter:description" content="Connect with locals who share their city through authentic experiences. Skip the tourist trap, discover the real city.">
   <meta name="twitter:image" content="/images/og-card.png">
   <title>ExperiMate — Meet a local, not a tourist</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+  <link rel="apple-touch-icon" th:href="@{/icons/apple-touch-icon.png}">
   <link rel="manifest" href="/manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800;900&family=DM+Mono:wght@300;400;500&display=swap">
