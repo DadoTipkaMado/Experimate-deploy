@@ -35,7 +35,9 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(username, password)
         );
 
-        User user = userRepo.findByUsername(username)
+        // re-fetch by the same identifier the user authenticated with — they may have
+        // logged in with either their username or email (see AppUserDetailsService)
+        User user = userRepo.findByUsernameOrEmail(username, username)
                 .orElseThrow(() -> new UserNotFoundException(username));
 
         // credentials are valid — now block unverified accounts before issuing tokens
